@@ -2,7 +2,7 @@
 
 *The single reference for anyone, human or agent, working on this repo. Read it instead of the ~200,000 words in `docs/`; open those only when a section here points you there. Last updated 2026-10-14. Keep it under about 6,000 words and update the decisions log (§13) every session.*
 
-**Precedence when sources disagree:** the designer (Krish Sanghvi) > `docs/design/D5_design_decisions.md` > the design document that owns the topic (D1 favourites, D2 structure, D3 other units, D4 look) > `docs/CRITIQUE.md` > reviews. An R7 fact-check beats the review it checks. D0 §3 rules on science.
+**Precedence when sources disagree:** the designer (Krish Sanghvi) > `docs/design/D6_designer_decisions.md` (the designer's binding answers, 14 Oct 2026) > `docs/design/D5_design_decisions.md` > the design document that owns the topic (D1 favourites, D2 structure, D3 other units, D4 look) > `docs/CRITIQUE.md` > reviews. An R7 fact-check beats the review it checks. D0 §3 rules on science.
 
 ---
 
@@ -384,18 +384,16 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 - **2026-10-14** `docs/CRITIQUE.md` produced: the master critique and plan.
 - **2026-10-14** This bible, `README.md` and `CLAUDE.md` written.
 - **2026-10-14** Monkey baseline on a clean scratch build of today's source (seed 1, 390×780): 43 of 48 chapters reach the end card with no JS error or NaN text. `mendel` and `fancier` time out. `cross` (L2 Sturtevant's map), `landscape` (L1) and `double` (L2) report "stuck": the HUD is unchanged for 600 steps, probably puzzles a random tapper cannot finish (unverified). A random tapper earned three stars in `gametes`, more evidence of RC5.
-- **Pending designer approval:** the one-product frame, the cuts, the platform plan (§14).
+- **2026-10-14 — Designer decisions (D6, binding):** (1) the game is just called *Endless Forms*, with no "field station" branding; Hardy–Weinberg is folded in as **one chapter** ("Equilibrium", id `census`, levels of rising conceptual complexity, revised for undergraduates), and the `mixer` id is withdrawn; (2) cuts accepted; (3) platform plan accepted; (4) playtesting by the designer and colleagues, with no student recruitment for now; (5) **no controversial topics**: Malaria Coast, Out of Africa, Human Variation and the Manhattan Hunt are withdrawn, and heterozygote advantage is taught with warfarin-resistant rats; (6) MIT licence for now.
+- **2026-10-14** Shipped `Endless_Forms_v1.html` and `Equilibrium_HW_v2.html` rebuilt from the swept source, so players get the Wave 1 corrections.
 
 ## 14. Open questions for the designer
 
-1. **Frame and name.** One product called *Endless Forms* on a Tangled Bank field station, with Equilibrium absorbed as Act 3 (kept as a downloadable "classic" until Act 3 ships)? *Needed before Session 3.*
-2. **Cuts.** Food Web, Islands and After the Fire leave the core path; every level-2 quiz goes. Should any survive as play? *Before Session 3.*
-3. **Platform.** Plain JavaScript through Wave C, with TypeScript/Pixi decided by the Wood spike, or TypeScript from Wave A? *Before Session 3.*
-4. **Favourites.** Do the redesigns (several fish in Jaws, a 150-crab beach, live dosing, one day for the Forager, untimed tagging) keep what you loved? Judge by playing the Wood pilot.
-5. **Ghost jays.** Wood L3 keeps three morphs alive because designed jays copy your own rule on trunks you are not hunting. Honest enough for a flagship level?
-6. **Playtesters.** Can you recruit 10–12 new undergraduates and five-student boring testers at Oxford? Is ethics approval needed now?
-7. **Sensitive-content panel.** Name a human population geneticist and a scholar of race and science to sign off Malaria Coast, Out of Africa, Human Variation and the Manhattan Hunt.
-8. **Licence and hosting** for the published app (the repo is MIT today).
+The D5 §7 questions were answered on 14 Oct 2026; see D6. Still open:
+
+1. **Favourites.** Do the redesigns (several fish in Jaws, a 150-crab beach, live dosing, one day for the Forager, untimed tagging) keep what you loved? Judge by playing the v2 build.
+2. **Ghost jays.** Wood L3 keeps three morphs alive because designed jays copy your own rule on trunks you are not hunting. Honest enough for a flagship level?
+3. **Hosting** for the published app (the licence is MIT).
 
 ## 15. Conventions for agents
 

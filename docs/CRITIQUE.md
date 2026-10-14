@@ -45,6 +45,9 @@ Your favourites are the exception. All nine share four things today: a direct ph
 
 ### Decisions needed from you (D5 §7)
 
+> **Answered 14 Oct 2026; see `docs/design/D6_designer_decisions.md`.** Name: just *Endless Forms*. Hardy–Weinberg: one chapter with rising levels. Cuts: accepted. Platform: accepted. Playtests: the designer and colleagues. No controversial topics. MIT licence.
+
+
 - **Before Session 3:** (1) accept one product called *Endless Forms* on a Tangled Bank field station, with Equilibrium as Act 3; (2) accept the cuts (Food Web, Islands and After the Fire to the appendix; every level-2 quiz); (3) approve the platform plan: plain JavaScript through Wave C, with TypeScript and PixiJS decided by the one-week spike (§8 says what each outcome changes).
 - **Before the slice gate:** (4) recruit 10–12 new undergraduates and five-student boring testers, and check whether ethics approval is needed; (5) judge the ghost jays (§5) and the favourites' changes by playing the pilot.
 - **Before Wave A:** (6) nominate the two humans on the sensitive-content panel, a population geneticist and a scholar of race and science (§6); (7) choose a licence and hosting for the published app.

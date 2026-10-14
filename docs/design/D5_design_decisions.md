@@ -1,3 +1,5 @@
+> **Superseded in part by D6** (`D6_designer_decisions.md`, the designer's binding answers of 14 Oct 2026): the name is just *Endless Forms*; Hardy–Weinberg is ONE chapter (`census`, "Equilibrium") built in `v2/mixer.js` instead of the Mixer unit; no controversial/human-population topics (Malaria Coast, Out of Africa, Human Variation, Manhattan Hunt withdrawn; heterozygote advantage via warfarin-resistant rats); playtests by the designer and colleagues, not recruited students; MIT licence. D6 wins wherever it differs from this file.
+
 # D5. Design decisions: the hand-over from design to implementation
 
 *Coordinator B (design integrator), round 3. Records what D1–D4 settled after the round-2 cross-review, plus a final consistency pass over D0–D4, sweep logs G1–G7 and the code. Wave 2 agents build from it. It overrides D1–D4 where they differ; where it is silent the owning document rules, and D0 rules on science. "Wave 2" means everything built as plain-JS `v2/` plug-ins: Phase 0 plug-ins, the Phase 1 slice and Wave A.*
