@@ -13,7 +13,8 @@
    ?v1=1 are untouched. */
 
 const Rig = (() => {
-  const DEFS = {}, GROUNDS = {}, CACHE = new Map(), MAX = 700;
+  const DEFS = {}, GROUNDS = {}, CACHE = new Map(), MAX = 900, PIX = 12e6;   // the bake cache: ≤ 900 canvases and ≤ 12 M pixels (≈ 48 MB), oldest out first
+  let pix = 0;
   const INK = '#1B1612', PAPER = '#E8DFC9';
   const pal = (k, d) => typeof Pal !== 'undefined' && Pal[k] ? Pal[k] : d;
   const theme = () => typeof Pal !== 'undefined' && Pal.theme ? Pal.theme : 'dusk';
@@ -107,7 +108,7 @@ const Rig = (() => {
   const R0 = {
     def(species, d) {   // {recipe(ph, o) → {w, h, parts, anchors} | paint(c, ph, o) with w, h; develop?; quant; tier; row; paints}
       if (!d || (typeof d.recipe !== 'function' && typeof d.paint !== 'function')) throw new Error('Rig.def ' + species + ': needs recipe or paint');
-      DEFS[species] = Object.assign({ tier: 'actor', quant: { tone: 8, '*': 4 } }, d); for (const k of [...CACHE.keys()]) if (k.startsWith(species + '|')) CACHE.delete(k);
+      DEFS[species] = Object.assign({ tier: 'actor', quant: { tone: 8, '*': 4 } }, d); for (const k of [...CACHE.keys()]) if (k.startsWith(species + '|')) { const c0 = CACHE.get(k); pix -= c0.width * c0.height; CACHE.delete(k); }
       return DEFS[species];
     },
     has(species) { return !!DEFS[species]; },
@@ -115,7 +116,7 @@ const Rig = (() => {
     row(species) { const d = DEFS[species]; return d ? Object.assign({ species, tier: d.tier }, d.row || {}) : null; },
     paints() { const out = {}; for (const k in DEFS) if (DEFS[k].paints) out[k] = DEFS[k].paints.slice(); return out; },
     develop(species, lay, g) { const d = DEFS[species]; return d && d.develop ? d.develop(lay, g) : null; },
-    size(tier) { const u = typeof Stage !== 'undefined' && Stage.u ? Stage.u : 390; return Math.round((tier === 'hero' ? 0.12 : tier === 'crowd' ? 0.03 : 0.07) * u); },
+    size(tier) { const u = typeof Stage !== 'undefined' && Stage.u >= 100 ? Stage.u : 390; return Math.round((tier === 'hero' ? 0.12 : tier === 'crowd' ? 0.03 : 0.07) * u); },   // before layout: the 390 px phone
     recipe(species, ph, o) { const d = DEFS[species]; if (!d) throw new Error('Rig: unknown species ' + species); return d.recipe ? d.recipe(quant(d, ph), o || {}) : { w: d.w, h: d.h, parts: [] }; },
     // → a canvas of the rig at o.size CSS px (its longer side), device scale d; cv.cw, cv.ch = CSS size; cv.anchors in CSS px from the centre
     bake(species, ph, d, o) {
@@ -128,10 +129,11 @@ const Rig = (() => {
       if (def.paint) def.paint(c, q, { u: 1 / s, s, d, genes: !!o.genes, letters: !!o.letters, sv: hash(key) >>> 0 }); else paint(c, rc.parts || [], 1 / s);
       cv.cw = W * s; cv.ch = H * s; cv.s = s; cv.anchors = {};
       for (const k in rc.anchors || {}) cv.anchors[k] = [rc.anchors[k][0] * s, rc.anchors[k][1] * s];
-      CACHE.set(key, cv); if (CACHE.size > MAX) CACHE.delete(CACHE.keys().next().value);
+      CACHE.set(key, cv); pix += cv.width * cv.height;
+      while ((CACHE.size > MAX || pix > PIX) && CACHE.size > 1) { const k0 = CACHE.keys().next().value, c0 = CACHE.get(k0); pix -= c0.width * c0.height; CACHE.delete(k0); }
       return cv;
     },
-    // o: {size, rot, flip, id, halo, state: 'idle'|'alert'|'gone', t (s, idle phase clock), alert (0..1), genes, letters, alpha}
+    // o: {size, rot, flip, id, halo, notch, state: 'idle'|'alert'|'gone', t (s, idle phase clock), alert (0..1), genes, letters, alpha}
     // → {x, y, r, anchors: {name: [x, y]}} in canvas px (anchors follow the transform), for tags, threads and hit tests
     draw(c, species, ph, x, y, o) {
       o = o || {}; const def = DEFS[species]; if (!def) return null;
@@ -147,10 +149,15 @@ const Rig = (() => {
       c.drawImage(cv, -cv.cw / 2, -cv.ch / 2, cv.cw, cv.ch); c.restore();
       const r = size * 0.5 * sc, cr = cosD(rot), sr = sinD(rot), an = {};
       for (const k in cv.anchors) { const a = cv.anchors[k], ax = a[0] * fx, ay = a[1] * sc; an[k] = [x + ax * cr - ay * sr, y + dy + ax * sr + ay * cr]; }
+      if (o.notch && o.id != null) {   // D4 §4.1 rule 4: one micro-mark per individual, at an angle seeded by its id (off by default: it would betray camouflage)
+        const a = (hash(o.id + 'n') % 628) / 100, nx = x + cosD(a) * r * 0.78, ny = y + dy + sinD(a) * r * 0.78;
+        c.save(); c.beginPath(); c.moveTo(nx - 3 * sinD(a), ny + 3 * cosD(a)); c.lineTo(nx + 3 * cosD(a), ny + 3 * sinD(a)); c.lineTo(nx + 3 * sinD(a), ny - 3 * cosD(a)); c.closePath(); c.fillStyle = pal('paper', PAPER); c.fill(); c.lineWidth = 1; c.strokeStyle = INK; c.stroke(); c.restore();
+      }
       if (o.halo) { c.save(); c.beginPath(); c.arc(x, y + dy, r + 3, 0, TAU); c.lineWidth = 5; c.strokeStyle = INK; c.stroke(); c.lineWidth = 3; c.strokeStyle = pal('paper', PAPER); c.stroke(); c.restore(); }
       return { x, y: y + dy, r, anchors: an };
     },
-    clear() { CACHE.clear(); },
+    clear() { CACHE.clear(); pix = 0; },
+    get pixels() { return pix; },
     get cached() { return CACHE.size; },
     // grounds that belong to a rig (the side-blotched lizard's rocks): → {cv, T}; baked once, never in the frame loop
     defGround(name, fn) { GROUNDS[name] = fn; },
@@ -170,19 +177,19 @@ EXPORT.Rig = Rig;
   const alleleInk = a => a === 0 ? inkA() : a === 1 ? inka() : typeof Pal !== 'undefined' ? Pal.allele(a).fill : PAPER;
 
   /* ---- moth (Wood): wraps mothSprite; morph stencils (band, mottle, speckle), carbonaria, C/c badge in the GENES look ----
-     ph = {tone, hue, mot, morph: 'band'|'mottle'|'speck', carb: bool, cg: [c1, c2] (0 = C, 1 = c)}. No ink outline: on bark the
+     ph = {tone, hue, mot, morph: 'band'|'mottle'|'speck' (or band: true), carb: bool, cg: [c1, c2] (0 = C, 1 = c)}. No ink outline: on bark the
      moth's own edge is the camouflage (D4 §1.2 lifts the outline rule where the ground's tone is the variable). Tone gets 32
      bins, not D4's 8: what the player sees must match what is scored, and 8 bins (ΔE ≈ 8 a step) would hide real differences. */
   const WINGS = c => { c.beginPath(); for (const s of [-1, 1]) { c.moveTo(0, -4); c.bezierCurveTo(s * 5, -7, s * 14, -4.5, s * 16.5, 6); c.bezierCurveTo(s * 12, 9.5, s * 6, 10.5, 0, 8.5); c.closePath(); } };
   Rig.def('moth', {
     w: 38, h: 30, tier: 'actor', quant: { tone: 32, hue: 8, mot: 4, '*': 4 },
-    row: { scene: 'wood', squint: 'broad triangular wings, two antennae', channels: ['tone (luminance)', 'morph stencil (pattern: band, mottle, speck)', 'carbonaria (luminance)', 'C/c badge (letter, GENES lens)'] },
+    row: { scene: 'wood', squint: 'broad triangular wings, two antennae', channels: ['tone, and black carbonaria (luminance)', 'morph stencil (pattern: band, mottle, speck)', 'C/c badge (letter, GENES lens only)'] },
     paints: [],
     paint(c, ph, o) {
       const carb = !!ph.carb, t = carb ? 0.06 : ph.tone == null ? 0.5 : ph.tone, h = ph.hue == null ? 0.5 : ph.hue;
       const spr = mothSprite({ tone: t, hue: h, mot: carb ? 0.12 : ph.mot == null ? 0.3 : ph.mot }, o.s * o.d, o.sv);
       c.drawImage(spr, -19, -15, 38, 30);
-      const m = carb ? '' : ph.morph === 'A' || ph.morph === 'band' ? 'band' : ph.morph === 'B' || ph.morph === 'mottle' ? 'mottle' : ph.morph === 'ab' || ph.morph === 'speck' ? 'speck' : '';
+      const m = carb ? '' : ph.morph === 'A' || ph.morph === 'band' || (ph.band && !ph.morph) ? 'band' : ph.morph === 'B' || ph.morph === 'mottle' ? 'mottle' : ph.morph === 'ab' || ph.morph === 'speck' ? 'speck' : '';
       if (m) {
         c.save(); WINGS(c); c.clip(); const r = rng(o.sv ^ 0x9e37), col = d => css(t2rgb(clamp(t + d, 0, 1), h));
         if (m === 'band') { c.fillStyle = col(-0.34); c.beginPath(); for (const s of [-1, 1]) { c.moveTo(s * 1.5, 0); c.lineTo(s * 17, 3); c.lineTo(s * 17, 6.5); c.lineTo(s * 1.5, 4.6); c.closePath(); } c.fill(); }
@@ -257,9 +264,9 @@ EXPORT.Rig = Rig;
       const n = Math.round(4 + 28 * (ph.plates == null ? 1 : ph.plates)), plates = [], pl = ph.pelvis == null ? 1 : ph.pelvis;
       for (let i = 0; i < n; i++) { const x = 17 - i * 1.25; plates.push(L([x, -5, x - 1.2, 4], 'rgba(255,255,255,.45)', 0.8)); }
       const parts = [P([-21, -1, -31, -8, -28, 0, -31, 8], FIN, ol({ lw: 1.2 })), P([-2, 6, -9, 9, -5, 5], FIN)];
-      for (const [x, hgt] of [[13, 8], [5, 7], [-6, 4]]) parts.push(P([x - 1.4, -8 + (x < 0 ? 2 : 0), x, -8 - hgt + (x < 0 ? 2 : 0), x + 1.4, -8 + (x < 0 ? 2 : 0)], '#3E3B2F', ol({ lw: 0.9 })));
+      for (const [x, y0, hgt] of [[13, -7.5, 10], [4, -9, 9], [-7, -6.5, 5]]) parts.push(P([x - 2, y0 + 1, x + 1, y0 - hgt, x + 2.2, y0 + 1], '#3E3B2F', ol({ lw: 1 })));
       parts.push(D(body, STK, ol({ kids: [E(4, 6, 24, 5, STK2), ph.red ? E(19, 4, 8, 4, RED) : null, ...plates, E(6, -6, 12, 2, 'rgba(255,255,255,.22)'), E(0, 8, 22, 3, 'rgba(0,0,0,.12)')] })));
-      if (pl > 0.05) parts.push(P([7, 6.5, 7 - 10 * pl, 6.5 + 5 * pl, 9, 7.5], '#3E3B2F', ol({ lw: 0.9 })));
+      if (pl > 0.05) parts.push(P([5.5, 6, 7 - 12 * pl, 7 + 6 * pl, 9.5, 7.5], '#3E3B2F', ol({ lw: 1 })));
       parts.push(...eye(21, -2, 2.3), L([28, 0.5, 25.5, 1.4], INK, 1));
       return { w: 64, h: 30, parts, anchors: { pelvis: [7, 7], dorsal: [5, -14] } };
     }
@@ -275,16 +282,16 @@ EXPORT.Rig = Rig;
     paints: [LIZ, LIZ2, LIZB, THR.O, THR.B, THR.Y],
     recipe(ph, o) {
       const m = THR[ph.morph] ? ph.morph : 'O', parts = [];
-      parts.push(B([-14, -2, -24, -3, -32, 1, -38, 4, -30, 3, -22, 3, -14, 4], LIZ, ol({ lw: 1.2 })));
-      for (const [x, s] of [[9, 1], [-9, -1]]) parts.push(inkLine([x, 3, x + 3 * s, 9, x + 6 * s, 10], LIZ, 2), inkLine([x - 3, 3, x - 5 * s, 9, x - 9 * s + 4, 11], LIZ, 2));
-      const thr = THR[m], marks = m === 'B' ? [L([18, 2, 18, 7], INK, 1.1), L([21, 2, 21, 7], INK, 1.1), L([24, 2, 24, 6], INK, 1.1)] : m === 'Y' ? [L([15, 3.6, 27, 3.6], INK, 1), L([15, 5.6, 26, 5.6], INK, 1)] : [];
-      parts.push(D([['M', -15, -1], ['C', -6, -8, 10, -8, 18, -5], ['C', 25, -6, 31, -3, 31, 0], ['C', 30, 3, 25, 6, 18, 5.5], ['C', 8, 7, -6, 6, -15, 4], ['Z']], LIZ, ol({
-        kids: [E(4, 4, 18, 3.5, LIZB), E(21, 4.5, 7.5, 3.2, thr, { kids: marks }), P([-10, -4, -6, -6, -2, -4, 2, -6, 6, -4, 10, -6, 14, -4], null, { stroke: LIZ2, lw: 1.2 }),
-          C(9, -0.5, 2.6, '#2E2620'), E(4, -5, 13, 1.6, 'rgba(255,255,255,.2)'), E(2, 6, 16, 2, 'rgba(0,0,0,.12)')]
+      parts.push(B([-14, -3, -24, -3, -32, 2, -38, 6, -30, 5, -22, 4, -14, 5], LIZ, ol({ lw: 1.2 })));
+      for (const [x, s] of [[12, 1], [-8, -1]]) parts.push(inkLine([x, 4, x + 3 * s, 10, x + 7 * s, 11], LIZ, 2.4), inkLine([x - 3, 4, x - 6 * s, 10, x - 10 * s + 4, 12], LIZ, 2.4));
+      const thr = THR[m], marks = m === 'B' ? [L([17, 1, 17, 9], INK, 1.3), L([20.5, 1, 20.5, 9], INK, 1.3), L([24, 1, 24, 8], INK, 1.3)] : m === 'Y' ? [L([13, 3.6, 29, 3.6], INK, 1.2), L([13, 6.2, 28, 6.2], INK, 1.2)] : [];
+      parts.push(D([['M', -15, -2], ['C', -6, -10, 8, -10, 15, -6], ['C', 22, -10, 31, -7, 34, -1.5], ['C', 33, 3, 28, 7.5, 19, 7.5], ['C', 8, 9.5, -6, 8.5, -15, 4.5], ['Z']], LIZ, ol({
+        kids: [E(2, 6, 16, 3.5, LIZB), E(21, 5, 9, 4.2, thr, { kids: marks }), P([-10, -5, -6, -7.5, -2, -5, 2, -7.5, 6, -5, 10, -7.5, 14, -5], null, { stroke: LIZ2, lw: 1.4 }),
+          C(7, 0, 3, '#2E2620'), E(4, -6, 13, 1.6, 'rgba(255,255,255,.2)'), E(2, 7, 16, 2, 'rgba(0,0,0,.12)'), L([34, -1.5, 25, 1.8], INK, 1)]
       })));
-      parts.push(...eye(24, -2.2, 1.7));
-      if (o.letters) parts.push(C(24, -10.5, 5.2, PAPER, ol({ lw: 1 })), { op: 'glyph', ch: m, x: 24, y: -10.5, h: 6.4, col: INK, lw: 1.5 });
-      return { w: 72, h: 30, parts, anchors: { throat: [21, 5], head: [24, -10] } };
+      parts.push(...eye(25.5, -3.2, 1.9));
+      if (o.letters) parts.push(C(25, -12.5, 5.6, PAPER, ol({ lw: 1 })), { op: 'glyph', ch: m, x: 25, y: -12.5, h: 6.8, col: INK, lw: 1.6 });
+      return { w: 74, h: 34, parts, anchors: { throat: [21, 5], head: [25, -12] } };
     }
   });
   // the lizard's ground: sandy rock (OKLab L 0.38–0.81, no blue or amber, texture within ±0.06 L; D4 §1.2)
@@ -313,7 +320,7 @@ EXPORT.Rig = Rig;
     paints: [WAR, WAR2, WARW, LEG, '#E3D6B4'],
     recipe(ph) {
       if (ph.chick) {
-        const g = !!ph.gape, parts = [C(0, 6, 9, WAR2, ol({ kids: [E(-3, 2, 4, 2.5, 'rgba(255,255,255,.3)')] })), C(1, -5, 6.5, WAR, ol())];
+        const g = !!ph.gape, parts = [C(0, 6, 8.5, WAR, ol({ kids: [E(1, 9, 5.5, 4, WAR2), E(-3, 2, 3.5, 2, 'rgba(255,255,255,.25)')] })), C(1, -5, 6.2, WAR, ol())];
         parts.push(g ? P([5, -7, 15, -11, 7, -5, 15, -1, 5, -3], '#E3D6B4', ol({ lw: 1 })) : P([6, -6, 12, -5, 6, -3.5], LEG, ol({ lw: 0.8 })));
         parts.push(L([-1, -6, 2, -6.5], INK, 1.2));
         return { w: 30, h: 30, parts };
@@ -432,8 +439,8 @@ EXPORT.Rig = Rig;
       parts.push(E(0, 6, 9 * k, 8, CHK2, ol({ kids: [E(-3, 2, 3, 2, 'rgba(255,255,255,.3)'), E(3, 10, 6, 3, 'rgba(0,0,0,.12)')] })));
       for (const a of [-2.4, -1.6, -0.8]) parts.push(L([0, -10, 2.2 * Det.cos(a), -10 + 3.4 * Det.sin(a)], CHK, 0.9));
       parts.push(C(0, -4, 6, CHK, ol()));
-      parts.push(ph.gape ? D([['M', -6, -5], ['L', 0, -14], ['L', 6, -5], ['L', 0, -1], ['Z']], GAPE, ol({ lw: 1, kids: [P([-3, -6, 0, -11, 3, -6, 0, -3], GAPEIN)] })) : P([-4.5, -3, 0, -6, 4.5, -3, 0, 0], GAPE, ol({ lw: 1 })));
-      parts.push(L([-4, -5.5, -2, -5.2], INK, 1), L([2, -5.2, 4, -5.5], INK, 1));
+      parts.push(L([-4, -3.5, -2, -3.2], INK, 1), L([2, -3.2, 4, -3.5], INK, 1));
+      parts.push(ph.gape ? P([-6.5, -8, 0, -13.5, 6.5, -8, 0, -6], GAPEIN, ol({ lw: 1, kids: [L([-6.5, -8, 0, -13.5, 6.5, -8], GAPE, 3), L([-6.5, -8, 0, -6, 6.5, -8], GAPE, 2.6)] })) : P([-4.5, -8.5, 0, -12, 4.5, -8.5, 0, -6.5], GAPE, ol({ lw: 1 })));
       return { w: 24, h: 30, parts, anchors: { bill: [0, ph.gape ? -12 : -4] } };
     }
   });
@@ -451,28 +458,27 @@ EXPORT.Rig = Rig;
       row: { scene: 'lab plate', squint: { artemia: 'slender shrimp with leafy legs and stalked eyes', isopod: 'flattened woodlouse with seven walking legs', lobster: 'lobster with one pair of big claws', mantis: 'mantis shrimp with folded raptorial claws' }[sp], channels: ['feeding legs against walking legs, segment by segment (shape: the Hox boundary)'] },
       paints: [col, dark, pale],
       recipe(ph) {
-        const nMax = clamp(ph.maxi == null ? maxi0 : ph.maxi | 0, 0, nT), parts = [], segW = sp === 'artemia' ? 3.2 : 3.6, x0 = 16, abd = sp === 'artemia' ? 8 : 6;
-        const tx = i => x0 - i * segW - segW / 2, bodyH = sp === 'isopod' ? 6.5 : 5;
-        // limbs first (behind the body)
+        const nMax = clamp(ph.maxi == null ? maxi0 : ph.maxi | 0, 0, nT), parts = [], segW = sp === 'artemia' ? 3.4 : 4, x0 = 16, abd = sp === 'artemia' ? 8 : 6;
+        const tx = i => x0 - i * segW - segW / 2, bodyH = sp === 'isopod' ? 7 : 5.5;
+        // limbs first, behind the body: feeding legs pale, short and folded forward; walking legs dark, long and jointed
         for (let i = 0; i < nT; i++) {
           const x = tx(i), feed = i < nMax;
-          if (feed) { const big = sp === 'mantis' && i === 1; parts.push(...inkLine(big ? [x, 3, x + 6, 8, x + 11, 4, x + 15, 7] : [x, 3, x + 2.5, 6.5, x + 5, 5.5], dark, big ? 2.2 : 1.6)); }
-          else if (limb === 'leaf') parts.push(E(x - 0.5, 7, 1.4, 3.6, pale, ol({ lw: 0.9, rot: 0.35 })));
-          else if (sp === 'lobster' && i === nMax) parts.push(...inkLine([x, 3, x + 6, 10, x + 13, 9], col, 2.4), E(x + 17, 8, 6, 3.2, col, ol({ rot: -0.15, kids: [L([x + 15, 8.6, x + 23, 8.4], INK, 0.9)] })));
-          else parts.push(...inkLine([x, 3, x - 1.5, 9, x - 3.5, 12.5], dark, 1.3));
+          if (feed) { const big = sp === 'mantis' && i === 1; parts.push(...inkLine(big ? [x, 3, x + 6, 9, x + 12, 5, x + 16, 8] : [x, 3.5, x + 2.8, 7.5, x + 6, 6.5], pale, big ? 2.6 : 2)); }
+          else if (limb === 'leaf') parts.push(E(x - 0.6, 8, 1.6, 4, pale, ol({ lw: 1, rot: 0.35 })));
+          else if (sp === 'lobster' && i === nMax) parts.push(...inkLine([x, 3, x + 6, 10, x + 13, 10], dark, 2.6), E(x + 18, 9.5, 6.5, 3.4, dark, ol({ rot: -0.12, kids: [L([x + 15, 10, x + 24.5, 10], INK, 1)] })));
+          else parts.push(...inkLine([x, 3, x - 1.5, 10, x - 4, 14], dark, 1.5));
         }
-        const tail = x0 - nT * segW, aEnd = tail - abd * 3;
-        for (let j = 0; j < abd; j++) if (sp !== 'artemia' && j < 5) parts.push(...inkLine([tail - j * 3 - 1.5, 3, tail - j * 3 - 3, 6], dark, 0.9));
-        // body: head, thorax segments, abdomen, tail fan
+        const tail = x0 - nT * segW, aEnd = tail - abd * 3.2;
+        if (sp !== 'artemia') for (let j = 0; j < Math.min(5, abd); j++) parts.push(...inkLine([tail - j * 3.2 - 1.6, 3, tail - j * 3.2 - 3.2, 6.5], dark, 1));
         const segs = [];
         for (let i = 0; i < nT; i++) segs.push(L([tx(i) - segW / 2, -bodyH, tx(i) - segW / 2, bodyH * 0.7], alpha(INK, 0.35), 0.8));
-        for (let j = 1; j < abd; j++) segs.push(L([tail - j * 3, -bodyH * 0.85, tail - j * 3, bodyH * 0.6], alpha(INK, 0.3), 0.7));
-        parts.push(P(sp === 'artemia' ? [aEnd + 1, 0, aEnd - 6, -3, aEnd - 4, 0, aEnd - 6, 3] : [aEnd + 1, -1, aEnd - 7, -5, aEnd - 8, 0, aEnd - 7, 5, aEnd + 1, 1], pale, ol({ lw: 1 })));
-        parts.push(D([['M', x0 + 8, -bodyH * 0.6], ['C', x0 + 4, -bodyH * 1.25, x0 - 6, -bodyH * 1.2, tail, -bodyH], ['L', aEnd, -bodyH * 0.45], ['L', aEnd, bodyH * 0.3], ['L', tail, bodyH * 0.7], ['C', x0 - 4, bodyH * 0.9, x0 + 6, bodyH * 0.8, x0 + 8, bodyH * 0.2], ['Z']], col, ol({ kids: [...segs, E(x0 - 6, -bodyH * 0.7, 10, 1.4, 'rgba(255,255,255,.22)'), E(x0 - 10, bodyH * 0.7, 18, 2, 'rgba(0,0,0,.14)')] })));
-        parts.push(L([x0 + 7, -2, x0 + 22, -9, x0 + 30, -6], dark, 1), L([x0 + 7, -1, x0 + 16, -5], dark, 0.9));
-        if (sp === 'isopod') parts.push(...eye(x0 + 4, -3, 1.3)); else parts.push(L([x0 + 5, -3, x0 + 8, -7], INK, 1.1), ...eye(x0 + 8.4, -7.6, 1.5));
-        const left = Math.min(aEnd - 8, -36), w = 2 * Math.max(x0 + 32, -left);
-        return { w, h: 28, parts, anchors: { boundary: [tx(nMax) + segW / 2, -bodyH - 2] } };
+        for (let j = 1; j < abd; j++) segs.push(L([tail - j * 3.2, -bodyH * 0.85, tail - j * 3.2, bodyH * 0.6], alpha(INK, 0.3), 0.7));
+        parts.push(P(sp === 'artemia' ? [aEnd + 1, 0, aEnd - 6, -3, aEnd - 4, 0, aEnd - 6, 3] : [aEnd + 1, -1, aEnd - 7, -5.5, aEnd - 8.5, 0, aEnd - 7, 5.5, aEnd + 1, 1], pale, ol({ lw: 1 })));
+        parts.push(D([['M', x0 + 8, -bodyH * 0.6], ['C', x0 + 4, -bodyH * 1.25, x0 - 6, -bodyH * 1.2, tail, -bodyH], ['L', aEnd, -bodyH * 0.45], ['L', aEnd, bodyH * 0.3], ['L', tail, bodyH * 0.7], ['C', x0 - 4, bodyH * 0.9, x0 + 6, bodyH * 0.8, x0 + 8, bodyH * 0.2], ['Z']], col, ol({ kids: [...segs, E(x0 - 6, -bodyH * 0.7, 12, 1.5, 'rgba(255,255,255,.22)'), E(x0 - 10, bodyH * 0.7, 20, 2.2, 'rgba(0,0,0,.14)')] })));
+        parts.push(L([x0 + 7, -2, x0 + 20, -10, x0 + 28, -8], dark, 1.1), L([x0 + 7, -1, x0 + 15, -6], dark, 1));
+        if (sp === 'isopod') parts.push(...eye(x0 + 4, -3, 1.4)); else parts.push(L([x0 + 5, -3, x0 + 8, -7.5], INK, 1.2), ...eye(x0 + 8.5, -8, 1.6));
+        const lo = aEnd - 9, hi = x0 + 29, cx = (lo + hi) / 2;
+        return { w: hi - lo + 4, h: 30, parts: [{ op: 'g', x: -cx, y: -1, parts }], anchors: { boundary: [tx(nMax) + segW / 2 - cx, -bodyH - 3] } };
       }
     });
   }
@@ -495,7 +501,7 @@ EXPORT.Rig = Rig;
       else if (k === 'leaf') { const veins = []; for (let i = -6; i <= 6; i++) if (i) veins.push(L([0, i * 2.2, (i > 0 ? 1 : -1) * 0 + 8 * (i % 2 ? 1 : -1), i * 2.2 - 4], det, 0.7)); relief(D([['M', 0, -19], ['C', 12, -10, 12, 8, 0, 18], ['C', -12, 8, -12, -10, 0, -19], ['Z']]), [...veins, L([0, -18, 0, 19], det, lw)]); parts.push(L([0, 18, 1, 21], INK, 1.5)); }
       else if (k === 'tooth') { const ser = []; for (let i = 0; i < 6; i++) ser.push(L([-9 + i * 1.4, 8 - i * 4, -8 + i * 1.4, 8 - i * 4 - 1.2], det, 0.7), L([9 - i * 1.4, 8 - i * 4, 8 - i * 1.4, 8 - i * 4 - 1.2], det, 0.7)); relief(D([['M', 0, -16], ['L', 10, 9], ['Q', 0, 13, -10, 9], ['Z']]), [...ser, L([-9, 9, 9, 9], det, lw)]); }
       else if (k === 'bone') relief(D([['M', -12, -4], ['C', -20, -12, -22, 2, -15, 0], ['C', -22, 4, -16, 12, -12, 4], ['L', 12, 4], ['C', 16, 12, 22, 4, 15, 0], ['C', 22, 2, 20, -12, 12, -4], ['Z']]), [L([-10, -1, 10, -1], det, 0.8)]);
-      else if (k === 'worm') { const segs = []; for (let i = 0; i < 12; i++) { const x = -15 + i * 2.7; segs.push(L([x, -3 + Det.sin(i * 0.7) * 4, x, 3 + Det.sin(i * 0.7) * 4], det, 0.7)); } parts.push(B([-16, -3, -8, -10, 2, 6, 16, -4, 16, 2, 2, 12, -8, -4, -16, 3], st, { stroke: INK, lw: 1.3, dash: [3, 2], kids: segs })); }
+      else if (k === 'worm') { const segs = []; for (let i = 0; i < 13; i++) { const x = -16 + i * 2.7, y = -6 * Det.sin(i * 0.48); segs.push(L([x - 0.6, y - 4, x + 0.6, y + 4], det, 0.8)); } parts.push(B([-18, -1, -10, -14, 4, 4, 18, -10, 18, -3, 4, 12, -10, -6, -18, 5], st, { stroke: INK, lw: 1.3, dash: [3, 2], kids: segs })); }
       else if (k === 'beetle') relief(D([['M', 0, -16], ['C', 9, -16, 10, -6, 9, 6], ['C', 8, 14, 3, 17, 0, 17], ['C', -3, 17, -8, 14, -9, 6], ['C', -10, -6, -9, -16, 0, -16], ['Z']]), [L([0, -9, 0, 17], det, lw), L([-9, -9, 9, -9], det, lw), L([-11, -4, -16, -8], det, 0.9), L([11, -4, 16, -8], det, 0.9)]);
       else if (k === 'feather') { const barbs = []; for (let i = 0; i < 12; i++) barbs.push(L([0, -14 + i * 2.6, -7, -11 + i * 2.6], det, 0.6), L([0, -14 + i * 2.6, 7, -11 + i * 2.6], det, 0.6)); relief(D([['M', 0, -19], ['C', 9, -12, 8, 10, 1, 17], ['L', -1, 17], ['C', -8, 10, -9, -12, 0, -19], ['Z']]), [...barbs, L([0, -18, 0, 20], det, lw)]); }
       return { w: 44, h: 44, parts };
