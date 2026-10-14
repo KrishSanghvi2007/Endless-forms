@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const L=TB.REG.landscape; TB.App.play(L); let nulls=0, greedyWin=0, reach=0;
       for(let i=0;i<30;i++){ const Ld=L.mkLand(); if(!Ld){nulls++; continue;} L.Ld=Ld; const up=g=>L.nbrs(g).filter(h=>Ld.w[h]>Ld.w[g]); let g=Ld.start; while(up(g).length) g=up(g).reduce((a,b)=>Ld.w[a]>Ld.w[b]?a:b); if(g===Ld.gmax) greedyWin++; const st=[Ld.start], seen=new Set([Ld.start]); while(st.length){ const x=st.shift(); for(const y of up(x)) if(!seen.has(y)){ seen.add(y); st.push(y);} } if(seen.has(Ld.gmax)) reach++; }
       out.land='nulls '+nulls+' greedyWin '+greedyWin+'/30 reachable '+reach+'/30';

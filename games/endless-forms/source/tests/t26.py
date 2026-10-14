@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const C=TB.REG.commons; TB.App.play(C); C.predIn='fall'; C.predAll='rise'; C.run1(); out.price=JSON.stringify(C.price)+' sum '+(C.price.between+C.price.within).toFixed(4)+' pass '+C.res[0].pass; out.within=C.after.map(a=>a[1].toFixed(2)).join(',');
       window.__advance(3000); TB.Cards.close(); C.lv=1; C.begin2(); out.kbest=C.SC.map(S=>C.kBest(S)).join(','); out.check=C.SC.map(S=>{ const kb=C.kBest(S); const run=k=>{let p=0.5; for(let t=0;t<12;t++) p=C.step2(p,k,S); return p.toFixed(3);}; return run(kb)+'@'+kb+' vs '+run(kb+1)+'@'+(kb+1); }).join(' | ');
       const L=TB.REG.lock; const pol={opt:(h2)=>h2.indexOf(Math.max(...h2)), common:()=>L.h.indexOf(Math.max(...L.h)), rare:()=>L.h.indexOf(Math.min(...L.h))};

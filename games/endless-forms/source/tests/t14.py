@@ -1,10 +1,12 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 errs=[]
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.on('pageerror',lambda e: errs.append('PAGEERROR: '+str(e)))
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.wait_for_timeout(1000)
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.wait_for_timeout(1000)
     r=pg.evaluate("""()=>{ const S=TB.REG.sieve; const out=[];
       for(const mi of [3,4]) for(const frac of [0.3,0.45]) { const res=[]; for(let s=0;s<6;s++){ TB.seed(400+s*9); TB.Cards.close(); TB.App.play(S); S.mi=mi; S.beginMission(); const M=S.MISSIONS[mi]; let g=0, lags=[];
           while(S.mi===mi && g++<20){ // keep the fraction closest above the target: truncation toward target

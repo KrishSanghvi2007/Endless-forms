@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
       const F=TB.REG.fruits; TB.App.play(F); for(const KA of [0.4,0.5]){ F.KA=KA; out['fruits KA'+KA]=F.EXP.flat().map(E=>{ const H=F.sim(E); return H.at(-1).corr.toFixed(2)+'/'+H.at(-1).apple.toFixed(2); }).join(' | '); }
       F.KA=0.4; out['swarm s sweep']=[0.3,0.5,0.7,0.9].map(s=>F.sim({fruit:false,r:0.5,s,c:0.9}).at(-1).corr.toFixed(2)).join(','); out['fruit s sweep']=[0.05,0.1,0.2,0.3,0.5,0.7].map(s=>F.sim({fruit:true,r:0.5,s,c:0.9}).at(-1).corr.toFixed(2)).join(',');

@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const q=()=>{ const c=document.querySelector('#cards.on .card'); return c? c.innerText.replace(/\\s+/g,' ').slice(0,140):null; };
       out.title=document.querySelector('.sub') ? document.querySelector('.sub').textContent : '';
       TB.Save.d.done={lichen:1}; TB.App.open(TB.REG.soot); window.__advance(500); out.transfer=q(); const bs=document.querySelectorAll('#cards.on .card-btns button'); bs[0].click(); window.__advance(500); out.transfer2=q(); document.querySelector('#cards.on .card-btns button').click(); window.__advance(500); out.afterTransfer=q();

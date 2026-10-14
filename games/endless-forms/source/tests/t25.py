@@ -1,11 +1,13 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 import json, re
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
     import subprocess; subprocess.run(['python3','build.py'],capture_output=True)
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out=[]; const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
       const F=TB.REG.fruits; TB.App.play(F); out.push({fruits:F.EXP.flat().map(E=>F.cat(F.sim(E).at(-1).corr)).join(',')});
       const D=TB.REG.double; for(const [PR,SELF,VIG,V3] of [[1,0.5,1.6,0.15],[1,0.5,1.8,0.1],[1,0.6,1.8,0.1],[1,0.5,2.0,0.1],[1,0.6,2.0,0.05]]){ D.PR=PR; D.SELF=SELF; D.VIG=VIG; D.V3=V3; const res={clump:[],scatter:[]}; for(const mode of Object.keys(res)) for(let rep=0;rep<16;rep++){ TB.Cards.close(); TB.App.play(D); D.lv=0; D.begin1(); const cells = mode==='clump' ? [52,53,54,64,65,66,76,77,78,41] : shuffle([...Array(120).keys()]).slice(0,10); cells.forEach(k=>{D.g[k]=4;}); D.placed=10; for(let g=0;g<12;g++) D.step1(); res[mode].push(D.frac(4)); } out.push({set:[PR,SELF,VIG,V3], clump:res.clump.sort((a,b)=>a-b), scatter:res.scatter.sort((a,b)=>a-b)}); }

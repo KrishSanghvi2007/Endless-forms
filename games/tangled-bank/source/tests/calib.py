@@ -1,4 +1,6 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 import json
 from playwright.sync_api import sync_playwright
 JS = r"""
@@ -77,9 +79,9 @@ STEW = r"""
 import sys
 tests=sys.argv[1:] or ['lichen','lichen_lazy','soot','bitter','aripo','island','commons_naive','commons']
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)))
-    pg.goto('file://'+SRC+'/Tangled_Bank_v1.html'); pg.wait_for_timeout(800)
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Tangled_Bank_v1.html')); pg.wait_for_timeout(800)
     pg.evaluate("()=>{TB.App.go('tree')}")
     for t in tests:
         if t in ('lichen','lichen_lazy','soot','bitter'):

@@ -1,10 +1,12 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 errs=[]
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.on('pageerror',lambda e: errs.append('PAGEERROR: '+str(e)))
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.wait_for_timeout(1000)
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.wait_for_timeout(1000)
     r=pg.evaluate("""()=>{ const C=TB.REG.casino; TB.App.play(C); return C.TABLES.slice(5).map(t=>{ const [N,p,s,bn]=t; return JSON.stringify(t)+' -> '+C.sim(N,p,4000,s||0,bn||null).map(v=>v.toFixed(2)).join('/'); }); }""")
     print('casino truths (blue/red/mixed):'); print('\n'.join(r))
     r=pg.evaluate("""()=>{ const F=TB.REG.forager; TB.App.play(F); F.lv=2; F.beginLevel(); F.round=2; const out={mixedOpt:F.optRate(3)};

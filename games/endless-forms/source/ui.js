@@ -12,7 +12,12 @@ const PLAN = [
   { n: 'Species', c: [['river', 'The River', 'Allopatric speciation'], ['fruits', 'Two Fruits', 'Sympatric speciation'], ['ring', 'The Ring', 'Ring species'], ['double', 'Doubling', 'Polyploid speciation']] },
   { n: 'Deep time and ecology', c: [['arch', 'The Archipelago', 'Radiation and competition'], ['tree', 'Tree Thinking', 'Phylogeny and convergence'], ['web', 'The Food Web', 'Trophic cascades'], ['islands', 'Islands', 'Island biogeography'], ['fire', 'After the Fire', 'Succession']] }
 ];
-const ROM = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+const ROM = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII'];
+/* Redesign plug-ins (v2/*.js, loaded after the ch*.js files):
+   V2.push(CH_X)  registers a chapter; an existing id replaces the old version.
+   PLAN_ADD.push({ sec: 'Heredity', entry: ['id', 'Title', 'Concept'], after: 'census' })  adds a NEW chapter to the menu
+   (a new sec name creates a new section at the end; omit after to append). Applied in boot.js before registration. */
+const V2 = [], PLAN_ADD = [];
 const ORDER = []; PLAN.forEach(p => p.c.forEach(c => ORDER.push(c[0])));
 const REG = {};
 function chNum(id) { return ORDER.indexOf(id) + 1; }

@@ -1,13 +1,15 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
 from playwright.sync_api import sync_playwright
 from PIL import Image
 import sys
 scheme=sys.argv[1]; names=[]; errs=[]
 with sync_playwright() as p:
-    b=p.chromium.launch(); ctx=b.new_context(viewport={'width':390,'height':780},device_scale_factor=2,color_scheme=scheme); pg=ctx.new_page()
+    b=p.chromium.launch(**CHROME); ctx=b.new_context(viewport={'width':390,'height':780},device_scale_factor=2,color_scheme=scheme); pg=ctx.new_page()
     pg.on('pageerror',lambda e: errs.append(str(e)))
-    pg.goto('file://'+SRC+'/Equilibrium_HW_v2.html'); pg.wait_for_timeout(1200)
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Equilibrium_HW_v2.html')); pg.wait_for_timeout(1200)
     def shot(n): pg.screenshot(path=f'sh_{scheme}_{n}.png'); names.append(n)
     def ev(js, wait): pg.evaluate(js); pg.wait_for_timeout(wait)
     shot('title')

@@ -1,8 +1,10 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.wait_for_timeout(900)
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.wait_for_timeout(900)
     r=pg.evaluate("""()=>{ const Q=TB.REG.raffle; const FEM=[{L0:30,rem:6,n:'young sparse'},{L0:30,rem:2,n:'young crowded'},{L0:8,rem:2,n:'old crowded'},{L0:8,rem:6,n:'old sparse'},{L0:30,rem:3.5,n:'young some'}]; const out=[];
       for(const K of [{egg:0.6,rem:2.5,life:0.35},{egg:0.5,rem:1.2,life:0.6},{egg:0.4,rem:1.0,life:0.8},{egg:0.5,rem:0.8,life:0.5},{egg:0.3,rem:1.5,life:0.9}]){ Q.K=K; out.push(JSON.stringify(K)+' | '+FEM.map(F=>{const m=Q.opt(F,'m'),f=Q.opt(F,'f'); return F.n+': m'+m[0].toFixed(2)+' f'+f[0].toFixed(2);}).join('  ')); }
       return out; }""")

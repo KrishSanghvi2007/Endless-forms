@@ -1,10 +1,12 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 import re
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out=[]; const M=TB.REG.many; M.GOAL=99;
       for(const [VA,NZ,CO] of [[0.45,0.12,0.015],[0.35,0.08,0.015],[0.35,0.08,0.025],[0.25,0.06,0.02]]){ M.VA=VA; M.NZ=NZ; M.CO=CO; const row={set:[VA,NZ,CO]};
         for(const K of [3,8,20,50,110]){ const mg=[]; let lost=0; for(let rep=0;rep<10;rep++){ TB.Cards.close(); TB.App.play(M); M.lv=0; M.beginLevel(); let g=0; while(M.lv===0 && g++<40){ M.settle(); let k=0; while(M.atBottom().length<K && k++<600) M.update(0.02); M.transfer(); } if(/lost/.test(M.res[0].note)) lost++; else mg.push(M.meanG()); } row['K'+K]=[mg.length?+(mg.reduce((a,b)=>a+b,0)/mg.length).toFixed(1):0, lost]; } out.push(row); }

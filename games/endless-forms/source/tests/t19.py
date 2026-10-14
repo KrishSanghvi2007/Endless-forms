@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const F=TB.REG.fancier; 
       const fr=[]; for(let rep=0;rep<10;rep++){ TB.Cards.close(); TB.App.play(F); for(const lv of [0,1]){ F.lv=lv; F.beginLevel(); let g=0; while(g++<12){ const ord=F.pop.map((x,i)=>[x.a,i]).sort((a,b)=>b[0]-a[0]).slice(0,6); F.sel=new Set(ord.map(o=>o[1])); const before=F.res.length; F.breed(); TB.Cards.close(); if(F.res.length>before) break; } } const H=F.hist; fr.push(F.res.map(r=>r.pass?'P'+r.n:'F').join('/')+' ears '+H[0].ears.toFixed(2)+'>'+H.at(-1).ears.toFixed(2)); } out.fancier=fr.slice(0,5).join('  ');
       const C=TB.REG.coal; TB.App.play(C); const pairs=[], alls=[]; for(let k=0;k<300;k++){ const P=C.sim(new Array(301).fill(20)); pairs.push(C.trace(P,[0,1]).T); if(k<120) alls.push(C.trace(P,[...Array(20).keys()]).T); } out.coal='pair mean '+(pairs.reduce((a,b)=>a+b,0)/300).toFixed(1)+', all mean '+(alls.reduce((a,b)=>a+b,0)/120).toFixed(1);

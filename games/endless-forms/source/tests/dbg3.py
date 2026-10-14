@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out=[]; const cv=document.getElementById('scene'); const tap=(x,y)=>{ const rc=cv.getBoundingClientRect(); for(const t of ['pointerdown','pointerup']) cv.dispatchEvent(new PointerEvent(t,{clientX:rc.left+x,clientY:rc.top+y,pointerId:1,bubbles:true})); window.__advance(50); };
       const drag=(x0,y0,x1,y1)=>{ const rc=cv.getBoundingClientRect(); cv.dispatchEvent(new PointerEvent('pointerdown',{clientX:rc.left+x0,clientY:rc.top+y0,pointerId:1,bubbles:true})); cv.dispatchEvent(new PointerEvent('pointermove',{clientX:rc.left+x1,clientY:rc.top+y1,pointerId:1,bubbles:true})); cv.dispatchEvent(new PointerEvent('pointerup',{clientX:rc.left+x1,clientY:rc.top+y1,pointerId:1,bubbles:true})); window.__advance(50); };
       const clickCard=()=>{ const bs=document.querySelectorAll('#cards.on .card-btns button'); if(bs.length){ window.__advance(500); bs[bs.length-1].click(); window.__advance(100); return true;} return false; };

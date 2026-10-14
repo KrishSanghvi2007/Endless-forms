@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const C=TB.REG.copy; let ok=0; for(let rep=0;rep<10;rep++){ TB.Cards.close(); TB.App.play(C); C.lv=1; C.beginLevel(); while(C.ev<8) C.call(C.Eans); if(C.right2===8) ok++; } out.copy='rule bot 8/8 in '+ok+'/10'; TB.Cards.close();
       const A=TB.REG.arch; TB.App.play(A); out.arch=A.ISL.map(I=>A.bestB(I)[0].toFixed(1)).join(', ');
       const T=TB.REG.tree; out.tree=T.DATA.map(D=>[0,1,2].map(i=>T.steps(D,i)).join('/')).join(' | ');

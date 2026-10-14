@@ -1,11 +1,13 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 from PIL import Image
 errs=[]; names=[]
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780},device_scale_factor=2)
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780},device_scale_factor=2)
     pg.on('pageerror',lambda e: errs.append('PAGEERROR: '+str(e)))
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.wait_for_timeout(1300)
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.wait_for_timeout(1300)
     def shot(n): pg.screenshot(path=f's_{n}.png'); names.append(n)
     pg.evaluate("()=>{TB.App.play(TB.REG.river); const C=TB.REG.river; C.DRY=0; for(let i=0;i<4;i++) C.wait(); }"); pg.wait_for_timeout(300); shot('river1')
     pg.evaluate("()=>{const C=TB.REG.river; C.test();}"); pg.wait_for_timeout(300); shot('river1_test')

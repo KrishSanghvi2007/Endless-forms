@@ -21,7 +21,13 @@ CH_BITTER.theme = TH('#132217', '#1a2e1f', 'rgb(238,241,220)', '#c0282d', '#e2c3
 CH_JAWS.theme = TH('#0c2c34', '#103842', 'rgb(226,241,240)', '#cf6a38', '#f0c060', '#7ec3c9');
 CH_BROOD.theme = TH('#28192a', '#321f33', 'rgb(244,231,238)', '#b8862a', '#e8b460', '#8aa0b8');
 const ALL = [CH_MENDEL, CH_SCRIBE, CH_CROSS, CH_CASINO, CH_CAST, CH_LICHEN, CH_SOOT, CH_SIEVE, CH_BITTER, CH_JAWS, CH_HAWKS, CH_BROOD, CH_GAMETES, CH_RAFFLE, CH_ALARM, CH_FORAGER, CH_RIVER, CH_LEK, CH_MEADOW, CH_NEST, CH_SPINDLE, CH_CENSUS, CH_CLINIC, CH_PATHO, CH_BATS, CH_FANCY, CH_COAL, CH_SEX, CH_LIVE, CH_PLASTIC, CH_CROWD, CH_RING, CH_DOUBLE, CH_FRUITS, CH_COMMONS, CH_LOCK, CH_GUEST, CH_MANY, CH_LAND, CH_SWITCH, CH_SWEEP, CH_CLOCK, CH_COPY, CH_ARCH, CH_TREE, CH_WEB, CH_ISL, CH_FIRE];
+PLAN_ADD.forEach(a => {
+  let sec = PLAN.find(p => p.n === a.sec); if (!sec) { sec = { n: a.sec, c: [] }; PLAN.push(sec); }
+  const k = a.after ? sec.c.findIndex(c => c[0] === a.after) : -1; sec.c.splice(k >= 0 ? k + 1 : sec.c.length, 0, a.entry);
+});
+ORDER.length = 0; PLAN.forEach(p => p.c.forEach(c => ORDER.push(c[0])));
 ALL.forEach(reg);
+V2.forEach(reg);
 
 function boot() {
   Save.load(); Snd.on = Save.d.snd !== false;

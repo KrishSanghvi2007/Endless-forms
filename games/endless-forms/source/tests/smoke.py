@@ -1,11 +1,13 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 import sys
 from playwright.sync_api import sync_playwright
 from PIL import Image
 f='file://'+SRC+'/'+(sys.argv[1] if len(sys.argv)>1 else 'Endless_Forms_v1.html')
 errs=[]; shots=[]
 with sync_playwright() as p:
-    b=p.chromium.launch()
+    b=p.chromium.launch(**CHROME)
     pg=b.new_page(viewport={'width':390,'height':780},device_scale_factor=2,has_touch=True)
     pg.on('console',lambda m: errs.append('console.'+m.type+': '+m.text) if m.type=='error' and '403' not in m.text else None)
     pg.on('pageerror',lambda e: errs.append('PAGEERROR: '+str(e)))

@@ -1,8 +1,10 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.wait_for_timeout(900)
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.wait_for_timeout(900)
     r=pg.evaluate("""()=>{ const out=[]; const C=TB.REG.castaways;
       for(const [L,S,H,U,G,Q] of [[80,0.05,0.2,0.3,1.8,0.15],[80,0.05,0.2,0.2,1.8,0.2],[80,0.06,0.15,0.3,1.9,0.15],[60,0.07,0.15,0.25,1.9,0.18]]) { Object.assign(C,{L,S,HD:H,U,GROW:G,Q0:Q}); const line=[];
         for(const pol of [0,15,10]) { let alive=0, wsum=0, ext=[], jump=[]; for(let s=0;s<12;s++){ TB.seed(70+s*11); TB.Cards.close(); TB.App.play(C); C.lv=1; C.begin2(); let g=0;

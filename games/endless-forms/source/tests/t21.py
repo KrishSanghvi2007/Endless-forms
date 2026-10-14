@@ -1,9 +1,11 @@
 import os; SRC=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the source/ folder
+CHROME={"executable_path":"/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}  # cloud sandbox chromium
+HTML_OVERRIDE=os.environ.get("GAME_HTML")  # optional: path of a specific build to test
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':780})
+    b=p.chromium.launch(**CHROME); pg=b.new_page(viewport={'width':390,'height':780})
     pg.add_init_script(path=SRC+'/vclock.js')
-    pg.goto('file://'+SRC+'/Endless_Forms_v1.html'); pg.evaluate("()=>window.__advance(1500)")
+    pg.goto('file://'+(HTML_OVERRIDE or SRC+'/Endless_Forms_v1.html')); pg.evaluate("()=>window.__advance(1500)")
     r=pg.evaluate("""()=>{ const out={}; const L=TB.REG.livefast; TB.App.play(L);
       out.dp_fox=[1,2,3,4,5,6,7,8].map(a=>L.bestR(a,0.5).toFixed(2)).join(' '); out.dp_island=[1,2,3,4,5,6,7,8].map(a=>L.bestR(a,0.08).toFixed(2)).join(' ');
       out.eggs=L.ENV2.map(E=>{ let bs=1,bv=0; for(let s=1;s<=6;s++){const v=L.val2(s,E.s0); if(v>bv){bv=v;bs=s;}} return bs; }).join(',');
