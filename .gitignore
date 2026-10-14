@@ -1,0 +1,8 @@
+# build outputs written into source/ by build.py (the shipped single-file HTML lives one folder up)
+games/*/source/game.js
+games/endless-forms/source/Endless_Forms_v1.html
+games/equilibrium-hw/source/Equilibrium_HW_v2.html
+games/tangled-bank/source/Tangled_Bank_v1.html
+__pycache__/
+.DS_Store
+__MACOSX/

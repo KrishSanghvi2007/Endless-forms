@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equilibrium — a Hardy–Weinberg game</title>
+<style>
+:root {
+  --sky1: #b6c2ea; --sky2: #efcfd6; --sky3: #f8e2c4; --hill1: #8fae97; --hill2: #6f9681; --hill3: #557c6b;
+  --ink: #1d2033; --muted: #555a74; --accent: #b8325a; --glow: #f2b33d; --red: #d8344f; --pink: #f08fb0; --ivory: #f7f1e3;
+  --plate: #fffaf2; --aa-ink: #8a7650; --panel: rgba(255, 251, 244, .80); --line: rgba(29, 32, 51, .14); --btn: #1d2033; --btn-ink: #fffaf2;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky1: #070a24; --sky2: #161a48; --sky3: #2d2558; --hill1: #1c2c3e; --hill2: #142234; --hill3: #0d1826;
+    --ink: #eef0ff; --muted: #a6abcc; --accent: #ff7d9c; --glow: #ffd36e; --plate: #0b0e26; --panel: rgba(14, 17, 42, .74); --aa-ink: #f7f1e3;
+    --line: rgba(238, 240, 255, .16); --btn: #eef0ff; --btn-ink: #121531;
+  }
+}
+:root[data-theme="dark"] {
+  --aa-ink: #f7f1e3; --sky1: #070a24; --sky2: #161a48; --sky3: #2d2558; --hill1: #1c2c3e; --hill2: #142234; --hill3: #0d1826;
+  --ink: #eef0ff; --muted: #a6abcc; --accent: #ff7d9c; --glow: #ffd36e; --plate: #0b0e26; --panel: rgba(14, 17, 42, .74);
+  --line: rgba(238, 240, 255, .16); --btn: #eef0ff; --btn-ink: #121531;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+body { margin: 0; height: 100%; overflow: hidden; background: var(--sky3); color: var(--ink); font-family: var(--sans); -webkit-tap-highlight-color: transparent; }
+#cv { position: fixed; inset: 0; display: block; touch-action: none; }
+#top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 6px; display: flex; align-items: center; gap: 8px; z-index: 5; }
+#top.hide { display: none; }
+.st { flex: 1; min-width: 0; }
+#st-name { font-family: var(--serif); font-size: 20px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#st-sub { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ibtn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; height: 36px; min-width: 36px; padding: 0 12px; font: 600 13px var(--sans); cursor: pointer; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+#panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); width: min(680px, calc(100% - 20px)); max-height: 47vh; overflow: auto; background: var(--panel); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); border: 1px solid var(--line); border-radius: 22px; padding: 14px 16px 12px; z-index: 5; box-shadow: 0 10px 40px rgba(0, 0, 0, .18); }
+#panel.hide { display: none; }
+#say { font-size: 15.5px; line-height: 1.52; }
+#say:empty { display: none; }
+#say b { font-weight: 700; }
+#ctl:not(:empty) { margin-top: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.btn { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 10px 16px; font: 600 14.5px var(--sans); cursor: pointer; min-height: 42px; }
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: transparent; }
+.btn.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.btn.good { background: #2f8f62; color: #fff; border-color: transparent; }
+.btn.bad { background: #b8325a; color: #fff; border-color: transparent; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn:focus-visible, .ibtn:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.wide { flex: 1 1 100%; }
+.btn.half { flex: 1 1 calc(50% - 8px); }
+.sld { display: flex; align-items: center; gap: 10px; width: 100%; margin: 2px 0; }
+.sld input { flex: 1; accent-color: var(--accent); height: 28px; }
+.sl-l { font-size: 13px; color: var(--muted); min-width: 58px; }
+.sl-v { min-width: 70px; text-align: right; font-variant-numeric: tabular-nums; font-size: 15px; }
+.al { font-family: var(--serif); font-style: italic; font-weight: 700; }
+.al.A { color: var(--red); }
+.fx { font-family: var(--serif); font-size: 1.08em; white-space: nowrap; }
+.tAA { color: var(--red); } .tAa { color: var(--pink); } .taa { color: var(--aa-ink); }
+#modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 10; background: rgba(5, 6, 20, .38); padding: calc(env(safe-area-inset-top, 0px) + 16px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+#modal.on { display: flex; }
+.card { background: var(--panel); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 18px; max-width: 540px; width: 100%; max-height: 100%; overflow: auto; padding: 20px 20px 14px; color: var(--ink); box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.card h2 { font-family: var(--serif); font-weight: 600; font-size: 25px; margin: 0 0 6px; line-height: 1.15; }
+.card h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 14px 0 2px; }
+.card p, .card li { line-height: 1.55; margin: 8px 0; font-size: 15px; }
+.card ul { padding-left: 20px; margin: 6px 0; }
+.card-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.card table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0; }
+.card td, .card th { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+.card th { font-weight: 700; }
+.stars { font-size: 30px; color: var(--glow); letter-spacing: 4px; }
+.stars .off { opacity: .22; }
+.big-eq { font-family: var(--serif); font-size: 26px; text-align: center; margin: 12px 0; }
+.mini { display: flex; gap: 14px; align-items: flex-end; height: 92px; padding: 6px 4px 0; }
+.mini span { flex: 1; border-radius: 6px 6px 2px 2px; position: relative; }
+.mini span i { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-style: normal; font-size: 12px; color: var(--ink); }
+.optc { border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px 6px; cursor: pointer; background: transparent; color: var(--ink); width: calc(50% - 6px); }
+.optc:focus-visible { outline: 2px solid var(--accent); }
+.optgrid { display: flex; flex-wrap: wrap; gap: 12px; }
+#toasts { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 56px); width: min(560px, calc(100% - 24px)); z-index: 8; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.toast { background: var(--panel); border: 1px solid var(--line); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-radius: 14px; padding: 10px 14px; font-size: 14px; line-height: 1.45; transition: opacity .4s, transform .4s; }
+.toast.out { opacity: 0; transform: translateY(-6px); }
+#titlecard { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 4; padding: 24px; pointer-events: none; }
+#titlecard.on { display: flex; }
+#titlecard > * { pointer-events: auto; }
+#titlecard h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(46px, 11vw, 96px); margin: 0; letter-spacing: -.01em; line-height: 1; }
+#titlecard .eq { font-family: var(--serif); font-size: clamp(28px, 7vw, 50px); margin: 14px 0 6px; }
+#titlecard .eq .taa { color: var(--aa-ink); }
+#titlecard p { color: var(--muted); max-width: 30em; margin: 6px auto 18px; font-size: 16px; line-height: 1.5; }
+#titlecard .row { justify-content: center; }
+#err { display: none; position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 99; background: #3b0a12; color: #ffd7dd; font: 12px monospace; padding: 10px; border-radius: 8px; white-space: pre-wrap; max-height: 40vh; overflow: auto; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="top" class="hide">
+  <button class="ibtn" id="b-map" aria-label="Back to the meadow path">Meadow</button>
+  <div class="st"><div id="st-name"></div><div id="st-sub"></div></div>
+  <button class="ibtn" id="b-guide">Guide</button>
+  <button class="ibtn" id="b-set" aria-label="Settings">⚙︎</button>
+</div>
+<div id="titlecard">
+  <h1>Equilibrium</h1>
+  <div class="eq"><span class="tAA">p²</span> + <span class="tAa">2pq</span> + <span class="taa">q²</span> = 1</div>
+  <p>A game about the Hardy–Weinberg principle: why genes in a population stay put, and what makes them move.</p>
+  <div class="row"><button class="btn primary" id="b-begin">Begin</button><button class="btn" id="b-guide2">Field guide</button></div>
+</div>
+<div id="panel" class="hide"><div id="say"></div><div id="ctl"></div></div>
+<div id="toasts"></div>
+<div id="modal"></div>
+<div id="err"></div>
+<script>
+(function () {
+'use strict';
+/* ================= Equilibrium: engine ================= */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2, R = Math.random;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t;
+const pick = a => a[(R() * a.length) | 0];
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (R() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const mean = a => a.reduce((s, x) => s + x, 0) / (a.length || 1);
+const pct = (v, d = 0) => (v * 100).toFixed(d) + '%';
+const f2 = v => (+v).toFixed(2);
+const ease = t => 1 - Math.pow(1 - t, 3);
+function rng(seed) { let s = (seed >>> 0) || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function binom(n, p) { let k = 0; for (let i = 0; i < n; i++) if (R() < p) k++; return k; }
+const SERIF = '"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif', SANS = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+
+/* ---- genetics helpers: counts are [AA, Aa, aa] ---- */
+const hwExp = p => [p * p, 2 * p * (1 - p), (1 - p) * (1 - p)];
+const pOf = c => { const N = c[0] + c[1] + c[2]; return N ? (2 * c[0] + c[1]) / (2 * N) : 0; };
+const frac = c => { const N = (c[0] + c[1] + c[2]) || 1; return c.map(v => v / N); };
+function hwCounts(p, N) { const e = hwExp(p).map(f => f * N), c = e.map(Math.floor); const rem = N - c[0] - c[1] - c[2]; const order = e.map((v, i) => [v - c[i], i]).sort((a, b) => b[0] - a[0]); for (let k = 0; k < rem; k++) c[order[k % 3][1]]++; return c; }
+function countsToList(c) { const L = []; for (let i = 0; i < c[0]; i++) L.push('AA'); for (let i = 0; i < c[1]; i++) L.push('Aa'); for (let i = 0; i < c[2]; i++) L.push('aa'); return L; }
+const listCounts = L => [L.filter(g => g === 'AA').length, L.filter(g => g === 'Aa').length, L.filter(g => g === 'aa').length];
+const gtOf = (a, b) => a === b ? (a === 'A' ? 'AA' : 'aa') : 'Aa';
+const gamete = g => g === 'AA' ? 'A' : g === 'aa' ? 'a' : (R() < 0.5 ? 'A' : 'a');
+const GTI = { AA: 0, Aa: 1, aa: 2 };
+
+/* ---- palette from CSS tokens ---- */
+const Pal = {};
+function readPal() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['sky1', 'sky2', 'sky3', 'hill1', 'hill2', 'hill3', 'ink', 'muted', 'accent', 'glow', 'red', 'pink', 'ivory', 'plate']) Pal[k] = (cs.getPropertyValue('--' + k).trim() || '#888888');
+  const th = document.documentElement.dataset.theme; Pal.night = th === 'dark' || (th !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  Bg.dirty = true;
+}
+const GCOL = g => g === 'AA' ? Pal.red : g === 'Aa' ? Pal.pink : Pal.ivory;
+function hexRGB(hex) { let h = hex.replace('#', ''); if (h.length === 3) h = h.split('').map(x => x + x).join(''); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function hexA(hex, a) { const [r, g, b] = hexRGB(hex); return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; }
+function mixHex(a, b, t) { const A = hexRGB(a), B = hexRGB(b), m = A.map((v, i) => Math.round(lerp(v, B[i], t))); return '#' + m.map(v => v.toString(16).padStart(2, '0')).join(''); }
+const lighten = (c, k) => mixHex(c, '#ffffff', k);
+
+/* ---- drawing helpers ---- */
+function ink(c, txt, x, y, size, col, align = 'center', weight = 600, fam) { c.font = weight + ' ' + size + 'px ' + (fam === 'serif' ? SERIF : SANS); c.fillStyle = col; c.textAlign = align; c.textBaseline = 'middle'; c.fillText(txt, x, y); }
+function rrect(c, x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function glowDot(c, x, y, r, col, a) { const g = c.createRadialGradient(x, y, 0, x, y, r * 5); g.addColorStop(0, hexA(col, a)); g.addColorStop(0.25, hexA(col, a * 0.45)); g.addColorStop(1, hexA(col, 0)); c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 5, 0, TAU); c.fill(); }
+function mote(c, x, y, al, r = 3.2, a = 1) { const col = al === 'A' ? Pal.red : (Pal.night ? Pal.ivory : '#fff8e6'); glowDot(c, x, y, r, al === 'A' ? Pal.red : Pal.glow, 0.75 * a); c.globalAlpha = a; c.fillStyle = al === 'A' ? lighten(Pal.red, 0.25) : col; c.beginPath(); c.arc(x, y, r * 0.8, 0, TAU); c.fill(); if (!Pal.night && al !== 'A') { c.strokeStyle = 'rgba(80,60,40,.35)'; c.lineWidth = 0.8; c.stroke(); } c.globalAlpha = 1; }
+function plate(c, x, y, w, h, r = 14, a = 0.55) { c.fillStyle = hexA(Pal.plate, a); rrect(c, x, y, w, h, r); c.fill(); }
+
+/* a snapdragon-like flower; col may be a genotype or a colour */
+function flower(c, x, y, s, col, o = {}) {
+  const fill = col[0] === '#' ? col : GCOL(col), t = Game.t, sw = o.still ? 0 : Math.sin(t * 1.2 + x * 0.045 + y * 0.02) * 0.07;
+  c.save(); c.translate(x, y); if (o.alpha != null) c.globalAlpha = o.alpha;
+  const tx = Math.sin(sw) * s * 1.6, ty = -s * 1.75;
+  c.strokeStyle = Pal.night ? '#3f6b5c' : '#4b7a5c'; c.lineWidth = Math.max(1.2, s * 0.1); c.lineCap = 'round'; c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(tx * 0.25, -s * 0.9, tx, ty); c.stroke();
+  if (s > 9) { c.fillStyle = Pal.night ? '#355e50' : '#5f8f68'; c.beginPath(); c.ellipse(s * 0.32, -s * 0.5, s * 0.34, s * 0.12, -0.6, 0, TAU); c.fill(); }
+  c.translate(tx, ty); c.rotate(sw);
+  if (o.glow) glowDot(c, 0, 0, s * 0.55, o.glowCol || fill, 0.45 * o.glow);
+  if (s < 9) { c.fillStyle = fill; c.beginPath(); c.arc(0, 0, s * 0.62, 0, TAU); c.fill(); if (!Pal.night && fill === Pal.ivory) { c.strokeStyle = 'rgba(70,60,40,.35)'; c.lineWidth = 0.7; c.stroke(); } }
+  else for (let i = 0; i < 5; i++) { c.save(); c.rotate(-Math.PI / 2 + i * TAU / 5); const gr = c.createRadialGradient(0, -s * 0.15, 1, 0, -s * 0.45, s * 0.62); gr.addColorStop(0, lighten(fill, 0.4)); gr.addColorStop(1, fill); c.fillStyle = gr; c.beginPath(); c.ellipse(0, -s * 0.42, s * 0.27, s * 0.43, 0, 0, TAU); c.fill(); if (!Pal.night && fill === Pal.ivory) { c.strokeStyle = 'rgba(70,60,40,.28)'; c.lineWidth = 0.8; c.stroke(); } c.restore(); }
+  c.fillStyle = '#f2c14e'; c.beginPath(); c.arc(0, 0, Math.max(1.2, s * 0.14), 0, TAU); c.fill();
+  if (o.ring) { c.strokeStyle = o.ring; c.lineWidth = 2.5; c.beginPath(); c.arc(0, 0, s * 0.98, 0, TAU); c.stroke(); }
+  c.restore();
+  if (o.label) ink(c, o.label, x, y + Math.max(9, s * 0.5), Math.max(10, Math.min(15, s * 0.5)), Pal.ink, 'center', 700, 'serif');
+}
+const bloomY = (p) => p.y - p.s * 1.75;
+
+/* ---- layout ---- */
+const Stage = {
+  w: 0, h: 0, dpr: 1, down: null,
+  init() { this.cv = $('cv'); this.c = this.cv.getContext('2d'); addEventListener('resize', () => this.resize()); this.resize(); this.bind(); },
+  resize() { this.dpr = Math.min(2, window.devicePixelRatio || 1); this.w = window.innerWidth; this.h = window.innerHeight; this.cv.width = Math.round(this.w * this.dpr); this.cv.height = Math.round(this.h * this.dpr); this.cv.style.width = this.w + 'px'; this.cv.style.height = this.h + 'px'; Bg.dirty = true; if (Game.scene && Game.scene.resize) Game.scene.resize(); },
+  area() { const tp = $('top'), pn = $('panel'), t = tp.classList.contains('hide') ? 0 : tp.getBoundingClientRect().bottom, b = pn.classList.contains('hide') ? this.h : pn.getBoundingClientRect().top; return { x: 0, y: t + 4, w: this.w, h: Math.max(140, b - t - 10) }; },
+  bind() {
+    const pos = e => { const r = this.cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    this.cv.addEventListener('pointerdown', e => { Snd.unlock(); if (UI.modal) return; const [x, y] = pos(e); this.down = { x, y }; const S = Game.scene; if (S && S.down) S.down(x, y); });
+    this.cv.addEventListener('pointermove', e => { if (!this.down) return; const [x, y] = pos(e); const S = Game.scene; if (S && S.move) S.move(x, y); });
+    const up = e => { if (!this.down) return; const [x, y] = pos(e), d = this.down; this.down = null; const S = Game.scene; if (S && S.up) S.up(x, y); if (Math.hypot(x - d.x, y - d.y) < 14 && S && S.tap) S.tap(x, y); };
+    this.cv.addEventListener('pointerup', up); this.cv.addEventListener('pointercancel', () => { this.down = null; });
+  }
+};
+function meadow(n, A, seed = 1, o = {}) {
+  const r = rng(seed), cols = o.cols || Math.max(3, Math.round(Math.sqrt(n * A.w / Math.max(60, A.h * (o.depth || 0.55))))), rows = Math.ceil(n / cols), pts = [];
+  const y0 = A.y + A.h * (o.top == null ? 0.38 : o.top), y1 = A.y + A.h * (o.bottom == null ? 0.96 : o.bottom), x0 = A.x + (o.left || 0) * A.w, xw = A.w * ((o.right == null ? 1 : o.right) - (o.left || 0));
+  const base = o.size || Math.min(30, xw / cols * 0.42, (y1 - y0) / Math.max(1, rows) * 0.5 + 6);
+  for (let i = 0; i < n; i++) { const row = (i / cols) | 0, col = i % cols, t = rows > 1 ? row / (rows - 1) : 0.6, y = lerp(y0, y1, t) + (r() - 0.5) * 6, s = base * lerp(0.75, 1.05, t), x = x0 + (col + 0.5 + (r() - 0.5) * 0.45 + (row % 2 ? 0.25 : -0.25) * 0.5) * xw / cols; pts.push({ x, y, s }); }
+  return pts;
+}
+function hitFlower(pts, x, y, alive) { let bi = -1, bd = 1e9; pts.forEach((p, i) => { if (alive && !alive(i)) return; const d = Math.hypot(p.x - x, bloomY(p) - y); if (d < bd) { bd = d; bi = i; } }); return bi >= 0 && bd < Math.max(22, pts[bi].s * 1.3) ? bi : -1; }
+
+/* ---- background ---- */
+const Bg = {
+  dirty: true, off: null, stars: [], flies: [],
+  build() {
+    const w = Stage.w, h = Stage.h; this.off = document.createElement('canvas'); this.off.width = Math.max(1, Math.round(w * Stage.dpr)); this.off.height = Math.max(1, Math.round(h * Stage.dpr)); const c = this.off.getContext('2d'); c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0);
+    const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, Pal.sky1); g.addColorStop(0.55, Pal.sky2); g.addColorStop(1, Pal.sky3); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const mx = w * 0.84, my = h * 0.13, mr = Math.min(w, h) * 0.055; const mg = c.createRadialGradient(mx, my, mr * 0.3, mx, my, mr * 5); mg.addColorStop(0, Pal.night ? 'rgba(255,246,214,.30)' : 'rgba(255,233,190,.65)'); mg.addColorStop(1, 'rgba(255,240,210,0)'); c.fillStyle = mg; c.fillRect(0, 0, w, h);
+    c.fillStyle = Pal.night ? '#fbf3d8' : '#fff3da'; c.beginPath(); c.arc(mx, my, mr, 0, TAU); c.fill(); if (Pal.night) { c.fillStyle = Pal.sky1; c.beginPath(); c.arc(mx + mr * 0.42, my - mr * 0.18, mr * 0.88, 0, TAU); c.fill(); }
+    const hill = (base, amp, col, k) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, h); for (let x = 0; x <= w + 24; x += 24) c.lineTo(x, base + Math.sin(x / w * 2.6 + k) * amp + Math.sin(x / w * 6.3 + k * 2.1) * amp * 0.35); c.lineTo(w, h); c.closePath(); c.fill(); };
+    hill(h * 0.56, h * 0.03, Pal.hill1, 1.3); hill(h * 0.64, h * 0.035, Pal.hill2, 2.7); hill(h * 0.74, h * 0.03, Pal.hill3, 4.1);
+    const r = rng(7); this.stars = []; for (let i = 0; i < 110; i++) this.stars.push({ x: r() * w, y: r() * h * 0.55, s: r() * 1.5 + 0.3, ph: r() * TAU });
+    this.flies = []; for (let i = 0; i < 16; i++) this.flies.push({ x: r() * w, y: h * (0.5 + r() * 0.45), ph: r() * TAU, sp: 0.25 + r() * 0.45 });
+    this.dirty = false;
+  },
+  draw(c, w, h, t) {
+    if (this.dirty || !this.off) this.build(); c.drawImage(this.off, 0, 0, w, h);
+    if (Pal.night) for (const s of this.stars) { const a = 0.35 + 0.65 * Math.abs(Math.sin(t * 0.7 + s.ph)); c.fillStyle = 'rgba(255,250,235,' + (a * 0.85).toFixed(3) + ')'; c.fillRect(s.x, s.y, s.s, s.s); }
+    c.save(); c.globalCompositeOperation = Pal.night ? 'lighter' : 'source-over'; for (const f of this.flies) { const x = f.x + Math.sin(t * f.sp + f.ph) * 34, y = f.y + Math.cos(t * f.sp * 1.3 + f.ph) * 14, a = 0.15 + 0.35 * Math.max(0, Math.sin(t * 2 * f.sp + f.ph)); glowDot(c, x, y, 2, Pal.glow, a); } c.restore();
+  }
+};
+
+/* ---- effects ---- */
+const FX = {
+  ps: [],
+  add(p) { this.ps.push(Object.assign({ t: 0, life: 1 }, p)); return p; },
+  fly(x0, y0, x1, y1, al, life, done, o = {}) { return this.add(Object.assign({ kind: 'fly', x0, y0, x1, y1, x: x0, y: y0, al, life, done, lift: 30 + R() * 40, delay: 0 }, o)); },
+  update(dt) {
+    for (const p of this.ps) {
+      p.t += dt; const tt = p.t - (p.delay || 0);
+      if (p.kind === 'fly') { const k = ease(clamp(tt / p.life, 0, 1)); p.x = lerp(p.x0, p.x1, k) + Math.sin(k * Math.PI) * (p.arc || 0); p.y = lerp(p.y0, p.y1, k) - Math.sin(k * Math.PI) * p.lift; }
+      else if (p.vx != null) { p.vy += (p.g || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot = (p.rot || 0) + (p.vr || 0) * dt; }
+      if (tt >= p.life && p.done && !p.fired) { p.fired = true; p.done(p); }
+    }
+    this.ps = this.ps.filter(p => p.t - (p.delay || 0) < p.life);
+  },
+  draw(c) {
+    for (const p of this.ps) {
+      if (p.t < (p.delay || 0)) continue; const k = clamp((p.t - (p.delay || 0)) / p.life, 0, 1), a = p.fade ? 1 - k : 1;
+      if (p.kind === 'fly') mote(c, p.x, p.y, p.al, p.r || 3.4, a);
+      else if (p.kind === 'conf') { c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.globalAlpha = a; c.fillStyle = p.col; c.fillRect(-3, -6, 6, 12); c.restore(); }
+      else if (p.kind === 'ring') { c.strokeStyle = hexA(p.col, 0.7 * (1 - k)); c.lineWidth = 2.5; c.beginPath(); c.arc(p.x, p.y, 6 + k * (p.rad || 40), 0, TAU); c.stroke(); }
+      else if (p.kind === 'text') { c.globalAlpha = 1 - k; ink(c, p.txt, p.x, p.y - k * 30, p.size || 18, p.col || Pal.ink, 'center', 800, 'serif'); c.globalAlpha = 1; }
+    }
+  },
+  clear() { this.ps = []; },
+  ring(x, y, col, rad = 40) { this.add({ kind: 'ring', x, y, col: col || Pal.glow, rad, life: 0.6 }); },
+  text(x, y, txt, col, size) { this.add({ kind: 'text', x, y, txt, col, size, life: 1.1 }); },
+  confetti(x, y, n = 44) { const cols = [Pal.red, Pal.pink, Pal.ivory, Pal.glow, Pal.accent]; for (let i = 0; i < n; i++) this.add({ kind: 'conf', x, y, vx: (R() - 0.5) * 460, vy: -R() * 440 - 80, g: 760, vr: (R() - 0.5) * 12, col: pick(cols), life: 1.7, fade: true }); }
+};
+
+/* ---- sound ---- */
+const Snd = {
+  ctx: null,
+  unlock() { if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { this.ctx = null; } } if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  tone(f, d = 0.15, type = 'sine', v = 0.05, delay = 0) { if (Save.d.mute || !this.ctx) return; try { const t0 = this.ctx.currentTime + delay, o = this.ctx.createOscillator(), g = this.ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d); o.connect(g); g.connect(this.ctx.destination); o.start(t0); o.stop(t0 + d + 0.03); } catch (e) { } },
+  click() { this.tone(900, 0.05, 'triangle', 0.025); },
+  pop() { this.tone(500 + R() * 260, 0.09, 'sine', 0.035); },
+  good() { this.tone(660, 0.14, 'sine', 0.05); this.tone(990, 0.2, 'sine', 0.045, 0.08); },
+  bad() { this.tone(233, 0.25, 'triangle', 0.045); },
+  star() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.3, 'sine', 0.045, i * 0.09)); },
+  chord() { [392, 494, 587].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.025, i * 0.02)); }
+};
+
+/* ---- save ---- */
+const Save = {
+  k: 'equilibrium_hw_v1', d: { stars: {}, done: {}, mute: false, all: false, best: 0, theme: '' },
+  load() { try { const s = localStorage.getItem(this.k); if (s) { const o = JSON.parse(s); if (o && typeof o === 'object') Object.assign(this.d, o); } } catch (e) { } if (!this.d.stars) this.d.stars = {}; if (!this.d.done) this.d.done = {}; },
+  save() { try { localStorage.setItem(this.k, JSON.stringify(this.d)); } catch (e) { } },
+  star(id, n) { if (n > (this.d.stars[id] || 0)) this.d.stars[id] = n; this.d.done[id] = 1; this.save(); }
+};
+const starStr = n => '★'.repeat(n) + '<span class="off">' + '★'.repeat(Math.max(0, 3 - n)) + '</span>';
+
+/* ---- interface ---- */
+const UI = {
+  modal: false,
+  clear() { $('say').innerHTML = ''; $('ctl').innerHTML = ''; },
+  say(h) { $('say').innerHTML = h; },
+  ctl(...nodes) { const c = $('ctl'); c.innerHTML = ''; for (const n of nodes) if (n) c.appendChild(n); },
+  btn(t, fn, cls) { const b = document.createElement('button'); b.className = 'btn' + (cls ? ' ' + cls : ''); b.innerHTML = t; b.addEventListener('click', () => { if (b.disabled) return; Snd.unlock(); Snd.click(); fn(b); }); return b; },
+  row(...nodes) { const d = document.createElement('div'); d.className = 'row'; for (const n of nodes) if (n) d.appendChild(n); return d; },
+  slider(o) { const w = document.createElement('label'); w.className = 'sld'; w.innerHTML = '<span class="sl-l">' + o.label + '</span><input type="range" min="' + o.min + '" max="' + o.max + '" step="' + o.step + '" value="' + o.value + '" aria-label="' + (o.aria || o.label) + '"><b class="sl-v"></b>'; const inp = w.querySelector('input'), v = w.querySelector('.sl-v'); const upd = () => { v.textContent = o.fmt ? o.fmt(+inp.value) : inp.value; if (o.oninput) o.oninput(+inp.value); }; inp.addEventListener('input', upd); upd(); w.inp = inp; w.val = () => +inp.value; return w; },
+  card(o) {
+    const m = $('modal'); m.innerHTML = ''; const box = document.createElement('div'); box.className = 'card ' + (o.cls || ''); box.innerHTML = (o.title ? '<h2>' + o.title + '</h2>' : '') + (o.html || '');
+    const row = document.createElement('div'); row.className = 'card-btns'; let armed = false; setTimeout(() => { armed = true; }, 330);
+    for (const b of (o.buttons || [{ t: 'Continue', primary: true }])) { const el = document.createElement('button'); el.className = 'btn' + (b.primary ? ' primary' : ''); el.innerHTML = b.t; el.addEventListener('click', () => { if (!armed) return; Snd.unlock(); Snd.click(); if (!b.keep) UI.close(); if (b.fn) b.fn(); }); row.appendChild(el); }
+    box.appendChild(row); m.appendChild(box); m.classList.add('on'); this.modal = true; if (o.onOpen) o.onOpen(box, () => armed);
+  },
+  close() { $('modal').classList.remove('on'); $('modal').innerHTML = ''; this.modal = false; },
+  toast(h, ms = 3600) { const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = h; const box = $('toasts'); while (box.children.length >= 2) box.firstChild.remove(); box.appendChild(t); setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 450); },
+  top(name, sub) { $('st-name').textContent = name || ''; $('st-sub').textContent = sub || ''; },
+  ask(o) { /* multiple-choice card: o.title, o.q, o.opts [[key,label]], o.ans, o.why, o.done(ok) */
+    UI.card({ title: o.title || 'Your call', html: '<p>' + o.q + '</p>', buttons: o.opts.map(([k, t]) => ({ t, fn: () => { const ok = k === o.ans; ok ? Snd.good() : Snd.bad(); UI.card({ title: ok ? 'Right' : 'Not quite', html: '<p>' + o.why + '</p>', buttons: [{ t: 'Continue', primary: true, fn: () => o.done && o.done(ok) }] }); } })) });
+  }
+};
+function stepper(S) { S.si = -1; S.next = function () { this.si++; const f = this.steps[this.si]; if (f) f.call(this); }; }
+
+/* ---- charts ---- */
+function barsHW(c, x, y, w, h, obs, exp, o = {}) {
+  const labels = o.labels || ['AA', 'Aa', 'aa'], cols = [Pal.red, Pal.pink, Pal.ivory], bw = w / 3;
+  plate(c, x - 10, y - (o.title ? 26 : 10), w + 20, h + (o.title ? 50 : 34), 14, 0.55);
+  if (o.title) ink(c, o.title, x + w / 2, y - 12, 12, Pal.muted, 'center', 600);
+  for (let i = 0; i < 3; i++) {
+    const bx = x + i * bw + bw * 0.18, ww = bw * 0.64, v = obs ? clamp(obs[i], 0, 1) : 0, hh = h * v;
+    c.fillStyle = hexA(Pal.ink, 0.06); rrect(c, bx, y, ww, h, 5); c.fill();
+    if (obs) { c.fillStyle = cols[i]; rrect(c, bx, y + h - hh, ww, Math.max(hh, 0.01), 5); c.fill(); if (i === 2 && !Pal.night) { c.strokeStyle = 'rgba(60,50,40,.3)'; c.lineWidth = 1; c.stroke(); } }
+    if (exp) { const ey = y + h - h * clamp(exp[i], 0, 1); c.strokeStyle = Pal.night ? Pal.glow : '#7a5a10'; c.lineWidth = 2.2; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(bx - 7, ey); c.lineTo(bx + ww + 7, ey); c.stroke(); c.setLineDash([]); }
+    ink(c, labels[i], bx + ww / 2, y + h + 13, 12.5, Pal.ink, 'center', 700, 'serif');
+    if (obs && o.vals !== false) ink(c, pct(v), bx + ww / 2, Math.max(y + 8, y + h - hh - 9), 11, Pal.ink, 'center', 700);
+  }
+}
+function lineChart(c, x, y, w, h, series, o = {}) {
+  plate(c, x - 10, y - 10, w + 20, h + (o.title ? 38 : 20), 12, 0.55);
+  c.strokeStyle = hexA(Pal.ink, 0.22); c.lineWidth = 1; c.beginPath(); c.moveTo(x, y + h); c.lineTo(x + w, y + h); c.moveTo(x, y); c.lineTo(x, y + h); c.stroke();
+  if (o.mid) { c.setLineDash([3, 4]); c.beginPath(); c.moveTo(x, y + h * 0.5); c.lineTo(x + w, y + h * 0.5); c.stroke(); c.setLineDash([]); }
+  const n = Math.max(2, o.n || Math.max(...series.map(s => s.d.length)));
+  for (const s of series) { if (!s.d.length) continue; c.strokeStyle = s.col; c.lineWidth = s.wd || 2.4; if (s.dash) c.setLineDash(s.dash); c.beginPath(); s.d.forEach((v, i) => { const X = x + w * i / (n - 1), Y = y + h - h * clamp(v, 0, 1); i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.stroke(); c.setLineDash([]); }
+  if (o.title) ink(c, o.title, x + w / 2, y + h + 15, 11.5, Pal.muted, 'center', 600);
+}
+
+/* ---- loop ---- */
+const Game = {
+  scenes: {}, scene: null, id: '', t: 0, last: 0,
+  reg(s) { this.scenes[s.id] = s; },
+  go(id, arg) {
+    if (this.scene && this.scene.exit) this.scene.exit(); UI.close(); UI.clear(); FX.clear();
+    const S = this.scenes[id]; this.scene = S; this.id = id;
+    $('panel').classList.toggle('hide', !!S.noPanel); $('top').classList.toggle('hide', !!S.noTop); UI.top(S.title || '', S.sub || '');
+    S.enter(arg);
+  },
+  frame() {
+    const now = performance.now(), dt = Math.min(0.05, this.last ? (now - this.last) / 1000 : 0.016); this.last = now; this.t += dt;
+    const c = Stage.c; c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0);
+    try { Bg.draw(c, Stage.w, Stage.h, this.t); const S = this.scene; if (S) { if (!UI.modal && S.update) S.update(dt); if (S.draw) S.draw(c, Stage.w, Stage.h); } FX.update(dt); FX.draw(c); } catch (e) { showErr(e); }
+    setTimeout(() => this.frame(), 16);
+  }
+};
+function showErr(e) { const b = $('err'); if (b && b.style.display !== 'block') { b.style.display = 'block'; b.textContent = 'Something went wrong: ' + ((e && e.stack) || e); } }
+window.addEventListener('error', e => showErr(e.error || e.message));
+
+/* ================= Scenes: title, map, stations 1–4 ================= */
+const STATIONS = [
+  { id: 's1', name: 'Two copies', sub: 'Genotype and phenotype', desc: 'Build flowers from two alleles, and learn why you cannot always see a genotype.' },
+  { id: 's2', name: 'The pollen cloud', sub: 'Allele frequencies', desc: 'Release a meadow’s pollen into the air and count the gene pool: p and q.' },
+  { id: 's3', name: 'The square', sub: 'Why p², 2pq and q²', desc: 'Make seeds from the pollen cloud and discover where the equation comes from.' },
+  { id: 's4', name: 'One generation', sub: 'Reaching equilibrium', desc: 'A meadow far from equilibrium reaches it in one generation, and then stays put.' },
+  { id: 'hub', name: 'Five ways to break it', sub: 'The assumptions', desc: 'Selection, mutation, migration, drift and non-random mating: play each one and see what it does.' },
+  { id: 's6', name: 'Hidden carriers', sub: 'Putting it to work', desc: 'Count invisible carriers, then test real data for equilibrium.' },
+  { id: 'quiz', name: 'The grand quiz', sub: 'Twelve questions against the clock', desc: 'Everything you have learned, with a timer, streaks and a final rank.' }
+];
+const unlocked = i => Save.d.all || i === 0 || !!Save.d.done[STATIONS[i - 1].id];
+function finishStation(id, stars, html) {
+  Save.star(id, stars); Snd.star(); FX.confetti(Stage.w / 2, Stage.h * 0.38, 54);
+  const i = STATIONS.findIndex(s => s.id === id), nx = STATIONS[i + 1];
+  UI.card({ title: STATIONS[i].name + ': complete', html: '<div class="stars">' + starStr(stars) + '</div>' + html, buttons: [{ t: 'Back to the meadow', fn: () => Game.go('map') }].concat(nx ? [{ t: 'Next: ' + nx.name, primary: true, fn: () => Game.go(nx.id) }] : []) });
+}
+
+/* ---- title ---- */
+Game.reg({
+  id: 'title', noPanel: true, noTop: true,
+  enter() { $('titlecard').classList.add('on'); this.ring = []; for (let i = 0; i < 72; i++) this.ring.push({ a: R() * TAU, r: 0.75 + R() * 0.5, sp: 0.05 + R() * 0.1, al: R() < 0.62 ? 'A' : 'a', ph: R() * TAU }); },
+  exit() { $('titlecard').classList.remove('on'); },
+  draw(c, w, h) {
+    const cx = w / 2, cy = h * 0.47, rx = Math.min(w * 0.5, 560), ry = Math.min(h * 0.33, 300), t = Game.t;
+    c.save(); if (Pal.night) c.globalCompositeOperation = 'lighter';
+    for (const m of this.ring) { const a = m.a + t * m.sp, k = 0.92 + (m.r - 0.75) * 0.3 + Math.sin(t * 0.9 + m.ph) * 0.03; mote(c, cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k, m.al, 3, 0.85); }
+    c.restore();
+    const vg = c.createRadialGradient(cx, cy, 10, cx, cy, Math.min(w * 0.55, 420)); vg.addColorStop(0, hexA(Pal.night ? Pal.sky1 : Pal.sky3, Pal.night ? 0.55 : 0.6)); vg.addColorStop(1, hexA(Pal.night ? Pal.sky1 : Pal.sky3, 0)); c.fillStyle = vg; c.fillRect(0, 0, w, h);
+    const n = Math.max(9, Math.round(w / 46)), r = rng(3);
+    for (let i = 0; i < n; i++) { const g = r() < 0.36 ? 'AA' : r() < 0.7 ? 'Aa' : 'aa', x = (i + 0.5) * w / n + (r() - 0.5) * 16, y = h * (0.9 + r() * 0.07); flower(c, x, y, clamp(w / 40, 14, 26), g); }
+  }
+});
+
+/* ---- the meadow path ---- */
+Game.reg({
+  id: 'map', title: 'The meadow path', sub: 'Seven stations, from two alleles to the whole equation',
+  enter() {
+    const n = STATIONS.filter(s => Save.d.done[s.id]).length, nx = STATIONS.findIndex((s, i) => !Save.d.done[s.id] && unlocked(i));
+    UI.say(n === 0 ? 'Each lantern is a station. Start with the first; the next one lights up when you finish.' : 'Stations complete: <b>' + n + ' of 7</b>. Tap any lit lantern to play it again.');
+    UI.ctl(UI.row(nx >= 0 ? UI.btn('Continue: ' + STATIONS[nx].name, () => Game.go(STATIONS[nx].id), 'primary') : UI.btn('Play the grand quiz again', () => Game.go('quiz'), 'primary')));
+  },
+  pos() { const A = Stage.area(); return STATIONS.map((s, i) => { const t = i / (STATIONS.length - 1); return { x: A.x + A.w * (i % 2 ? 0.68 : 0.32) + Math.sin(i * 1.7) * A.w * 0.04, y: A.y + A.h * (0.9 - 0.8 * t) }; }); },
+  hot() { return this.pos(); },
+  tap(x, y) {
+    const P = this.pos(); const i = P.findIndex(p => Math.hypot(p.x - x, p.y - y) < 34); if (i < 0) return; const S = STATIONS[i], st = Save.d.stars[S.id] || 0;
+    if (!unlocked(i)) { UI.toast('Finish <b>' + STATIONS[i - 1].name + '</b> to light this lantern.'); Snd.bad(); return; }
+    UI.card({ title: S.name, html: '<p>' + S.desc + '</p>' + (Save.d.done[S.id] ? '<div class="stars">' + starStr(st) + '</div>' : ''), buttons: [{ t: 'Not yet' }, { t: Save.d.done[S.id] ? 'Play again' : 'Start', primary: true, fn: () => Game.go(S.id) }] });
+  },
+  draw(c) {
+    const P = this.pos(), t = Game.t;
+    c.save(); c.strokeStyle = hexA(Pal.glow, 0.35); c.lineWidth = 5; c.setLineDash([2, 10]); c.lineCap = 'round'; c.beginPath(); P.forEach((p, i) => { if (!i) c.moveTo(p.x, p.y); else { const q = P[i - 1]; c.quadraticCurveTo((p.x + q.x) / 2 + (i % 2 ? 40 : -40), (p.y + q.y) / 2, p.x, p.y); } }); c.stroke(); c.restore();
+    P.forEach((p, i) => {
+      const S = STATIONS[i], on = unlocked(i), done = !!Save.d.done[S.id], pulse = on && !done ? 0.5 + 0.5 * Math.sin(t * 3) : 0;
+      if (on) glowDot(c, p.x, p.y, 7 + pulse * 2, done ? Pal.glow : Pal.accent, 0.55);
+      c.fillStyle = on ? (done ? Pal.glow : Pal.accent) : hexA(Pal.ink, 0.25); c.beginPath(); c.arc(p.x, p.y, 21, 0, TAU); c.fill();
+      ink(c, '' + (i + 1), p.x, p.y + 1, 18, on ? (done ? '#3a2a00' : '#fff') : hexA(Pal.ink, 0.6), 'center', 700, 'serif');
+      const right = i % 2 === 0, lx = p.x + (right ? 32 : -32);
+      ink(c, S.name, lx, p.y - 6, 15, on ? Pal.ink : hexA(Pal.ink, 0.45), right ? 'left' : 'right', 700, 'serif');
+      ink(c, done ? '★'.repeat(Save.d.stars[S.id] || 0) || 'done' : S.sub, lx, p.y + 12, 12, done ? Pal.glow : Pal.muted, right ? 'left' : 'right', 600);
+    });
+  }
+});
+
+/* ================= Station 1: Two copies ================= */
+Game.reg({
+  id: 's1', title: 'Two copies', sub: 'Genotype and phenotype',
+  enter() { this.al = ['A', 'a']; this.dom = false; this.mode = 'build'; this.made = new Set(); stepper(this); this.next(); },
+  gt() { return gtOf(this.al[0], this.al[1]) === 'Aa' ? 'Aa' : gtOf(this.al[0], this.al[1]); },
+  look(g, dom) { return dom ? (g === 'aa' ? 'aa' : 'AA') : g; },
+  word(g, dom) { const k = this.look(g, dom); return k === 'AA' ? 'red' : k === 'Aa' ? 'pink' : 'white'; },
+  geo() { const A = Stage.area(), s = clamp(Math.min(A.h * 0.17, A.w * 0.14), 24, 62), x = A.w / 2, y = A.y + A.h * 0.58, br = Math.max(21, s * 0.42); return { A, s, x, y, br, b: [{ x: x - s * 1.15, y: y + s * 1.25 }, { x: x + s * 1.15, y: y + s * 1.25 }] }; },
+  steps: [
+    function () { this.mode = 'build'; UI.say('Every snapdragon carries <b>two copies</b> of the flower-colour gene, one from each parent. Each copy is an <b>allele</b>: <span class="al A">A</span> makes red pigment and <span class="al">a</span> makes none. <b>Tap the two glowing alleles</b> under the flower to switch them, and make all three combinations.'); this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true; UI.ctl(UI.row(this.nb)); this.track(); },
+    function () { UI.say('You made all three. <b>AA</b> is red, <b>Aa</b> is pink, <b>aa</b> is white. The pair of alleles is the <b>genotype</b>; the colour you see is the <b>phenotype</b>. In snapdragons each A adds pigment, so the heterozygote Aa is in between: <b>incomplete dominance</b>.'); UI.ctl(UI.row(UI.btn('Next', () => this.next(), 'primary'))); },
+    function () { UI.say('In many genes, one working copy is enough: that allele is <b>dominant</b>. Switch dominance on, then make an <b>Aa</b> flower and see what happens.'); const t = UI.btn('A is dominant: off', b => { this.dom = !this.dom; b.innerHTML = 'A is dominant: ' + (this.dom ? 'on' : 'off'); this.track(); }); this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true; UI.ctl(UI.row(t, this.nb)); },
+    function () { this.dom = true; UI.say('With A dominant, <b>Aa looks exactly like AA</b>. The a allele is still there, just hidden: an Aa flower is a <b>carrier</b>. So you cannot always read a genotype from a phenotype. Now try reading eight flowers.'); UI.ctl(UI.row(UI.btn('Read eight flowers', () => this.next(), 'primary'))); },
+    function () { this.mode = 'quiz'; const inc = shuffle(['AA', 'Aa', 'aa', pick(['AA', 'Aa', 'aa'])]), dom = shuffle(['AA', 'Aa', 'aa', 'Aa']); this.qs = inc.map(g => [g, false]).concat(dom.map(g => [g, true])); this.qi = 0; this.right = 0; this.ask1(); }
+  ],
+  track() { const g = this.gt(); if (this.si === 0) { this.made.add(g); this.nb.disabled = this.made.size < 3; } if (this.si === 2 && this.dom && g === 'Aa') this.nb.disabled = false; },
+  ask1() { const [g, dom] = this.qs[this.qi]; this.qg = g; this.dom = dom; const ans = dom && g !== 'aa' ? 'cant' : g; UI.say('Flower <b>' + (this.qi + 1) + ' of 8</b>. ' + (dom ? 'Here <b>A is dominant</b>.' : 'Here the alleles show <b>incomplete dominance</b>.') + ' What is its genotype?'); const mk = (k, t) => UI.btn(t, () => this.answer1(k, ans)); UI.ctl(UI.row(mk('AA', 'AA'), mk('Aa', 'Aa'), mk('aa', 'aa'), mk('cant', 'Can’t tell'))); },
+  answer1(k, ans) {
+    if (this.mode !== 'quiz' || this.qi >= this.qs.length) return;
+    const [g, dom] = this.qs[this.qi], ok = k === ans, G = this.geo(); if (ok) { this.right++; Snd.good(); } else Snd.bad();
+    FX.text(G.x, G.y - G.s * 2.6, ok ? 'Right' : 'It was ' + g, ok ? '#2f8f62' : Pal.accent, 20);
+    if (!ok || ans === 'cant') UI.toast(ans === 'cant' ? 'With A dominant, a red flower could be <b>AA or Aa</b>: you can’t tell by looking. This one was ' + g + '.' : 'That flower was <b>' + g + '</b>.');
+    this.qi++; if (this.qi >= this.qs.length) { this.mode = 'done'; UI.ctl(); setTimeout(() => finishStation('s1', this.right >= 7 ? 3 : this.right >= 5 ? 2 : 1, '<p>You read <b>' + this.right + ' of 8</b> flowers correctly.</p><p>The <b>genotype</b> is the pair of alleles; the <b>phenotype</b> is what you see. With incomplete dominance one tells you the other. With a dominant allele, carriers hide among the AA flowers — which is exactly why we will need the Hardy–Weinberg equation to count them.</p>'), 700); return; }
+    this.ask1();
+  },
+  tap(x, y) { if (this.mode !== 'build') return; const G = this.geo(); G.b.forEach((b, i) => { if (Math.hypot(x - b.x, y - b.y) < G.br + 10) { this.al[i] = this.al[i] === 'A' ? 'a' : 'A'; Snd.pop(); FX.ring(b.x, b.y, this.al[i] === 'A' ? Pal.red : Pal.glow, 30); this.track(); } }); },
+  hot() { return this.mode === 'build' ? this.geo().b : []; },
+  draw(c) {
+    const G = this.geo(), quiz = this.mode !== 'build', g = quiz ? this.qg : this.gt(), dom = this.dom, look = this.look(g, dom);
+    flower(c, G.x, G.y + G.s * 0.55, G.s, look, { glow: 0.8 });
+    const top = G.y + G.s * 0.55 - G.s * 2.75;
+    ink(c, quiz ? '?' : g, G.x - G.s * 1.9, top, Math.round(G.s * 0.62), Pal.ink, 'center', 600, 'serif'); ink(c, 'genotype', G.x - G.s * 1.9, top + G.s * 0.5, 12, Pal.muted, 'center', 600);
+    ink(c, this.word(g, dom), G.x + G.s * 1.9, top, Math.round(G.s * 0.62), Pal.ink, 'center', 600, 'serif'); ink(c, 'phenotype', G.x + G.s * 1.9, top + G.s * 0.5, 12, Pal.muted, 'center', 600);
+    if (quiz) ink(c, dom ? 'A is dominant' : 'incomplete dominance', G.x, G.A.y + 18, 14, Pal.accent, 'center', 700);
+    G.b.forEach((b, i) => { const al = quiz ? '?' : this.al[i]; glowDot(c, b.x, b.y, G.br * 0.5, al === 'A' ? Pal.red : Pal.glow, 0.5); c.fillStyle = al === 'A' ? Pal.red : al === 'a' ? Pal.ivory : hexA(Pal.ink, 0.2); c.beginPath(); c.arc(b.x, b.y, G.br, 0, TAU); c.fill(); c.strokeStyle = hexA(Pal.ink, 0.25); c.lineWidth = 1.5; c.stroke(); ink(c, al, b.x, b.y + 1, Math.round(G.br * 1.05), al === 'A' ? '#fff' : '#2a2433', 'center', 700, 'serif'); ink(c, i ? 'from dad' : 'from mum', b.x, b.y + G.br + 12, 11, Pal.muted, 'center', 600); });
+    if (this.si === 0) ['AA', 'Aa', 'aa'].forEach((k, i) => { const x = G.x + (i - 1) * 46, y = G.A.y + 34; flower(c, x, y + 10, 10, k, { alpha: this.made.has(k) ? 1 : 0.25, still: true }); ink(c, k, x, y + 22, 11, this.made.has(k) ? Pal.ink : hexA(Pal.ink, 0.4), 'center', 700, 'serif'); });
+  }
+});
+
+/* ================= Station 2: The pollen cloud ================= */
+Game.reg({
+  id: 's2', title: 'The pollen cloud', sub: 'Allele frequencies, p and q',
+  ROUNDS: [
+    { cnt: [9, 6, 5], step: 0.05, tol: 0.05, txt: 'This meadow has <b>20</b> flowers: <b>9</b> red (AA), <b>6</b> pink (Aa) and <b>5</b> white (aa). Each will release pollen carrying its two alleles into the night air; together they make the <b>gene pool</b>. Before it does: what fraction of all those alleles will be <span class="al A">A</span>? That fraction is called <b>p</b>.' },
+    { cnt: [4, 10, 10], step: 0.025, tol: 0.04, txt: 'Count it yourself this time: <b>4</b> red, <b>10</b> pink and <b>10</b> white flowers. Each red flower carries two A alleles; each pink one carries one. What is <b>p</b>?' },
+    { cnt: [98, 84, 18], step: 0.01, tol: 0.025, txt: 'A big meadow: <b>98</b> red, <b>84</b> pink and <b>18</b> white — 200 flowers. Use the rule: <span class="fx">p = (2 × AA + Aa) ÷ (2 × N)</span>.' }
+  ],
+  enter() { this.ri = 0; this.good = 0; this.round(); },
+  round() {
+    const Rd = this.ROUNDS[this.ri]; this.pop = shuffle(countsToList(Rd.cnt)); this.pts = null; this.cloud = []; this.nA = 0; this.na = 0; this.phase = 'guess'; this.guess = 0.5;
+    UI.say(Rd.txt); this.sl = UI.slider({ label: 'p', min: 0, max: 1, step: Rd.step, value: 0.5, fmt: v => v.toFixed(Rd.step < 0.05 ? (Rd.step < 0.02 ? 2 : 3) : 2), oninput: v => { this.guess = v; } });
+    this.rb = UI.btn('Release the pollen', () => this.release(), 'primary'); UI.ctl(this.sl, UI.row(this.rb));
+  },
+  layout() { const A = Stage.area(); if (!this.pts || this.ptsW !== Stage.w || this.ptsH !== A.h) { this.pts = meadow(this.pop.length, A, 11 + this.ri, { top: this.pop.length > 60 ? 0.42 : 0.45 }); this.ptsW = Stage.w; this.ptsH = A.h; } return A; },
+  resize() { this.pts = null; },
+  release() {
+    if (this.phase !== 'guess') return; this.phase = 'release'; this.rb.disabled = true; this.sl.inp.disabled = true; const A = this.layout(), n = this.pop.length, gap = Math.min(0.06, 2.2 / n); let left = n * 2;
+    this.pop.forEach((g, i) => { const p = this.pts[i], als = g === 'AA' ? ['A', 'A'] : g === 'aa' ? ['a', 'a'] : ['A', 'a']; als.forEach((al, k) => { const tx = A.x + A.w * (0.1 + R() * 0.8), ty = A.y + 16 + R() * A.h * 0.24; FX.fly(p.x, bloomY(p), tx, ty, al, 1.0 + R() * 0.4, () => { this.cloud.push({ x: tx, y: ty, al, ph: R() * TAU }); if (al === 'A') this.nA++; else this.na++; if (--left === 0) this.reveal(); }, { delay: i * gap + k * 0.02, lift: 20 }); }); });
+    Snd.chord();
+  },
+  reveal() {
+    const Rd = this.ROUNDS[this.ri], c = Rd.cnt, N = c[0] + c[1] + c[2], p = (2 * c[0] + c[1]) / (2 * N), ok = Math.abs(this.guess - p) <= Rd.tol + 1e-9; if (ok) this.good++; ok ? Snd.good() : Snd.bad(); this.phase = 'done';
+    UI.say('The cloud holds <b>' + this.nA + '</b> <span class="al A">A</span> and <b>' + this.na + '</b> <span class="al">a</span> alleles. So <span class="fx">p = (2 × ' + c[0] + ' + ' + c[1] + ') ÷ (2 × ' + N + ') = ' + this.nA + ' ÷ ' + (2 * N) + ' = ' + p.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + '</span>, and <span class="fx">q = 1 − p = ' + (1 - p).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + '</span>. You said ' + this.guess.toFixed(Rd.step < 0.05 ? 3 : 2).replace(/0+$/, '').replace(/\.$/, '') + (ok ? ' — spot on.' : '.') + (this.ri === 0 ? ' Every pink flower gives one A and one a, so it counts once towards each.' : ''));
+    UI.ctl(UI.row(UI.btn(this.ri < 2 ? 'Next meadow' : 'Finish', () => { this.ri++; if (this.ri < 3) this.round(); else finishStation('s2', Math.max(1, this.good), '<p>You estimated p within the target on <b>' + this.good + ' of 3</b> meadows.</p><p>The <b>allele frequency</b> p is the share of all copies in the population that are A: <span class="fx">p = (2 × AA + Aa) ÷ 2N</span>, and q = 1 − p. Notice that p only counts alleles — it says nothing yet about how they are packaged into genotypes. That is the next station.</p>'); }, 'primary')));
+  },
+  hot() { return []; },
+  draw(c) {
+    const A = this.layout(), t = Game.t;
+    plate(c, A.x + A.w * 0.06, A.y + 4, A.w * 0.88, A.h * 0.3, 26, 0.18);
+    for (const m of this.cloud) mote(c, m.x + Math.sin(t * 0.8 + m.ph) * 6, m.y + Math.cos(t * 0.6 + m.ph) * 4, m.al, this.pop.length > 60 ? 2.4 : 3.2);
+    if (!this.cloud.length) ink(c, 'the gene pool', A.w / 2, A.y + A.h * 0.15, 16, hexA(Pal.ink, 0.45), 'center', 'italic 500', 'serif');
+    if (this.phase !== 'guess') { ink(c, 'A  ' + this.nA, A.w * 0.4, A.y + A.h * 0.3 + 14, 15, Pal.red, 'center', 800, 'serif'); ink(c, 'a  ' + this.na, A.w * 0.6, A.y + A.h * 0.3 + 14, 15, Pal.ink, 'center', 800, 'serif'); }
+    this.pop.forEach((g, i) => { const p = this.pts[i]; flower(c, p.x, p.y, p.s, g); });
+  }
+});
+
+/* ================= Station 3: The square ================= */
+Game.reg({
+  id: 's3', title: 'The square', sub: 'Why p², 2pq and q²',
+  enter() { this.P = 0.7; this.tally = [0, 0, 0]; this.seeds = []; this.cloud = []; this.mode = 'seeds'; this.sq = 0.6; this.score = 0; this.busy = 0; stepper(this); this.next(); },
+  steps: [
+    function () {
+      const A = Stage.area(); this.cloud = []; for (let i = 0; i < 70; i++) this.cloud.push({ x: A.x + A.w * (0.1 + R() * 0.8), y: A.y + 14 + R() * A.h * 0.22, al: i < 49 ? 'A' : 'a', ph: R() * TAU });
+      UI.say('Here is a pollen cloud with <b>p = 0.7</b>: 70% of its alleles are <span class="al A">A</span>. A new seed forms when one allele from an <b>ovule</b> meets one from a <b>pollen grain</b>, each drawn at random from the pool. Make seeds and watch the three genotypes pile up. The dashed lines show p², 2pq and q².');
+      this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true;
+      UI.ctl(UI.row(UI.btn('Make 1 seed', () => this.make(1)), UI.btn('Make 10', () => this.make(10)), UI.btn('Make 100', () => this.make(100)), this.nb));
+    },
+    function () {
+      this.mode = 'square'; UI.say('Why those numbers? Picture every possible seed as a <b>square</b>. Across the top, the ovule’s allele: A with probability p, a with probability q. Down the side, the pollen’s. Each tile’s area is the chance of that pair. <b>Drag p</b> and watch the tiles.');
+      UI.ctl(UI.slider({ label: 'p', min: 0.05, max: 0.95, step: 0.01, value: this.sq, fmt: v => v.toFixed(2), oninput: v => { this.sq = v; } }), UI.row(UI.btn('Next', () => this.next(), 'primary')));
+    },
+    function () {
+      UI.ask({ title: 'Count the tiles', q: 'The two pink tiles are each p × q. Why is the heterozygote share <b>2pq</b>, not pq?', opts: [['two', 'There are two ways to make Aa: A ovule with a pollen, or a ovule with A pollen'], ['alleles', 'Because heterozygotes carry two different alleles'], ['fit', 'Because heterozygotes are twice as fit']], ans: 'two', why: 'An Aa seed can get its A from the ovule and its a from the pollen, or the other way round. Each route has probability pq, so together they make 2pq.', done: ok => { if (ok) this.score++; this.next(); } });
+    },
+    function () {
+      UI.say('Add up the four tiles and you have the whole square, which has area 1: <div class="big-eq">(p + q)² = <span class="tAA">p²</span> + <span class="tAa">2pq</span> + <span class="taa">q²</span> = 1</div>That is the <b>Hardy–Weinberg equation</b>. It is just the chances of drawing two alleles at random from a pool where A has frequency p.');
+      UI.ctl(UI.row(UI.btn('Predict some seeds', () => this.next(), 'primary')));
+    },
+    function () { this.mode = 'predict'; this.pi = 0; this.pred(); }
+  ],
+  make(n) {
+    const A = Stage.area(), tray = { x: A.w / 2, y: A.y + A.h * 0.86 };
+    const one = (visual, delay) => { const a1 = R() < this.P ? 'A' : 'a', a2 = R() < this.P ? 'A' : 'a', g = gtOf(a1, a2); const add = () => { this.tally[GTI[g]]++; this.seeds.push({ g, x: tray.x + (R() - 0.5) * A.w * 0.5, y: tray.y + (R() - 0.5) * A.h * 0.14 }); if (this.seeds.length > 90) this.seeds.shift(); this.nb.disabled = this.total() < 100; };
+      if (!visual) { add(); return; } const s1 = pick(this.cloud.filter(m => m.al === a1)) || this.cloud[0], s2 = pick(this.cloud.filter(m => m.al === a2)) || this.cloud[1]; FX.fly(s1.x, s1.y, tray.x - 8, tray.y, a1, 0.9, null, { delay }); FX.fly(s2.x, s2.y, tray.x + 8, tray.y, a2, 0.9, () => { add(); Snd.pop(); FX.ring(tray.x, tray.y, GCOL(g), 24); }, { delay }); };
+    if (n === 1) one(true, 0); else if (n === 10) for (let i = 0; i < 10; i++) one(true, i * 0.08); else { for (let i = 0; i < 88; i++) one(false); for (let i = 0; i < 12; i++) one(true, i * 0.05); }
+  },
+  total() { return this.tally[0] + this.tally[1] + this.tally[2]; },
+  pred() {
+    const p = [0.3, 0.9][this.pi], q = 1 - p, opts = shuffle([['ok', hwExp(p)], ['nohet', [p, 0, q]], ['no2', [p * p, p * q, q * q]], ['even', [1 / 3, 1 / 3, 1 / 3]]]);
+    this.predP = p; UI.say('<b>Seed forecast ' + (this.pi + 1) + ' of 2.</b> A pollen cloud has <b>p = ' + p + '</b>. Which chart shows the seeds it will make?');
+    const grid = document.createElement('div'); grid.className = 'optgrid';
+    opts.forEach(([k, v], i) => { const b = document.createElement('button'); b.className = 'optc'; b.setAttribute('aria-label', 'Option ' + (i + 1) + ': AA ' + pct(v[0]) + ', Aa ' + pct(v[1]) + ', aa ' + pct(v[2])); b.innerHTML = '<div class="mini">' + v.map((x, j) => '<span style="height:' + Math.max(2, x * 80) + 'px;background:' + [Pal.red, Pal.pink, Pal.ivory][j] + ';border:1px solid ' + hexA(Pal.ink, 0.2) + '"><i>' + Math.round(x * 100) + '%</i></span>').join('') + '</div><div style="display:flex;justify-content:space-around;font:600 12px var(--serif)"><span>AA</span><span>Aa</span><span>aa</span></div>'; b.onclick = () => { Snd.click(); this.chooseP(k === 'ok'); }; grid.appendChild(b); });
+    UI.ctl(grid);
+  },
+  chooseP(ok) {
+    if (this.pi >= 2 || this.choosing) return; this.choosing = true; setTimeout(() => { this.choosing = false; }, 300); $('ctl').querySelectorAll('button').forEach(b => { b.disabled = true; });
+    const p = this.predP, e = hwExp(p); if (ok) { this.score++; Snd.good(); } else Snd.bad();
+    UI.toast((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + 'With p = ' + p + ': AA = p² = ' + e[0].toFixed(2) + ', Aa = 2pq = ' + e[1].toFixed(2) + ', aa = q² = ' + e[2].toFixed(2) + '.', 4500);
+    this.pi++; if (this.pi < 2) { this.pred(); return; }
+    finishStation('s3', Math.max(1, this.score), '<p>You got <b>' + this.score + ' of 3</b>.</p><p>When alleles combine at random, a seed is AA with probability p × p, aa with q × q, and Aa with 2 × p × q, because there are two ways to make it. <span class="fx">p² + 2pq + q² = (p + q)² = 1</span>. These are the <b>Hardy–Weinberg proportions</b>.</p>');
+  },
+  draw(c) {
+    const A = Stage.area(), t = Game.t;
+    if (this.mode === 'seeds') {
+      plate(c, A.x + A.w * 0.06, A.y + 4, A.w * 0.88, A.h * 0.28, 26, 0.18);
+      for (const m of this.cloud) mote(c, m.x + Math.sin(t * 0.8 + m.ph) * 6, m.y + Math.cos(t * 0.6 + m.ph) * 4, m.al, 3);
+      const n = this.total(), bw = Math.min(260, A.w * 0.6), bh = A.h * 0.22; barsHW(c, A.w / 2 - bw / 2, A.y + A.h * 0.4, bw, bh, n ? frac(this.tally) : null, hwExp(this.P), { title: n + ' seed' + (n === 1 ? '' : 's') + ' made' });
+      for (const s of this.seeds) flower(c, s.x, s.y, 7, s.g, { still: true });
+      return;
+    }
+    if (this.mode === 'square') {
+      const p = this.sq, q = 1 - p, L = Math.min(A.w * 0.62, A.h * 0.66), x0 = A.w / 2 - L / 2 + 14, y0 = A.y + A.h * 0.5 - L / 2 + 10;
+      const tile = (x, y, w, h, g, lab, val) => { c.fillStyle = GCOL(g); rrect(c, x + 1.5, y + 1.5, w - 3, h - 3, 6); c.fill(); if (w > 46 && h > 30) { ink(c, lab, x + w / 2, y + h / 2 - 8, Math.min(22, w * 0.22), '#2a2433', 'center', 700, 'serif'); ink(c, val, x + w / 2, y + h / 2 + 12, 12, '#2a2433', 'center', 700); } };
+      tile(x0, y0, L * p, L * p, 'AA', 'p²', (p * p).toFixed(2)); tile(x0 + L * p, y0, L * q, L * p, 'Aa', 'pq', (p * q).toFixed(2)); tile(x0, y0 + L * p, L * p, L * q, 'Aa', 'pq', (p * q).toFixed(2)); tile(x0 + L * p, y0 + L * p, L * q, L * q, 'aa', 'q²', (q * q).toFixed(2));
+      ink(c, 'ovule: A (p = ' + p.toFixed(2) + ')', x0 + L * p / 2, y0 - 12, 12, Pal.ink, 'center', 700); ink(c, 'a (q)', x0 + L * p + L * q / 2, y0 - 12, 12, Pal.ink, 'center', 700);
+      c.save(); c.translate(x0 - 14, y0 + L * p / 2); c.rotate(-Math.PI / 2); ink(c, 'pollen: A (p)', 0, 0, 12, Pal.ink, 'center', 700); c.restore(); c.save(); c.translate(x0 - 14, y0 + L * p + L * q / 2); c.rotate(-Math.PI / 2); ink(c, 'a (q)', 0, 0, 12, Pal.ink, 'center', 700); c.restore();
+      ink(c, 'AA ' + pct(p * p) + '   Aa ' + pct(2 * p * q) + '   aa ' + pct(q * q), A.w / 2, y0 + L + 18, 14, Pal.ink, 'center', 700, 'serif');
+      return;
+    }
+    const p = this.predP || 0.3, r = rng(5); plate(c, A.x + A.w * 0.2, A.y + A.h * 0.15, A.w * 0.6, A.h * 0.5, 30, 0.16); for (let i = 0; i < 60; i++) mote(c, A.x + A.w * (0.24 + r() * 0.52) + Math.sin(t + i) * 5, A.y + A.h * (0.2 + r() * 0.4), r() < p ? 'A' : 'a', 3);
+    ink(c, 'p = ' + p, A.w / 2, A.y + A.h * 0.72, 22, Pal.ink, 'center', 600, 'serif');
+  }
+});
+
+/* ================= Station 4: One generation ================= */
+Game.reg({
+  id: 's4', title: 'One generation', sub: 'Reaching equilibrium',
+  enter() { this.score = 0; this.anim = 0; stepper(this); this.next(); },
+  setPop(c) { this.pop = shuffle(countsToList(c)); this.hist = [{ f: frac(c), p: pOf(c) }]; this.pts = null; },
+  layout() { const A = Stage.area(); if (!this.pts || this.ptsW !== Stage.w || this.ptsH !== A.h) { this.pts = meadow(this.pop.length, A, 21, A.w < 620 ? { top: 0.5 } : { top: 0.5, right: 0.62 }); this.ptsW = Stage.w; this.ptsH = A.h; } return A; },
+  resize() { this.pts = null; },
+  steps: [
+    function () {
+      this.setPop([20, 0, 20]); UI.say('A gardener plants a meadow with <b>only red (AA) and white (aa)</b> snapdragons, half and half. There is not a single pink flower. Then the bees and the wind take over: pollination is random.');
+      UI.ctl(UI.row(UI.btn('Make a prediction', () => UI.ask({ title: 'Predict', q: 'After <b>one generation</b> of random pollination, what share of the seedlings will be pink (Aa)?', opts: [['0', '0%'], ['25', '25%'], ['50', '50%'], ['75', '75%']], ans: '50', why: 'p = 0.5, so 2pq = 2 × 0.5 × 0.5 = 0.5. Half the seedlings will be pink — in a single generation.', done: ok => { if (ok) this.score++; this.next(); } }), 'primary')));
+    },
+    function () { UI.say('Let the meadow pollinate.'); this.gb = UI.btn('Pollinate one generation', () => this.gen(), 'primary'); UI.ctl(UI.row(this.gb)); this.gens = 0; },
+    function () { UI.say('Now a meadow planted with <b>80% red (AA)</b> and <b>20% white (aa)</b>, no pinks. So p = 0.8. After one generation, what share will be pink?'); this.setPop([32, 0, 8]); this.guess = 30; UI.ctl(UI.slider({ label: 'pink', min: 0, max: 100, step: 1, value: 30, fmt: v => v + '%', oninput: v => { this.guess = v; } }), UI.row(this.gb2 = UI.btn('Pollinate and check', () => { this.gb2.disabled = true; this.gen(true); }, 'primary'))); },
+    function () {
+      UI.ask({ title: 'One more', q: 'Once a population has Hardy–Weinberg proportions, what happens in the next generation if nothing else is going on?', opts: [['same', 'Genotype and allele frequencies stay the same'], ['het', 'Heterozygotes keep increasing'], ['dom', 'The dominant allele takes over']], ans: 'same', why: 'Random mating rebuilds exactly the same proportions each generation: p², 2pq, q². That steady state is the Hardy–Weinberg equilibrium.', done: ok => { if (ok) this.score++; this.next(); } });
+    },
+    function () { finishStation('s4', Math.max(1, this.score), '<p>You got <b>' + this.score + ' of 3</b>.</p><p><b>The Hardy–Weinberg principle:</b> with random mating, and nothing else going on, allele frequencies do not change, and genotype frequencies reach p², 2pq and q² after a <b>single generation</b> — then stay there.</p><p>In 1908 the geneticist Reginald Punnett asked his Cambridge colleague, the mathematician G. H. Hardy, why a dominant allele does not simply spread through a population, as some critics of Mendel had claimed. Hardy answered with a short letter to <i>Science</i> that year. The German physician Wilhelm Weinberg had reached the same result independently a few months earlier.</p>'); }
+  ],
+  gen(check) {
+    if (this.anim) return; const A = this.layout(), p = pOf(listCounts(this.pop)), cx = A.x + A.w * 0.31, cy = A.y + A.h * 0.22; this.anim = 1; Snd.chord(); let left = 0;
+    this.pop.forEach((g, i) => { const P = this.pts[i]; [0, 1].forEach(k => { left++; FX.fly(P.x, bloomY(P), cx + (R() - 0.5) * A.w * 0.4, cy + (R() - 0.5) * A.h * 0.18, k ? gamete(g) : gamete(g), 0.9, () => { if (--left === 0) this.land(p, check); }, { delay: i * 0.012, lift: 12 }); }); });
+  },
+  land(p, check) {
+    const c = hwCounts(p, this.pop.length); this.pop = shuffle(countsToList(c)); const A = this.layout(); this.pts.forEach((P, i) => { if (i % 3 === 0) FX.ring(P.x, bloomY(P), GCOL(this.pop[i]), 16); }); this.hist.push({ f: frac(c), p: pOf(c) }); this.anim = 0; this.gens = (this.gens || 0) + 1;
+    if (check) { const pink = Math.round(frac(c)[1] * 100), ok = Math.abs(this.guess - pink) <= 5; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say('Pink seedlings: <b>' + pink + '%</b>, as <span class="fx">2pq = 2 × 0.8 × 0.2 = 0.32</span> predicts. You said ' + this.guess + '%' + (ok ? ' — close enough.' : '.') + ' And p is still <b>' + p.toFixed(2) + '</b>: the alleles were only reshuffled.'); UI.ctl(UI.row(UI.btn('Next', () => this.next(), 'primary'))); return; }
+    if (this.gens === 1) { UI.say('Half the seedlings are pink: <span class="fx">2pq = 2 × 0.5 × 0.5 = 0.5</span>. AA and aa dropped to a quarter each. Look at the gold line: <b>p has not moved</b>. Run another generation.'); UI.ctl(UI.row(UI.btn('Another generation', () => this.gen(), 'primary'))); }
+    else if (this.gens < 3) UI.ctl(UI.row(UI.btn('Another generation', () => this.gen(), 'primary')));
+    else { UI.say('Nothing changes any more. After one generation of random mating the meadow reached <b>p², 2pq, q²</b>, and it stays there: <b>equilibrium</b>.'); UI.ctl(UI.row(UI.btn('Next', () => this.next(), 'primary'))); }
+  },
+  draw(c) {
+    if (!this.pop) return; const A = this.layout();
+    this.pop.forEach((g, i) => { const P = this.pts[i]; flower(c, P.x, P.y, P.s, g); });
+    const nar = A.w < 620, x = nar ? A.x + 30 : A.x + A.w * 0.68, w = nar ? A.w - 60 : A.w * 0.27, y = nar ? A.y + 18 : A.y + A.h * 0.16, h = nar ? A.h * 0.2 : A.h * 0.42, H = this.hist;
+    lineChart(c, x, y, w, h, [{ d: H.map(e => e.f[0]), col: Pal.red }, { d: H.map(e => e.f[1]), col: Pal.pink }, { d: H.map(e => e.f[2]), col: Pal.night ? Pal.ivory : '#9a8f78' }, { d: H.map(e => e.p), col: Pal.glow, dash: [5, 4], wd: 2 }], { n: 5, title: 'generations: AA, Aa, aa and p (gold)' });
+    ink(c, 'gen ' + (H.length - 1), x + w, y - 2, 11, Pal.muted, 'right', 600);
+  }
+});
+
+/* ================= Five ways to break it ================= */
+const FORCES = [
+  { id: 'f_sel', name: 'Selection', sub: 'The grazing deer', assume: 'no selection' },
+  { id: 'f_mut', name: 'Mutation', sub: 'The ultraviolet night', assume: 'no mutation' },
+  { id: 'f_mig', name: 'Migration', sub: 'Wind from the valley', assume: 'no migration' },
+  { id: 'f_drift', name: 'Genetic drift', sub: 'The landslide', assume: 'a very large population' },
+  { id: 'f_mate', name: 'Non-random mating', sub: 'The choosy bees', assume: 'random mating' }
+];
+function finishForce(id, stars, html) {
+  Save.star(id, stars); Snd.star(); FX.confetti(Stage.w / 2, Stage.h * 0.38, 40); const F = FORCES.find(f => f.id === id);
+  UI.card({ title: F.name + ': done', html: '<div class="stars">' + starStr(stars) + '</div>' + html, buttons: [{ t: 'Back to the five forces', primary: true, fn: () => Game.go('hub') }] });
+}
+function whatChanged(force, ans, why, done) {
+  UI.ask({ title: 'What did it change?', q: 'What did <b>' + force + '</b> change in this meadow?', opts: [['allele', 'Allele frequencies — and genotype frequencies with them'], ['geno', 'Genotype frequencies only; allele frequencies stayed put'], ['none', 'Nothing: the meadow stayed in equilibrium']], ans, why, done });
+}
+function crossDist(g1, g2) { const pa = g => g === 'AA' ? 1 : g === 'Aa' ? 0.5 : 0, a = pa(g1), b = pa(g2); return [a * b, a * (1 - b) + (1 - a) * b, (1 - a) * (1 - b)]; }
+function matingDist(f, rule) { const G = ['AA', 'Aa', 'aa'], out = [0, 0, 0]; let tot = 0; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { if (rule === 'assort' && i !== j) continue; if (rule === 'dis' && i === j) continue; const w = rule === 'assort' ? f[i] : f[i] * f[j]; if (!w) continue; tot += w; const d = crossDist(G[i], G[j]); for (let k = 0; k < 3; k++) out[k] += w * d[k]; } return out.map(v => v / (tot || 1)); }
+
+/* ---- hub ---- */
+Game.reg({
+  id: 'hub', title: 'Five ways to break it', sub: 'The assumptions behind Hardy–Weinberg',
+  enter() {
+    const n = FORCES.filter(f => Save.d.done[f.id]).length;
+    UI.say(n < 5 ? 'Hardy–Weinberg equilibrium only holds if five things are true: <b>no selection</b>, <b>no mutation</b>, <b>no migration</b>, <b>a very large population</b> and <b>random mating</b>. Each lantern breaks one of them, and you get to be the force that breaks it. Forces played: <b>' + n + ' of 5</b>.' : 'All five forces played. Here is what you found.');
+    if (n === 5) { UI.ctl(UI.row(UI.btn('See the summary', () => this.summary(), 'primary'))); if (!Save.d.done.hub) setTimeout(() => this.summary(), 400); }
+    else { const nx = FORCES.find(f => !Save.d.done[f.id]); UI.ctl(UI.row(UI.btn('Play: ' + nx.name, () => Game.go(nx.id), 'primary'))); }
+  },
+  summary() {
+    const st = Math.max(1, Math.round(mean(FORCES.map(f => Save.d.stars[f.id] || 1))));
+    const html = '<p>Four forces change <b>allele frequencies</b>. One changes only how alleles are packaged into <b>genotypes</b>.</p><table><tr><th>Force</th><th>Allele frequencies</th><th>Genotype frequencies</th></tr><tr><td>Selection</td><td>change</td><td>change</td></tr><tr><td>Mutation</td><td>change, very slowly</td><td>follow</td></tr><tr><td>Migration</td><td>move toward the source</td><td>follow, and mixing creates a deficit of heterozygotes</td></tr><tr><td>Drift</td><td>wander at random</td><td>follow</td></tr><tr><td>Non-random mating</td><td><b>no change</b></td><td>change</td></tr></table>';
+    Save.star('hub', st); Snd.star(); FX.confetti(Stage.w / 2, Stage.h * 0.38, 50);
+    UI.card({ title: 'Five ways to break it: complete', html: '<div class="stars">' + starStr(st) + '</div>' + html, buttons: [{ t: 'Back to the meadow', fn: () => Game.go('map') }, { t: 'Next: Hidden carriers', primary: true, fn: () => Game.go('s6') }] });
+  },
+  pos() { const A = Stage.area(), cx = A.w / 2, cy = A.y + A.h * 0.52, r = Math.min(A.w * 0.34, A.h * 0.36); return FORCES.map((f, i) => { const a = -Math.PI / 2 + i * TAU / 5; return { x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r * 0.92 }; }); },
+  hot() { return this.pos(); },
+  tap(x, y) { const i = this.pos().findIndex(p => Math.hypot(p.x - x, p.y - y) < 40); if (i < 0) return; const F = FORCES[i]; UI.card({ title: F.name, html: '<p>Hardy–Weinberg assumes <b>' + F.assume + '</b>. In <b>' + F.sub.toLowerCase() + '</b>, you break that assumption yourself.</p>' + (Save.d.done[F.id] ? '<div class="stars">' + starStr(Save.d.stars[F.id] || 0) + '</div>' : ''), buttons: [{ t: 'Not yet' }, { t: Save.d.done[F.id] ? 'Play again' : 'Play', primary: true, fn: () => Game.go(F.id) }] }); },
+  icon(c, i, x, y, s) {
+    c.save(); c.translate(x, y); c.strokeStyle = Pal.ink; c.fillStyle = Pal.ink; c.lineWidth = 2; c.lineCap = 'round';
+    if (i === 0) { c.beginPath(); c.ellipse(0, 4, s * 0.45, s * 0.22, 0, 0, TAU); c.fill(); c.beginPath(); c.arc(s * 0.45, -s * 0.08, s * 0.16, 0, TAU); c.fill(); c.beginPath(); c.moveTo(s * 0.5, -s * 0.2); c.lineTo(s * 0.38, -s * 0.5); c.moveTo(s * 0.55, -s * 0.2); c.lineTo(s * 0.7, -s * 0.48); c.stroke(); for (const lx of [-0.3, 0.3]) { c.beginPath(); c.moveTo(lx * s, s * 0.2); c.lineTo(lx * s, s * 0.5); c.stroke(); } }
+    if (i === 1) { c.beginPath(); c.arc(0, 0, s * 0.4, 0, TAU); c.fill(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(s * 0.18, -s * 0.1, s * 0.34, 0, TAU); c.fill(); c.globalCompositeOperation = 'source-over'; for (let k = 0; k < 3; k++) { c.beginPath(); c.moveTo(-s * 0.1 + k * s * 0.2, s * 0.5); c.lineTo(-s * 0.2 + k * s * 0.2, s * 0.62); c.stroke(); } }
+    if (i === 2) { for (let k = 0; k < 3; k++) { c.beginPath(); c.moveTo(-s * 0.5, -s * 0.25 + k * s * 0.25); c.quadraticCurveTo(0, -s * 0.4 + k * s * 0.25, s * 0.35, -s * 0.25 + k * s * 0.25); c.arc(s * 0.35, -s * 0.33 + k * s * 0.25, s * 0.08, Math.PI / 2, -Math.PI, true); c.stroke(); } }
+    if (i === 3) { c.beginPath(); c.moveTo(-s * 0.5, s * 0.4); c.lineTo(-s * 0.15, -s * 0.35); c.lineTo(s * 0.1, s * 0.05); c.lineTo(s * 0.3, -s * 0.15); c.lineTo(s * 0.55, s * 0.4); c.closePath(); c.fill(); for (const [dx, dy] of [[-0.2, 0.5], [0.05, 0.55], [0.3, 0.5]]) { c.beginPath(); c.arc(dx * s, dy * s, s * 0.07, 0, TAU); c.fill(); } }
+    if (i === 4) { c.fillStyle = '#f2c14e'; c.beginPath(); c.ellipse(0, 0, s * 0.36, s * 0.24, 0, 0, TAU); c.fill(); c.fillStyle = Pal.ink; for (const dx of [-0.1, 0.1]) { c.fillRect(dx * s - 2, -s * 0.24, 4, s * 0.48); } c.fillStyle = hexA(Pal.night ? '#ffffff' : '#9fc6e8', 0.7); c.beginPath(); c.ellipse(-s * 0.1, -s * 0.32, s * 0.16, s * 0.1, -0.5, 0, TAU); c.ellipse(s * 0.12, -s * 0.32, s * 0.16, s * 0.1, 0.5, 0, TAU); c.fill(); }
+    c.restore();
+  },
+  draw(c) {
+    const P = this.pos(), A = Stage.area(), t = Game.t;
+    const r = rng(9); for (let i = 0; i < 12; i++) flower(c, A.w / 2 + (r() - 0.5) * A.w * 0.32, A.y + A.h * (0.6 + r() * 0.1), 11, r() < 0.25 ? 'AA' : r() < 0.75 ? 'Aa' : 'aa');
+    ink(c, 'p² + 2pq + q²', A.w / 2, A.y + A.h * 0.52, 17, Pal.ink, 'center', 'italic 500', 'serif');
+    P.forEach((p, i) => { const F = FORCES[i], done = !!Save.d.done[F.id]; glowDot(c, p.x, p.y, 9 + (done ? 0 : Math.sin(t * 2.5 + i) * 1.5), done ? Pal.glow : Pal.accent, 0.4); plate(c, p.x - 30, p.y - 30, 60, 60, 30, 0.85); this.icon(c, i, p.x, p.y, 38); ink(c, F.name, p.x, p.y + 44, 13.5, Pal.ink, 'center', 700, 'serif'); ink(c, done ? '★'.repeat(Save.d.stars[F.id] || 0) : F.sub, p.x, p.y + 61, 11.5, done ? Pal.glow : Pal.muted, 'center', 600); });
+  }
+});
+
+/* ---- shared meadow helper for force scenes ---- */
+function forceMeadow(S, n, opt) { const A = Stage.area(); if (!S.pts || S.ptsW !== Stage.w || S.ptsH !== A.h || S.ptsN !== n) { S.pts = meadow(n, A, S.seed || 31, opt); S.ptsW = Stage.w; S.ptsH = A.h; S.ptsN = n; } return A; }
+
+/* ================= Selection: the grazing deer ================= */
+Game.reg({
+  id: 'f_sel', title: 'Selection', sub: 'The grazing deer', seed: 41,
+  enter() { this.pop = shuffle(countsToList([10, 20, 10])); this.alive = this.pop.map(() => true); this.gen = 1; this.qs = [0.5]; this.phase = 'intro'; this.pts = null; this.score = 0; this.surv = null;
+    UI.say('Hardy–Weinberg assumes <b>no selection</b>: every genotype survives and reproduces equally well. Not here. A deer grazes the meadow — and <b>you are the deer</b>. Help the white flowers: raise the share of <span class="al">a</span> alleles, <b>q</b>, from 0.50 to <b>0.75</b> within three generations. You get 12 bites each spring.');
+    UI.ctl(UI.row(UI.btn('Start grazing', () => this.graze(), 'primary'))); },
+  graze() { this.phase = 'graze'; this.bites = 12; this.timer = 12; this.surv = null; UI.ctl(); this.hud(); },
+  hud() { UI.say('Generation <b>' + this.gen + ' of 3</b>. Tap flowers to eat them. Bites left: <b>' + this.bites + '</b>. Time: <b>' + Math.ceil(this.timer) + ' s</b>. q now: <b>' + this.q().toFixed(2) + '</b>.'); },
+  q() { const c = listCounts(this.pop.filter((g, i) => this.alive[i])); return 1 - pOf(c); },
+  tap(x, y) { if (this.phase !== 'graze') return; forceMeadow(this, this.pop.length, { top: 0.5 }); const i = hitFlower(this.pts, x, y, k => this.alive[k]); if (i < 0) return; this.alive[i] = false; this.bites--; Snd.pop(); FX.ring(this.pts[i].x, bloomY(this.pts[i]), Pal.accent, 26); this.hud(); if (this.bites <= 0) this.endGraze(); },
+  hot() { if (this.phase !== 'graze') return []; forceMeadow(this, this.pop.length, { top: 0.5 }); return this.pts.filter((p, i) => this.alive[i]).map(p => ({ x: p.x, y: bloomY(p) })); },
+  update(dt) { if (this.phase !== 'graze') return; this.timer -= dt; if (((this.timer * 4) | 0) !== (((this.timer + dt) * 4) | 0)) this.hud(); if (this.timer <= 0) this.endGraze(); },
+  endGraze() {
+    if (this.phase !== 'graze') return; this.phase = 'review'; const sc = listCounts(this.pop.filter((g, i) => this.alive[i])), ps = pOf(sc); this.surv = sc;
+    const e = hwExp(ps), f = frac(sc), dev = Math.abs(f[1] - e[1]) > 0.06;
+    UI.say('Among the survivors, q is <b>' + (1 - ps).toFixed(2) + '</b>. ' + (dev ? 'Look at the chart: the survivors are <b>not</b> in Hardy–Weinberg proportions for their own allele frequency — selection removed genotypes unequally.' : 'The survivors are close to Hardy–Weinberg proportions this time.') + ' When they set seed, random pollination will rebuild p², 2pq and q² for the <b>new</b> allele frequency.');
+    UI.ctl(UI.row(UI.btn('Let the survivors seed', () => this.seedNext(ps), 'primary')));
+  },
+  seedNext(ps) {
+    this.pop = shuffle(countsToList(hwCounts(ps, 40))); this.alive = this.pop.map(() => true); this.qs.push(1 - ps); this.gen++; this.surv = null; Snd.chord();
+    forceMeadow(this, 40, { top: 0.5 }); this.pts.forEach((P, i) => { if (i % 4 === 0) FX.ring(P.x, bloomY(P), GCOL(this.pop[i]), 14); });
+    const q = 1 - ps; if (q >= 0.75 - 1e-9 || this.gen > 3) { this.phase = 'end'; const ok = q >= 0.75 - 1e-9; UI.say(ok ? 'q has reached <b>' + q.toFixed(2) + '</b>. By choosing who survives, you changed the allele frequencies.' : 'Three springs, and q reached <b>' + q.toFixed(2) + '</b>. Eating more red and pink flowers would have pushed it further.'); UI.ctl(UI.row(UI.btn('Next', () => whatChanged('selection', 'allele', 'Selection changed allele frequencies, generation after generation, and genotype frequencies changed with them. It also made the survivors depart from Hardy–Weinberg proportions until random pollination rebuilt them.', okQ => finishForce('f_sel', (ok ? 2 : 1) + (okQ ? 1 : 0), '<p>Selection is the force behind adaptation: when genotypes differ in survival or reproduction, allele frequencies shift. Hardy–Weinberg assumes it away — which is exactly why departures from equilibrium can reveal selection at work.</p>')), 'primary'))); return; }
+    this.phase = 'intro'; UI.say('Generation <b>' + this.gen + '</b> has sprouted, q = <b>' + q.toFixed(2) + '</b>. Graze again.'); UI.ctl(UI.row(UI.btn('Graze', () => this.graze(), 'primary')));
+  },
+  draw(c) {
+    const A = forceMeadow(this, this.pop.length, { top: 0.5 });
+    this.pop.forEach((g, i) => { const P = this.pts[i]; if (this.alive[i]) flower(c, P.x, P.y, P.s, g); else { c.strokeStyle = hexA(Pal.night ? '#3f6b5c' : '#4b7a5c', 0.6); c.lineWidth = 2; c.beginPath(); c.moveTo(P.x, P.y); c.lineTo(P.x, P.y - P.s * 0.6); c.stroke(); } });
+    lineChart(c, A.x + 26, A.y + 22, Math.min(170, A.w * 0.34), A.h * 0.22, [{ d: this.qs, col: Pal.night ? Pal.ivory : '#8a7d64' }], { n: 4, title: 'q by generation (goal 0.75)' });
+    const gy = A.y + 22 + A.h * 0.22 * (1 - 0.75); c.strokeStyle = Pal.accent; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(A.x + 26, gy); c.lineTo(A.x + 26 + Math.min(170, A.w * 0.34), gy); c.stroke(); c.setLineDash([]);
+    if (this.surv) { const ps = pOf(this.surv), bw = Math.min(200, A.w * 0.36); barsHW(c, A.w - bw - 30, A.y + 40, bw, A.h * 0.22, frac(this.surv), hwExp(ps), { title: 'survivors vs HW for their p' }); }
+  }
+});
+
+/* ================= Mutation: the ultraviolet night ================= */
+Game.reg({
+  id: 'f_mut', title: 'Mutation', sub: 'The ultraviolet night', seed: 51,
+  enter() {
+    this.p = 0.5; this.pop = shuffle(countsToList(hwCounts(0.5, 40))); this.pts = null; this.ps = [0.5]; this.score = 0; this.ff = null; this.storm = null; this.est = 1000;
+    UI.say('Hardy–Weinberg assumes <b>no mutation</b>. Real mutation turns an A allele into a at roughly <b>1 in 100,000</b> copies per generation. Starting at p = 0.50, how many generations until mutation alone lowers p to <b>0.45</b>?');
+    UI.ctl(UI.slider({ label: 'generations', min: 1, max: 6, step: 0.05, value: 3, fmt: v => Math.round(Math.pow(10, v)).toLocaleString('en-GB'), oninput: v => { this.est = Math.round(Math.pow(10, v)); } }), UI.row(UI.btn('Fast-forward and see', b => { b.disabled = true; this.fast(); }, 'primary')));
+  },
+  fast() { const T = Math.round(Math.log(0.9) / Math.log(1 - 1e-5)); this.ff = { t: 0, T }; this.T = T; const ok = this.est >= T / 2 && this.est <= T * 2; this.estOk = ok; if (ok) this.score++; },
+  update(dt) {
+    if (this.ff) { this.ff.t += dt; const k = clamp(this.ff.t / 2.6, 0, 1); this.gen = Math.round(this.ff.T * ease(k)); this.p = 0.5 * Math.pow(1 - 1e-5, this.gen); if (R() < dt * 0.6) { forceMeadow(this, 40, { top: 0.5 }); const P = pick(this.pts); FX.ring(P.x, bloomY(P), '#a98cff', 20); } if (k >= 1) { this.ff = null; this.afterFast(); } }
+    if (this.storm) { this.storm.t += dt; if (this.storm.t > 0.55) { this.storm.t = 0; this.p *= 0.9; this.ps.push(this.p); this.pop = shuffle(countsToList(hwCounts(this.p, 40))); forceMeadow(this, 40, { top: 0.5 }); for (let k = 0; k < 6; k++) { const P = pick(this.pts); FX.ring(P.x, bloomY(P), '#a98cff', 26); } Snd.pop(); if (this.ps.length > 10) { this.storm = null; this.afterStorm(); } } }
+  },
+  afterFast() {
+    UI.say('About <b>' + this.T.toLocaleString('en-GB') + ' generations</b>. You said ' + this.est.toLocaleString('en-GB') + (this.estOk ? ' — within a factor of two.' : '.') + ' In this meadow of 80 alleles, that rate means <b>one mutation every 1,250 generations</b> or so. Mutation creates new alleles, but on its own it barely moves their frequencies.');
+    UI.ctl(UI.row(UI.btn('Imagine a mutation storm', () => { UI.say('Now a fantasy: a storm that turns <b>10% of A alleles into a</b> every generation, ten thousand times the real rate. Watch p.'); UI.ctl(UI.row(UI.btn('Run the storm for 10 generations', b => { b.disabled = true; this.storm = { t: 0 }; Snd.chord(); }, 'primary'))); }, 'primary')));
+  },
+  afterStorm() {
+    this.score++; UI.say('p fell from 0.50 to <b>' + this.p.toFixed(2) + '</b>: <span class="fx">p<sub>t</sub> = p<sub>0</sub>(1 − μ)<sup>t</sup></span>. Only absurd rates move frequencies quickly.');
+    UI.ctl(UI.row(UI.btn('Next', () => whatChanged('mutation', 'allele', 'Mutation changes allele frequencies — at real rates, extremely slowly. Its importance is different: it is the only source of brand-new alleles, the raw material every other force works on.', okQ => finishForce('f_mut', this.score + (okQ ? 1 : 0), '<p>Mutation turns one allele into another. Real rates are tiny, so Hardy–Weinberg can safely ignore mutation over a few generations; over thousands, mutation supplies the variation that selection and drift act upon.</p>')), 'primary')));
+  },
+  draw(c) {
+    const A = forceMeadow(this, 40, { top: 0.5 }), t = Game.t;
+    this.pop.forEach((g, i) => { const P = this.pts[i]; flower(c, P.x, P.y, P.s, g); });
+    if (this.storm) { c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 20); c.fillStyle = '#a98cff'; c.fillRect(0, A.y, Stage.w, A.h * 0.45); c.restore(); }
+    plate(c, A.w / 2 - 120, A.y + 16, 240, 74, 18, 0.7); ink(c, 'p = ' + this.p.toFixed(this.ff ? 4 : 3), A.w / 2, A.y + 40, 24, Pal.ink, 'center', 600, 'serif');
+    ink(c, this.ff || this.gen ? 'generation ' + (this.gen || 0).toLocaleString('en-GB') : 'mutation rate: 1 in 100,000', A.w / 2, A.y + 70, 13, Pal.muted, 'center', 600);
+    if (this.ps.length > 1) lineChart(c, A.w - Math.min(180, A.w * 0.34) - 24, A.y + 110, Math.min(180, A.w * 0.34), A.h * 0.2, [{ d: this.ps, col: Pal.red }], { n: 11, title: 'p during the storm' });
+  }
+});
+
+/* ================= Migration: wind from the valley ================= */
+Game.reg({
+  id: 'f_mig', title: 'Migration', sub: 'Wind from the valley', seed: 61,
+  enter() { this.score = 0; this.wahl = null; this.tries = 0; this.reset(); },
+  reset() {
+    this.p = 0.1; this.gen = 0; this.m = 0.2; this.ps = [0.1]; this.pop = shuffle(countsToList(hwCounts(0.1, 30))); this.pts = null; this.tries++;
+    UI.say('Hardy–Weinberg assumes <b>no migration</b>. Your meadow (left) is mostly white: <b>p = 0.10</b>. Over the ridge, a valley of pure red snapdragons (p = 1). Set how much of each generation’s pollen the <b>wind</b> brings from the valley, and make your meadow reach <b>p = 0.50</b> (±0.03) after exactly <b>three generations</b>.');
+    this.sl = UI.slider({ label: 'wind', min: 0, max: 0.5, step: 0.01, value: this.m, fmt: v => Math.round(v * 100) + '% of pollen', oninput: v => { this.m = v; } }); this.gb = UI.btn('Next generation', () => this.step(), 'primary'); UI.ctl(this.sl, UI.row(this.gb));
+  },
+  step() {
+    if (this.gen >= 3) return; const A = Stage.area(), n = Math.round(this.m * 40); for (let k = 0; k < n; k++) FX.fly(A.w * (0.75 + R() * 0.2), A.y + A.h * (0.55 + R() * 0.3), A.w * (0.08 + R() * 0.45), A.y + A.h * (0.5 + R() * 0.4), 'A', 1 + R() * 0.4, null, { delay: k * 0.02, lift: 60 });
+    if (n) Snd.chord(); this.p = (1 - this.m) * this.p + this.m * 1; this.ps.push(this.p); this.gen++; this.pop = shuffle(countsToList(hwCounts(this.p, 30)));
+    if (this.gen < 3) { UI.say('Generation <b>' + this.gen + '</b>: p = <b>' + this.p.toFixed(3) + '</b>. Each generation, <span class="fx">p′ = (1 − m) p + m × 1</span>, where m is the share of pollen from the valley.'); return; }
+    const ok = Math.abs(this.p - 0.5) <= 0.03; if (ok) this.score++; ok ? Snd.good() : Snd.bad(); this.gb.disabled = true; this.sl.inp.disabled = true;
+    UI.say((ok ? '<b>On target:</b> ' : '<b>Off target:</b> ') + 'p = ' + this.p.toFixed(3) + ' after three generations. ' + (ok ? 'A steady wind of about 18% does it.' : 'Hint: q shrinks by a factor (1 − m) each generation; you need 0.9 × (1 − m)³ = 0.5.'));
+    UI.ctl(UI.row(ok || this.tries >= 3 ? null : UI.btn('Try again', () => this.reset()), UI.btn('Next', () => this.wahlund(), 'primary')));
+  },
+  wahlund() {
+    UI.ask({ title: 'A puzzle about pooling', q: 'Before any wind, you sample 50 flowers from your meadow (p = 0.1) and 50 from the red valley (p = 1), and pool them. Compared with the Hardy–Weinberg prediction for the pooled allele frequency, does the pooled sample have…', opts: [['fewer', 'Fewer pink flowers'], ['more', 'More pink flowers'], ['same', 'Exactly the expected number']], ans: 'fewer', why: 'Pooled, p = 0.55, so Hardy–Weinberg expects 2pq ≈ 50% pink. But your meadow had only 18% pink and the valley none: just 9% of the pooled sample. Mixing populations with different allele frequencies creates a deficit of heterozygotes — the <b>Wahlund effect</b>.', done: ok => { if (ok) this.score++; whatChanged('migration', 'allele', 'Migration pulled the allele frequency toward the valley’s, and genotype frequencies followed. Migration is how populations stay genetically similar.', okQ => finishForce('f_mig', this.score + (okQ ? 1 : 0), '<p>Gene flow carries alleles between populations, moving each one’s allele frequency toward the source: <span class="fx">p′ = (1 − m)p + m p<sub>migrant</sub></span>. Even a little migration each generation stops populations drifting apart.</p>')); } });
+  },
+  draw(c) {
+    const A = forceMeadow(this, 30, { top: 0.52, right: 0.6 }), t = Game.t;
+    this.pop.forEach((g, i) => { const P = this.pts[i]; flower(c, P.x, P.y, P.s, g); });
+    const r = rng(77); for (let i = 0; i < 16; i++) flower(c, A.w * (0.72 + r() * 0.24), A.y + A.h * (0.55 + r() * 0.38), 16, 'AA');
+    ink(c, 'your meadow', A.w * 0.31, A.y + A.h * 0.46, 14, Pal.ink, 'center', 700, 'serif'); ink(c, 'the red valley', A.w * 0.84, A.y + A.h * 0.46, 14, Pal.ink, 'center', 700, 'serif');
+    c.strokeStyle = hexA(Pal.ink, 0.35); c.lineWidth = 2; for (let k = 0; k < 4; k++) { const y = A.y + A.h * (0.6 + k * 0.08), off = (t * 60 * (0.3 + this.m * 3)) % 80; for (let x = A.w * 0.6 - off; x > A.w * 0.5; x -= 80) { c.beginPath(); c.moveTo(x + 30, y); c.lineTo(x, y); c.lineTo(x + 8, y - 5); c.stroke(); } }
+    lineChart(c, A.x + 26, A.y + 22, Math.min(180, A.w * 0.36), A.h * 0.24, [{ d: this.ps, col: Pal.red }], { n: 4, title: 'p over generations (target 0.50)' });
+    const gy = A.y + 22 + A.h * 0.24 * 0.5; c.strokeStyle = Pal.accent; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(A.x + 26, gy); c.lineTo(A.x + 26 + Math.min(180, A.w * 0.36), gy); c.stroke(); c.setLineDash([]);
+    ink(c, 'p = ' + this.p.toFixed(3), A.w * 0.84, A.y + 40, 20, Pal.ink, 'center', 600, 'serif');
+  }
+});
+
+/* ================= Drift: the landslide ================= */
+Game.reg({
+  id: 'f_drift', title: 'Genetic drift', sub: 'The landslide', seed: 71,
+  enter() {
+    this.score = 0; this.runs = null; this.tries = 0; this.N = 20; this.mode = 'intro';
+    UI.say('Hardy–Weinberg assumes a <b>very large population</b>, so that chance evens out. In small populations it does not: which plants happen to leave seeds is partly luck. That is <b>genetic drift</b>.');
+    UI.ctl(UI.row(UI.btn('Predict', () => UI.ask({ title: 'Predict', q: 'Two meadows start at p = 0.5: one with <b>8</b> plants, one with <b>200</b>. Which is likely to lose one colour first?', opts: [['small', 'The meadow of 8'], ['big', 'The meadow of 200'], ['same', 'Both equally']], ans: 'small', why: 'Each generation is a random sample of the last. Small samples wander far from their source; large ones barely move.', done: ok => { if (ok) this.score++; this.compare(); } }), 'primary')));
+  },
+  sim(N, G = 30, p0 = 0.5) { let p = p0; const d = [p]; for (let g = 0; g < G; g++) { p = binom(2 * N, p) / (2 * N); d.push(p); } return d; },
+  compare() { this.mode = 'compare'; this.runs = { lines: [0, 1, 2, 3].map(() => ({ d: this.sim(8), col: Pal.accent })).concat([0, 1, 2, 3].map(() => ({ d: this.sim(200), col: Pal.glow }))), t: 0 }; UI.say('Four meadows of <b>8</b> plants (rose) and four of <b>200</b> (gold), thirty generations each.'); UI.ctl(); this.after = () => { UI.say('The small meadows lurch around, and several lose a colour completely: p hits 0 or 1, and that allele is gone for good. The big ones barely move. Drift is strongest when populations are small.'); UI.ctl(UI.row(UI.btn('Next: the landslide', () => this.slide(), 'primary'))); }; },
+  slide() {
+    this.mode = 'slide'; this.runs = null; UI.say('A landslide buries the meadow. Only the seeds you protect will grow: choose how many plants survive. Then six such meadows each run for thirty generations. <b>Keep both colours alive in at least 5 of the 6</b> — with as few plants as you can.');
+    this.sl = UI.slider({ label: 'plants', min: 4, max: 100, step: 1, value: this.N, fmt: v => v + '', oninput: v => { this.N = v; } }); UI.ctl(this.sl, UI.row(this.rb = UI.btn('Run six meadows', () => this.runSix(), 'primary')));
+  },
+  runSix() { this.tries++; const L = [0, 1, 2, 3, 4, 5].map(() => ({ d: this.sim(this.N), col: Pal.pink })); this.runs = { lines: L, t: 0 }; this.rb.disabled = true; this.sl.inp.disabled = true; this.after = () => this.judge(L); },
+  judge(L) {
+    const kept = L.filter(l => { const e = last(l.d); return e > 0 && e < 1; }).length, ok = kept >= 5; ok ? Snd.good() : Snd.bad();
+    UI.say('With <b>' + this.N + '</b> plants, both colours survived in <b>' + kept + ' of 6</b> meadows. ' + (ok ? 'Success.' : 'Too few: drift wiped a colour out of too many meadows.') + ' On average, a population loses a fraction <span class="fx">1 ÷ 2N</span> of its heterozygosity every generation.');
+    if (ok && !this.won) { this.won = true; this.score++; }
+    UI.ctl(UI.row(ok || this.tries >= 4 ? null : UI.btn('Try again', () => { this.rb.disabled = false; this.sl.inp.disabled = false; this.runs = null; UI.say('Choose a new number of survivors and run again.'); UI.ctl(this.sl, UI.row(this.rb)); }), UI.btn('Next', () => whatChanged('drift', 'allele', 'Drift changed allele frequencies — at random, with no direction, and fastest in small populations. Sometimes it removes an allele entirely.', okQ => finishForce('f_drift', this.score + (okQ ? 1 : 0), '<p>Every generation samples the alleles of the last. In a large population the sample matches the source almost exactly; in a small one it does not, so allele frequencies wander and alleles can be lost by chance. Hardy–Weinberg assumes an infinitely large population to rule this out.</p>')), 'primary')));
+  },
+  update(dt) { if (this.runs) { this.runs.t += dt; if (this.runs.t > 3.2 && this.after) { const f = this.after; this.after = null; f(); } } },
+  draw(c) {
+    const A = Stage.area();
+    if (this.runs) { const n = Math.min(31, 1 + Math.floor(this.runs.t / 3 * 30)); lineChart(c, A.x + 30, A.y + 24, A.w - 60, A.h * 0.62, this.runs.lines.map(l => ({ d: l.d.slice(0, n), col: l.col, wd: 2 })), { n: 31, mid: true, title: 'p over 30 generations' }); ink(c, 'p = 1', A.x + 26, A.y + 24, 11, Pal.muted, 'right', 600); ink(c, 'p = 0', A.x + 26, A.y + 24 + A.h * 0.62, 11, Pal.muted, 'right', 600); }
+    else { const N = this.mode === 'slide' ? this.N : 24, r = rng(N), pts = meadow(Math.min(N, 60), A, 5, { top: 0.4 }); pts.forEach((P, i) => flower(c, P.x, P.y, P.s, r() < 0.25 ? 'AA' : r() < 0.75 ? 'Aa' : 'aa')); if (this.mode === 'slide') { c.fillStyle = hexA(Pal.hill3, 0.9); c.beginPath(); c.moveTo(0, A.y + A.h * 0.3); c.lineTo(A.w * 0.25, A.y + A.h * 0.22); c.lineTo(A.w * 0.35, A.y + A.h * 0.36); c.lineTo(0, A.y + A.h * 0.5); c.fill(); ink(c, N + ' survivors', A.w / 2, A.y + 30, 20, Pal.ink, 'center', 600, 'serif'); } }
+  }
+});
+const last = a => a[a.length - 1];
+
+/* ================= Non-random mating: the choosy bees ================= */
+Game.reg({
+  id: 'f_mate', title: 'Non-random mating', sub: 'The choosy bees', seed: 81,
+  enter() { this.pop = shuffle(countsToList([6, 12, 6])); this.pts = null; this.score = 0; this.rule = 'assort'; this.sel = -1; this.deliv = 0; this.tray = []; this.res = null; this.bee = null; this.intro(); },
+  intro() {
+    this.res = null; this.tray = []; this.deliv = 0; this.sel = -1; const as = this.rule === 'assort';
+    UI.say(as ? 'Hardy–Weinberg assumes <b>random mating</b>. These bees are choosy: <b>they only carry pollen between flowers of the same colour</b>. You are one of them. Make <b>6 deliveries</b>: tap a flower to collect pollen, then tap another flower of the same colour.' : 'A different bee: this one <b>only carries pollen between flowers of different colours</b>. Make <b>6 deliveries</b>, each between two different colours.');
+    UI.ctl();
+  },
+  tap(x, y) {
+    if (this.res || this.deliv >= 6) return; forceMeadow(this, 24, { top: 0.5 }); const i = hitFlower(this.pts, x, y); if (i < 0) return; const P = this.pts[i];
+    if (this.sel < 0) { this.sel = i; this.bee = { x: P.x, y: bloomY(P) - 12 }; Snd.pop(); FX.ring(P.x, bloomY(P), Pal.glow, 22); return; }
+    if (i === this.sel) { this.sel = -1; return; }
+    const g1 = this.pop[this.sel], g2 = this.pop[i], same = g1 === g2;
+    if (this.rule === 'assort' && !same) { UI.toast('This bee only moves pollen between flowers of the <b>same</b> colour.'); Snd.bad(); return; }
+    if (this.rule === 'dis' && same) { UI.toast('This bee only moves pollen between <b>different</b> colours.'); Snd.bad(); return; }
+    const S = this.pts[this.sel]; FX.fly(S.x, bloomY(S), P.x, bloomY(P), gamete(g1), 0.6, null, { lift: 30 }); this.bee = { x: P.x, y: bloomY(P) - 12 };
+    const kid = gtOf(gamete(g1), gamete(g2)); this.tray.push(kid); this.deliv++; this.sel = -1; Snd.good();
+    UI.say('Delivery <b>' + this.deliv + ' of 6</b>: ' + g1 + ' × ' + g2 + ' gave a <b>' + kid + '</b> seed.');
+    if (this.deliv >= 6) setTimeout(() => this.swarm(), 500);
+  },
+  hot() { if (this.res) return []; forceMeadow(this, 24, { top: 0.5 }); if (this.sel < 0) return this.pts.map(p => ({ x: p.x, y: bloomY(p) })); const g = this.pop[this.sel]; return this.pts.filter((p, i) => i !== this.sel && (this.rule === 'assort' ? this.pop[i] === g : this.pop[i] !== g)).map(p => ({ x: p.x, y: bloomY(p) })); },
+  swarm() {
+    if (this.res) return;
+    const f = frac(listCounts(this.pop)), off = matingDist(f, this.rule), p = off[0] + off[1] / 2; this.res = off; this.score++; Snd.chord();
+    const as = this.rule === 'assort';
+    UI.say('Now the whole swarm follows your rule, thousands of times. Seeds: <b>' + pct(off[0]) + '</b> AA, <b>' + pct(off[1]) + '</b> Aa, <b>' + pct(off[2]) + '</b> aa. Hardy–Weinberg (dashed) expects 25%, 50%, 25%. ' + (as ? '<b>Too few heterozygotes</b>' : '<b>Too many heterozygotes</b>') + ' — but p is still <b>' + p.toFixed(2) + '</b>. ' + (as ? 'Self-pollination and inbreeding have the same effect, even more strongly.' : ''));
+    UI.ctl(UI.row(UI.btn(as ? 'Try an opposites-attract bee' : 'Next', () => { if (as) { this.rule = 'dis'; this.intro(); } else whatChanged('non-random mating', 'geno', 'Non-random mating repackaged the same alleles into different genotypes: like-with-like mating made fewer heterozygotes, opposites made more. The allele frequency never moved. It is the one assumption whose breaking changes genotype frequencies alone.', okQ => finishForce('f_mate', this.score + (okQ ? 1 : 0), '<p>When mates are not chosen at random — by colour, by kinship, by self-pollination — genotype frequencies depart from p², 2pq, q², while allele frequencies stay the same. Inbreeding reduces heterozygotes in every generation; that is why inbred populations reveal hidden recessive conditions.</p>')); }, 'primary')));
+  },
+  draw(c) {
+    const A = forceMeadow(this, 24, { top: 0.5 });
+    this.pop.forEach((g, i) => { const P = this.pts[i]; flower(c, P.x, P.y, P.s, g, { ring: i === this.sel ? Pal.glow : null }); });
+    if (this.bee) { const t = Game.t, x = this.bee.x + Math.sin(t * 9) * 3, y = this.bee.y + Math.cos(t * 7) * 2; c.fillStyle = '#f2c14e'; c.beginPath(); c.ellipse(x, y, 8, 5.5, 0, 0, TAU); c.fill(); c.fillStyle = '#2a2433'; c.fillRect(x - 3, y - 5, 2, 10); c.fillRect(x + 1, y - 5, 2, 10); c.fillStyle = 'rgba(255,255,255,.75)'; c.beginPath(); c.ellipse(x - 2, y - 7, 4, 3, -0.5, 0, TAU); c.ellipse(x + 3, y - 7, 4, 3, 0.5, 0, TAU); c.fill(); }
+    const bw = Math.min(220, A.w * 0.4); if (this.res) barsHW(c, A.w / 2 - bw / 2, A.y + 40, bw, A.h * 0.24, this.res, hwExp(0.5), { title: 'the swarm’s seeds vs Hardy–Weinberg' });
+    else { plate(c, A.w / 2 - 130, A.y + 14, 260, 46, 16, 0.6); this.tray.forEach((g, k) => flower(c, A.w / 2 - 100 + k * 40, A.y + 52, 9, g, { still: true })); if (!this.tray.length) ink(c, 'seeds from your deliveries', A.w / 2, A.y + 37, 12, Pal.muted, 'center', 600); }
+  }
+});
+
+/* ================= Station 6: Hidden carriers ================= */
+Game.reg({
+  id: 's6', title: 'Hidden carriers', sub: 'Putting the equation to work', seed: 91,
+  enter() { this.pop = shuffle(countsToList([81, 18, 1])); this.pts = null; this.xray = false; this.right = 0; this.mode = 'meadow'; this.D = null; stepper(this); this.next(); },
+  layout() { const A = Stage.area(); if (!this.pts || this.ptsW !== Stage.w || this.ptsH !== A.h) { this.pts = meadow(100, A, 93, { top: 0.36, size: Math.min(12, A.w / 26) }); this.ptsW = Stage.w; this.ptsH = A.h; } return A; },
+  resize() { this.pts = null; },
+  choice(q, opts, ans, why, after) { UI.say(q); UI.ctl(UI.row(...opts.map(([k, t]) => UI.btn(t, () => { const ok = k === ans; if (ok) { this.right++; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + why); UI.ctl(UI.row(UI.btn('Next', () => after(), 'primary'))); })))); },
+  steps: [
+    function () { this.choice('In this meadow <b>A is dominant</b>, so carriers (Aa) look just as red as AA. Only <b>1 flower in 100</b> is white (aa). How many red flowers secretly carry a? Step one: white flowers are aa, so <span class="fx">q² = 0.01</span>. What is <b>q</b>?', [['a', '0.01'], ['b', '0.1'], ['c', '0.05'], ['d', '0.5']], 'b', 'q is the square root of q²: √0.01 = 0.1. So p = 1 − q = 0.9.', () => this.next()); },
+    function () { this.choice('With <b>p = 0.9</b> and <b>q = 0.1</b>, what share of the meadow are carriers?', [['a', '0.18'], ['b', '0.09'], ['c', '0.81'], ['d', '0.01']], 'a', 'Carriers are 2pq = 2 × 0.9 × 0.1 = 0.18. Look at the meadow: <b>18 hidden carriers</b> now glow among the red flowers — eighteen times as many as the white flowers you can see.', () => this.next()); setTimeout(() => {}, 0); },
+    function () { this.xray = true; Snd.chord(); this.choice('The same logic works for people. <b>Cystic fibrosis</b> is recessive and affects about <b>1 in 2,500</b> newborns of Northern European ancestry. Roughly how many people are carriers?', [['a', '1 in 25'], ['b', '1 in 50'], ['c', '1 in 1,250'], ['d', '1 in 2,500']], 'a', 'q² = 1/2,500, so q = 1/50 = 0.02, and 2pq ≈ 2 × 0.98 × 0.02 ≈ 0.039: about <b>1 in 25</b>. This assumes Hardy–Weinberg holds, and carrier rates differ between populations, but estimates like this are used in genetic counselling.', () => this.next()); },
+    function () { this.xray = false; this.mode = 'chi'; this.di = 0; this.chi(); }
+  ],
+  DATA: [
+    { c: [298, 489, 213], fits: true, why: 'χ² is tiny: the observed numbers sit right on the Hardy–Weinberg prediction.' },
+    { c: [360, 280, 360], fits: false, why: 'Far too few heterozygotes. Inbreeding, or a sample that pooled two different populations, would do this.' },
+    { c: [180, 640, 180], fits: false, why: 'Far too many heterozygotes. Selection favouring heterozygotes, or deliberate mixing between groups, could do this.' }
+  ],
+  calc(c) { const N = c[0] + c[1] + c[2], p = (2 * c[0] + c[1]) / (2 * N), E = hwExp(p).map(f => f * N), x2 = c.reduce((s, o, i) => s + (o - E[i]) ** 2 / E[i], 0); return { N, p, E, x2 }; },
+  chi() {
+    const D = this.DATA[this.di]; this.D = D; this.shown = false; const K = this.calc(D.c);
+    UI.say('<b>Is it in equilibrium? Survey ' + (this.di + 1) + ' of 3.</b> MN blood groups in 1,000 people: <b>' + D.c[0] + '</b> MM, <b>' + D.c[1] + '</b> MN, <b>' + D.c[2] + '</b> NN. M and N are codominant, so every genotype is visible.' + (this.di === 0 ? ' A <b>χ² test</b> compares what you see with what Hardy–Weinberg predicts.' : ''));
+    UI.ctl(UI.row(UI.btn('Work it out', b => { this.shown = true; b.remove(); UI.say('p = (2 × ' + D.c[0] + ' + ' + D.c[1] + ') ÷ 2,000 = <b>' + K.p.toFixed(3) + '</b>. Hardy–Weinberg expects <b>' + K.E.map(e => Math.round(e)).join('</b>, <b>') + '</b>. <span class="fx">χ² = Σ (observed − expected)² ÷ expected = ' + K.x2.toFixed(K.x2 < 10 ? 2 : 1) + '</span>. With one degree of freedom, χ² above <b>3.84</b> means a significant departure (P &lt; 0.05).'); UI.ctl(UI.row(UI.btn('Fits Hardy–Weinberg', () => this.judge(true)), UI.btn('Departs from it', () => this.judge(false)))); }, 'primary')));
+  },
+  judge(f) {
+    const D = this.D, ok = f === D.fits; if (ok) { this.right++; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + D.why);
+    UI.ctl(UI.row(UI.btn(this.di < 2 ? 'Next survey' : 'Finish', () => { this.di++; if (this.di < 3) this.chi(); else finishStation('s6', this.right >= 6 ? 3 : this.right >= 4 ? 2 : 1, '<p>You got <b>' + this.right + ' of 6</b>.</p><p>Hardy–Weinberg turns what you can see into what you cannot: from the share of recessive phenotypes, <span class="fx">q = √(aa)</span>, and carriers are <span class="fx">2pq</span>. And as a <b>null model</b>, it tells you when something interesting is happening: a χ² test of observed against expected genotypes flags inbreeding, selection or mixed populations.</p>'); }, 'primary')));
+  },
+  draw(c) {
+    const A = this.layout();
+    if (this.mode === 'meadow') { this.pop.forEach((g, i) => { const P = this.pts[i]; flower(c, P.x, P.y, P.s, g === 'aa' ? 'aa' : 'AA', { glow: this.xray && g === 'Aa' ? 1.2 : 0, glowCol: Pal.glow, ring: this.xray && g === 'Aa' ? Pal.glow : null }); }); ink(c, this.xray ? '18 carriers revealed' : '99 red, 1 white', A.w / 2, A.y + 26, 18, Pal.ink, 'center', 600, 'serif'); return; }
+    const D = this.D; if (!D) return; const K = this.calc(D.c), bw = Math.min(300, A.w * 0.7); barsHW(c, A.w / 2 - bw / 2, A.y + A.h * 0.2, bw, A.h * 0.45, frac(D.c), this.shown ? hwExp(K.p) : null, { labels: ['MM', 'MN', 'NN'], title: this.shown ? 'observed (bars) vs Hardy–Weinberg (dashed)' : 'observed genotypes' });
+    if (this.shown) ink(c, 'χ² = ' + K.x2.toFixed(K.x2 < 10 ? 2 : 1), A.w / 2, A.y + A.h * 0.2 + A.h * 0.45 + 46, 20, K.x2 > 3.84 ? Pal.accent : Pal.ink, 'center', 600, 'serif');
+  }
+});
+
+/* ================= The grand quiz ================= */
+const QBANK = [
+  { q: 'In a population, q = 0.3. What is the frequency of heterozygotes?', o: ['0.42', '0.21', '0.09', '0.49'], why: '2pq = 2 × 0.7 × 0.3 = 0.42.' },
+  { q: 'Which of these is <b>not</b> an assumption of Hardy–Weinberg?', o: ['Equal numbers of each genotype', 'No selection', 'Random mating', 'No migration'], why: 'Genotype frequencies are predicted by p and q; nothing requires them to be equal.' },
+  { q: '36% of a population are recessive homozygotes (aa). What is q?', o: ['0.6', '0.36', '0.18', '0.4'], why: 'q² = 0.36, so q = √0.36 = 0.6.' },
+  { q: 'Which force changes genotype frequencies <b>without</b> changing allele frequencies?', o: ['Non-random mating', 'Genetic drift', 'Selection', 'Migration'], why: 'Non-random mating repackages the same alleles into different genotypes.' },
+  { num: true, q: 'p = 0.8. What percentage of the population is homozygous recessive (aa)?', ans: 4, tol: 0.5, min: 0, max: 20, step: 0.5, unit: '%', why: 'q = 0.2, so q² = 0.04: 4%.' },
+  { q: 'A population with p = 0.5 has no heterozygotes at all. With random mating, how many generations until it reaches Hardy–Weinberg proportions?', o: ['One', 'Two', 'About ten', 'It never does'], why: 'A single generation of random mating produces p², 2pq and q².' },
+  { q: 'Why is the heterozygote term 2pq rather than pq?', o: ['There are two ways to combine one A and one a', 'Heterozygotes carry two alleles', 'Heterozygotes are twice as fit', 'It corrects for dominance'], why: 'A from the egg and a from the sperm, or the other way round: two routes, each with probability pq.' },
+  { q: 'A storm strands 12 beetles on a new island; their allele frequencies differ from the mainland’s. What is at work?', o: ['Genetic drift: a founder effect', 'Mutation', 'Selection', 'Non-random mating'], why: 'A small random sample of founders carries a chance set of alleles.' },
+  { q: 'Spraying kills susceptible insects while resistant ones breed. Which assumption is broken?', o: ['No selection', 'Random mating', 'No mutation', 'No migration'], why: 'Genotypes differ in survival: that is selection.' },
+  { q: 'Every year, pollen blows into a field from a neighbouring variety. Which assumption is broken?', o: ['No migration', 'No mutation', 'Random mating', 'A large population'], why: 'Incoming alleles are gene flow, or migration.' },
+  { q: '1 person in 400 has a recessive condition. Roughly what share are carriers?', o: ['About 1 in 10', 'About 1 in 20', 'About 1 in 200', 'About 1 in 400'], why: 'q = √(1/400) = 0.05, so 2pq = 2 × 0.95 × 0.05 ≈ 0.095: about 1 in 10.' },
+  { q: 'A χ² test of Hardy–Weinberg gives χ² = 12.4 with one degree of freedom. What do you conclude?', o: ['The population departs from equilibrium', 'The population fits equilibrium', 'The allele frequencies must be 0.5', 'χ² cannot test this'], why: '12.4 is far above the 3.84 threshold for P < 0.05.' },
+  { q: 'Real mutation rates are about 1 in 100,000 per generation. Over a few generations, mutation…', o: ['Barely changes allele frequencies', 'Quickly pushes populations out of equilibrium', 'Always increases heterozygotes', 'Removes harmful alleles'], why: 'Its effect on frequencies is tiny over short times; its role is supplying new alleles.' },
+  { num: true, q: 'A meadow has 18 AA, 24 Aa and 8 aa flowers. What is p?', ans: 0.6, tol: 0.01, min: 0, max: 1, step: 0.01, unit: '', why: '(2 × 18 + 24) ÷ (2 × 50) = 60 ÷ 100 = 0.6.' },
+  { q: 'In which population does drift change allele frequencies fastest?', o: ['10 individuals', '1,000 individuals', '100,000 individuals', 'All the same'], why: 'Sampling error is largest in small populations.' },
+  { q: 'Inbreeding makes heterozygotes…', o: ['Rarer than Hardy–Weinberg predicts', 'Commoner than predicted', 'Exactly as predicted', 'Vanish in one generation'], why: 'Relatives share alleles, so their offspring are more often homozygous.' },
+  { q: 'Two populations with different allele frequencies are sampled together. Heterozygotes in the pooled sample are…', o: ['Fewer than Hardy–Weinberg expects', 'More than expected', 'As expected', 'Absent'], why: 'Pooling creates a heterozygote deficit: the Wahlund effect.' },
+  { q: 'For a gene with two alleles, p + q equals…', o: ['1', '2', 'p²', '0.5'], why: 'Every allele is either A or a, so their frequencies add to 1.' },
+  { q: 'With complete dominance, why can’t you count carriers directly?', o: ['They look the same as AA', 'They are infertile', 'They lack the a allele', 'They die young'], why: 'The dominant allele hides the recessive one, so Aa and AA share a phenotype.' },
+  { num: true, q: 'q = 0.1. What percentage of individuals are carriers (Aa)?', ans: 18, tol: 1, min: 0, max: 50, step: 1, unit: '%', why: '2pq = 2 × 0.9 × 0.1 = 0.18: 18%.' },
+  { q: 'Survivors of selection are 0% AA, 60% Aa and 40% aa. If they mate at random, their seedlings will be…', o: ['In Hardy–Weinberg proportions for the survivors’ p', 'Exactly 0%, 60% and 40% again', 'All heterozygous', 'All aa'], why: 'The survivors have p = 0.3, so random mating gives 9%, 42% and 49%.' },
+  { q: 'Which statement about Hardy–Weinberg is true?', o: ['It describes a population on which no evolutionary force acts', 'It proves populations never evolve', 'It applies only to dominant alleles', 'It requires p = q'], why: 'It is a null model: the baseline against which evolution is measured.' },
+  { q: 'Who derived the principle, independently, in 1908?', o: ['G. H. Hardy and Wilhelm Weinberg', 'Gregor Mendel', 'Darwin and Wallace', 'R. A. Fisher'], why: 'A Cambridge mathematician and a German physician, months apart.' },
+  { num: true, q: 'p = 0.5 and the population is in equilibrium. What percentage are heterozygotes?', ans: 50, tol: 1, min: 0, max: 100, step: 1, unit: '%', why: '2 × 0.5 × 0.5 = 0.5.' }
+];
+Game.reg({
+  id: 'quiz', title: 'The grand quiz', sub: 'Twelve questions against the clock', TL: 20,
+  enter() { this.qs = shuffle(QBANK.slice()).slice(0, 12); this.i = 0; this.score = 0; this.streak = 0; this.right = 0; this.miss = []; this.state = 'intro'; this.shown = 0;
+    UI.say('Twelve questions, <b>twenty seconds each</b>. Fast answers earn more, and three right in a row multiplies your points.'); UI.ctl(UI.row(UI.btn('Start the quiz', () => this.ask(), 'primary'))); },
+  mult() { return this.streak >= 6 ? 2 : this.streak >= 3 ? 1.5 : 1; },
+  ask() {
+    const Q = this.qs[this.i]; this.Q = Q; this.left = this.TL; this.state = 'ask'; this.locked = false;
+    UI.say('<b>Question ' + (this.i + 1) + ' of 12.</b> ' + Q.q);
+    if (Q.num) { this.val = (Q.min + Q.max) / 2; const sl = UI.slider({ label: 'answer', min: Q.min, max: Q.max, step: Q.step, value: this.val, fmt: v => (Q.step < 1 ? v.toFixed(Q.step < 0.1 ? 2 : 1) : v) + Q.unit, oninput: v => { this.val = v; } }); UI.ctl(sl, UI.row(UI.btn('Lock it in', () => this.answer(Math.abs(this.val - Q.ans) <= Q.tol + 1e-9), 'primary'))); }
+    else { const order = shuffle(Q.o.map((t, k) => [t, k])); UI.ctl(UI.row(...order.map(([t, k]) => { const b = UI.btn(t, () => this.answer(k === 0, b), 'wide'); b.dataset.k = k; return b; }))); }
+  },
+  answer(ok, b) {
+    if (this.state !== 'ask') return; this.state = 'fb'; const Q = this.Q, A = Stage.area();
+    $('ctl').querySelectorAll('button').forEach(x => { x.disabled = true; if (x.dataset.k === '0') x.classList.add('good'); }); if (b && !ok) b.classList.add('bad');
+    if (ok) { this.streak++; this.right++; const pts = Math.round((100 + 50 * this.left / this.TL) * this.mult()); this.score += pts; Snd.good(); FX.text(A.w / 2, A.y + A.h * 0.42, '+' + pts, Pal.glow, 30); if (this.streak === 3 || this.streak === 6) { FX.confetti(A.w / 2, A.y + A.h * 0.3, 40); Snd.star(); } }
+    else { this.streak = 0; Snd.bad(); this.miss.push(Q); FX.text(A.w / 2, A.y + A.h * 0.42, this.left <= 0 ? 'Time' : 'Not quite', Pal.accent, 26); }
+    UI.say((ok ? '<b>Right.</b> ' : (Q.num ? '<b>The answer: ' + Q.ans + Q.unit + '.</b> ' : '<b>Not quite.</b> ')) + Q.why);
+    UI.ctl(UI.row(UI.btn(this.i < 11 ? 'Next question' : 'See your result', () => this.nextQ(), 'primary')));
+  },
+  nextQ() { if (this.state !== 'fb') return; this.i++; if (this.i < 12) this.ask(); else this.end(); },
+  update(dt) { if (this.state !== 'ask') return; this.left -= dt; if (this.left <= 0) { this.left = 0; this.answer(false); } },
+  end() {
+    this.state = 'end'; const n = this.right, rank = n === 12 ? 'Hardy and Weinberg would be proud' : n >= 10 ? 'Population geneticist' : n >= 8 ? 'Pollen counter' : n >= 5 ? 'Gardener' : 'Seedling', best = Math.max(Save.d.best || 0, this.score), isBest = this.score >= best && this.score > 0;
+    Save.d.best = best; Save.star('quiz', n >= 11 ? 3 : n >= 8 ? 2 : 1); Snd.star(); FX.confetti(Stage.w / 2, Stage.h * 0.35, 70);
+    UI.say('Quiz complete: <b>' + n + ' of 12</b>, <b>' + this.score.toLocaleString('en-GB') + '</b> points.'); UI.ctl(UI.row(UI.btn('Play again', () => Game.go('quiz'), 'primary'), UI.btn('Back to the meadow', () => Game.go('map'))));
+    UI.card({ title: rank, html: '<div class="stars">' + starStr(n >= 11 ? 3 : n >= 8 ? 2 : 1) + '</div><p><b>' + n + ' of 12</b> correct, <b>' + this.score.toLocaleString('en-GB') + '</b> points' + (isBest ? ' — a new best.' : '. Your best: ' + best.toLocaleString('en-GB') + '.') + '</p>' + (this.miss.length ? '<h3>Worth another look</h3><ul>' + this.miss.map(Q => '<li>' + Q.q.replace(/<[^>]+>/g, '') + ' <i>' + Q.why + '</i></li>').join('') + '</ul>' : '<p>A perfect round.</p>'), buttons: [{ t: 'Back to the meadow', fn: () => Game.go('map') }, { t: 'Play again', primary: true, fn: () => Game.go('quiz') }] });
+  },
+  draw(c) {
+    const A = Stage.area(), t = Game.t, cx = A.w / 2, cy = A.y + A.h * 0.42, r = Math.min(A.w, A.h) * 0.3;
+    const g = c.createRadialGradient(cx, cy, 10, cx, cy, r * 1.6); g.addColorStop(0, hexA(Pal.glow, Pal.night ? 0.16 : 0.22)); g.addColorStop(1, hexA(Pal.glow, 0)); c.fillStyle = g; c.fillRect(0, A.y, A.w, A.h);
+    const nm = 18 + this.streak * 6; c.save(); if (Pal.night) c.globalCompositeOperation = 'lighter'; for (let k = 0; k < nm; k++) { const a = t * (0.25 + this.streak * 0.04) + k * TAU / nm; mote(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.55, k % 3 ? 'A' : 'a', 2.8, 0.85); } c.restore();
+    if (this.state === 'ask' || this.state === 'fb') { const k = clamp(this.left / this.TL, 0, 1); c.strokeStyle = hexA(Pal.ink, 0.15); c.lineWidth = 7; c.beginPath(); c.arc(cx, cy, 42, 0, TAU); c.stroke(); c.strokeStyle = k > 0.3 ? Pal.glow : Pal.accent; c.beginPath(); c.arc(cx, cy, 42, -Math.PI / 2, -Math.PI / 2 + TAU * k); c.stroke(); ink(c, Math.ceil(this.left) + '', cx, cy + 1, 26, Pal.ink, 'center', 600, 'serif'); }
+    ink(c, this.score.toLocaleString('en-GB'), A.x + 22, A.y + 22, 24, Pal.ink, 'left', 600, 'serif'); ink(c, 'points', A.x + 22, A.y + 44, 11.5, Pal.muted, 'left', 600);
+    if (this.mult() > 1) ink(c, '×' + this.mult() + ' streak', A.w - 22, A.y + 22, 18, Pal.accent, 'right', 700, 'serif');
+    if (this.state !== 'intro') ink(c, (this.i + 1 > 12 ? 12 : this.i + 1) + ' / 12', A.w - 22, A.y + 46, 12, Pal.muted, 'right', 600);
+  }
+});
+
+/* ================= Field guide and settings ================= */
+const GUIDE = '<h3>Alleles, genotypes, phenotypes</h3><p>Each individual carries two copies (<b>alleles</b>) of a gene, one from each parent. The pair is the <b>genotype</b> (AA, Aa or aa); what you see is the <b>phenotype</b>. A <b>dominant</b> allele hides a recessive one in the heterozygote; with <b>incomplete dominance</b> the heterozygote is in between.</p>'
+  + '<h3>Allele frequencies</h3><p><span class="fx">p = (2 × AA + Aa) ÷ 2N</span> is the share of all alleles that are A; <span class="fx">q = 1 − p</span>.</p>'
+  + '<h3>The equation</h3><p>If alleles combine at random, a new individual is AA with probability p², Aa with 2pq (two ways to make it) and aa with q²: <span class="fx">p² + 2pq + q² = (p + q)² = 1</span>.</p>'
+  + '<h3>Equilibrium</h3><p>With random mating and nothing else going on, allele frequencies stay constant and genotype frequencies reach p², 2pq, q² after <b>one generation</b>.</p>'
+  + '<h3>The five assumptions</h3><table><tr><th>Assumption</th><th>If broken</th></tr><tr><td>No selection</td><td>Allele frequencies change; survivors depart from equilibrium</td></tr><tr><td>No mutation</td><td>Allele frequencies change, very slowly</td></tr><tr><td>No migration</td><td>Allele frequencies move toward the migrants’</td></tr><tr><td>Very large population</td><td>Allele frequencies drift at random; alleles can be lost</td></tr><tr><td>Random mating</td><td>Genotype frequencies change; allele frequencies do not</td></tr></table>'
+  + '<h3>Using it</h3><p>From recessive phenotypes: <span class="fx">q = √(aa frequency)</span>, carriers = <span class="fx">2pq</span>. To test for equilibrium, compare observed and expected genotype counts: <span class="fx">χ² = Σ (O − E)² ÷ E</span>, with 1 degree of freedom for two alleles; above 3.84 is a significant departure.</p>';
+function openGuide() { UI.card({ title: 'Field guide', html: GUIDE, buttons: [{ t: 'Close', primary: true }] }); }
+function openSettings() {
+  const th = Save.d.theme || '';
+  UI.card({ title: 'Settings', html: '<p>Sound is <b>' + (Save.d.mute ? 'off' : 'on') + '</b>. Colours: <b>' + (th ? th : 'match my device') + '</b>. Stations: <b>' + (Save.d.all ? 'all unlocked' : 'unlock in order') + '</b>.</p>', buttons: [
+    { t: Save.d.mute ? 'Turn sound on' : 'Turn sound off', fn: () => { Save.d.mute = !Save.d.mute; Save.save(); openSettings(); } },
+    { t: 'Colours: ' + (th === '' ? 'night' : th === 'dark' ? 'day' : 'device'), fn: () => { Save.d.theme = th === '' ? 'dark' : th === 'dark' ? 'light' : ''; Save.save(); applyTheme(); openSettings(); } },
+    { t: Save.d.all ? 'Lock stations in order' : 'Unlock all stations', fn: () => { Save.d.all = !Save.d.all; Save.save(); if (Game.id === 'map') Game.go('map'); openSettings(); } },
+    { t: 'Reset progress', fn: () => UI.card({ title: 'Reset progress?', html: '<p>This clears every star and your best quiz score.</p>', buttons: [{ t: 'Keep my progress' }, { t: 'Reset', primary: true, fn: () => { Save.d.stars = {}; Save.d.done = {}; Save.d.best = 0; Save.save(); Game.go('map'); } }] }) },
+    { t: 'Done', primary: true }] });
+}
+function applyTheme() { const t = Save.d.theme; if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; readPal(); }
+
+/* ================= Boot ================= */
+function boot() {
+  Save.load(); applyTheme();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => readPal()); } catch (e) { }
+  Stage.init();
+  const missing = STATIONS.map(s => s.id).concat(FORCES.map(f => f.id), ['title', 'map']).filter(id => !Game.scenes[id]); if (missing.length) showErr('Missing scenes: ' + missing.join(', '));
+  $('b-map').onclick = () => { Snd.unlock(); Snd.click(); Game.go(Game.id.startsWith('f_') ? 'hub' : 'map'); };
+  $('b-guide').onclick = () => { Snd.unlock(); Snd.click(); openGuide(); }; $('b-guide2').onclick = () => { Snd.unlock(); Snd.click(); openGuide(); };
+  $('b-set').onclick = () => { Snd.unlock(); Snd.click(); openSettings(); };
+  $('b-begin').onclick = () => { Snd.unlock(); Snd.chord(); Game.go('map'); };
+  window.HW = { Game, Save, UI, Stage, FX, Pal, STATIONS, FORCES, QBANK };
+  Game.go('title'); Game.frame();
+}
+boot();
+
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#152120">
+<title>Tangled Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{
+ --cab:#152120;--cab2:#1c2a28;--cab3:#253634;--paper:#e8dfc9;--paper-dim:rgba(232,223,201,.66);--ink:#29211b;--ink2:#5c4f44;
+ --carmine:#a8263f;--ochre:#cf9a33;--teal:#46a19a;--slate:#8aa0b8;--line:rgba(232,223,201,.15);
+ --fd:"Fraunces",Georgia,"Times New Roman",serif;--fb:"Spectral",Georgia,"Times New Roman",serif;--fm:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+ color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--cab:#152120;--cab2:#1c2a28;--paper:#e8dfc9}}
+:root[data-theme="dark"]{--cab:#152120;--cab2:#1c2a28;--paper:#e8dfc9}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--cab);color:var(--paper);font:16px/1.5 var(--fb);overflow:hidden;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+#app{position:relative;height:100%;max-width:560px;margin:0 auto;overflow:hidden;background:var(--cab)}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+button{font:inherit;color:inherit;touch-action:manipulation}
+.btn{font:600 15px/1.1 var(--fb);padding:11px 16px;min-height:44px;border-radius:6px;border:1.5px solid currentColor;background:transparent;cursor:pointer}
+.btn.primary{background:var(--carmine);border-color:var(--carmine);color:#f7f0e2}
+.btn.ghost{border-color:var(--line);color:var(--paper)}
+.btn:disabled{opacity:.38;cursor:default}
+.btn:focus-visible,.tip:focus-visible,.iconbtn:focus-visible,.tog:focus-visible,.seg button:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+.mono{font-family:var(--fm);font-size:12px}
+/* title */
+#title-cv{position:absolute;inset:0;width:100%;height:100%}
+.title-wrap{position:relative;margin-top:auto;padding:0 26px 30px}
+.title-wrap h1{font:800 clamp(54px,17.5vw,86px)/.86 var(--fd);letter-spacing:-.03em;margin:0 0 16px}
+.sub{font-size:18px;line-height:1.4;max-width:21em;margin:0 0 22px}
+.quote{margin:24px 0 0;font-style:italic;color:var(--paper-dim);font-size:14px;line-height:1.4}
+.quote span{font-style:normal;font-size:12px}
+/* notebook */
+.tree-head{padding:20px 20px 4px}
+.tree-head h2{font:600 30px/1.05 var(--fd);margin:0;letter-spacing:-.01em}
+.tree-head p{margin:6px 0 0;color:var(--paper-dim);font-size:14px}
+.tree-body{position:relative;flex:1;overflow-y:auto;padding:0 14px 18px 0;-webkit-overflow-scrolling:touch}
+#tree-svg{position:absolute;left:0;top:0;width:60px;pointer-events:none;overflow:visible}
+#tree-rows{margin-left:60px}
+.clade{font:italic 15px/1.2 var(--fb);color:var(--ochre);padding:18px 0 4px}
+.tip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:12px 4px;cursor:pointer;min-height:68px}
+.tip .num{font:600 15px/1 var(--fd);color:var(--ochre);width:24px}
+.tip .tt{flex:1;display:flex;flex-direction:column;gap:2px}
+.tip b{font:600 19px/1.15 var(--fd)}
+.tip i{font-size:14px;color:var(--paper-dim)}
+.tip .st{color:var(--ochre);font-size:15px;letter-spacing:1px;white-space:nowrap}
+.tip .st .off{opacity:.3}
+.tree-foot{display:flex;gap:10px;justify-content:space-between;padding:10px 16px 12px;border-top:1px solid var(--line)}
+/* play */
+#bar{display:flex;align-items:center;gap:6px;height:48px;padding:0 10px 0 2px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.iconbtn{width:42px;height:42px;border:0;background:transparent;font:400 32px/1 var(--fd);color:var(--paper);cursor:pointer;display:grid;place-items:center;padding:0 0 4px}
+#bar-title{flex:1;min-width:0;font:600 16px/1.1 var(--fd);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar-title .n{color:var(--ochre);margin-right:7px}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:0 0 auto}
+.seg button{border:0;background:transparent;padding:0 8px;height:32px;min-width:32px;font:500 12px var(--fm);color:var(--paper-dim);cursor:pointer}
+.seg button.on{background:var(--paper);color:var(--ink)}
+#bar-gen{min-width:50px;text-align:right;color:var(--paper-dim);flex:0 0 auto}
+#stage{position:relative;flex:1 1 auto;min-height:170px;overflow:hidden;background:#0f1716}
+#scene{position:absolute;left:0;top:0;touch-action:none;display:block}
+#panel{flex:0 0 auto;max-height:52%;overflow-y:auto;background:var(--cab2);border-top:1px solid var(--line);padding:10px 14px 12px;-webkit-overflow-scrolling:touch}
+.hp .timer{height:6px;border-radius:3px;background:rgba(232,223,201,.12);overflow:hidden}
+.hp .timer i{display:block;height:100%;width:100%;background:var(--ochre);transform-origin:left center}
+.hp .row{display:flex;justify-content:space-between;align-items:baseline;margin:8px 0 6px;font-size:15px}
+.hp .row b{font:600 21px var(--fd)}
+.hp .obj-l{display:flex;justify-content:space-between;font-size:14px}
+.hp .obj-l b{font-weight:600}
+.hp .obj-s{font-size:13px;color:var(--paper-dim);margin-top:5px;line-height:1.35}
+.meter{position:relative;height:10px;border-radius:5px;background:rgba(232,223,201,.1);margin:5px 0}
+.meter i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--teal);transition:width .4s}
+.meter em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--paper)}
+.objs{list-style:none;margin:0 0 6px;padding:0}
+.objs li{display:flex;gap:8px;font-size:14px;line-height:1.35;padding:3px 0}
+.objs li .s{color:var(--paper-dim);flex:0 0 auto}
+.objs li.got{color:var(--paper-dim)}
+.objs li.got .s{color:var(--ochre)}
+.levers{display:flex;flex-direction:column;gap:6px;margin:6px 0 8px}
+.lrow{display:flex;align-items:center;gap:10px;font-size:14px;line-height:1.25}
+.lrow label{flex:1}
+.lrow output{font:500 12px var(--fm);min-width:36px;text-align:right}
+.lrow .btn{flex:1;padding:9px 12px;min-height:40px;font-size:14px}
+.tog{min-width:62px;height:34px;border-radius:17px;border:1px solid var(--line);background:transparent;color:var(--paper-dim);font:500 12px var(--fm);cursor:pointer}
+.tog[aria-pressed="true"]{background:var(--carmine);border-color:var(--carmine);color:#f7f0e2}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1.3;height:30px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:rgba(232,223,201,.25)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--ochre);margin-top:-10px;border:2px solid var(--cab2)}
+input[type=range]::-moz-range-track{height:4px;background:rgba(232,223,201,.25)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ochre);border:0}
+.tabs{display:flex;gap:6px;margin:6px 0 4px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:transparent;border-radius:15px;padding:4px 11px;font-size:13px;color:var(--paper-dim);cursor:pointer;min-height:32px}
+.tabs button.on{border-color:var(--paper);color:var(--paper)}
+.chart{width:100%;height:120px;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--paper-dim);margin-top:2px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.read{font-size:13px;color:var(--paper-dim);margin-top:6px;line-height:1.45}
+.read b{color:var(--paper);font-weight:600}
+.price{margin:6px 0 2px}
+.price .prow{display:grid;grid-template-columns:104px 1fr 50px;align-items:center;gap:8px;font-size:13px;margin:4px 0}
+.price .pbar{position:relative;height:10px;background:rgba(232,223,201,.08);border-radius:5px}
+.price .pbar::before{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--paper-dim)}
+.price .pbar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.price .pv{font:500 11px var(--fm);text-align:right}
+/* cards */
+#cards{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,12,11,.62);z-index:20;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
+#cards.on{display:flex}
+.card{position:relative;width:min(100%,440px);max-height:100%;overflow-y:auto;background:var(--paper);color:var(--ink);border-radius:4px;padding:20px 18px 14px;box-shadow:0 18px 50px rgba(0,0,0,.5);-webkit-overflow-scrolling:touch}
+.card::before{content:"";position:absolute;inset:6px;border:1px solid rgba(41,33,27,.22);border-radius:2px;pointer-events:none}
+.card h3{font:600 25px/1.12 var(--fd);margin:0 0 4px;letter-spacing:-.01em}
+.card h4{font:600 16px/1.2 var(--fd);margin:14px 0 4px}
+.card p{margin:0 0 9px;font-size:15px;line-height:1.5}
+.card .kicker{font-style:italic;color:var(--ink2);margin:0 0 12px}
+.card .goal{border-left:3px solid var(--carmine);padding-left:10px}
+.card .basis{font-size:14px;color:var(--ink2)}
+.card .cap{font-size:13px;color:var(--ink2);font-style:italic;margin-top:-4px}
+.card-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;position:relative}
+.card .btn{color:var(--ink)}
+.card .btn.primary{color:#f7f0e2}
+.card canvas{width:100%;height:130px;display:block;margin:8px 0}
+.card .stars{font-size:28px;color:var(--ochre);letter-spacing:4px;line-height:1.1}
+.card .stars .off{color:rgba(41,33,27,.18)}
+.card .leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin:-4px 0 6px}
+.card .leg i{display:inline-block;width:12px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink2);margin-top:4px}
+.chk input{width:20px;height:20px;accent-color:#a8263f}
+#toasts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 56px);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:30;pointer-events:none}
+.toast{max-width:min(92%,420px);background:var(--paper);color:var(--ink);padding:9px 14px;border-radius:6px;font-size:14px;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .5s,transform .5s}
+.toast b{color:#8a5d10}
+.toast.out{opacity:0;transform:translateY(-8px)}
+#err{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:50;background:#3b0f16;color:#ffd9de;font:12px/1.4 var(--fm);padding:8px 10px;border-radius:6px;display:none;white-space:pre-wrap;max-height:40%;overflow:auto;-webkit-user-select:text;user-select:text}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}.meter i{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+ <section id="scr-title" class="screen on">
+  <canvas id="title-cv"></canvas>
+  <div class="title-wrap">
+   <h1>Tangled<br>Bank</h1>
+   <p class="sub">Six experiments in natural selection, in which you are the selection.</p>
+   <button class="btn primary" id="btn-begin">Open the notebook</button>
+   <p class="quote">“It is interesting to contemplate an entangled bank…”<br><span>Charles Darwin, 1859</span></p>
+  </div>
+ </section>
+ <section id="scr-tree" class="screen">
+  <header class="tree-head"><h2>Field notebook</h2><p id="tree-stars"></p></header>
+  <div class="tree-body" id="tree-body"><svg id="tree-svg" xmlns="http://www.w3.org/2000/svg"></svg><div id="tree-rows"></div></div>
+  <footer class="tree-foot"><button class="btn ghost" id="btn-title">Title</button><button class="btn ghost" id="btn-snd" aria-pressed="true">Sound on</button></footer>
+ </section>
+ <section id="scr-play" class="screen">
+  <header id="bar">
+   <button id="bar-back" class="iconbtn" aria-label="Back to the notebook">‹</button>
+   <div id="bar-title"></div>
+   <div id="speed" class="seg" role="group" aria-label="Speed"><button data-s="0" aria-label="Pause">❚❚</button><button data-s="1">1×</button><button data-s="2">4×</button><button data-s="3">16×</button></div>
+   <div id="bar-gen" class="mono"></div>
+  </header>
+  <div id="stage"><canvas id="scene"></canvas></div>
+  <div id="panel"></div>
+ </section>
+</div>
+<div id="cards"></div>
+<div id="toasts"></div>
+<div id="err"></div>
+<script>
+(function(){
+'use strict';
+/* ================= CORE ================= */
+const TAU = Math.PI * 2;
+const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+let _s = 1;
+function seed(n) { _s = (n >>> 0) || 1; }
+function R() { _s |= 0; _s = _s + 0x6D2B79F5 | 0; let t = Math.imul(_s ^ _s >>> 15, 1 | _s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+seed((Date.now() ^ (Math.random() * 1e9)) >>> 0);
+function rng(sv) { let s = (sv >>> 0) || 1; return function () { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss() { let u = 0; while (u === 0) u = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * R()); }
+function poisson(l) { if (l <= 0) return 0; if (l > 30) return Math.max(0, Math.round(l + Math.sqrt(l) * gauss())); const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= R(); } while (p > L); return k - 1; }
+function pick(a) { return a[(R() * a.length) | 0]; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (R() * (i + 1)) | 0; const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function mean(a) { if (!a.length) return 0; let s = 0; for (const x of a) s += x; return s / a.length; }
+function wpick(w) { let t = 0; for (const x of w) t += x; let r = R() * t; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return w.length - 1; }
+const pct = x => Math.round(x * 100) + '%';
+const f2 = x => (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(2);
+const $ = id => document.getElementById(id);
+
+/* ---------- genetics: diploid, additive, free recombination ----------
+   trait spec: {k, n (loci), m0, s0 (initial genetic mean/sd), mu (per-locus mutation prob), msd (effect sd), ve (environmental sd)}
+   kind 'dom': one biallelic locus, allele 1 dominant. kind 'count': loci hold counts of deleterious mutations. */
+const Gen = {
+  layout(specs) { let o = 0; const T = {}; for (const s of specs) { s.off = o; o += s.n; T[s.k] = s; } return { specs, T, L: o }; },
+  genome(lay, over) {
+    const L = lay.L, g = new Float32Array(L * 2);
+    for (const s of lay.specs) {
+      const o = (over && over[s.k]) || {};
+      for (let i = 0; i < s.n; i++) {
+        const j = s.off + i;
+        if (s.kind === 'dom') { const p = o.p != null ? o.p : s.p0; g[j] = R() < p ? 1 : 0; g[L + j] = R() < p ? 1 : 0; }
+        else if (s.kind === 'count') { const c = s.c0f ? s.c0f(i) : (s.c0 || 0); g[j] = Math.min(s.cap || 99, poisson(c)); g[L + j] = Math.min(s.cap || 99, poisson(c)); }
+        else { const m = o.m != null ? o.m : s.m0, sd = o.s != null ? o.s : s.s0, n2 = s.n * 2; g[j] = m / n2 + sd / Math.sqrt(n2) * gauss(); g[L + j] = m / n2 + sd / Math.sqrt(n2) * gauss(); }
+      }
+    }
+    return g;
+  },
+  mate(lay, a, b) { const L = lay.L, c = new Float32Array(L * 2); this._gam(lay, a, c, 0); this._gam(lay, b, c, L); return c; },
+  _gam(lay, g, out, off) {
+    const L = lay.L;
+    for (const s of lay.specs) {
+      for (let i = 0; i < s.n; i++) {
+        const j = s.off + i; let a = R() < 0.5 ? g[j] : g[L + j];
+        if (s.kind === 'dom') { if (a < 0.5) { if (R() < s.mu) a = 1; } else if (s.back && R() < s.back) a = 0; }
+        else if (s.kind === 'count') { a = Math.min(s.cap || 99, a + poisson(s.u)); }
+        else if (R() < s.mu) a += s.msd * gauss();
+        out[off + j] = a;
+      }
+    }
+  },
+  add(lay, g, k) { const s = lay.T[k], L = lay.L; let v = 0; for (let i = 0; i < s.n; i++) v += g[s.off + i] + g[L + s.off + i]; return v; },
+  ph(lay, g, k) { const s = lay.T[k]; return clamp(this.add(lay, g, k) + (s.ve || 0) * gauss(), s.lo != null ? s.lo : 0, s.hi != null ? s.hi : 1); },
+  dom(lay, g, k) { const s = lay.T[k]; return g[s.off] > 0.5 || g[lay.L + s.off] > 0.5; },
+  cnt(lay, g, k, i) { const s = lay.T[k]; return g[s.off + i] + g[lay.L + s.off + i]; },
+  freq(lay, pop, k) { const s = lay.T[k]; let c = 0; for (const x of pop) c += x.g[s.off] + x.g[lay.L + s.off]; return pop.length ? c / (2 * pop.length) : 0; }
+};
+
+/* ---------- colour ---------- */
+function hsl2rgb(h, s, l) { h = (((h % 360) + 360) % 360) / 360; const q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q; const f = t => { if (t < 0) t += 1; if (t > 1) t -= 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < .5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; }; return [f(h + 1 / 3) * 255, f(h) * 255, f(h - 1 / 3) * 255]; }
+const css = (c, a) => a == null ? 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')' : 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a + ')';
+const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+
+/* ---------- value noise ---------- */
+function makeNoise(sv) {
+  const r = rng(sv), P = new Uint8Array(512), p = []; for (let i = 0; i < 256; i++) p.push(i);
+  for (let i = 255; i > 0; i--) { const j = (r() * (i + 1)) | 0; const t = p[i]; p[i] = p[j]; p[j] = t; }
+  for (let i = 0; i < 512; i++) P[i] = p[i & 255];
+  const V = new Float32Array(256); for (let i = 0; i < 256; i++) V[i] = r();
+  return function (x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, X = xi & 255, Y = yi & 255;
+    const a = V[P[P[X] + Y]], b = V[P[P[X + 1] + Y]], c = V[P[P[X] + Y + 1]], d = V[P[P[X + 1] + Y + 1]];
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+}
+function fbm(n, x, y, o) { let s = 0, a = 0.5, f = 1, t = 0; for (let i = 0; i < o; i++) { s += a * n(x * f, y * f); t += a; a *= 0.5; f *= 2.03; } return s / t; }
+
+/* ---------- sound (WebAudio, synthesised) ---------- */
+const Snd = {
+  ctx: null, on: true,
+  init() { if (this.ctx) return; try { const A = window.AudioContext || window.webkitAudioContext; if (A) this.ctx = new A(); } catch (e) { this.ctx = null; } },
+  resume() { try { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); } catch (e) { } },
+  env(g, t, a, d, v) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); },
+  tone(f, d, type, v, f2v) { if (!this.on || !this.ctx) return; try { const c = this.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (f2v) o.frequency.exponentialRampToValueAtTime(f2v, t + d); this.env(g, t, 0.006, d, v || 0.08); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) { } },
+  noise(d, v, fq, q) { if (!this.on || !this.ctx) return; try { const c = this.ctx, t = c.currentTime, n = Math.floor(c.sampleRate * d), b = c.createBuffer(1, n, c.sampleRate), a = b.getChannelData(0); for (let i = 0; i < n; i++) a[i] = Math.random() * 2 - 1; const s = c.createBufferSource(); s.buffer = b; const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = fq || 2000; f.Q.value = q || 1; const g = c.createGain(); this.env(g, t, 0.004, d, v || 0.1); s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); } catch (e) { } },
+  peck() { this.noise(0.05, 0.25, 3000, 2); this.tone(820, 0.05, 'triangle', 0.05, 480); },
+  miss() { this.tone(170, 0.09, 'sine', 0.05, 120); },
+  bitter() { this.tone(210, 0.38, 'sawtooth', 0.045, 85); this.noise(0.32, 0.05, 520, 0.7); },
+  chime() { this.tone(660, 0.5, 'sine', 0.06); setTimeout(() => this.tone(990, 0.6, 'sine', 0.05), 120); },
+  star() { [523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.5, 'sine', 0.06), i * 110)); },
+  click() { this.tone(1300, 0.025, 'square', 0.015); },
+  flood() { this.noise(1.5, 0.12, 380, 0.5); },
+  dawn() { this.tone(1568, 0.12, 'sine', 0.025, 1760); setTimeout(() => this.tone(2093, 0.1, 'sine', 0.02, 1976), 140); }
+};
+
+/* ---------- save ---------- */
+const Save = {
+  k: 'tangledbank_v1', d: { stars: {}, quick: false, snd: true },
+  load() { try { const s = localStorage.getItem(this.k); if (s) { const o = JSON.parse(s); if (o && typeof o === 'object') this.d = Object.assign(this.d, o); if (!this.d.stars) this.d.stars = {}; } } catch (e) { } },
+  save() { try { localStorage.setItem(this.k, JSON.stringify(this.d)); } catch (e) { } },
+  star(id, n) { if (n > (this.d.stars[id] || 0)) { this.d.stars[id] = n; this.save(); } }
+};
+
+/* ---------- UI helpers ---------- */
+function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = msg; $('toasts').appendChild(t); setTimeout(() => t.classList.add('out'), 3200); setTimeout(() => t.remove(), 3800); }
+function starStr(n) { return '★'.repeat(n) + '<span class="off">' + '★'.repeat(3 - n) + '</span>'; }
+const Cards = {
+  open(o) {
+    const layer = $('cards'); layer.innerHTML = '';
+    const box = document.createElement('div'); box.className = 'card ' + (o.cls || ''); box.innerHTML = o.html;
+    const row = document.createElement('div'); row.className = 'card-btns';
+    for (const b of o.buttons || []) {
+      const bt = document.createElement('button'); bt.className = 'btn' + (b.primary ? ' primary' : ''); bt.textContent = b.t;
+      bt.addEventListener('click', () => { if (box.dataset.armed !== '1') return; Snd.click(); if (b.fn) b.fn(); });
+      row.appendChild(bt);
+    }
+    box.appendChild(row); layer.appendChild(box); layer.classList.add('on');
+    setTimeout(() => { box.dataset.armed = '1'; }, 380); // ghost-tap guard: taps from the scene can't hit a fresh card
+    if (o.onOpen) requestFrame(() => o.onOpen(box));
+    return box;
+  },
+  close() { const l = $('cards'); l.classList.remove('on'); l.innerHTML = ''; },
+  isOpen() { return $('cards').classList.contains('on'); }
+};
+function requestFrame(fn) { setTimeout(fn, 20); }
+
+/* ---------- charts ---------- */
+function fitCanvas(cv) {
+  const r = cv.getBoundingClientRect(), d = Math.min(3, window.devicePixelRatio || 1);
+  const w = Math.max(10, Math.round(r.width * d)), h = Math.max(10, Math.round(r.height * d));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); return { c, w: Math.max(10, r.width), h: Math.max(10, r.height) };
+}
+const THEMES = { dark: { axis: 'rgba(232,223,201,.28)', text: 'rgba(232,223,201,.62)', ref: 'rgba(232,223,201,.5)' }, paper: { axis: 'rgba(41,33,27,.35)', text: 'rgba(41,33,27,.7)', ref: 'rgba(41,33,27,.55)' } };
+function lineChart(cv, o) {
+  const { c, w, h } = fitCanvas(cv), th = THEMES[o.theme || 'dark'];
+  c.clearRect(0, 0, w, h);
+  const L = 30, Rm = 8, T = 8, B = 17, pw = w - L - Rm, ph = h - T - B;
+  let xmax = o.xmax || 1; for (const s of o.series) xmax = Math.max(xmax, s.d.length - 1);
+  const X = i => L + pw * i / xmax, Y = v => T + ph * (1 - (v - o.y0) / (o.y1 - o.y0));
+  if (o.bands) for (const b of o.bands) { c.fillStyle = b.c; for (let i = 0; i < b.d.length; i++) { const v = b.d[i]; if (!v) continue; c.globalAlpha = v; c.fillRect(X(i - 0.5), T, Math.max(1, pw / xmax), ph); } c.globalAlpha = 1; }
+  c.strokeStyle = th.axis; c.lineWidth = 1; c.beginPath(); c.moveTo(L, T); c.lineTo(L, T + ph); c.lineTo(L + pw, T + ph); c.stroke();
+  c.fillStyle = th.text; c.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--fm');
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  const fy = o.fy || (v => (Math.round(v * 100) / 100) + '');
+  c.fillText(fy(o.y1), L - 4, T + 3); c.fillText(fy(o.y0), L - 4, T + ph - 2);
+  c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.fillText(o.x0l || '0', L, h - 4);
+  c.textAlign = 'right'; c.fillText(o.xl || String(xmax), L + pw, h - 4);
+  if (o.refs) for (const r of o.refs) { const y = Y(r.v); c.strokeStyle = r.c || th.ref; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(L, y); c.lineTo(L + pw, y); c.stroke(); c.setLineDash([]); if (r.label) { c.fillStyle = r.c || th.ref; c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(r.label, L + pw, y - 2); } }
+  if (o.marks) for (const m of o.marks) { const x = X(m); c.strokeStyle = th.ref; c.beginPath(); c.moveTo(x, T + ph); c.lineTo(x, T + ph - 6); c.stroke(); }
+  for (const s of o.series) {
+    c.strokeStyle = s.c; c.lineWidth = s.w || 2; c.setLineDash(s.dash || []); c.lineJoin = 'round'; c.beginPath(); let on = false, lx = 0, ly = 0;
+    for (let i = 0; i < s.d.length; i++) { const v = s.d[i]; if (v == null || isNaN(v)) { on = false; continue; } const x = X(i), y = Y(clamp(v, o.y0, o.y1)); if (!on) { c.moveTo(x, y); on = true; } else c.lineTo(x, y); lx = x; ly = y; }
+    c.stroke(); c.setLineDash([]);
+    if (on && !s.dash) { c.fillStyle = s.c; c.beginPath(); c.arc(lx, ly, 2.6, 0, TAU); c.fill(); }
+  }
+}
+function histChart(cv, o) {
+  const { c, w, h } = fitCanvas(cv), th = THEMES[o.theme || 'paper'];
+  c.clearRect(0, 0, w, h);
+  const L = 8, Rm = 8, T = 6, B = 18, pw = w - L - Rm, ph = h - T - B, nb = o.bins || 16;
+  const bin = v => clamp(Math.floor((v - o.lo) / (o.hi - o.lo) * nb), 0, nb - 1);
+  const counts = o.layers.map(ly => { const a = new Array(nb).fill(0); for (const v of ly.v) a[bin(v)]++; return a; });
+  let mx = 1; for (const a of counts) for (const x of a) mx = Math.max(mx, x);
+  const bw = pw / nb;
+  o.layers.forEach((ly, k) => { c.fillStyle = ly.c; for (let i = 0; i < nb; i++) { const hh = ph * counts[k][i] / mx; if (hh > 0) c.fillRect(L + i * bw + 1, T + ph - hh, bw - 2, hh); } });
+  c.strokeStyle = th.axis; c.beginPath(); c.moveTo(L, T + ph + 0.5); c.lineTo(L + pw, T + ph + 0.5); c.stroke();
+  if (o.marker != null) { const x = L + pw * (o.marker - o.lo) / (o.hi - o.lo); c.strokeStyle = o.markerC || '#b07a14'; c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); c.moveTo(x, T); c.lineTo(x, T + ph); c.stroke(); c.setLineDash([]); c.lineWidth = 1; }
+  c.fillStyle = th.text; c.font = '11px ' + getComputedStyle(document.body).getPropertyValue('--fb'); c.textBaseline = 'alphabetic';
+  c.textAlign = 'left'; c.fillText(o.l0 || '', L, h - 4); c.textAlign = 'right'; c.fillText(o.l1 || '', L + pw, h - 4);
+  if (o.ml) { c.textAlign = 'center'; c.fillStyle = o.markerC || '#b07a14'; const x = L + pw * (o.marker - o.lo) / (o.hi - o.lo); c.fillText(o.ml, clamp(x, L + 30, L + pw - 30), h - 4); }
+}
+function barChart(cv, o) { // o.groups: [{label, parts:[{v,c}]}]
+  const { c, w, h } = fitCanvas(cv), th = THEMES.paper;
+  c.clearRect(0, 0, w, h);
+  const T = 6, B = 18, ph = h - T - B, n = o.groups.length, gw = w / n;
+  let mx = 1; for (const g of o.groups) { let s = 0; for (const p of g.parts) s += p.v; mx = Math.max(mx, s); }
+  o.groups.forEach((g, i) => {
+    let y = T + ph; const x = i * gw + gw * 0.25, bw = gw * 0.5;
+    for (const p of g.parts) { const hh = ph * p.v / mx; c.fillStyle = p.c; c.fillRect(x, y - hh, bw, hh); y -= hh; }
+    c.fillStyle = th.text; c.font = '12px ' + getComputedStyle(document.body).getPropertyValue('--fb'); c.textAlign = 'center'; c.fillText(g.label, i * gw + gw / 2, h - 4);
+  });
+}
+
+/* ---------- stage ---------- */
+const Stage = {
+  cv: null, ctx: null, w: 1, h: 1, dpr: 1,
+  init() {
+    this.cv = $('scene'); this.ctx = this.cv.getContext('2d');
+    window.addEventListener('resize', () => this.resize());
+    try { if (window.ResizeObserver) new ResizeObserver(() => { const r = this.cv.parentElement.getBoundingClientRect(); if (Math.abs(r.width - this.w) > 1 || Math.abs(r.height - this.h) > 1) this.resize(); }).observe(this.cv.parentElement); } catch (e) { }
+    window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 250));
+    this.cv.addEventListener('pointerdown', e => {
+      Snd.init(); Snd.resume();
+      const r = this.cv.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top;
+      if (App.mode && App.mode.tap && !Cards.isOpen()) App.mode.tap(x, y);
+      e.preventDefault();
+    }, { passive: false });
+  },
+  resize() {
+    const p = this.cv.parentElement; if (!p) return; const r = p.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return;
+    this.dpr = Math.min(3, window.devicePixelRatio || 1); this.w = r.width; this.h = r.height;
+    this.cv.width = Math.round(this.w * this.dpr); this.cv.height = Math.round(this.h * this.dpr);
+    this.cv.style.width = this.w + 'px'; this.cv.style.height = this.h + 'px';
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    if (App.mode && App.mode.onResize) App.mode.onResize();
+  }
+};
+
+/* ================= HUNT MODE: the player is the predator ================= */
+// Moth and bark colours live in one space: t = tone (0 dark .. 1 pale), h = hue (0 warm brown .. 1 lichen grey-green).
+function t2rgb(t, h) { return hsl2rgb(lerp(30, 84, h), lerp(0.36, 0.10, h), 0.07 + 0.80 * clamp(t, 0, 1)); }
+
+function barkTex(w, h, d, sv, soot) {
+  const W = Math.round(w * d), H = Math.round(h * d), cv = mkCanvas(W, H), c = cv.getContext('2d'), im = c.createImageData(W, H), D = im.data;
+  const n1 = makeNoise(sv), n2 = makeNoise(sv + 11), n3 = makeNoise(sv + 23), n4 = makeNoise(sv + 37);
+  let sT = 0, sH = 0;
+  for (let y = 0; y < H; y++) {
+    const Y = y / d;
+    for (let x = 0; x < W; x++) {
+      const X = x / d;
+      const f = fbm(n1, X * 0.05, Y * 0.011, 3), ridge = 1 - Math.abs(f * 2 - 1), crack = smooth(0.80, 0.96, ridge);
+      const l = fbm(n2, X * 0.05, Y * 0.05, 4), sp = n3(X * 0.55, Y * 0.55), bl = n4(X * 0.14, Y * 0.14);
+      let t, hh;
+      if (!soot) {
+        const cov = smooth(0.30, 0.44, l + 0.12 * (bl - 0.5));
+        const tb = 0.40 + 0.14 * (f - 0.5) + 0.08 * (sp - 0.5), hb = 0.48;
+        const tl = 0.78 + 0.18 * (bl - 0.5) + 0.16 * (sp - 0.5) + 0.06 * (l - 0.5), hl = 0.93 + 0.12 * (bl - 0.5);
+        t = lerp(tb, tl, cov) - 0.34 * crack * (1 - cov * 0.6); hh = lerp(hb, hl, cov);
+      } else {
+        t = 0.13 + 0.08 * (f - 0.5) + 0.07 * (sp - 0.5) + 0.05 * (bl - 0.5) - 0.08 * crack + 0.05 * smooth(0.7, 0.8, ridge) * (1 - crack);
+        hh = 0.36 + 0.12 * (bl - 0.5);
+      }
+      t = clamp(t, 0, 1); hh = clamp(hh, 0, 1); sT += t; sH += hh;
+      const rgb = t2rgb(t, hh), i = (y * W + x) * 4; D[i] = rgb[0]; D[i + 1] = rgb[1]; D[i + 2] = rgb[2]; D[i + 3] = 255;
+    }
+  }
+  c.putImageData(im, 0, 0);
+  return { cv, T: sT / (W * H), H: sH / (W * H) };
+}
+
+function mothSprite(ph, d, sv) {
+  const r = rng(sv), W = 38, H = 30, cv = mkCanvas(W * d, H * d), c = cv.getContext('2d');
+  c.scale(d, d); c.translate(W / 2, H / 2 + 2);
+  const t = ph.tone, h = ph.hue, m = ph.mot, sc = 0.92 + r() * 0.16;
+  c.scale(sc, sc);
+  const wings = () => {
+    c.beginPath();
+    for (const s of [-1, 1]) { c.moveTo(0, -6); c.bezierCurveTo(s * 5, -9, s * 14, -6.5, s * 16.5, 4); c.bezierCurveTo(s * 12, 7.5, s * 6, 8.5, 0, 6.5); c.closePath(); }
+  };
+  wings(); c.fillStyle = css(t2rgb(t, h)); c.fill();
+  c.save(); wings(); c.clip();
+  const n = 16 + Math.round(46 * m);
+  for (let i = 0; i < n; i++) {
+    const x = (r() * 2 - 1) * 16.5, y = -9 + r() * 17, dt = (r() - 0.62) * 0.95 * m;
+    c.fillStyle = css(t2rgb(clamp(t + dt, 0, 1), h)); c.beginPath(); c.ellipse(x, y, 0.5 + r() * 1.5 * (0.5 + m), 0.4 + r() * 0.9, r() * 3, 0, TAU); c.fill();
+  }
+  c.strokeStyle = css(t2rgb(clamp(t - 0.3 * m - 0.06, 0, 1), h), 0.55); c.lineWidth = 0.8;
+  for (const yy of [-1.8, 3.2]) { c.beginPath(); for (let x = -17; x <= 17; x += 2) { const y = yy + Math.sin(x * 0.9 + r() * 0.8) * 1.1 + Math.abs(x) * 0.13; if (x === -17) c.moveTo(x, y); else c.lineTo(x, y); } c.stroke(); }
+  c.restore();
+  wings(); c.strokeStyle = css(t2rgb(t * 0.8, h), 0.18); c.lineWidth = 0.6; c.stroke();
+  c.fillStyle = css(t2rgb(t * 0.72, h)); c.beginPath(); c.ellipse(0, 1, 1.7, 6.6, 0, 0, TAU); c.fill();
+  c.strokeStyle = css(t2rgb(t * 0.6, h), 0.8); c.lineWidth = 0.6; c.beginPath(); c.moveTo(-0.6, -5.5); c.quadraticCurveTo(-3, -9, -5.5, -9.8); c.moveTo(0.6, -5.5); c.quadraticCurveTo(3, -9, 5.5, -9.8); c.stroke();
+  cv.cw = W; cv.ch = H; return cv;
+}
+
+const LEAF = [226, 212, 158], INKBLK = [26, 22, 24], WARN = [206, 36, 44];
+function flySprite(ph, d, sv) {
+  const r = rng(sv), W = 42, H = 36, cv = mkCanvas(W * d, H * d), c = cv.getContext('2d');
+  c.scale(d, d); c.translate(W / 2, H / 2);
+  const ground = mix(LEAF, INKBLK, ph.dark), patch = mix(ground, WARN, ph.red), sc = 0.9 + r() * 0.18;
+  c.scale(sc, sc);
+  const wing = (s, fore) => {
+    c.beginPath();
+    if (fore) { c.moveTo(0, -2); c.bezierCurveTo(s * 5, -12, s * 15, -14, s * 17.5, -10.5); c.bezierCurveTo(s * 17, -3, s * 13, 1.5, 0, 2); }
+    else { c.moveTo(0, 1); c.bezierCurveTo(s * 7, 1, s * 13.5, 4, s * 11.5, 10); c.bezierCurveTo(s * 8, 13.5, s * 3, 11, 0, 7); }
+    c.closePath();
+  };
+  for (const s of [-1, 1]) for (const fore of [false, true]) {
+    wing(s, fore); c.fillStyle = css(ground); c.fill();
+    c.save(); wing(s, fore); c.clip();
+    if (fore) { c.fillStyle = css(patch); c.beginPath(); c.ellipse(s * 9.5, -6, 6.8, 2.8, s * -0.45, 0, TAU); c.fill(); }
+    else { c.fillStyle = css(patch, 0.9); for (const [x, y] of [[6, 6], [8.8, 8.4]]) { c.beginPath(); c.arc(s * x, y, 1.7, 0, TAU); c.fill(); } }
+    c.strokeStyle = css(mix(ground, [0, 0, 0], 0.5), 0.35); c.lineWidth = 0.5;
+    for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(0, fore ? -1 : 2); c.lineTo(s * (fore ? 16 : 11), fore ? -11 + k * 3.5 : 4 + k * 2.6); c.stroke(); }
+    c.restore();
+  }
+  c.fillStyle = css(mix(INKBLK, ground, 0.25)); c.beginPath(); c.ellipse(0, 2, 1.6, 7, 0, 0, TAU); c.fill();
+  c.strokeStyle = css(INKBLK, 0.8); c.lineWidth = 0.6; c.beginPath(); c.moveTo(-0.5, -4.5); c.quadraticCurveTo(-2.5, -10, -4.5, -12); c.moveTo(0.5, -4.5); c.quadraticCurveTo(2.5, -10, 4.5, -12); c.stroke();
+  cv.cw = W; cv.ch = H; return cv;
+}
+
+function leafTex(w, h, d, sv) {
+  const r = rng(sv), cv = mkCanvas(w * d, h * d), c = cv.getContext('2d'); c.scale(d, d);
+  c.fillStyle = '#2c4020'; c.fillRect(0, 0, w, h);
+  const pal = [[63, 94, 39], [86, 119, 47], [111, 138, 56], [47, 74, 34], [122, 138, 62], [74, 103, 40], [98, 112, 50]], brown = [[122, 90, 46], [96, 70, 38], [140, 108, 58]];
+  const n = Math.round(w * h / 230);
+  const leaf = (L, Wd, ox, oy) => { c.beginPath(); c.moveTo(-L / 2 + ox, oy); c.quadraticCurveTo(ox, -Wd + oy, L / 2 + ox, oy); c.quadraticCurveTo(ox, Wd + oy, -L / 2 + ox, oy); c.closePath(); };
+  for (let i = 0; i < n; i++) {
+    const x = r() * w, y = r() * h, L = 16 + r() * 28, Wd = L * (0.26 + r() * 0.16), a = r() * TAU;
+    const col = r() < 0.13 ? brown[(r() * brown.length) | 0] : pal[(r() * pal.length) | 0], sh = 0.78 + r() * 0.38;
+    c.save(); c.translate(x, y); c.rotate(a);
+    c.fillStyle = 'rgba(0,0,0,0.2)'; leaf(L, Wd, 1.5, 1.8); c.fill();
+    c.fillStyle = css(col.map(v => v * sh)); leaf(L, Wd, 0, 0); c.fill();
+    c.strokeStyle = css(col.map(v => v * sh * 0.72), 0.8); c.lineWidth = 0.7; c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(L / 2, 0); c.stroke();
+    c.restore();
+  }
+  for (let i = 0; i < 26; i++) { const x = r() * w, y = r() * h, rr = 20 + r() * 50, g = c.createRadialGradient(x, y, 0, x, y, rr); g.addColorStop(0, 'rgba(240,235,170,0.10)'); g.addColorStop(1, 'rgba(240,235,170,0)'); c.fillStyle = g; c.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  return cv;
+}
+
+const Hunt = {
+  sync: false,
+  start(ch) {
+    this.ch = ch; this.lay = Gen.layout(ch.traits.map(s => Object.assign({}, s)));
+    this.gen = 1; this.hist = []; this.total = 0; this.bitterTotal = 0; this.quick = !!Save.d.quick;
+    this.fx = []; this.shake = 0; this.tint = 0; this.state = 'idle'; this.items = []; this.lastRec = null;
+    this.pop = []; for (let i = 0; i < ch.N; i++) this.pop.push(this.mk(Gen.genome(this.lay, ch.init)));
+    this.phase = {}; if (ch.setup) ch.setup(this);
+    this.bgKey = ''; this.spriteD = 0; this.panel(); this.morning();
+  },
+  mk(g) { return { g, ph: this.ch.phen(this.lay, g), sv: (R() * 4294967295) >>> 0, eaten: false }; },
+  texD() { return Math.min(2, Stage.dpr); },
+  ensureBg() {
+    const k = Math.round(Stage.w) + 'x' + Math.round(Stage.h) + '@' + this.texD();
+    if (k !== this.bgKey) { this.bgKey = k; this.bg = this.ch.makeBg(Stage.w, Stage.h, this.texD()); this.env = this.ch.env(this); this.obj = this.ch.objective(this); this.updPanel(); }
+    if (this.spriteD !== this.texD()) { this.spriteD = this.texD(); for (const it of this.items) it.spr = null; }
+    for (const it of this.items) if (!it.spr) it.spr = this.ch.sprite(it.ind.ph, this.spriteD, it.ind.sv);
+  },
+  onResize() { /* background regenerates lazily in draw */ },
+  morning() {
+    const ch = this.ch; this.env = ch.env(this); this.obj = ch.objective(this);
+    const nm = ch.models || 0, pts = this.places(this.pop.length + nm); let i = 0;
+    this.items = [];
+    for (const ind of this.pop) { this.items.push({ ind, kind: 'prey', x: pts[i].x, y: pts[i].y, rot: ch.rot(), alive: true }); i++; }
+    for (let m = 0; m < nm; m++) { this.items.push({ ind: { ph: ch.modelPh(), sv: (R() * 4294967295) >>> 0 }, kind: 'model', x: pts[i].x, y: pts[i].y, rot: ch.rot(), alive: true }); i++; }
+    shuffle(this.items);
+    this.eaten = 0; this.bitter = 0; this.time = ch.roundTime; this.state = 'dawn'; this.st = 0;
+    this.dawnLine = ch.dawnLine ? ch.dawnLine(this) : '';
+    this.updPanel(); if (!this.sync) Snd.dawn();
+  },
+  places(n) {
+    const W = Math.max(200, Stage.w), H = Math.max(200, Stage.h), m = 20, pts = [], minD = Math.min(36, Math.sqrt(W * H / n) * 0.62);
+    for (let k = 0; k < n; k++) {
+      let best = null, bd = -1;
+      for (let t = 0; t < 40; t++) {
+        const p = { x: m + R() * (W - 2 * m), y: m + R() * (H - 2 * m) }; let dmin = 1e9;
+        for (const q of pts) { const dx = q.x - p.x, dy = q.y - p.y, dd = dx * dx + dy * dy; if (dd < dmin) dmin = dd; }
+        if (dmin > minD * minD) { best = p; break; } if (dmin > bd) { bd = dmin; best = p; }
+      }
+      pts.push(best);
+    }
+    return pts.map(p => ({ x: p.x / W, y: p.y / H }));
+  },
+  tap(px, py) {
+    if (this.state === 'dawn') { this.st = 99; return; }
+    if (this.state !== 'hunt') return;
+    const W = Stage.w, H = Stage.h; let best = null, bd = 23 * 23;
+    for (const it of this.items) { if (!it.alive) continue; const dx = it.x * W - px, dy = it.y * H - py, dd = dx * dx + dy * dy; if (dd < bd) { bd = dd; best = it; } }
+    if (!best) { this.time -= this.ch.missCost; this.fx.push({ k: 'miss', x: px, y: py, t: 0, d: 0.5 }); this.fx.push({ k: 'txt', x: px, y: py - 14, t: 0, d: 0.8, s: '−½ s', c: '#e8dfc9' }); Snd.miss(); this.updPanel(); return; }
+    best.alive = false; best.fade = 1;
+    if (best.kind === 'model') {
+      this.time -= this.ch.bitterCost; this.bitter++; this.bitterTotal++; this.tint = 1; this.shake = 0.7;
+      this.fx.push({ k: 'txt', x: best.x * W, y: best.y * H - 16, t: 0, d: 1.3, s: 'Bitter! −3 s', c: '#e4ec7a' }); Snd.bitter();
+    } else {
+      this.eaten++; this.total++; best.ind.eaten = true;
+      this.fx.push({ k: 'peck', x: best.x * W, y: best.y * H, t: 0, d: 0.45 }); if (!this.sync) Snd.peck();
+    }
+    this.updPanel();
+    if (this.eaten >= this.ch.cap) this.endRound();
+  },
+  endRound() {
+    if (this.state !== 'hunt') return;
+    this.state = 'dusk'; const ch = this.ch, f = ch.focus;
+    const all = this.pop, eaten = all.filter(x => x.eaten), surv = all.filter(x => !x.eaten);
+    const vals = all.map(x => f.get(x.ph)), ev = eaten.map(x => f.get(x.ph)), sv = surv.map(x => f.get(x.ph));
+    const rec = { gen: this.gen, obj: this.obj.value, eaten: eaten.length, bitter: this.bitter, mAll: mean(vals), mEat: ev.length ? mean(ev) : null, mSurv: mean(sv), S: mean(sv) - mean(vals), vals, ev, sv, env: Object.assign({}, this.env), R: null };
+    if (ch.recExtra) ch.recExtra(this, rec, eaten, surv);
+    this.hist.push(rec); this.lastRec = rec;
+    if (this.sync) { this.nextGen(); return; }
+    setTimeout(() => { if (App.mode !== this || this.state !== 'dusk') return; if (this.quick) this.nextGen(); else this.interlude(rec); }, 700);
+  },
+  interlude(rec) {
+    const s = this.ch.summary(this, rec);
+    Cards.open({
+      cls: 'interlude',
+      html: '<h3>' + s.title + '</h3>' + (s.leg || '') + '<canvas></canvas><p>' + s.text + '</p><label class="chk"><input type="checkbox" id="quickchk"> Skip these summaries</label>',
+      buttons: [{ t: 'Let the survivors breed', primary: true, fn: () => { const q = $('quickchk'); if (q && q.checked) { this.quick = true; Save.d.quick = true; Save.save(); } Cards.close(); this.nextGen(); } }],
+      onOpen: box => { const cv = box.querySelector('canvas'); if (s.bars) barChart(cv, s.bars); else histChart(cv, s.hist); }
+    });
+  },
+  nextGen() {
+    if (this.state !== 'dusk') return;
+    const ch = this.ch, surv = this.pop.filter(x => !x.eaten), par = surv.length >= 2 ? surv : this.pop;
+    const kids = [];
+    for (let i = 0; i < ch.N; i++) { const a = pick(par); let b = pick(par), tr = 0; while (b === a && tr++ < 6) b = pick(par); kids.push(this.mk(Gen.mate(this.lay, a.g, b.g))); }
+    const prev = this.lastRec; this.pop = kids; this.gen++;
+    prev.mOff = mean(kids.map(x => ch.focus.get(x.ph))); prev.R = prev.mOff - prev.mAll;
+    if (ch.onBred) ch.onBred(this);
+    const o = ch.objective(this); this.obj = o;
+    if (!this.sync && this.quick) { const q = ch.quickLine ? ch.quickLine(this, prev) : ''; if (q) toast(q); }
+    if (o.done || this.gen > ch.maxGen) { this.finish(o); return; }
+    this.morning();
+  },
+  finish(o) {
+    this.state = 'done'; const ch = this.ch; this.hist.push({ gen: this.gen, obj: o.value, final: true });
+    const stars = ch.stars(this, o); if (stars) Save.star(ch.id, stars); this.stars = stars;
+    if (this.sync) return;
+    if (stars) Snd.star(); else Snd.chime();
+    const next = CHAPTERS[CHAPTERS.indexOf(ch) + 1];
+    const btns = [{ t: 'Play again', fn: () => { Cards.close(); App.play(ch); } }, { t: 'Notebook', fn: () => App.exit() }];
+    if (next) btns.push({ t: 'Next: ' + next.title, primary: true, fn: () => { Cards.close(); App.open(next); } });
+    Cards.open({
+      cls: 'end',
+      html: '<h3>' + (o.done ? 'Chapter complete' : 'The season is over') + '</h3><div class="stars">' + starStr(stars) + '</div>' + (ch.endLeg || '') + '<canvas></canvas><p class="cap">' + ch.chartCap + '</p><h4>What happened</h4><p>' + ch.what(this) + '</p><h4>The real thing</h4><p class="basis">' + ch.intro.real + '</p>',
+      buttons: btns,
+      onOpen: box => ch.endChart(box.querySelector('canvas'), this)
+    });
+  },
+  panel() {
+    $('panel').innerHTML = '<div class="hp"><div class="timer"><i id="h-tbar"></i></div><div class="row"><span><b id="h-eaten">0</b> of ' + this.ch.cap + ' eaten</span><span id="h-time" class="mono">' + this.ch.roundTime.toFixed(1) + ' s</span></div>' +
+      '<div class="obj-l"><span id="h-objl"></span><b id="h-objv"></b></div><div class="meter"><i id="h-objbar"></i><em id="h-objtick"></em></div><div class="obj-s" id="h-objs"></div></div>';
+  },
+  updPanel() {
+    if (!$('h-eaten')) return;
+    $('h-eaten').textContent = this.eaten || 0;
+    const o = this.obj || { label: '', value: 0, goal: 1, text: '' };
+    $('h-objl').textContent = o.label; $('h-objv').textContent = pct(o.value) + (o.below ? '  (goal under ' + pct(o.goal) + ')' : '  (goal ' + pct(o.goal) + ')');
+    $('h-objbar').style.width = pct(clamp(o.value, 0, 1)); $('h-objtick').style.left = 'calc(' + pct(o.goal) + ' - 1px)';
+    $('h-objbar').style.background = o.below ? 'var(--carmine)' : 'var(--teal)';
+    $('h-objs').textContent = o.text; this.updTimer();
+    $('bar-gen').textContent = 'gen ' + this.gen;
+  },
+  updTimer() { const b = $('h-tbar'); if (!b) return; const f = clamp(this.time / this.ch.roundTime, 0, 1); b.style.transform = 'scaleX(' + f + ')'; b.style.background = f < 0.25 ? 'var(--carmine)' : 'var(--ochre)'; $('h-time').textContent = Math.max(0, this.time).toFixed(1) + ' s'; },
+  update(dt) {
+    this.fx = this.fx.filter(f => (f.t += dt) < f.d);
+    if (this.tint > 0) this.tint = Math.max(0, this.tint - dt * 1.3); if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 2.2);
+    for (const it of this.items) if (it.fade != null && it.fade > 0) it.fade -= dt * 3;
+    if (this.state === 'dawn') { this.st += dt; if (this.st > 1.6) { this.state = 'hunt'; } }
+    else if (this.state === 'hunt') { this.time -= dt; if (this.time <= 0) { this.time = 0; this.updTimer(); this.endRound(); } else this.updTimer(); }
+  },
+  draw() {
+    const c = Stage.ctx, W = Stage.w, H = Stage.h; this.ensureBg();
+    c.save(); if (this.shake > 0) c.translate((R() - .5) * 9 * this.shake, (R() - .5) * 9 * this.shake);
+    this.bg.draw(c, W, H, this.env);
+    for (const it of this.items) {
+      if (!it.alive && !(it.fade > 0)) continue; const s = it.spr; if (!s) continue;
+      c.save(); c.translate(it.x * W, it.y * H); c.rotate(it.rot);
+      if (!it.alive) { const f = Math.max(0, it.fade); c.globalAlpha = f; c.scale(1 + (1 - f) * 0.35, 1 + (1 - f) * 0.35); }
+      c.drawImage(s, -s.cw / 2, -s.ch / 2, s.cw, s.ch); c.restore();
+    }
+    for (const f of this.fx) {
+      const k = f.t / f.d;
+      if (f.k === 'peck') {
+        c.save(); c.translate(f.x, f.y); c.globalAlpha = 1 - k; const o = 9 * (1 - Math.min(1, k * 2.5));
+        c.fillStyle = '#e3b64c'; c.strokeStyle = '#2a211b'; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(-3, -14 - o); c.lineTo(3, -14 - o); c.lineTo(0, -2 - o * 0.3); c.closePath(); c.fill(); c.stroke();
+        c.beginPath(); c.moveTo(-3, 14 + o); c.lineTo(3, 14 + o); c.lineTo(0, 2 + o * 0.3); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = 'rgba(232,223,201,0.9)'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + 0.3, rr = 6 + k * 22; c.beginPath(); c.ellipse(Math.cos(a) * rr, Math.sin(a) * rr, 2.6, 1, a, 0, TAU); c.fill(); }
+        c.restore();
+      } else if (f.k === 'miss') {
+        c.save(); c.globalAlpha = 1 - k; c.strokeStyle = '#e8dfc9'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(f.x - 5, f.y - 5); c.lineTo(f.x + 5, f.y + 5); c.moveTo(f.x + 5, f.y - 5); c.lineTo(f.x - 5, f.y + 5); c.stroke(); c.restore();
+      } else if (f.k === 'txt') {
+        c.save(); c.globalAlpha = 1 - k * k; c.font = '600 15px ' + getComputedStyle(document.body).getPropertyValue('--fd'); c.textAlign = 'center';
+        c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillText(f.s, f.x + 1, f.y - k * 22 + 1); c.fillStyle = f.c; c.fillText(f.s, f.x, f.y - k * 22); c.restore();
+      }
+    }
+    if (this.tint > 0) { c.fillStyle = 'rgba(150,170,20,' + (0.28 * this.tint) + ')'; c.fillRect(-12, -12, W + 24, H + 24); }
+    c.restore();
+    if (this.state === 'dawn') {
+      const a = this.st < 1.1 ? 0.62 : 0.62 * Math.max(0, 1 - (this.st - 1.1) / 0.5);
+      c.fillStyle = 'rgba(12,18,17,' + a + ')'; c.fillRect(0, 0, W, H);
+      const ta = this.st < 1.1 ? Math.min(1, this.st * 3) : Math.max(0, 1 - (this.st - 1.1) / 0.5);
+      c.globalAlpha = ta; c.fillStyle = '#e8dfc9'; c.textAlign = 'center';
+      c.font = '600 30px ' + getComputedStyle(document.body).getPropertyValue('--fd'); c.fillText('Generation ' + this.gen, W / 2, H / 2 - 6);
+      c.font = 'italic 15px ' + getComputedStyle(document.body).getPropertyValue('--fb'); c.fillStyle = 'rgba(232,223,201,.8)';
+      const line = this.dawnLine || 'Dawn. Find them before the light goes flat.'; wrapText(c, line, W / 2, H / 2 + 22, Math.min(320, W - 40), 19);
+      c.globalAlpha = 1;
+    }
+  }
+};
+function wrapText(c, s, x, y, mw, lh) { const words = s.split(' '); let line = '', yy = y; for (const w of words) { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > mw && line) { c.fillText(line, x, yy); line = w; yy += lh; } else line = t; } if (line) c.fillText(line, x, yy); }
+
+function huntEndChart(cv, Hn, goal, below, col) {
+  const d = Hn.hist.map(r => r.obj);
+  lineChart(cv, { theme: 'paper', series: [{ d, c: col || '#2f7f7a', w: 2.5 }], y0: 0, y1: 1, refs: [{ v: goal, label: (below ? 'goal under ' : 'goal ') + pct(goal), c: '#a8263f' }], fy: v => pct(v), x0l: 'gen 1', xl: 'gen ' + (d.length) });
+}
+
+/* ---------- Chapter I: crypsis ---------- */
+const CH_LICHEN = {
+  id: 'lichen', mode: 'hunt', num: 'I', title: 'The Lichen Wood', concept: 'Camouflage',
+  intro: {
+    premise: 'Moths spend the day pressed flat against bark. The ones you can’t see live to breed, and their offspring inherit their looks — roughly.',
+    part: 'You’re a bird with twelve seconds of morning. Tap moths to eat them, up to fifteen a morning. Tapping bare bark costs half a second.',
+    goal: 'Camouflage reaches 75%: the average moth closely matching the lichen. Three stars by generation 10.',
+    real: 'Bond and Kamil (2002) let blue jays hunt digital moths on a screen. The moths the jays missed were bred for the next screen, and the population evolved camouflage — and a spread of different looks, because jays hunt with a search image for whatever is common. Here, you were the jay.'
+  },
+  traits: [{ k: 'tone', n: 8, m0: 0.30, s0: 0.13, mu: 0.03, msd: 0.05, ve: 0.03 }, { k: 'hue', n: 6, m0: 0.22, s0: 0.13, mu: 0.03, msd: 0.05, ve: 0.03 }, { k: 'mot', n: 4, m0: 0.30, s0: 0.13, mu: 0.03, msd: 0.05, ve: 0.03 }],
+  N: 30, cap: 15, roundTime: 12, missCost: 0.5, maxGen: 16, target: { T: 0.70, H: 0.85, M: 0.6 },
+  phen(lay, g) { return { tone: Gen.ph(lay, g, 'tone'), hue: Gen.ph(lay, g, 'hue'), mot: Gen.ph(lay, g, 'mot') }; },
+  rot() { return (R() - 0.5) * 0.8; },
+  sprite(ph, d, sv) { return mothSprite(ph, d, sv); },
+  makeBg(w, h, d) { const tx = barkTex(w, h, d, 4242, false); this.target.T = tx.T; this.target.H = tx.H; return { draw: (c, W, H) => c.drawImage(tx.cv, 0, 0, W, H) }; },
+  env() { return { T: this.target.T, H: this.target.H }; },
+  match(ph) { const T = this.target; const d2 = ((ph.tone - T.T) / 0.5) ** 2 + 0.7 * ((ph.hue - T.H) / 0.7) ** 2 + 0.35 * ((ph.mot - T.M) / 0.7) ** 2; return Math.exp(-1.2 * d2); },
+  focus: { get: ph => ph.tone },
+  objective(Hn) { const v = mean(Hn.pop.map(x => this.match(x.ph))); return { label: 'Camouflage', value: v, goal: 0.75, done: v >= 0.75, text: 'Moths breed from whoever you miss. Stars at generations 10, 13 and 16.' }; },
+  stars(Hn, o) { return !o.done ? 0 : Hn.gen <= 10 ? 3 : Hn.gen <= 13 ? 2 : 1; },
+  dawnLine(Hn) { const r = Hn.lastRec; if (!r || r.R == null) return 'Dawn. Find them before the light goes flat.'; return 'The offspring came out ' + Math.abs(r.R).toFixed(2) + (r.R >= 0 ? ' paler' : ' darker') + ' on average than their parents’ generation.'; },
+  quickLine(Hn, r) { return 'Offspring ' + Math.abs(r.R).toFixed(2) + (r.R >= 0 ? ' paler' : ' darker') + '. Camouflage <b>' + pct(Hn.obj.value) + '</b>.'; },
+  summary(Hn, rec) {
+    const T = this.target.T;
+    return {
+      title: 'Generation ' + rec.gen + ': morning over',
+      leg: '<div class="leg"><span><i style="background:rgba(41,33,27,.25)"></i>whole population</span><span><i style="background:#a8263f"></i>the ones you ate</span><span><i style="background:#b07a14;height:2px"></i>bark</span></div>',
+      hist: { lo: 0, hi: 1, bins: 18, layers: [{ v: rec.vals, c: 'rgba(41,33,27,.25)' }, { v: rec.ev, c: '#a8263f' }], marker: T, l0: 'dark', l1: 'pale' },
+      text: rec.eaten ? 'You ate ' + rec.eaten + '. On the dark-to-pale scale they averaged ' + (rec.mEat).toFixed(2) + '; the moths you missed averaged ' + rec.mSurv.toFixed(2) + ', and the bark sits at ' + T.toFixed(2) + '. Only the missed moths breed.' : 'You ate nothing, so every moth breeds and nothing is selected.'
+    };
+  },
+  endChart(cv, Hn) { huntEndChart(cv, Hn, 0.75); },
+  chartCap: 'Population camouflage by generation.',
+  what(Hn) {
+    let S = 0, Rr = 0; for (const r of Hn.hist) if (r.R != null) { S += r.S; Rr += r.R; }
+    const h2 = Math.abs(S) > 0.04 ? clamp(Rr / S, -1, 2) : null;
+    let s = 'Summed over the run, the moths you spared were ' + Math.abs(S).toFixed(2) + (S >= 0 ? ' paler' : ' darker') + ' than their generations — the selection differential, S. Their offspring moved ' + Math.abs(Rr).toFixed(2) + ' — the response, R. ';
+    if (h2 != null) s += 'So about ' + Math.round(h2 * 100) + '% of what you selected was passed on: the realised heritability, in breeders’ shorthand R = h²S. The rest was developmental luck — moths paler than their genes, spared for something they couldn’t pass on.';
+    else s += 'You didn’t push hard enough in one direction to measure heritability.';
+    return s;
+  }
+};
+
+/* ---------- Chapter II: industrial melanism ---------- */
+const CH_SOOT = {
+  id: 'soot', mode: 'hunt', num: 'II', title: 'The Black Country', concept: 'Industrial melanism',
+  intro: {
+    premise: 'Lancashire, 1848. Coal smoke is killing the lichen and staining the trees. A few peppered moths carry carbonaria, a single dominant mutation that turns them black.',
+    part: 'Hunt as before and watch the bark. The soot arrives over a few generations; later, the air will clear. Each generation one pale moth flies in from cleaner woods.',
+    goal: 'First, black moths reach 75%. Then, once the Clean Air Act cleans the trees, bring them back under 40%.',
+    real: 'The first black peppered moth was recorded in Manchester in 1848; by 1895 about 98% there were black. Carbonaria turned out to be a jumping gene inserted into the gene cortex, dated to around 1819 (van’t Hof et al. 2016). After clean-air laws the black form declined across Britain, and Majerus’s six-year field experiment confirmed that birds take the conspicuous form (Cook et al. 2012).'
+  },
+  traits: [{ k: 'carb', n: 1, kind: 'dom', p0: 0.05, mu: 0.01, back: 0 }, { k: 'tone', n: 4, m0: 0.74, s0: 0.04, mu: 0.02, msd: 0.03, ve: 0.02 }, { k: 'hue', n: 4, m0: 0.84, s0: 0.06, mu: 0.02, msd: 0.04, ve: 0.02 }],
+  N: 30, cap: 15, roundTime: 11, missCost: 0.5, maxGen: 24,
+  tg: { lichen: { T: 0.70, H: 0.85 }, soot: { T: 0.12, H: 0.36 } },
+  phen(lay, g) { const black = Gen.dom(lay, g, 'carb'); return black ? { black: true, tone: 0.05 + 0.05 * R(), hue: 0.38, mot: 0.12 } : { black: false, tone: Gen.ph(lay, g, 'tone'), hue: Gen.ph(lay, g, 'hue'), mot: 0.78 }; },
+  rot() { return (R() - 0.5) * 0.8; },
+  sprite(ph, d, sv) { return mothSprite(ph, d, sv); },
+  makeBg(w, h, d) {
+    const a = barkTex(w, h, d, 4242, false), b = barkTex(w, h, d, 4242, true);
+    this.tg = { lichen: { T: a.T, H: a.H }, soot: { T: b.T, H: b.H } };
+    return { draw: (c, W, H, env) => { c.drawImage(a.cv, 0, 0, W, H); if (env && env.soot > 0) { c.globalAlpha = env.soot; c.drawImage(b.cv, 0, 0, W, H); c.globalAlpha = 1; } } };
+  },
+  setup(Hn) { Hn.phase = { aGen: null, cleanGen: null, q0: Gen.freq(Hn.lay, Hn.pop, 'carb') }; },
+  sootAt(Hn) { const g = Hn.gen, P = Hn.phase; let s = g <= 1 ? 0 : g === 2 ? 0.45 : g === 3 ? 0.8 : 1; if (P.cleanGen != null && g >= P.cleanGen) s = Math.max(0, 1 - 0.4 * (g - P.cleanGen + 1)); return s; },
+  env(Hn) { const s = this.sootAt(Hn); return { soot: s, T: lerp(this.tg.lichen.T, this.tg.soot.T, s), H: lerp(this.tg.lichen.H, this.tg.soot.H, s) }; },
+  black(pop) { return pop.length ? pop.filter(x => x.ph.black).length / pop.length : 0; },
+  focus: { get: ph => ph.black ? 1 : 0 },
+  onBred(Hn) {
+    const lay = Hn.lay, s = lay.T.carb, g = Gen.genome(lay); g[s.off] = 0; g[lay.L + s.off] = 0; Hn.pop[(R() * Hn.pop.length) | 0] = Hn.mk(g);
+    const f = this.black(Hn.pop), P = Hn.phase;
+    if (P.aGen == null && f >= 0.75) { P.aGen = Hn.gen; P.cleanGen = Hn.gen + 2; if (!Hn.sync) toast('Black moths passed <b>75%</b>. Parliament passes a Clean Air Act: the trees start to clean in two generations.'); }
+    if (P.cleanGen == null && Hn.gen >= 15) { P.cleanGen = Hn.gen; if (!Hn.sync) toast('The Clean Air Act passes. The trees are starting to clean.'); }
+  },
+  recExtra(Hn, rec, eaten, surv) { rec.q = Gen.freq(Hn.lay, Hn.pop, 'carb'); rec.eb = eaten.filter(x => x.ph.black).length; rec.ep = eaten.length - rec.eb; rec.sb = surv.filter(x => x.ph.black).length; rec.sp = surv.length - rec.sb; rec.soot = Hn.env.soot; },
+  objective(Hn) {
+    const f = this.black(Hn.pop), P = Hn.phase;
+    if (P.aGen == null) return { label: 'Black moths', value: f, goal: 0.75, done: false, text: Hn.gen <= 1 ? 'The air is still clean. Soot comes soon.' : 'Goal 1 of 2: black moths reach 75%.' };
+    const cleaning = P.cleanGen != null && Hn.gen >= P.cleanGen;
+    return { label: 'Black moths', value: f, goal: 0.40, below: true, done: cleaning && f <= 0.40, text: cleaning ? 'Goal 2 of 2: the trees are cleaning. Bring black moths under 40% — three stars by generation 20.' : 'Goal 1 done. The Clean Air Act is coming.' };
+  },
+  stars(Hn, o) { const A = Hn.phase.aGen != null; if (!o.done) return A ? 1 : 0; return !A ? 1 : Hn.gen <= 20 ? 3 : 2; },
+  dawnLine(Hn) { const s = Hn.env.soot, P = Hn.phase; if (Hn.gen === 1) return 'Clean lichen, for now. Black moths are rare mutants.'; if (P.cleanGen != null && Hn.gen >= P.cleanGen) return s > 0 ? 'The air is clearing; lichen creeps back.' : 'The bark is clean again.'; if (s > 0 && s < 1) return 'Soot is settling on the bark.'; if (s >= 1) return 'The trees are black with soot.'; return 'Clean lichen, for now.'; },
+  quickLine(Hn) { return 'Black moths <b>' + pct(this.black(Hn.pop)) + '</b>.'; },
+  summary(Hn, rec) {
+    return {
+      title: 'Generation ' + rec.gen + ': morning over',
+      leg: '<div class="leg"><span><i style="background:rgba(41,33,27,.25)"></i>missed</span><span><i style="background:#a8263f"></i>eaten</span></div>',
+      bars: { groups: [{ label: 'pale (typica)', parts: [{ v: rec.ep, c: '#a8263f' }, { v: rec.sp, c: 'rgba(41,33,27,.25)' }] }, { label: 'black (carbonaria)', parts: [{ v: rec.eb, c: '#a8263f' }, { v: rec.sb, c: 'rgba(41,33,27,.25)' }] }] },
+      text: 'You ate ' + rec.ep + ' pale and ' + rec.eb + ' black moths. Carbonaria is now ' + pct(rec.q) + ' of gene copies — more than the black moths alone suggest would be hidden, because heterozygotes are black too.'
+    };
+  },
+  endLeg: '<div class="leg"><span><i style="background:#2f7f7a"></i>black moths</span><span><i style="background:#8a5d10"></i>carbonaria copies</span><span><i style="background:rgba(41,33,27,.18)"></i>soot</span></div>',
+  endChart(cv, Hn) {
+    const d = Hn.hist.map(r => r.obj), q = Hn.hist.map(r => r.q != null ? r.q : null), soot = Hn.hist.map(r => r.env ? r.env.soot : 0);
+    lineChart(cv, { theme: 'paper', bands: [{ c: 'rgba(41,33,27,.16)', d: soot }], series: [{ d, c: '#2f7f7a', w: 2.5 }, { d: q, c: '#8a5d10', w: 1.5, dash: [4, 3] }], y0: 0, y1: 1, refs: [{ v: 0.75, c: 'rgba(168,38,63,.7)' }, { v: 0.4, c: 'rgba(168,38,63,.7)' }], fy: v => pct(v), x0l: 'gen 1', xl: 'gen ' + d.length });
+  },
+  chartCap: 'Grey columns mark soot on the bark.',
+  what(Hn) {
+    const qs = Hn.hist.filter(r => r.q != null).map(r => r.q), q0 = Hn.phase.q0, qmax = qs.length ? Math.max(...qs) : q0, qn = Gen.freq(Hn.lay, Hn.pop, 'carb');
+    const pale = 1 - this.black(Hn.pop);
+    return 'Carbonaria started as ' + pct(q0) + ' of gene copies, peaked at ' + pct(qmax) + ' and ended at ' + pct(qn) + '. Dominance makes the two directions unequal. On the way up, every carbonaria copy showed, so you could select it hard. The pale allele never quite vanished, though: its recessive copies hid inside black heterozygotes, invisible to you — and that hidden reserve is what let the pale form return when the trees cleaned. Pale moths ended at ' + pct(pale) + ' of the population.';
+  }
+};
+
+/* ---------- Chapter III: Batesian mimicry ---------- */
+const CH_BITTER = {
+  id: 'bitter', mode: 'hunt', num: 'III', title: 'Bitter Wings', concept: 'Mimicry',
+  intro: {
+    premise: 'Bitterwings are loaded with toxins and wear black and red to say so. Palewings are cream-coloured, harmless and good to eat — and on green leaves they have nowhere to hide. Nothing stops a palewing from dressing like a bitterwing.',
+    part: 'Eat palewings, up to twelve a morning. A bitterwing makes you retch and costs three seconds. Bitterwings stay as they are; palewings evolve.',
+    goal: 'Palewings evolve a 70% resemblance to bitterwings. Three stars by generation 12.',
+    real: 'Henry Walter Bates described palatable Amazonian butterflies copying toxic ones in 1862, three years after the Origin. Birds that learn a warning pattern the hard way then spare its look-alikes. The same logic runs in reverse: mimics only work while they are rare, because every harmless copy teaches predators that the warning is a bluff.'
+  },
+  traits: [{ k: 'red', n: 6, m0: 0.16, s0: 0.16, mu: 0.06, msd: 0.07, ve: 0.03 }, { k: 'dark', n: 6, m0: 0.13, s0: 0.15, mu: 0.06, msd: 0.07, ve: 0.03 }],
+  N: 24, cap: 12, models: 8, roundTime: 12, missCost: 0.5, bitterCost: 3, maxGen: 20,
+  phen(lay, g) { return { red: Gen.ph(lay, g, 'red'), dark: Gen.ph(lay, g, 'dark') }; },
+  modelPh() { return { red: 0.97 + 0.03 * R(), dark: 0.95 + 0.05 * R(), model: true }; },
+  rot() { return R() * TAU; },
+  sprite(ph, d, sv) { return flySprite(ph, d, sv); },
+  makeBg(w, h, d) { const t = leafTex(w, h, d, 777); return { draw: (c, W, H) => c.drawImage(t, 0, 0, W, H) }; },
+  env() { return {}; },
+  resem(ph) { return 1 - Math.sqrt(((1 - ph.red) ** 2 + (1 - ph.dark) ** 2) / 2); },
+  focus: { get: ph => 1 - Math.sqrt(((1 - ph.red) ** 2 + (1 - ph.dark) ** 2) / 2) },
+  setup(Hn) { Hn.phase = { r0: mean(Hn.pop.map(x => this.resem(x.ph))) }; },
+  objective(Hn) { const v = mean(Hn.pop.map(x => this.resem(x.ph))); return { label: 'Resemblance to bitterwings', value: v, goal: 0.7, done: v >= 0.7, text: 'Black-and-red is a bitterwing; cream is a palewing. In between, you decide. Stars at generations 12, 16 and 20.' }; },
+  stars(Hn, o) { return !o.done ? 0 : Hn.gen <= 12 ? 3 : Hn.gen <= 16 ? 2 : 1; },
+  dawnLine(Hn) { if (Hn.gen === 1) return 'Eight bitterwings among them. You know what red and black means.'; const r = Hn.lastRec; return r && r.bitter ? 'You remember the taste. ' + r.bitter + ' bitter mouthful' + (r.bitter > 1 ? 's' : '') + ' yesterday.' : 'The palewings you spared have bred.'; },
+  quickLine(Hn, r) { return 'Resemblance <b>' + pct(Hn.obj.value) + '</b>' + (r.bitter ? '. ' + r.bitter + ' bitter.' : '.'); },
+  summary(Hn, rec) {
+    return {
+      title: 'Generation ' + rec.gen + ': morning over',
+      leg: '<div class="leg"><span><i style="background:rgba(41,33,27,.25)"></i>all palewings</span><span><i style="background:#a8263f"></i>the ones you ate</span><span><i style="background:#b07a14;height:2px"></i>a perfect copy</span></div>',
+      hist: { lo: 0, hi: 1, bins: 16, layers: [{ v: rec.vals, c: 'rgba(41,33,27,.25)' }, { v: rec.ev, c: '#a8263f' }], marker: 1, l0: 'plain cream', l1: 'bitterwing look' },
+      text: 'You ate ' + rec.eaten + ' palewings' + (rec.bitter ? ' and ' + rec.bitter + ' bitterwing' + (rec.bitter > 1 ? 's' : '') : '') + '. The ones you ate looked ' + pct(rec.mEat || 0) + ' like bitterwings; the ones you spared, ' + pct(rec.mSurv) + '.'
+    };
+  },
+  endChart(cv, Hn) { huntEndChart(cv, Hn, 0.7, false, '#a8263f'); },
+  chartCap: 'Average resemblance of palewings to bitterwings.',
+  what(Hn) {
+    const r1 = mean(Hn.pop.map(x => this.resem(x.ph)));
+    return 'Resemblance started at ' + pct(Hn.phase.r0) + ' and reached ' + pct(r1) + '. You paid ' + Hn.bitterTotal + ' bitter mouthful' + (Hn.bitterTotal === 1 ? '' : 's') + ' over the run. Every morning you ate the palewings that looked safest, and every morning the ones that made you hesitate bred. Your caution, not any intent of theirs, is what they evolved against. If you noticed yourself sampling red wings again once the copies were good, you felt the limit on Batesian mimicry: the signal is only worth copying while it stays honest.';
+  }
+};
+
+/* ================= STEWARD MODE: the player is the environment ================= */
+const last = a => a.length ? a[a.length - 1] : null;
+const pctN = v => v == null ? '—' : pct(v);
+const sgn3 = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(3);
+const COL = { dark: { a: '#8aa0b8', b: '#46a19a', c: '#cf9a33' }, paper: { a: '#4f6478', b: '#2f7f7a', c: '#8a5d10' } };
+
+const Steward = {
+  sync: false, speeds: [0, 1, 4, 16],
+  start(ch) {
+    this.ch = ch; this.S = ch.init(); this.S.gen = 0; this.S.anim = 0; this.acc = 0; this.got = {}; this.done = false; this.free = false; this.tab = 0; this.lastRef = 0; this.dirty = true;
+    this.panel(); ch.sync(this.S); this.setSpeed(1); this.refresh();
+  },
+  setSpeed(i) { this.speed = i; document.querySelectorAll('#speed button').forEach(b => b.classList.toggle('on', +b.dataset.s === i)); },
+  update(dt) {
+    const ch = this.ch, S = this.S;
+    if (this.speed > 0 && !this.done) {
+      this.acc += dt * this.speeds[this.speed]; let n = 0;
+      while (this.acc >= ch.period && n < 30) { this.acc -= ch.period; this.step(); n++; if (this.done) break; }
+      if (n >= 30) this.acc = 0;
+    }
+    S.anim += dt; ch.animate(S, dt, this.speed);
+  },
+  step() { const ch = this.ch, S = this.S; ch.step(S); S.gen++; ch.record(S); ch.sync(S); this.check(); this.dirty = true; },
+  check() {
+    const S = this.S;
+    for (const o of this.ch.objectives) {
+      if (!this.got[o.id] && o.test(S)) {
+        this.got[o.id] = S.gen; Save.star(this.ch.id, Object.keys(this.got).length);
+        if (!this.sync) { Snd.star(); toast('<b>★</b> ' + o.short); this.markObjs(); }
+      }
+    }
+    const n = Object.keys(this.got).length;
+    if (!this.free && (n === this.ch.objectives.length || S.gen >= this.ch.maxGen)) this.finish();
+  },
+  finish() {
+    this.done = true; this.setSpeed(0); if (this.sync) return;
+    const ch = this.ch, n = Object.keys(this.got).length; if (n) Snd.star(); else Snd.chime();
+    this.refresh();
+    const next = CHAPTERS[CHAPTERS.indexOf(ch) + 1];
+    const btns = [{ t: 'Keep experimenting', fn: () => { Cards.close(); this.done = false; this.free = true; this.setSpeed(1); } }, { t: 'Notebook', fn: () => App.exit() }];
+    if (next) btns.push({ t: 'Next: ' + next.title, primary: true, fn: () => { Cards.close(); App.open(next); } });
+    else btns.push({ t: 'Play again', primary: true, fn: () => { Cards.close(); App.play(ch); } });
+    Cards.open({
+      cls: 'end',
+      html: '<h3>' + (n === ch.objectives.length ? 'Chapter complete' : 'Time is up') + '</h3><div class="stars">' + starStr(n) + '</div>' + (ch.tabs[0].legendP || '') + '<canvas></canvas><p class="cap">' + ch.chartCap + '</p><h4>What happened</h4><p>' + ch.what(this.S) + '</p><h4>The real thing</h4><p class="basis">' + ch.intro.real + '</p>',
+      buttons: btns, onOpen: box => ch.tabs[0].draw(box.querySelector('canvas'), this.S, 'paper')
+    });
+  },
+  draw() { this.ch.draw(Stage.ctx, this.S, Stage.w, Stage.h); const now = performance.now(); if (this.dirty && now - this.lastRef > 160) this.refresh(); },
+  refresh() {
+    this.dirty = false; this.lastRef = performance.now();
+    $('bar-gen').textContent = this.ch.unit(this.S.gen);
+    const cv = $('s-chart'); if (cv) this.ch.tabs[this.tab].draw(cv, this.S, 'dark');
+    const rd = $('s-read'); if (rd) rd.innerHTML = this.ch.readout(this.S);
+    if (this.ch.refreshLevers) this.ch.refreshLevers(this.S);
+  },
+  panel() {
+    const ch = this.ch;
+    let h = '<ul class="objs" id="s-objs">' + ch.objectives.map(o => '<li data-o="' + o.id + '"><span class="s">☆</span><span>' + o.text + '</span></li>').join('') + '</ul>';
+    h += '<div class="levers" id="s-lev">' + ch.leversHTML(this.S) + '</div>';
+    h += '<div class="read" id="s-read"></div>';
+    h += '<div class="tabs" id="s-tabs">' + ch.tabs.map((t, i) => '<button data-t="' + i + '"' + (i === 0 ? ' class="on"' : '') + '>' + t.label + '</button>').join('') + '</div><canvas class="chart" id="s-chart"></canvas><div class="legend" id="s-leg">' + (ch.tabs[0].legend || '') + '</div>';
+    $('panel').innerHTML = h; ch.bind(this.S);
+    $('s-tabs').querySelectorAll('button').forEach(b => b.onclick = () => { this.tab = +b.dataset.t; $('s-tabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('s-leg').innerHTML = ch.tabs[this.tab].legend || ''; Snd.click(); this.refresh(); });
+  },
+  markObjs() { document.querySelectorAll('#s-objs li').forEach(li => { const g = !!this.got[li.dataset.o]; li.classList.toggle('got', g); li.querySelector('.s').textContent = g ? '★' : '☆'; }); },
+  tap(x, y) { if (this.ch.tap) this.ch.tap(this.S, x, y); },
+  onResize() { this.dirty = true; }
+};
+const legend = (items) => items.map(([c, t]) => '<span><i style="background:' + c + '"></i>' + t + '</span>').join('');
+
+/* ---------- Chapter IV: guppies, Endler's transplant ---------- */
+function drawGuppy(c, x, y, hd, f, s) {
+  c.save(); c.translate(x, y); c.rotate(hd); c.scale(s, s);
+  if (f.sex === 'm') {
+    const C = f.col;
+    c.fillStyle = css(mix([168, 174, 166], [240, 116, 44], C), 0.92); c.beginPath(); c.moveTo(-3.4, 0); c.lineTo(-9, -3.4 - C * 1.4); c.lineTo(-9, 3.4 + C * 1.4); c.closePath(); c.fill();
+    c.fillStyle = '#c3c8ba'; c.beginPath(); c.ellipse(0, 0, 4.4, 1.7, 0, 0, TAU); c.fill();
+    const n = Math.round(C * 6), cols = ['#f07a2c', '#1c1a1a', '#4aa6e6'];
+    for (let i = 0; i < n; i++) { c.fillStyle = cols[i % 3]; c.beginPath(); c.arc(2 - i * 1.05, i % 2 ? 0.55 : -0.55, 0.55 + C * 0.45, 0, TAU); c.fill(); }
+  } else {
+    c.fillStyle = 'rgba(160,164,140,.8)'; c.beginPath(); c.moveTo(-4.4, 0); c.lineTo(-8.2, -2.2); c.lineTo(-8.2, 2.2); c.closePath(); c.fill();
+    c.fillStyle = '#8f9477'; c.beginPath(); c.ellipse(0, 0, 5.4, 2.2, 0, 0, TAU); c.fill();
+    c.fillStyle = 'rgba(40,36,30,.55)'; c.beginPath(); c.ellipse(-1, 0.6, 1.2, 0.8, 0, 0, TAU); c.fill();
+  }
+  c.fillStyle = '#111'; c.beginPath(); c.arc(f.sex === 'm' ? 3.3 : 4.2, -0.4, 0.45, 0, TAU); c.fill();
+  c.restore();
+}
+function drawCichlid(c, x, y, hd, s) {
+  c.save(); c.translate(x, y); c.rotate(hd); c.scale(s, s);
+  c.fillStyle = '#34402b'; c.beginPath(); c.moveTo(-10, 0); c.lineTo(-16, -4.5); c.lineTo(-16, 4.5); c.closePath(); c.fill();
+  c.fillStyle = '#46553a'; c.beginPath(); c.ellipse(0, 0, 12, 3.6, 0, 0, TAU); c.fill();
+  c.strokeStyle = 'rgba(20,24,16,.6)'; c.lineWidth = 1; for (let i = -6; i <= 6; i += 4) { c.beginPath(); c.moveTo(i, -3); c.lineTo(i - 1, 3); c.stroke(); }
+  c.fillStyle = '#d8c060'; c.beginPath(); c.arc(8.5, -1, 1.2, 0, TAU); c.fill(); c.fillStyle = '#111'; c.beginPath(); c.arc(8.7, -1, 0.6, 0, TAU); c.fill();
+  c.restore();
+}
+function wander(a, dt, sp, lim) {
+  a.h += (R() - .5) * dt * 4; a.u += Math.cos(a.h) * sp * dt; a.v += Math.sin(a.h) * sp * dt;
+  if (a.u * a.u + a.v * a.v > lim) { a.h = Math.atan2(-a.v, -a.u) + (R() - .5) * 0.9; const k = Math.sqrt(lim / (a.u * a.u + a.v * a.v)); a.u *= k; a.v *= k; }
+}
+
+const CH_ARIPO = {
+  id: 'aripo', mode: 'steward', num: 'IV', title: 'Streams of Aripo', concept: 'Sexual selection',
+  intro: {
+    premise: 'In Trinidad’s Northern Range, guppies below the waterfalls share their pools with pike cichlids. Above the falls, only a small killifish hunts them. Female guppies prefer colourful males. So do pike cichlids.',
+    part: 'Carry guppies over the falls, move the predators, and set the pace. Each tick is a generation; male colour and female preference are both heritable.',
+    goal: 'Three experiments, one star each. They’re listed under the stream.',
+    basis: 'John Endler’s guppy transplants on the Aripo River (1980).',
+    real: 'Endler (1980) moved guppies from a pike-cichlid pool on the Aripo River to a stretch above a waterfall that had none. About two years later — roughly fifteen generations — the transplanted males carried more and larger colour spots. Reznick and colleagues later showed that the same transplants change life histories too: guppies released from pike cichlids evolved to mature later and larger. Where the preference itself came from is its own story: female guppies’ taste for orange may have begun as a bias for orange fruit (Rodd et al. 2002), which is why here it never quite drops to zero.'
+  },
+  period: 1.4, maxGen: 160, A: 2.7, BIAS: 0.3, BP: 5.2, BW: 0.35, K: [120, 90],
+  traits: [{ k: 'col', n: 8, m0: 0.2, s0: 0.1, mu: 0.04, msd: 0.05, ve: 0.03 }, { k: 'pref', n: 6, m0: 0.5, s0: 0.1, mu: 0.03, msd: 0.05, ve: 0.03 }],
+  unit: g => 'gen ' + g,
+  init() {
+    const lay = Gen.layout(this.traits.map(s => Object.assign({}, s)));
+    const S = { lay, pools: [{ pred: true, fish: [] }, { pred: false, fish: [] }], moved: null, hist: { c0: [], c1: [], p0: [], p1: [] }, flags: {}, cich: [[], []] };
+    for (let i = 0; i < this.K[0]; i++) S.pools[0].fish.push(this.mk(S, Gen.genome(lay), i % 2 ? 'm' : 'f', null));
+    for (let i = 0; i < 30; i++) this.step(S);
+    this.record(S); this.syncCich(S); return S;
+  },
+  mk(S, g, sex, mom) { const f = { g, sex, col: Gen.ph(S.lay, g, 'col'), pref: Gen.ph(S.lay, g, 'pref') }; if (mom && mom.a) f.a = { u: clamp(mom.a.u + (R() - .5) * .3, -.9, .9), v: clamp(mom.a.v + (R() - .5) * .3, -.9, .9), h: R() * TAU }; return f; },
+  step(S) {
+    for (let j = 0; j < 2; j++) {
+      const P = S.pools[j]; if (!P.fish.length) continue;
+      const b = P.pred ? this.BP : this.BW, males = [], fem = [];
+      for (const f of P.fish) { if (f.sex === 'm') { if (R() < 0.9 * Math.exp(-b * f.col * f.col)) males.push(f); } else if (R() < (P.pred ? 0.75 : 0.9)) fem.push(f); }
+      if (!males.length) { let best = null; for (const f of P.fish) if (f.sex === 'm' && (!best || f.col < best.col)) best = f; if (best) males.push(best); } // the drabbest male hides and survives
+      if (!males.length || !fem.length) { P.fish = []; continue; }
+      let mc = 0; for (const m of males) mc += m.col; mc /= males.length;
+      const kids = [];
+      for (const f of fem) { const w = males.map(m => Math.exp(this.A * (this.BIAS + f.pref) * (m.col - mc))); const k = poisson(4.0); for (let i = 0; i < k; i++) kids.push([Gen.mate(S.lay, f.g, males[wpick(w)].g), f]); }
+      shuffle(kids); P.fish = kids.slice(0, this.K[j]).map(([g, mom]) => this.mk(S, g, R() < 0.5 ? 'm' : 'f', mom));
+    }
+  },
+  mcol(P) { const m = P.fish.filter(f => f.sex === 'm'); return m.length ? mean(m.map(f => f.col)) : null; },
+  fpref(P) { const f = P.fish.filter(f => f.sex === 'f'); return f.length ? mean(f.map(x => x.pref)) : null; },
+  record(S) { const h = S.hist, c1 = this.mcol(S.pools[1]); h.c0.push(this.mcol(S.pools[0])); h.c1.push(c1); h.p0.push(this.fpref(S.pools[0])); h.p1.push(this.fpref(S.pools[1])); if (c1 != null && c1 >= 0.55) S.flags.upHigh = true; },
+  objectives: [
+    { id: 'endler', text: 'Endler’s transplant: males above the falls reach 55% colour while those below stay under 35%.', short: 'Endler’s result, reproduced.', test: S => { const c0 = last(S.hist.c0), c1 = last(S.hist.c1); return S.moved != null && c1 != null && c0 != null && c1 >= 0.55 && c0 <= 0.35; } },
+    { id: 'release', text: 'Take the pike cichlids out of the lower pool and let its males pass 50%.', short: 'Released from predators, the lower pool brightened.', test: S => !S.pools[0].pred && last(S.hist.c0) != null && last(S.hist.c0) >= 0.5 },
+    { id: 'reverse', text: 'Once males above the falls are bright, add pike cichlids there and drive them back under 30%.', short: 'Predators pulled colour back down.', test: S => S.flags.upHigh && S.pools[1].pred && last(S.hist.c1) != null && last(S.hist.c1) <= 0.3 }
+  ],
+  leversHTML() {
+    return '<div class="lrow"><button class="btn" id="l-move">Carry 30 guppies above the falls</button></div>' +
+      '<div class="lrow"><label for="l-p0">Pike cichlids below the falls</label><button class="tog" id="l-p0" aria-pressed="true">On</button></div>' +
+      '<div class="lrow"><label for="l-p1">Pike cichlids above the falls</label><button class="tog" id="l-p1" aria-pressed="false">Off</button></div>';
+  },
+  bind(S) {
+    $('l-move').onclick = () => { this.transplant(S); Steward.refresh(); };
+    for (const j of [0, 1]) $('l-p' + j).onclick = () => { S.pools[j].pred = !S.pools[j].pred; this.syncCich(S); Snd.click(); this.refreshLevers(S); };
+    this.refreshLevers(S);
+  },
+  refreshLevers(S) {
+    const b = $('l-move'); if (b) { b.disabled = S.moved != null || S.pools[0].fish.length < 40; b.textContent = S.moved != null ? 'Carried over the falls at generation ' + S.moved : 'Carry 30 guppies above the falls'; }
+    for (const j of [0, 1]) { const t = $('l-p' + j); if (t) { t.setAttribute('aria-pressed', S.pools[j].pred ? 'true' : 'false'); t.textContent = S.pools[j].pred ? 'On' : 'Off'; } }
+  },
+  transplant(S) {
+    if (S.moved != null) return;
+    const P = S.pools[0], ms = shuffle(P.fish.filter(f => f.sex === 'm')).slice(0, 15), fs = shuffle(P.fish.filter(f => f.sex === 'f')).slice(0, 15), mv = ms.concat(fs);
+    P.fish = P.fish.filter(f => mv.indexOf(f) < 0);
+    for (const f of mv) { f.a = { u: (R() - .5) * .6, v: (R() - .5) * .6, h: R() * TAU }; S.pools[1].fish.push(f); }
+    S.moved = S.gen; if (!Steward.sync) { toast('Thirty guppies carried over the falls.'); Snd.chime(); }
+  },
+  syncCich(S) { for (const j of [0, 1]) { const want = S.pools[j].pred ? 2 : 0, a = S.cich[j]; while (a.length < want) a.push({ u: (R() - .5), v: (R() - .5) * .8, h: R() * TAU, dart: 0 }); a.length = want; } },
+  sync(S) { for (const P of S.pools) for (const f of P.fish) if (!f.a) f.a = { u: (R() * 2 - 1) * .7, v: (R() * 2 - 1) * .7, h: R() * TAU }; },
+  animate(S, dt) {
+    for (const P of S.pools) for (const f of P.fish) if (f.a) wander(f.a, dt, f.sex === 'm' ? 0.24 : 0.17, 0.66);
+    S.pools.forEach((P, j) => { for (const k of S.cich[j]) { k.dart = Math.max(0, k.dart - dt); if (k.dart <= 0 && R() < dt * 0.25) k.dart = 0.6; wander(k, dt, k.dart > 0 ? 0.55 : 0.09, 0.5); } });
+  },
+  geom(w, h) { return { P: [{ cx: w * 0.39, cy: h * 0.69, rx: w * 0.33, ry: h * 0.2 }, { cx: w * 0.64, cy: h * 0.27, rx: w * 0.31, ry: h * 0.18 }], fall: { x: w * 0.555, y: h * 0.475 } }; },
+  bgFor(w, h, G) {
+    const k = Math.round(w) + 'x' + Math.round(h) + '@' + Stage.dpr; if (this._bk === k) return this._bg;
+    const d = Math.min(2, Stage.dpr), cv = mkCanvas(w * d, h * d), c = cv.getContext('2d'); c.scale(d, d); const r = rng(31);
+    c.fillStyle = '#1f2c1d'; c.fillRect(0, 0, w, h);
+    const lp = [[46, 64, 36], [58, 78, 40], [70, 62, 40], [36, 50, 30], [84, 90, 48]];
+    for (let i = 0; i < w * h / 55; i++) { const x = r() * w, y = r() * h; c.fillStyle = css(lp[(r() * lp.length) | 0], 0.75); c.beginPath(); c.ellipse(x, y, 2 + r() * 6, 1 + r() * 2.6, r() * TAU, 0, TAU); c.fill(); }
+    const a = { x: G.P[0].cx + G.P[0].rx * 0.52, y: G.P[0].cy - G.P[0].ry * 0.78 }, b = { x: G.P[1].cx - G.P[1].rx * 0.55, y: G.P[1].cy + G.P[1].ry * 0.72 };
+    const chan = () => { c.beginPath(); c.moveTo(a.x, a.y); c.quadraticCurveTo(G.fall.x + 8, G.fall.y + 4, b.x, b.y); };
+    c.lineCap = 'round'; c.strokeStyle = '#5b5846'; c.lineWidth = Math.min(w, h) * 0.11; chan(); c.stroke(); c.strokeStyle = '#285c60'; c.lineWidth = Math.min(w, h) * 0.06; chan(); c.stroke();
+    for (const g of G.P) {
+      c.fillStyle = '#5c5947'; c.beginPath(); c.ellipse(g.cx, g.cy, g.rx * 1.07, g.ry * 1.12, 0, 0, TAU); c.fill();
+      for (let i = 0; i < 70; i++) { const t = r() * TAU, rr = 1.03 + r() * 0.06; c.fillStyle = css([90 + r() * 50, 86 + r() * 40, 70 + r() * 30]); c.beginPath(); c.ellipse(g.cx + Math.cos(t) * g.rx * rr, g.cy + Math.sin(t) * g.ry * rr, 1.5 + r() * 2.5, 1.2 + r() * 1.8, r() * 3, 0, TAU); c.fill(); }
+      const gr = c.createRadialGradient(g.cx, g.cy - g.ry * 0.3, g.ry * 0.1, g.cx, g.cy, g.rx); gr.addColorStop(0, '#3d8783'); gr.addColorStop(1, '#1b474d');
+      c.fillStyle = gr; c.beginPath(); c.ellipse(g.cx, g.cy, g.rx, g.ry, 0, 0, TAU); c.fill();
+      for (let i = 0; i < 26; i++) { c.fillStyle = 'rgba(20,50,50,.35)'; c.beginPath(); c.ellipse(g.cx + (r() - .5) * g.rx * 1.5, g.cy + (r() - .5) * g.ry * 1.4, 2 + r() * 4, 1.5 + r() * 2.5, r() * 3, 0, TAU); c.fill(); }
+    }
+    for (let i = 0; i < 8; i++) { c.fillStyle = css([112 + r() * 40, 108 + r() * 30, 92 + r() * 20]); c.beginPath(); c.ellipse(G.fall.x + (i - 3.5) * 6.5, G.fall.y + (i - 3.5) * 2.2 + (r() - .5) * 3, 4 + r() * 3, 3 + r() * 2, r(), 0, TAU); c.fill(); }
+    c.font = 'italic 13px ' + getComputedStyle(document.body).getPropertyValue('--fb'); c.fillStyle = 'rgba(232,223,201,.78)'; c.textAlign = 'left';
+    c.fillText('above the falls', Math.max(8, G.P[1].cx - G.P[1].rx * 1.02), Math.max(15, G.P[1].cy - G.P[1].ry * 1.14 - 6));
+    c.textAlign = 'left'; c.fillText('below the falls', Math.max(8, G.P[0].cx - G.P[0].rx * 0.95), Math.min(h - 6, G.P[0].cy + G.P[0].ry * 1.12 + 15));
+    this._bk = k; this._bg = cv; return cv;
+  },
+  draw(c, S, w, h) {
+    const G = this.geom(w, h), s = clamp(Math.min(w, h) / 330, 0.9, 1.5); c.drawImage(this.bgFor(w, h, G), 0, 0, w, h);
+    const t = S.anim; c.save(); c.strokeStyle = 'rgba(240,245,240,.8)'; c.lineWidth = 1.1;
+    for (let i = 0; i < 6; i++) { c.globalAlpha = 0.25 + 0.25 * Math.sin(t * 7 + i * 1.7); const yy = G.fall.y - 6 + ((t * 26 + i * 5) % 12); c.beginPath(); c.arc(G.fall.x + (i - 2.5) * 5, yy, 2.5 + (i % 2), 0, Math.PI); c.stroke(); }
+    c.restore();
+    S.pools.forEach((P, j) => {
+      const g = G.P[j];
+      for (const f of P.fish) { if (!f.a) continue; drawGuppy(c, g.cx + f.a.u * g.rx, g.cy + f.a.v * g.ry, Math.atan2(Math.sin(f.a.h) * g.ry, Math.cos(f.a.h) * g.rx), f, s); }
+      for (const k of S.cich[j]) drawCichlid(c, g.cx + k.u * g.rx, g.cy + k.v * g.ry, Math.atan2(Math.sin(k.h) * g.ry, Math.cos(k.h) * g.rx), s);
+    });
+  },
+  tabs: [
+    { label: 'Male colour', legend: legend([['#8aa0b8', 'below the falls'], ['#46a19a', 'above the falls']]), legendP: '<div class="leg"><span><i style="background:#4f6478"></i>below the falls</span><span><i style="background:#2f7f7a"></i>above the falls</span></div>', draw(cv, S, th) { const k = COL[th]; lineChart(cv, { theme: th, series: [{ d: S.hist.c0, c: k.a }, { d: S.hist.c1, c: k.b }], y0: 0, y1: 1, refs: [{ v: 0.55, label: '55%' }, { v: 0.35 }], fy: v => pct(v), xl: 'gen ' + (S.hist.c0.length - 1) }); } },
+    { label: 'Female preference', legend: legend([['#8aa0b8', 'below the falls'], ['#46a19a', 'above the falls']]), draw(cv, S, th) { const k = COL[th]; lineChart(cv, { theme: th, series: [{ d: S.hist.p0, c: k.a }, { d: S.hist.p1, c: k.b }], y0: 0, y1: 1, fy: v => pct(v), xl: 'gen ' + (S.hist.p0.length - 1) }); } }
+  ],
+  readout(S) {
+    const P0 = S.pools[0], P1 = S.pools[1];
+    return 'Below the falls: <b>' + P0.fish.length + '</b> guppies, male colour <b>' + pctN(last(S.hist.c0)) + '</b>, female preference ' + pctN(last(S.hist.p0)) + '.<br>' +
+      (P1.fish.length ? 'Above the falls: <b>' + P1.fish.length + '</b> guppies, male colour <b>' + pctN(last(S.hist.c1)) + '</b>, female preference ' + pctN(last(S.hist.p1)) + '.' : 'Above the falls: no guppies yet.');
+  },
+  chartCap: 'Average male colour, the share of body covered in spots.',
+  what(S) {
+    const c0 = last(S.hist.c0), c1 = last(S.hist.c1), p0 = last(S.hist.p0), p1 = last(S.hist.p1);
+    let s = 'Male colour settles where two selectors balance: females reward it, pike cichlids punish it. ';
+    if (S.moved != null && c1 != null) s += 'Above the falls males ended at ' + pct(c1) + ' colour, below at ' + pctN(c0) + '. ';
+    if (p1 != null && p0 != null) s += 'Female preference drifted too — ' + pct(p0) + ' below, ' + pct(p1) + ' above — because choosy females end up carrying the genes of the colourful males they pick, so preference rides along with the trait it prefers. That coupling is the engine of Fisher’s runaway.';
+    return s;
+  }
+};
+
+/* ---------- Chapter V: the slow island (Y-model trade-off, mutation accumulation) ---------- */
+function drawBeast(c, x, y, hd, age, s) {
+  const k = (age < 1 ? 0.7 : 1) * s, fur = mix([112, 96, 80], [224, 218, 206], clamp((age - 1) / 5, 0, 1));
+  c.save(); c.translate(x, y); c.rotate(hd); c.scale(k, k);
+  c.strokeStyle = 'rgba(214,170,160,.8)'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(-3.8, 0); c.quadraticCurveTo(-7, 2.2, -9, 0.5); c.stroke();
+  c.fillStyle = css(fur); c.beginPath(); c.ellipse(0, 0, 4.2, 2.7, 0, 0, TAU); c.fill();
+  c.beginPath(); c.ellipse(4.2, 0, 2.1, 1.6, 0, 0, TAU); c.fill();
+  c.fillStyle = '#e8c9c0'; c.beginPath(); c.arc(6.1, 0, 0.6, 0, TAU); c.fill();
+  c.fillStyle = '#111'; c.beginPath(); c.arc(4.7, -0.8, 0.45, 0, TAU); c.fill();
+  c.restore();
+}
+function drawFox(c, x, y, hd, s) {
+  c.save(); c.translate(x, y); c.rotate(hd); c.scale(s, s);
+  c.fillStyle = '#b8612a'; c.beginPath(); c.ellipse(-8, 1, 4.5, 2, 0.3, 0, TAU); c.fill(); c.fillStyle = '#efe6d6'; c.beginPath(); c.arc(-11.5, 2, 1.3, 0, TAU); c.fill();
+  c.fillStyle = '#c96b2e'; c.beginPath(); c.ellipse(0, 0, 6.2, 2.9, 0, 0, TAU); c.fill(); c.beginPath(); c.moveTo(4.5, -2); c.lineTo(10, 0); c.lineTo(4.5, 2); c.closePath(); c.fill();
+  c.fillStyle = '#2a1a12'; c.beginPath(); c.moveTo(5, -2.2); c.lineTo(6.6, -4.2); c.lineTo(7, -1.6); c.fill(); c.beginPath(); c.moveTo(5, 2.2); c.lineTo(6.6, 4.2); c.lineTo(7, 1.6); c.fill();
+  c.restore();
+}
+const CH_ISLAND = {
+  id: 'island', mode: 'steward', num: 'V', title: 'The Slow Island', concept: 'Ageing and life history',
+  intro: {
+    premise: 'Every body splits a budget: breed now, or maintain itself for later. Where foxes kill you young anyway, maintenance is wasted — so mainland animals breed hard and wear out fast.',
+    part: 'Found an island colony out of the foxes’ reach, then run the years at speed. Grey fur marks the old. Nobody chooses anything; the animals that leave more descendants set the pace of life.',
+    goal: 'Three experiments, one star each.',
+    basis: 'Steven Austad’s island opossums (1993).',
+    real: 'Austad (1993) compared Virginia opossums on Sapelo Island, cut off from mainland predators for several thousand years, with mainland opossums. The island animals had smaller litters, lived longer, and their tail-tendon collagen stiffened more slowly with age — slower ageing, evolved. The logic is Medawar’s and Williams’s: where outside dangers cut lives short, selection is blind to what happens late in life.'
+  },
+  period: 0.9, maxGen: 1500, AMAX: 14, F: 4.0, C: 1.0, AL: 0.03, B0: 0.08, B1: 0.5, SD: 0.012, ME: 0.45, K: [170, 110],
+  LATE0: [0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 2.5, 3.5, 4.5, 5.5, 6, 6.5, 7, 7],
+  fec(e) { return this.F * 1.3 * e / (e + 0.3); },
+  traits: [{ k: 'eff', n: 8, m0: 0.45, s0: 0.06, mu: 0.04, msd: 0.04, ve: 0.02, lo: 0.02, hi: 0.98 }, { k: 'late', n: 14, kind: 'count', u: 0.012, cap: 8 }],
+  unit: g => 'year ' + g,
+  init() {
+    const specs = this.traits.map(s => Object.assign({}, s)); specs[1].c0f = i => this.LATE0[i] / 2;
+    const lay = Gen.layout(specs);
+    const S = { lay, pops: [{ ind: [], fox: true }, { ind: [], fox: false, founded: null }], hist: { L0: [], L1: [], e0: [], e1: [], m0: [], m1: [] }, flags: {}, ghosts: [], foxes: [[], []], st: [null, null] };
+    for (let i = 0; i < this.K[0]; i++) S.pops[0].ind.push(this.mk(S, Gen.genome(lay), (R() * 3) | 0));
+    for (let y = 0; y < 300; y++) this.step(S);
+    this.record(S); this.syncFox(S); return S;
+  },
+  mk(S, g, age) {
+    const e = Gen.ph(S.lay, g, 'eff'), s = new Float32Array(this.AMAX + 1), beta = this.B0 + this.B1 * e; let lat = 0;
+    for (let a = 0; a <= this.AMAX; a++) { let v = Math.exp(-this.AL * Math.exp(beta * a)); if (a >= 1) { v *= 1 - this.C * e * e; const k = Gen.cnt(S.lay, g, 'late', a - 1); v *= Math.pow(1 - this.SD, k); if (a >= 5) lat += k; } s[a] = v; }
+    let l = 1, L = this.AMAX + 1; for (let a = 0; a <= this.AMAX; a++) { const nl = l * s[a]; if (nl < 0.5) { L = a + (l - 0.5) / (l - nl); break; } l = nl; }
+    return { g, age: age || 0, eff: e, s, life: L, late: lat / 10 };
+  },
+  step(S) {
+    for (let j = 0; j < 2; j++) {
+      const P = S.pops[j]; if (!P.ind.length) continue;
+      const me = P.fox ? this.ME : 0, ad = P.ind.filter(x => x.age >= 1), kids = [];
+      if (ad.length >= 2) { const w = ad.map(x => this.fec(x.eff)); for (const m of ad) { const k = poisson(this.fec(m.eff)); for (let i = 0; i < k; i++) { let d = ad[wpick(w)], t = 0; while (d === m && t++ < 4) d = ad[wpick(w)]; kids.push([m, d]); } } }
+      const room = Math.max(0, this.K[j] - P.ind.length), pk = kids.length ? Math.min(0.9, room / kids.length) : 0, next = P.ind.slice();
+      for (const [m, d] of kids) if (R() < pk) { const x = this.mk(S, Gen.mate(S.lay, m.g, d.g), 0); if (m.a) x.a = { x: m.a.x + (R() - .5) * .03, y: m.a.y + (R() - .5) * .03, h: R() * TAU }; next.push(x); }
+      const out = [];
+      for (const x of next) { if (x.age < this.AMAX && R() < x.s[x.age] * (1 - me)) { x.age++; out.push(x); } else if (x.a && S.ghosts.length < 50 && !Steward.sync && Steward.speed <= 2) S.ghosts.push({ x: x.a.x, y: x.a.y, t: 1 }); }
+      P.ind = out;
+    }
+  },
+  stats(P) { if (!P.ind.length) return null; return { L: mean(P.ind.map(x => x.life)), e: mean(P.ind.map(x => x.eff)), m: mean(P.ind.map(x => x.late)), n: P.ind.length }; },
+  record(S) {
+    const a = this.stats(S.pops[0]), b = S.pops[1].founded != null ? this.stats(S.pops[1]) : null, h = S.hist;
+    h.L0.push(a ? a.L : null); h.e0.push(a ? a.e : null); h.m0.push(a ? a.m : null); h.L1.push(b ? b.L : null); h.e1.push(b ? b.e : null); h.m1.push(b ? b.m : null);
+    S.st = [a, b]; if (a && b && b.L >= 1.5 * a.L) S.flags.austad = true;
+  },
+  objectives: [
+    { id: 'austad', text: 'Austad’s result: island animals’ protected lifespan reaches 1.5 × the mainland’s.', short: 'Slower ageing evolved on the island.', test: S => { const [a, b] = S.st; return !!(a && b && b.L >= 1.5 * a.L); } },
+    { id: 'shadow', text: 'Shift the trade-off: island animals put less than 70% of the mainland’s effort into each year’s breeding.', short: 'The Y-model trade-off shifted.', test: S => { const [a, b] = S.st; return !!(a && b && b.e <= 0.7 * a.e); } },
+    { id: 'reverse', text: 'Once ageing has slowed, let foxes onto the island and watch its animals age fast again (under 1.15 ×).', short: 'Foxes brought fast ageing back.', test: S => { const [a, b] = S.st; return !!(S.flags.austad && S.pops[1].fox && a && b && b.L <= 1.15 * a.L); } }
+  ],
+  leversHTML() {
+    return '<div class="lrow"><button class="btn" id="l-found">Found an island colony (20 animals)</button></div>' +
+      '<div class="lrow"><label for="l-fox">Foxes on the island</label><button class="tog" id="l-fox" aria-pressed="false">Off</button></div>';
+  },
+  bind(S) {
+    $('l-found').onclick = () => { this.found(S); Steward.refresh(); };
+    $('l-fox').onclick = () => { S.pops[1].fox = !S.pops[1].fox; this.syncFox(S); Snd.click(); this.refreshLevers(S); };
+    this.refreshLevers(S);
+  },
+  refreshLevers(S) {
+    const b = $('l-found'), P = S.pops[1]; if (b) { b.disabled = P.ind.length > 0; b.textContent = P.ind.length > 0 ? 'Island colony founded in year ' + P.founded : P.founded != null ? 'The colony died out. Found another (20 animals)' : 'Found an island colony (20 animals)'; }
+    const t = $('l-fox'); if (t) { t.setAttribute('aria-pressed', P.fox ? 'true' : 'false'); t.textContent = P.fox ? 'On' : 'Off'; }
+  },
+  found(S) {
+    const M = S.pops[0], I = S.pops[1]; if (I.ind.length) return;
+    const ads = shuffle(M.ind.filter(x => x.age >= 1)).slice(0, 20); M.ind = M.ind.filter(x => ads.indexOf(x) < 0);
+    for (const x of ads) { x.a = this.rpt(1); I.ind.push(x); }
+    I.founded = S.gen; if (!Steward.sync) { toast('Twenty animals rafted to the island.'); Snd.chime(); }
+    this.record(S); S.hist.L1.pop(); S.hist.e1.pop(); S.hist.m1.pop(); S.hist.L0.pop(); S.hist.e0.pop(); S.hist.m0.pop();
+  },
+  inR(j, x, y) { return j === 0 ? (x > 0.04 && x < 0.44 && y > 0.05 && y < 0.95) : (((x - 0.79) / 0.14) ** 2 + ((y - 0.5) / 0.3) ** 2 < 1); },
+  rpt(j) { for (let t = 0; t < 50; t++) { const x = j === 0 ? 0.05 + R() * 0.38 : 0.65 + R() * 0.28, y = 0.06 + R() * 0.88; if (this.inR(j, x, y)) return { x, y, h: R() * TAU }; } return j ? { x: 0.79, y: 0.5, h: 0 } : { x: 0.25, y: 0.5, h: 0 }; },
+  syncFox(S) { S.pops.forEach((P, j) => { const want = P.fox ? 2 : 0, a = S.foxes[j]; while (a.length < want) a.push(this.rpt(j)); a.length = want; }); },
+  sync(S) { S.pops.forEach((P, j) => { for (const x of P.ind) if (!x.a || !this.inR(j, x.a.x, x.a.y)) x.a = this.rpt(j); }); },
+  animate(S, dt) {
+    const mv = (a, j, sp) => { a.h += (R() - .5) * dt * 3; const nx = a.x + Math.cos(a.h) * sp * dt, ny = a.y + Math.sin(a.h) * sp * dt; if (this.inR(j, nx, ny)) { a.x = nx; a.y = ny; } else a.h += Math.PI * (0.6 + R() * 0.8); };
+    S.pops.forEach((P, j) => { for (const x of P.ind) if (x.a) mv(x.a, j, x.age < 1 ? 0.03 : 0.022); for (const f of S.foxes[j]) mv(f, j, 0.045); });
+    S.ghosts = S.ghosts.filter(g => (g.t -= dt * 0.8) > 0);
+  },
+  bgFor(w, h) {
+    const k = Math.round(w) + 'x' + Math.round(h) + '@' + Stage.dpr; if (this._bk === k) return this._bg;
+    const d = Math.min(2, Stage.dpr), cv = mkCanvas(w * d, h * d), c = cv.getContext('2d'); c.scale(d, d); const r = rng(77);
+    const sea = c.createLinearGradient(0, 0, w, 0); sea.addColorStop(0, '#1d4655'); sea.addColorStop(1, '#173a48'); c.fillStyle = sea; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(200,225,230,.12)'; c.lineWidth = 1; for (let i = 0; i < 40; i++) { const x = w * (0.5 + r() * 0.5), y = r() * h; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 6, y - 2, x + 12, y); c.stroke(); }
+    const coast = t => w * (0.47 + 0.02 * Math.sin(t * 9) + 0.012 * Math.sin(t * 23 + 1));
+    c.fillStyle = '#c9b98e'; c.beginPath(); c.moveTo(0, 0); for (let i = 0; i <= 60; i++) { const t = i / 60; c.lineTo(coast(t) + 5, t * h); } c.lineTo(0, h); c.closePath(); c.fill();
+    c.fillStyle = '#3d5a2e'; c.beginPath(); c.moveTo(0, 0); for (let i = 0; i <= 60; i++) { const t = i / 60; c.lineTo(coast(t), t * h); } c.lineTo(0, h); c.closePath(); c.fill();
+    c.fillStyle = '#c9b98e'; c.beginPath(); c.ellipse(w * 0.79, h * 0.5, w * 0.155, h * 0.325, 0, 0, TAU); c.fill();
+    c.fillStyle = '#46652f'; c.beginPath(); c.ellipse(w * 0.79, h * 0.5, w * 0.142, h * 0.305, 0, 0, TAU); c.fill();
+    const tuft = (x, y) => { c.fillStyle = css([50 + r() * 30, 80 + r() * 30, 40 + r() * 20], 0.7); c.beginPath(); c.ellipse(x, y, 1.5 + r() * 3, 1 + r() * 1.5, r() * 3, 0, TAU); c.fill(); };
+    for (let i = 0; i < w * h / 40; i++) { const x = r() * w, y = r() * h; if (this.inR(0, x / w, y / h) || this.inR(1, x / w, y / h)) tuft(x, y); }
+    for (let i = 0; i < 14; i++) { const p = i < 9 ? this.rpt(0) : this.rpt(1); c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.arc(p.x * w + 2, p.y * h + 2, 7, 0, TAU); c.fill(); c.fillStyle = css([34 + r() * 20, 64 + r() * 20, 36]); c.beginPath(); c.arc(p.x * w, p.y * h, 7 + r() * 3, 0, TAU); c.fill(); }
+    c.font = 'italic 13px ' + getComputedStyle(document.body).getPropertyValue('--fb'); c.fillStyle = 'rgba(232,223,201,.8)'; c.textAlign = 'left'; c.fillText('mainland', 10, 18); c.textAlign = 'center'; c.fillText('island', w * 0.79, h * 0.5 - h * 0.325 - 6 > 12 ? h * 0.5 - h * 0.325 - 6 : 14);
+    this._bk = k; this._bg = cv; return cv;
+  },
+  draw(c, S, w, h) {
+    c.drawImage(this.bgFor(w, h), 0, 0, w, h); const s = clamp(Math.min(w, h) / 330, 0.9, 1.4);
+    for (const g of S.ghosts) { c.strokeStyle = 'rgba(232,223,201,' + (0.5 * g.t) + ')'; c.lineWidth = 1; const x = g.x * w, y = g.y * h; c.beginPath(); c.moveTo(x - 3, y - 3); c.lineTo(x + 3, y + 3); c.moveTo(x + 3, y - 3); c.lineTo(x - 3, y + 3); c.stroke(); }
+    S.pops.forEach((P, j) => { for (const x of P.ind) if (x.a) drawBeast(c, x.a.x * w, x.a.y * h, x.a.h, x.age, s); for (const f of S.foxes[j]) drawFox(c, f.x * w, f.y * h, f.h, s); });
+  },
+  meanS(P) { const s = new Float32Array(this.AMAX + 1); if (!P.ind.length) return s; for (const x of P.ind) for (let a = 0; a <= this.AMAX; a++) s[a] += x.s[a]; for (let a = 0; a <= this.AMAX; a++) s[a] /= P.ind.length; return s; },
+  lx(s, me) { const l = [1]; for (let a = 0; a < this.AMAX; a++) l.push(l[a] * s[a] * (1 - me)); return l; },
+  fos(P) {
+    const me = P.fox ? this.ME : 0, l = this.lx(this.meanS(P), me), e = mean(P.ind.map(x => x.eff));
+    const fe = this.fec(e); let tot = 0; for (let a = 1; a < l.length; a++) tot += l[a] * fe;
+    const out = []; for (let a = 0; a < l.length; a++) { let s2 = 0; for (let x = a + 1; x < l.length; x++) s2 += l[x] * fe; out.push(tot > 0 ? s2 / tot : 0); } return out;
+  },
+  tabs: [
+    { label: 'Lifespan', legend: legend([['#8aa0b8', 'mainland'], ['#46a19a', 'island']]), legendP: '<div class="leg"><span><i style="background:#4f6478"></i>mainland</span><span><i style="background:#2f7f7a"></i>island</span></div>', draw(cv, S, th) { const k = COL[th]; const mx = Math.max(6, ...S.hist.L1.filter(v => v != null).map(v => Math.ceil(v + 0.5)), ...S.hist.L0.filter(v => v != null).map(v => Math.ceil(v + 0.5))); lineChart(cv, { theme: th, series: [{ d: S.hist.L0, c: k.a }, { d: S.hist.L1, c: k.b }], y0: 0, y1: mx, fy: v => v.toFixed(0) + ' y', x0l: 'year 0', xl: 'year ' + (S.hist.L0.length - 1) }); } },
+    { label: 'Survival', legend: legend([['#8aa0b8', 'mainland'], ['#46a19a', 'island']]) + '<span>protected from predators, by age</span>', draw(cv, S, th) { const k = COL[th], me = CH_ISLAND; const ser = [{ d: me.lx(me.meanS(S.pops[0]), 0), c: k.a }]; if (S.pops[1].ind.length) ser.push({ d: me.lx(me.meanS(S.pops[1]), 0), c: k.b }); lineChart(cv, { theme: th, series: ser, y0: 0, y1: 1, fy: v => pct(v), x0l: 'age 0', xl: 'age ' + me.AMAX }); } },
+    { label: 'Force of selection', legend: legend([['#8aa0b8', 'mainland'], ['#46a19a', 'island']]) + '<span>share of lifetime breeding still ahead</span>', draw(cv, S, th) { const k = COL[th], me = CH_ISLAND; const ser = [{ d: me.fos(S.pops[0]), c: k.a }]; if (S.pops[1].ind.length) ser.push({ d: me.fos(S.pops[1]), c: k.b }); lineChart(cv, { theme: th, series: ser, y0: 0, y1: 1, fy: v => pct(v), x0l: 'age 0', xl: 'age ' + me.AMAX }); } },
+    { label: 'Late mutations', legend: legend([['#8aa0b8', 'mainland'], ['#46a19a', 'island']]) + '<span>copies per age, ages 5 and up</span>', draw(cv, S, th) { const k = COL[th]; const mx = Math.max(4, Math.ceil(Math.max(...S.hist.m0.filter(v => v != null)) + 1)); lineChart(cv, { theme: th, series: [{ d: S.hist.m0, c: k.a }, { d: S.hist.m1, c: k.b }], y0: 0, y1: mx, fy: v => v.toFixed(0), x0l: 'year 0', xl: 'year ' + (S.hist.m0.length - 1) }); } }
+  ],
+  readout(S) {
+    const [a, b] = S.st; let s = '';
+    if (a) s += 'Mainland: <b>' + a.n + '</b> animals, reproductive effort <b>' + a.e.toFixed(2) + '</b>, protected lifespan <b>' + a.L.toFixed(1) + ' y</b>.';
+    const I = S.pops[1];
+    if (b) s += '<br>Island: <b>' + b.n + '</b> animals, effort <b>' + b.e.toFixed(2) + '</b>, lifespan <b>' + b.L.toFixed(1) + ' y</b> — <b>' + (b.L / a.L).toFixed(2) + ' ×</b> the mainland.';
+    else s += '<br>Island: ' + (I.founded != null ? 'the colony has died out.' : 'empty. No foxes can reach it.');
+    return s;
+  },
+  chartCap: 'Protected lifespan: the median age at death if predators were removed, from each animal’s genes.',
+  what(S) {
+    const [a, b] = S.st;
+    let s = 'Two things changed, at different speeds. The Y-model trade-off moved first: freed from foxes, island animals that put less into each year’s breeding and more into maintenance left more descendants over their longer lives. ';
+    if (a && b) s += 'Reproductive effort ended at ' + a.e.toFixed(2) + ' on the mainland and ' + b.e.toFixed(2) + ' on the island; protected lifespan at ' + a.L.toFixed(1) + ' and ' + b.L.toFixed(1) + ' years. ';
+    s += (a && b && b.m < a.m * 0.95) ? 'Late-acting mutations tell the slower half of the story: the island now carries fewer (' + b.m.toFixed(1) + ' against ' + a.m.toFixed(1) + ' copies per late age), because once animals live long enough for those mutations to bite, selection starts to see them. ' : 'Late-acting mutations tell the slower half of the story, and it is still unfinished: they bite only after age five, and until enough island animals live that long, selection barely sees them — the shadow Medawar described (' + (b ? b.m.toFixed(1) : '—') + ' copies per late age on the island, ' + (a ? a.m.toFixed(1) : '—') + ' on the mainland). ';
+    s += 'One caveat: this works because crowding kills newborns here. If crowding instead raised death rates equally at every age, extra age-independent predation would cancel out and leave ageing unchanged (Abrams 1993).';
+    return s;
+  }
+};
+
+/* ---------- Chapter VI: the commons (haystack model, Price equation) ---------- */
+const CH_COMMONS = {
+  id: 'commons', mode: 'steward', num: 'VI', title: 'The Commons', concept: 'Levels of selection',
+  intro: {
+    premise: 'Cooperators make sugar that feeds their whole pond; cheats eat it and make none. In any single pond, cheats out-breed cooperators. Yet ponds of cooperators out-produce ponds of cheats, and fill up.',
+    part: 'Set the rain (how much the ponds mix each generation), choose how many founders seed each pond, and call floods that pool everyone and reseed the ponds from scratch.',
+    goal: 'Three experiments, one star each.',
+    basis: 'Maynard Smith’s haystack model (1964) and George Price’s equation (1970, 1972).',
+    real: 'John Maynard Smith’s haystack model (1964) asked when cooperation could spread among mice breeding in isolated haystacks that were periodically cleared. George Price’s equation (1970, 1972) splits any evolutionary change into a between-group and a within-group term — the two bars under the ponds. Michael Wade (1976) ran group selection for real on laboratory flour beetles, and found it could be strong.'
+  },
+  period: 1.3, maxGen: 260, NP: 12, BASE: 1.6, B: 1.0, COST: 0.3, CAP0: 3, CAP1: 25, MUT: 0.003,
+  unit: g => 'gen ' + g,
+  init() {
+    const S = { ponds: [], rain: 0.30, founders: 4, hist: { p: [], cb: [], cw: [] }, floods: [], cum: { bet: 0, wit: 0 }, last: { bet: 0, wit: 0 }, streak: 0, flags: {}, floodT: 0, floodAt: -9 };
+    for (let j = 0; j < this.NP; j++) { const P = { ind: [] }; for (let i = 0; i < 10; i++) P.ind.push({ c: R() < 0.3 ? 1 : 0 }); S.ponds.push(P); }
+    const rb = rng(5); this.blobs = []; for (let j = 0; j < this.NP; j++) { const hs = []; for (let k = 2; k <= 5; k++) hs.push({ k, a: (rb() * 0.09) / (k - 1), p: rb() * TAU }); this.blobs.push(hs); }
+    this.record(S); return S;
+  },
+  gp(S) { let n = 0, c = 0; for (const P of S.ponds) for (const i of P.ind) { n++; c += i.c; } return n ? c / n : 0; },
+  step(S) {
+    const pre = S.ponds.map(P => { const n = P.ind.length; let c = 0; for (const i of P.ind) c += i.c; return { n, x: n ? c / n : 0 }; });
+    const offs = [];
+    for (let j = 0; j < this.NP; j++) {
+      const P = S.ponds[j], x = pre[j].x, kids = [];
+      for (const i of P.ind) { const k = poisson(this.BASE * (1 + this.B * x) * (i.c ? 1 - this.COST : 1)); for (let q = 0; q < k; q++) { let c = i.c; if (R() < this.MUT) c = 1 - c; kids.push({ c, a: i.a ? { u: clamp(i.a.u + (R() - .5) * .25, -.9, .9), v: clamp(i.a.v + (R() - .5) * .25, -.9, .9), h: R() * TAU } : null }); } }
+      shuffle(kids); offs.push(kids.slice(0, Math.round(this.CAP0 + this.CAP1 * x)));
+    }
+    let N = 0, Np = 0, sx = 0; for (let j = 0; j < this.NP; j++) { N += pre[j].n; Np += offs[j].length; sx += pre[j].n * pre[j].x; }
+    if (N > 0 && Np > 0) {
+      const p = sx / N, wb = Np / N; let bet = 0, wit = 0;
+      for (let j = 0; j < this.NP; j++) { const n = pre[j].n; if (!n) continue; const w = offs[j].length / n; let xp = pre[j].x; if (offs[j].length) { let c = 0; for (const i of offs[j]) c += i.c; xp = c / offs[j].length; } bet += n * (w - wb) * (pre[j].x - p); wit += n * w * (xp - pre[j].x); }
+      S.last = { bet: bet / (N * wb), wit: wit / (N * wb) }; S.cum.bet += S.last.bet; S.cum.wit += S.last.wit;
+    } else S.last = { bet: 0, wit: 0 };
+    const next = offs.map(() => []);
+    for (let j = 0; j < this.NP; j++) for (const i of offs[j]) { if (R() < S.rain) { let k = (R() * (this.NP - 1)) | 0; if (k >= j) k++; i.a = null; next[k].push(i); } else next[j].push(i); }
+    S.ponds.forEach((P, j) => P.ind = next[j]);
+  },
+  flood(S) {
+    if (S.gen - S.floodAt < 1) return;
+    const pool = []; for (const P of S.ponds) for (const i of P.ind) pool.push(i); shuffle(pool);
+    const F = S.founders; S.ponds.forEach((P, j) => { P.ind = pool.slice(j * F, (j + 1) * F).map(i => ({ c: i.c })); });
+    S.floodAt = S.gen; S.floods.push(S.gen); S.floodT = 1.6; S.flags.flooded = true;
+    if (!Steward.sync) { Snd.flood(); }
+    this.sync(S); S.hist.p[S.hist.p.length - 1] = this.gp(S);
+  },
+  record(S) {
+    const p = this.gp(S); S.hist.p.push(p); S.hist.cb.push(S.cum.bet); S.hist.cw.push(S.cum.wit);
+    S.streak = p >= 0.75 ? S.streak + 1 : 0; if (S.streak >= 5) S.flags.held = true;
+  },
+  objectives: [
+    { id: 'hold', text: 'Cooperators hold 75% of the population for five generations in a row.', short: 'Cooperation held.', test: S => S.streak >= 5 },
+    { id: 'ninety', text: 'Push cooperators past 90%.', short: 'Cooperators past 90%.', test: S => last(S.hist.p) >= 0.9 },
+    { id: 'tragedy', text: 'After cooperation has held, turn the rain up and let cheats retake the majority: the tragedy of the commons.', short: 'The commons collapsed.', test: S => !!(S.flags.held && last(S.hist.p) < 0.5 && S.rain >= 0.15) }
+  ],
+  leversHTML(S) {
+    return '<div class="lrow"><label for="l-rain">Rain: share of each pond that drifts to another <output id="o-rain">30%</output></label><input type="range" id="l-rain" min="0" max="40" step="1" value="30"></div>' +
+      '<div class="lrow"><label for="l-fnd">Founders per pond after a flood <output id="o-fnd">4</output></label><input type="range" id="l-fnd" min="2" max="12" step="1" value="4"></div>' +
+      '<div class="lrow"><button class="btn" id="l-flood">Flood: pool everyone, reseed the ponds</button></div><div class="price" id="s-price"></div>';
+  },
+  bind(S) {
+    const rn = $('l-rain'), fd = $('l-fnd');
+    rn.oninput = () => { S.rain = +rn.value / 100; $('o-rain').textContent = rn.value + '%'; };
+    fd.oninput = () => { S.founders = +fd.value; $('o-fnd').textContent = fd.value; };
+    $('l-flood').onclick = () => { this.flood(S); Steward.dirty = true; this.refreshLevers(S); };
+    this.refreshLevers(S);
+  },
+  refreshLevers(S) {
+    const b = $('l-flood'); if (b) b.disabled = S.gen - S.floodAt < 1;
+    const pr = $('s-price'); if (!pr) return;
+    const row = (lab, v) => { const w = clamp(Math.abs(v) / 0.08, 0, 1) * 50; const st = v >= 0 ? 'left:50%;width:' + w + '%;background:var(--teal)' : 'right:50%;width:' + w + '%;background:var(--carmine)'; return '<div class="prow"><span>' + lab + '</span><div class="pbar"><i style="' + st + '"></i></div><span class="pv">' + sgn3(v) + '</span></div>'; };
+    pr.innerHTML = row('Between ponds', S.last.bet) + row('Within ponds', S.last.wit);
+  },
+  sync(S) { for (const P of S.ponds) for (const i of P.ind) if (!i.a) { const t = R() * TAU, rr = Math.sqrt(R()) * 0.8; i.a = { u: Math.cos(t) * rr, v: Math.sin(t) * rr, h: R() * TAU }; } },
+  animate(S, dt) { for (const P of S.ponds) for (const i of P.ind) if (i.a) wander(i.a, dt, 0.28, 0.62); if (S.floodT > 0) S.floodT = Math.max(0, S.floodT - dt); },
+  geom(w, h) { const cols = 3, rows = 4, cw = w / cols, chh = h / rows, r = Math.min(cw, chh) * 0.40, rr = rng(8), out = []; for (let j = 0; j < this.NP; j++) { const col = j % 3, row = (j / 3) | 0; out.push({ cx: cw * (col + 0.5) + (rr() - .5) * cw * 0.1, cy: chh * (row + 0.5) + (rr() - .5) * chh * 0.1, r }); } return out; },
+  blob(c, g, j, sc) { const hs = this.blobs[j]; c.beginPath(); for (let i = 0; i <= 40; i++) { const t = i / 40 * TAU; let k = 1; for (const q of hs) k += q.a * Math.cos(q.k * t + q.p); const x = g.cx + Math.cos(t) * g.r * sc * k, y = g.cy + Math.sin(t) * g.r * sc * k; if (i) c.lineTo(x, y); else c.moveTo(x, y); } c.closePath(); },
+  bgFor(w, h, G) {
+    const k = Math.round(w) + 'x' + Math.round(h) + '@' + Stage.dpr; if (this._bk === k) return this._bg;
+    const d = Math.min(2, Stage.dpr), cv = mkCanvas(w * d, h * d), c = cv.getContext('2d'); c.scale(d, d); const r = rng(12);
+    c.fillStyle = '#26351f'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < w * h / 45; i++) { c.fillStyle = css([44 + r() * 30, 64 + r() * 30, 34 + r() * 16], 0.6); c.beginPath(); c.ellipse(r() * w, r() * h, 1.5 + r() * 3.5, 0.8 + r() * 1.4, r() * 3, 0, TAU); c.fill(); }
+    G.forEach((g, j) => { c.fillStyle = '#5a5140'; this.blob(c, g, j, 1.1); c.fill(); c.fillStyle = '#7a6c50'; this.blob(c, g, j, 1.04); c.fill(); });
+    this._bk = k; this._bg = cv; return cv;
+  },
+  draw(c, S, w, h) {
+    const G = this.geom(w, h), t = S.anim; c.drawImage(this.bgFor(w, h, G), 0, 0, w, h);
+    if (S.rain > 0) { c.strokeStyle = 'rgba(110,170,180,' + Math.min(0.5, S.rain * 1.6) + ')'; c.lineWidth = 2; c.setLineDash([3, 5]); c.lineDashOffset = -t * 12; for (let j = 0; j < this.NP; j++) { const a = G[j]; for (const k of [j + 1, j + 3]) { if (k >= this.NP || (k === j + 1 && j % 3 === 2)) continue; const b = G[k]; c.beginPath(); c.moveTo(a.cx, a.cy); c.lineTo(b.cx, b.cy); c.stroke(); } } c.setLineDash([]); }
+    const s = clamp(Math.min(w, h) / 330, 0.9, 1.4);
+    S.ponds.forEach((P, j) => {
+      const g = G[j], n = P.ind.length; let cc = 0; for (const i of P.ind) cc += i.c; const x = n ? cc / n : 0;
+      c.fillStyle = css(mix([86, 76, 46], [48, 122, 108], x)); this.blob(c, g, j, 1); c.fill();
+      const motes = Math.min(14, Math.round(cc * 0.5)); c.fillStyle = 'rgba(236,200,90,.75)';
+      for (let m = 0; m < motes; m++) { const a = m * 2.39996 + t * 0.3 * (m % 2 ? 1 : -1), rr = g.r * 0.72 * Math.sqrt((m + 0.5) / 14); c.beginPath(); c.arc(g.cx + Math.cos(a) * rr, g.cy + Math.sin(a) * rr, 1.1 * s, 0, TAU); c.fill(); }
+      for (const i of P.ind) {
+        if (!i.a) continue; const px = g.cx + i.a.u * g.r * 0.95, py = g.cy + i.a.v * g.r * 0.95;
+        if (i.c) { c.fillStyle = 'rgba(120,230,210,.22)'; c.beginPath(); c.arc(px, py, 4.4 * s, 0, TAU); c.fill(); c.fillStyle = '#7fd8c8'; c.beginPath(); c.arc(px, py, 2.4 * s, 0, TAU); c.fill(); }
+        else { c.fillStyle = '#d4566a'; c.beginPath(); c.arc(px, py, 2.6 * s, i.a.h + 0.6, i.a.h - 0.6 + TAU); c.lineTo(px, py); c.closePath(); c.fill(); }
+      }
+    });
+    if (S.rain > 0) { c.strokeStyle = 'rgba(200,220,230,.22)'; c.lineWidth = 1; const n = Math.round(S.rain * 150); for (let i = 0; i < n; i++) { const x = ((i * 73.13 + t * 30) % (w + 20)) - 10, y = ((i * 41.7 + t * 240 + i * i * 3.1) % (h + 20)) - 10; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 3, y + 9); c.stroke(); } }
+    if (S.floodT > 0) { const k = Math.sin(Math.PI * (1 - S.floodT / 1.6)); c.fillStyle = 'rgba(60,110,140,' + (0.6 * k) + ')'; c.fillRect(0, 0, w, h); }
+  },
+  tabs: [
+    { label: 'Cooperators', legend: legend([['#46a19a', 'share of cooperators']]) + '<span>ticks mark floods</span>', legendP: '', draw(cv, S, th) { const k = COL[th]; lineChart(cv, { theme: th, series: [{ d: S.hist.p, c: k.b }], y0: 0, y1: 1, refs: [{ v: 0.75, label: '75%' }, { v: 0.9, label: '90%' }], marks: S.floods, fy: v => pct(v), xl: 'gen ' + (S.hist.p.length - 1) }); } },
+    { label: 'Price terms, summed', legend: legend([['#46a19a', 'between ponds'], ['#cf9a33', 'within ponds']]), draw(cv, S, th) { const k = COL[th], all = S.hist.cb.concat(S.hist.cw), m = Math.max(0.2, ...all.map(Math.abs)); lineChart(cv, { theme: th, series: [{ d: S.hist.cb, c: k.b }, { d: S.hist.cw, c: k.c }], y0: -m, y1: m, refs: [{ v: 0 }], fy: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1), xl: 'gen ' + (S.hist.cb.length - 1) }); } }
+  ],
+  readout(S) {
+    const p = last(S.hist.p); let occ = 0; for (const P of S.ponds) if (P.ind.length) occ++;
+    return 'Cooperators <b>' + pct(p) + '</b> across <b>' + occ + '</b> occupied ponds' + (S.streak > 0 ? ', at or above 75% for ' + S.streak + ' generation' + (S.streak > 1 ? 's' : '') : '') + '. The bars split last generation’s change the way Price did.';
+  },
+  chartCap: 'Share of cooperators; ticks mark floods.',
+  what(S) {
+    let s = 'Summed over the run, selection between ponds moved the cooperator share by ' + sgn3(S.cum.bet) + ' and selection within ponds by ' + sgn3(S.cum.wit) + '. Price’s equation guarantees the two add up to the whole change (plus mutation, which sits inside the within-pond term). ';
+    s += S.flags.flooded ? 'Floods with few founders made ponds differ from one another by chance, and between-group selection can only act on differences between groups. Rain erases those differences, handing the advantage back to the cheat next door. ' : 'Without floods, ponds never got the chance to differ much, so between-group selection had little to work with. ';
+    s += 'Few founders per pond is the same thing as high relatedness among pondmates: this is kin selection and group selection doing the same arithmetic in two notations.';
+    return s;
+  }
+};
+
+/* ================= APP ================= */
+CH_LICHEN.intro.basis = 'Alan Bond and Alan Kamil’s blue jays, hunting digital moths (2002).';
+CH_SOOT.intro.basis = 'the peppered moth, Biston betularia, in industrial Britain.';
+CH_BITTER.intro.basis = 'Henry Walter Bates’s Amazonian butterflies (1862).';
+const CHAPTERS = [CH_LICHEN, CH_SOOT, CH_BITTER, CH_ARIPO, CH_ISLAND, CH_COMMONS];
+const CLADES = [{ name: 'You are the predator', tree: [[0, 1], 2] }, { name: 'You are the environment', tree: [[3, 4], 5] }];
+
+function introHTML(ch) {
+  const i = ch.intro;
+  return '<h3>' + ch.title + '</h3><p class="kicker">Chapter ' + ch.num + '. ' + ch.concept + '</p><p>' + i.premise + '</p><p><b>Your part.</b> ' + i.part + '</p><p class="goal"><b>Goal.</b> ' + i.goal + '</p><p class="basis">Based on ' + i.basis + '</p>';
+}
+
+const App = {
+  scr: 'title', mode: null, ch: null,
+  go(scr) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 'scr-' + scr)); this.scr = scr;
+    if (scr === 'tree') Tree.render();
+    if (scr === 'play') Stage.resize();
+  },
+  open(ch) { Cards.open({ cls: 'intro', html: introHTML(ch), buttons: [{ t: 'Back', fn: () => Cards.close() }, { t: 'Begin', primary: true, fn: () => { Cards.close(); this.play(ch); } }] }); },
+  play(ch) {
+    this.ch = ch; this.mode = null; this.go('play');
+    $('bar-title').innerHTML = '<span class="n">' + ch.num + '</span>' + ch.title;
+    $('speed').style.display = ch.mode === 'hunt' ? 'none' : 'flex';
+    Stage.resize();
+    this.mode = ch.mode === 'hunt' ? Hunt : Steward; this.mode.start(ch); Stage.resize(); setTimeout(() => Stage.resize(), 60);
+  },
+  exit() { if (this.mode === Hunt) Hunt.state = 'idle'; this.mode = null; Cards.close(); this.go('tree'); }
+};
+
+const Tree = {
+  render() {
+    const rows = $('tree-rows'); let h = '', tot = 0;
+    for (const cl of CLADES) {
+      h += '<div class="clade">' + cl.name + '</div>';
+      for (const i of cl.tree.flat()) { const ch = CHAPTERS[i], st = Save.d.stars[ch.id] || 0; tot += st; h += '<button class="tip" data-i="' + i + '"><span class="num">' + ch.num + '</span><span class="tt"><b>' + ch.title + '</b><i>' + ch.concept + '</i></span><span class="st" aria-label="' + st + ' of 3 stars">' + '★'.repeat(st) + '<span class="off">' + '★'.repeat(3 - st) + '</span></span></button>'; }
+    }
+    rows.innerHTML = h;
+    $('tree-stars').textContent = tot ? tot + ' of 18 stars earned. Any chapter, any order.' : 'Six chapters. Start anywhere; the first is the gentlest.';
+    rows.querySelectorAll('.tip').forEach(b => b.onclick = () => { Snd.init(); Snd.resume(); Snd.click(); App.open(CHAPTERS[+b.dataset.i]); });
+    setTimeout(() => this.svg(), 30);
+  },
+  svg() {
+    const svg = $('tree-svg'), rows = $('tree-rows'); if (!svg || !rows.offsetHeight) return;
+    const y = {}; rows.querySelectorAll('.tip').forEach(b => { y[+b.dataset.i] = b.offsetTop + b.offsetHeight / 2; });
+    const H = rows.offsetTop + rows.offsetHeight; svg.setAttribute('height', H); svg.style.height = H + 'px';
+    const TX = 54, PX = 40, CX = 26, RX = 10; let p = '';
+    const line = (x1, y1, x2, y2) => { p += 'M' + x1 + ' ' + y1.toFixed(1) + 'L' + x2 + ' ' + y2.toFixed(1); };
+    const cy = CLADES.map(cl => {
+      const [[a, b], c] = cl.tree;
+      line(PX, y[a], TX, y[a]); line(PX, y[b], TX, y[b]); line(PX, y[a], PX, y[b]); const py = (y[a] + y[b]) / 2;
+      line(CX, py, PX, py); line(CX, y[c], TX, y[c]); line(CX, py, CX, y[c]); const v = (py + y[c]) / 2;
+      line(RX, v, CX, v); return v;
+    });
+    line(RX, cy[0], RX, cy[1]); line(2, (cy[0] + cy[1]) / 2, RX, (cy[0] + cy[1]) / 2);
+    let dots = '';
+    for (const i in y) { const st = Save.d.stars[CHAPTERS[i].id] || 0; dots += '<circle cx="' + TX + '" cy="' + y[i].toFixed(1) + '" r="4" fill="' + (st ? '#cf9a33' : '#152120') + '" stroke="' + (st ? '#cf9a33' : 'rgba(232,223,201,.6)') + '" stroke-width="1.5"/>'; }
+    svg.innerHTML = '<path d="' + p + '" fill="none" stroke="rgba(232,223,201,.5)" stroke-width="1.5" stroke-linecap="round"/>' + dots;
+  }
+};
+
+const Title = {
+  segs: null, t: 0, key: '',
+  build(w, h) {
+    const r = rng(1859), segs = [];
+    const grow = (x, y, a, len, depth, t0) => {
+      const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len, t1 = t0 + 0.18 + len / 420;
+      const tip = depth >= 8 || y2 < h * 0.04 || (depth > 3 && r() < 0.1);
+      segs.push({ x, y, x2, y2, t0, t1, w: Math.max(0.7, 2.8 - depth * 0.3), tip, dead: tip && r() < 0.3 });
+      if (tip) return;
+      grow(x2, y2, a - (0.2 + r() * 0.4), len * (0.72 + r() * 0.16), depth + 1, t1);
+      grow(x2, y2, a + (0.2 + r() * 0.4), len * (0.72 + r() * 0.16), depth + 1, t1);
+    };
+    grow(w * 0.7, h * 0.6, -Math.PI / 2 - 0.12, h * 0.11, 0, 0.15);
+    this.segs = segs; this.key = w + 'x' + h; this.end = Math.max(...segs.map(s => s.t1)) + 0.2;
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) this.t = this.end;
+  },
+  tick(dt) {
+    const cv = $('title-cv'); if (!cv) return; const { c, w, h } = fitCanvas(cv);
+    if (this.key !== w + 'x' + h) { this.build(w, h); }
+    if (this.drawn && this.t > this.end) return;
+    this.t += dt; c.clearRect(0, 0, w, h); c.lineCap = 'round';
+    for (const s of this.segs) {
+      if (this.t < s.t0) continue; const k = clamp((this.t - s.t0) / (s.t1 - s.t0), 0, 1);
+      c.strokeStyle = 'rgba(232,223,201,' + (0.28 + 0.3 * (s.w / 2.8)) + ')'; c.lineWidth = s.w;
+      c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(lerp(s.x, s.x2, k), lerp(s.y, s.y2, k)); c.stroke();
+      if (s.tip && k >= 1) { if (s.dead) { c.strokeStyle = 'rgba(232,223,201,.45)'; c.lineWidth = 1; c.beginPath(); c.moveTo(s.x2 - 3, s.y2); c.lineTo(s.x2 + 3, s.y2); c.stroke(); } else { c.fillStyle = '#cf9a33'; c.beginPath(); c.arc(s.x2, s.y2, 2.2, 0, TAU); c.fill(); } }
+    }
+    if (this.t > this.end) this.drawn = true;
+  }
+};
+
+function showErr(e) { const el = $('err'); el.style.display = 'block'; el.textContent = 'Something broke: ' + (e && (e.stack || e.message) || e) + '\n(Tap to dismiss.)'; el.onclick = () => el.style.display = 'none'; }
+window.addEventListener('error', e => showErr(e.error || e.message));
+
+let lastT = performance.now();
+function frame() {
+  const now = performance.now(), dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)); lastT = now;
+  try {
+    if (App.scr === 'title') Title.tick(dt);
+    else if (App.scr === 'play' && App.mode) { Stage.ctx.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0); App.mode.update(dt); if (App.mode) App.mode.draw(); }
+  } catch (e) { showErr(e); App.mode = null; }
+  setTimeout(frame, 16);
+}
+
+function boot() {
+  Save.load(); Snd.on = Save.d.snd !== false;
+  Stage.init();
+  $('btn-begin').onclick = () => { Snd.init(); Snd.resume(); Snd.click(); App.go('tree'); };
+  $('btn-title').onclick = () => { Title.t = 0; Title.drawn = false; App.go('title'); };
+  const sb = $('btn-snd'); const sl = () => { sb.textContent = Snd.on ? 'Sound on' : 'Sound off'; sb.setAttribute('aria-pressed', Snd.on ? 'true' : 'false'); }; sl();
+  sb.onclick = () => { Snd.on = !Snd.on; Save.d.snd = Snd.on; Save.save(); sl(); Snd.init(); Snd.click(); };
+  $('bar-back').onclick = () => App.exit();
+  document.querySelectorAll('#speed button').forEach(b => b.onclick = () => { Snd.click(); if (App.mode === Steward) Steward.setSpeed(+b.dataset.s); });
+  window.addEventListener('resize', () => { if (App.scr === 'tree') Tree.svg(); });
+  // content validation on boot: every chapter must be complete
+  for (const ch of CHAPTERS) { for (const k of ['id', 'mode', 'num', 'title', 'concept', 'intro']) if (!ch[k]) throw new Error('Chapter missing ' + k + ': ' + ch.title); for (const k of ['premise', 'part', 'goal', 'basis', 'real']) if (!ch.intro[k]) throw new Error('Chapter ' + ch.id + ' intro missing ' + k); }
+  App.go('title'); frame();
+}
+window.TB = { App, Hunt, Steward, CHAPTERS, Gen, seed, R, Save, Stage, Cards };
+boot();
+
+})();
+
+</script>
+</body>
+</html>

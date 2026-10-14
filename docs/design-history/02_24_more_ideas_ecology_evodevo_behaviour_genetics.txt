@@ -1,0 +1,37 @@
+Here are 24 more, deliberately chosen to add mechanics that feel different from the first 100.
+
+Ecology — 6
+
+1. Trophic cascades — Remove or introduce a top predator and watch effects propagate through herbivores, plants, and the physical environment.
+2. Island biogeography — Manage islands of different sizes and distances from a mainland; colonization and extinction interact to determine species richness.
+3. Metapopulation dynamics — Species occupy a network of habitat patches. Local populations repeatedly go extinct, but migrants can recolonize empty patches.
+4. Priority effects — Several species compete to colonize a new ecosystem; simply changing who arrives first can produce completely different mature communities.
+5. Ecological succession — Start after a fire or volcanic eruption and watch pioneer species modify conditions, allowing later communities to establish.
+6. Keystone species — Experimentally remove different species from a food web; removing one seemingly uncommon species unexpectedly reorganizes the entire ecosystem.
+
+Evo-Devo — 6
+
+7. Hox genes — Build an animal along a body axis by altering Hox gene expression; small regulatory changes can transform one body segment into another.
+8. Gene regulatory networks — Instead of changing structural genes, alter when and where genes switch on. Tiny regulatory mutations can generate major anatomical differences.
+9. Developmental constraints — Try evolving new body forms, but development makes some variations easy to produce and others effectively inaccessible.
+10. Modularity — Creatures composed of semi-independent developmental modules can modify wings, limbs, jaws, etc. without disrupting the entire organism.
+11. Heterochrony — Change the timing or rate of development; extending or shortening developmental stages creates dramatically different adult forms.
+12. Deep homology — Build very different structures—such as insect and vertebrate appendages—using surprisingly ancient shared developmental toolkits.
+
+Animal Behaviour — 6
+
+13. Optimal escape behaviour — As prey, decide exactly when to abandon feeding and flee an approaching predator; fleeing too early wastes food, too late risks death.
+14. Ideal free distribution — Animals choose between feeding patches. Everyone crowds the richest patch until competition makes the poorer patch equally worthwhile.
+15. Territoriality — Decide whether resources are valuable enough to defend; territory size emerges from the balance between resource gain and defense cost.
+16. Information cascades — Animals choose where to forage using personal information versus copying others; copying can rapidly spread both good and bad decisions.
+17. Risk-sensitive foraging — Choose between a reliable mediocre food source and an unpredictable jackpot; the optimal behaviour changes with starvation risk.
+18. Central-place foraging — A bird must repeatedly return food to its nest. Distance, prey size and travel costs determine what prey becomes worth collecting.
+
+Genetics / Population Genetics — 6
+
+19. Meiotic drive — Introduce a selfish allele that cheats meiosis and enters more than 50% of gametes; watch it spread even when it reduces organismal fitness.
+20. Transposable elements — Mobile DNA copies itself around a genome. It can disrupt genes, alter regulation and occasionally generate useful evolutionary novelty.
+21. Gene duplication — Accidentally duplicate a gene; one copy maintains the original function while the spare copy is free to accumulate changes and potentially evolve something new.
+22. Epigenetic inheritance — Environmental conditions modify gene expression without changing DNA sequence; investigate when those effects persist into subsequent generations.
+23. Segregation distortion — Run thousands of genetic crosses expecting Mendelian ratios, then discover that a genetic element systematically biases inheritance.
+24. Genetic hitchhiking / selective sweep — A strongly beneficial mutation spreads, dragging nearby neutral alleles along with it and wiping out local genetic diversity.

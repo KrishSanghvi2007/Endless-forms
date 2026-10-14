@@ -1,0 +1,638 @@
+A strong Hardy–Weinberg game should feel like a population genetics laboratory disguised as a strategy/puzzle game. The player should repeatedly manipulate a population, predict what will happen, run generations, and then see visually why genotype frequencies change—or do not change.
+
+The central design principle should be:
+
+See the population → make a prediction → change one evolutionary force → run generations → inspect allele/genotype frequencies → explain what happened.
+
+Core visual language of the game
+
+Use one simple organism throughout at first—beetles, mice, flowers, moths, etc.—with one gene and two alleles:
+
+* A = dominant allele
+* a = recessive allele
+* AA / Aa / aa = three genotypes
+* phenotype might be:
+    * AA = blue
+    * Aa = blue
+    * aa = yellow
+
+The player can toggle between three views:
+
+Phenotype view shows only what organisms look like.
+
+Genotype view reveals AA, Aa and aa inside each organism.
+
+Allele pool view dissolves all organisms into floating A and a alleles.
+
+This one visual transition could teach a huge amount.
+
+An organism becomes:
+
+AA → A + A
+
+Aa → A + a
+
+aa → a + a
+
+Then all alleles combine into one population-level pool.
+
+This makes the distinction between individual genotype and population allele frequency visually intuitive.
+
+⸻
+
+Game structure
+
+I would make roughly 12–15 levels, grouped into four chapters.
+
+Chapter 1 — What Hardy–Weinberg actually means
+
+Level 1 — “What is in the population?”
+
+Start with perhaps 100 beetles.
+
+The player is asked:
+
+“40 are AA, 40 are Aa, 20 are aa. How many A alleles exist?”
+
+Instead of calculating immediately, they can press Break Into Alleles.
+
+Every beetle visually splits into two gene tokens.
+
+They physically see:
+
+* AA contributes two A
+* Aa contributes one A and one a
+* aa contributes two a
+
+Then introduce:
+
+p = \text{frequency of A}
+
+q = \text{frequency of a}
+
+and therefore:
+
+p+q=1
+
+The important conceptual lesson is:
+
+p and q describe alleles, not organisms.
+
+⸻
+
+Level 2 — Phenotype can hide genotype
+
+Give the player a population where dominant phenotype individuals could be either AA or Aa.
+
+Ask:
+
+“How many heterozygotes are here?”
+
+They cannot tell visually.
+
+Then switch to genotype vision.
+
+This introduces one of the most important reasons Hardy–Weinberg is useful:
+
+Phenotype does not necessarily reveal genotype.
+
+Later the player will use HW to infer hidden genotype frequencies from observed phenotypes.
+
+⸻
+
+Chapter 2 — Where the equation comes from
+
+Level 3 — Build the next generation
+
+Turn reproduction into the central mechanic.
+
+The population produces a gamete pool.
+
+If:
+
+* p = 0.7
+* q = 0.3
+
+then the gamete pool visibly contains approximately:
+
+* 70% A
+* 30% a
+
+Now eggs and sperm are drawn randomly.
+
+The player watches combinations appear:
+
+AA
+Aa
+aa
+
+Instead of initially displaying the equation, show thousands of gametes pairing.
+
+The frequencies converge toward:
+
+* AA ≈ 49%
+* Aa ≈ 42%
+* aa ≈ 9%
+
+Then reveal:
+
+p^2 + 2pq + q^2 = 1
+
+The equation should appear as a description of what the player has already observed.
+
+⸻
+
+Level 4 — Why p^2?
+
+Make the player predict the chance of an AA offspring.
+
+One parent contributes an A with probability p.
+
+The other contributes A with probability p.
+
+Visually:
+
+A probability bar × A probability bar
+
+becomes:
+
+p \times p = p^2
+
+Do the same for aa:
+
+q^2
+
+This makes the mathematics feel inevitable rather than arbitrary.
+
+⸻
+
+Level 5 — Why 2pq?
+
+This deserves its own level because students often memorize it without understanding it.
+
+Show two ways to make a heterozygote:
+
+A from mother + a from father
+
+or
+
+a from mother + A from father
+
+So:
+
+pq+qp=2pq
+
+The player can physically drag gametes into combinations.
+
+Then the full expression becomes:
+
+(p+q)^2=p^2+2pq+q^2
+
+The game should explicitly communicate:
+
+The HW equation is simply the probability of randomly combining alleles from the population’s gamete pool.
+
+⸻
+
+Chapter 3 — The Hardy–Weinberg world
+
+Now create a sandbox called something like Equilibrium Island.
+
+The player’s job is to maintain a population whose allele frequencies do not evolve.
+
+Five switches govern the classic assumptions:
+
+* Random mating
+* No selection
+* No mutation
+* No migration
+* Very large population
+
+When all switches are satisfied, the population settles into Hardy–Weinberg proportions.
+
+The visual should be powerful: generation after generation rolls past while the allele-frequency bars remain fixed.
+
+A population graph shows:
+
+* p
+* q
+* AA
+* Aa
+* aa
+
+This teaches the deeper idea:
+
+Hardy–Weinberg is a null model: what genetics looks like when evolution is not changing allele frequencies.
+
+⸻
+
+Chapter 4 — Break the equilibrium
+
+Each subsequent level disables one assumption only.
+
+This is where most of the actual gameplay happens.
+
+Level 6 — Selection
+
+Suppose aa beetles are easily eaten.
+
+The player controls a bird.
+
+They hunt beetles over several generations.
+
+At first it looks like a predator game.
+
+But afterward the player sees:
+
+aa ↓
+a allele ↓
+AA/Aa ↑
+
+Then compare observed genotype frequencies against the Hardy–Weinberg expectation.
+
+The central lesson:
+
+Differential survival/reproduction changes allele frequencies.
+
+A later version can explore:
+
+* selection against recessive alleles
+* selection against dominant alleles
+* heterozygote advantage
+
+⸻
+
+Level 7 — Mutation
+
+Allow occasional A → a or a → A mutations during gamete formation.
+
+Initially the change is almost invisible.
+
+Run thousands of generations faster.
+
+Now allele frequencies slowly drift directionally.
+
+The important visual lesson:
+
+mutation introduces new alleles or converts one allele into another, but usually changes population frequencies slowly by itself.
+
+Let the player alter mutation rate and immediately see timescale differences.
+
+⸻
+
+Level 8 — Migration / gene flow
+
+Create two islands:
+
+Island 1:
+p = 0.9
+
+Island 2:
+p = 0.2
+
+The player opens a bridge.
+
+Individuals start migrating.
+
+Watch allele frequencies converge.
+
+A nice visualization would show colored allele particles physically flowing between islands.
+
+Lesson:
+
+Migration changes allele frequencies when migrants differ genetically from the receiving population.
+
+Advanced challenge:
+
+Predict the new p after 10%, 25% or 50% migration.
+
+⸻
+
+Level 9 — Genetic drift
+
+Give the player a tiny population.
+
+Perhaps only 10 organisms.
+
+Each generation, only a random subset reproduces.
+
+Nothing is being selected.
+
+Yet allele frequencies jump unpredictably.
+
+Run the same starting population five times simultaneously.
+
+The five populations diverge dramatically.
+
+This is perhaps the clearest possible demonstration of drift.
+
+Then increase population size:
+
+10 → 100 → 10,000.
+
+The fluctuations shrink.
+
+Lesson:
+
+Random sampling matters enormously in small populations.
+
+⸻
+
+Level 10 — Bottleneck
+
+Begin with a genetically diverse population.
+
+A volcano, drought, storm etc. randomly leaves only a handful alive.
+
+The player sees that the survivors are not necessarily genetically representative of the original population.
+
+Let the population recover numerically.
+
+The graph can show:
+
+Population size: recovered.
+
+Genetic diversity: still low.
+
+This strongly separates population recovery from genetic recovery.
+
+⸻
+
+Level 11 — Founder effect
+
+Allow the player to choose—or randomly receive—five colonists from a mainland population.
+
+They establish an island population.
+
+Their allele frequencies can be wildly different from the source.
+
+Run multiple islands side by side.
+
+All begin from the same mainland yet evolve different genetic compositions.
+
+⸻
+
+Level 12 — Non-random mating
+
+Let individuals choose partners based on phenotype/genotype.
+
+Modes could include:
+
+* mate randomly
+* prefer same phenotype
+* prefer different phenotype
+* avoid relatives
+
+An especially useful outcome is to show that non-random mating can change genotype frequencies without necessarily changing allele frequencies immediately.
+
+For example, assortative mating may increase homozygosity.
+
+This distinction is crucial and often poorly understood.
+
+⸻
+
+A particularly important teaching level
+
+Level 13 — Evolution vs departure from Hardy–Weinberg
+
+Give several populations.
+
+Some violate HW genotype proportions but have unchanged allele frequencies.
+
+Others have allele frequencies actively changing.
+
+Ask:
+
+“Which populations are evolving?”
+
+This teaches an important nuance:
+
+Hardy–Weinberg disequilibrium and evolutionary change are related but not identical concepts.
+
+For example, non-random mating can alter genotype frequencies while leaving allele frequencies unchanged.
+
+⸻
+
+Using Hardy–Weinberg to solve biological mysteries
+
+Once the player understands the mechanics, shift from teaching to detective puzzles.
+
+Level 14 — The invisible carriers
+
+A recessive disease occurs in 1% of a population.
+
+The player knows:
+
+q^2=0.01
+
+Instead of simply solving algebraically, show the affected individuals as the visible tip of a hidden genotype population.
+
+Player derives:
+
+q=0.1
+
+p=0.9
+
+then:
+
+2pq=0.18
+
+Reveal all heterozygous carriers.
+
+The visual payoff is:
+
+1% affected can correspond to 18% carriers.
+
+This makes HW feel useful rather than merely theoretical.
+
+⸻
+
+Advanced levels
+
+These could be optional “research lab” stages.
+
+Level 15 — Dominance does not mean common
+
+Give players alleles where the dominant allele is extremely rare.
+
+The phenotype initially tempts them into assuming dominance means abundance.
+
+The simulation disproves it.
+
+Explicit lesson:
+
+“Dominant” describes expression in heterozygotes, not frequency, fitness or evolutionary superiority.
+
+⸻
+
+Level 16 — Rare recessive alleles hide
+
+Apply selection against aa.
+
+The recessive allele initially decreases rapidly.
+
+But as it becomes rare, most copies exist inside Aa heterozygotes and become invisible to selection.
+
+The decline slows dramatically.
+
+This beautifully connects dominance, selection and HW.
+
+⸻
+
+Level 17 — Multiple generations
+
+Give the player evolutionary forces and ask them to predict:
+
+Generation 0 → allele frequencies → mating → genotype frequencies → survival → reproduction → Generation 1.
+
+The game now becomes an actual population-genetics simulator rather than a simple HW calculator.
+
+⸻
+
+The most important UI
+
+Keep four synchronized representations visible.
+
+1. Population view
+
+Actual animated organisms.
+
+Useful for phenotype and ecological effects.
+
+2. Genotype bar
+
+AA | Aa | aa
+
+Shows proportions as stacked bars.
+
+3. Allele pool
+
+A | a
+
+Shows p and q.
+
+4. Generation graph
+
+Tracks p and q through time.
+
+The player should be able to click any generation and inspect the population.
+
+This constant movement between:
+
+organisms → genotypes → alleles → equations
+
+is probably the game’s strongest teaching mechanism.
+
+⸻
+
+Prediction should be central
+
+Before the player presses Next Generation, ask:
+
+“What do you expect?”
+
+For example:
+
+* p will increase
+* p will decrease
+* p will stay approximately constant
+* homozygosity will increase
+* heterozygosity will increase
+
+Then immediately compare prediction versus reality.
+
+That transforms passive animation into active learning.
+
+⸻
+
+Don’t immediately give numerical answers
+
+For early levels, let students manipulate physical representations.
+
+Example:
+
+There are 20 AA, 40 Aa and 40 aa.
+
+Instead of typing formulas, the player can dump all organisms into the Allele Counter.
+
+Only after they understand the process should the game introduce:
+
+p=\frac{2N_{AA}+N_{Aa}}{2N}
+
+and
+
+q=\frac{2N_{aa}+N_{Aa}}{2N}
+
+The equation becomes shorthand for something they already understand visually.
+
+⸻
+
+Difficulty progression
+
+Use four modes within many levels:
+
+Observe — manipulate the system and see what happens.
+
+Predict — predict before running the generation.
+
+Calculate — provide numerical answers.
+
+Diagnose — receive population data and infer which HW assumption has been violated.
+
+The last one is especially fun.
+
+For example:
+
+“This population started at p = 0.5. Ten generations later p = 0.73. Which process most likely occurred?”
+
+Then provide ecological/genetic evidence.
+
+⸻
+
+Final game: “The Population Genetics Case Files”
+
+The final quiz shouldn’t feel like a standard multiple-choice test.
+
+Give the player 8–10 mystery populations.
+
+For each, they receive some combination of:
+
+* phenotype counts
+* genotype counts
+* migration records
+* mating behaviour
+* survival data
+* population size
+* mutation information
+* historical allele frequencies
+
+They must determine things such as:
+
+* p and q
+* expected AA/Aa/aa frequencies
+* whether the population is in HW equilibrium
+* which assumption is violated
+* whether allele frequencies are evolving
+* what the next generation should look like
+* number of hidden carriers
+* which evolutionary mechanism best explains the data
+
+The final case could deliberately combine selection + migration + drift, requiring the player to disentangle them.
+
+⸻
+
+The full conceptual arc
+
+By the end, the player should understand not merely:
+
+p+q=1
+
+and
+
+p^2+2pq+q^2=1
+
+but the much deeper model:
+
+Alleles exist in a population → organisms contribute alleles to a gamete pool → random mating generates predictable genotype frequencies → Hardy–Weinberg describes the null expectation → mutation, migration, selection, drift and mating structure cause departures from that expectation in different ways.
+
+That makes the game about how populations genetically change, with the Hardy–Weinberg equation functioning as the player’s baseline model of the world rather than just a formula to memorize.

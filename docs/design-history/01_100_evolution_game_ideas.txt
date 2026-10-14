@@ -1,0 +1,102 @@
+Absolutely — this could work especially well as a collection of very short playable evolutionary experiments, where the player discovers the principle through consequences rather than being lectured about it.
+
+1. Natural selection — Play a predator choosing conspicuous prey; survivors reproduce, so the population gradually becomes harder to spot.
+2. Peppered moth evolution — Hunt light/dark moths on changing tree backgrounds. Your predation changes morph frequencies over generations.
+3. Mutation — Reproduce organisms while random mutations alter traits; most do little, some hurt, and occasionally one becomes useful after the environment changes.
+4. Genetic drift — Manage a tiny island population where random deaths cause allele frequencies to swing dramatically despite no fitness differences.
+5. Founder effect — Choose a few organisms to colonize an island; their randomly limited genes determine the surprisingly different descendant population.
+6. Population bottleneck — A catastrophe leaves a random handful of survivors. Rebuild the population and discover that numbers recover much faster than genetic diversity.
+7. Gene flow — Connect and disconnect two populations with migration corridors, watching previously different gene pools become more similar.
+8. Recombination — Build offspring by shuffling parental chromosomes, trying to produce useful trait combinations without directly choosing individual alleles.
+9. Crossing over — During meiosis, choose chromosome crossover locations; linked traits sometimes remain together and sometimes get separated.
+10. Linkage disequilibrium — Track useful allele combinations that initially travel together but gradually get broken apart by recombination.
+11. Dominance/recessiveness — Breed diploid creatures where recessive alleles can remain hidden for generations before suddenly reappearing.
+12. Heterozygote advantage — Different environments punish both homozygotes while heterozygotes survive best, maintaining two alleles indefinitely.
+13. Frequency-dependent selection — Rare prey morphs are difficult for predators to recognize, but become easy targets once common; success continually changes which phenotype is favored.
+14. Balancing selection — Multiple strategies coexist because removing one creates conditions that favor its return.
+15. Directional selection — A steadily changing climate continually favors individuals toward one end of a trait distribution.
+16. Stabilizing selection — Raise animals where extremely small and extremely large offspring die more often, pulling the population toward an intermediate optimum.
+17. Disruptive selection — Feed birds with either tiny or huge seeds; intermediate beaks perform badly, splitting the population toward two phenotypes.
+18. Sexual selection — Evolve extravagant displays to attract mates while balancing their survival costs from predators.
+19. Runaway sexual selection — Female preference and male ornament size reinforce one another until increasingly absurd ornaments evolve.
+20. Handicap principle / costly signalling — Choose how much energy an animal invests in an expensive display; impressive signals attract mates precisely because weak individuals struggle to afford them.
+21. Sexual conflict — Males and females evolve competing reproductive strategies; an adaptation benefiting one sex can reduce the other’s fitness.
+22. Kin selection — Decide whether an animal risks itself to save relatives; helping close relatives can spread shared genes despite personal costs.
+23. Inclusive fitness — Allocate effort between producing your own offspring and helping siblings reproduce, revealing when indirect reproduction pays.
+24. Hamilton’s rule — Make split-second helping decisions where relatedness, benefit and cost vary; players gradually discover when rB > C predicts altruism.
+25. Reciprocal altruism — Repeatedly choose whether to help unrelated individuals who may—or may not—return the favor later.
+26. Cheater invasion — Maintain a cooperative colony while mutants that take benefits without contributing begin spreading.
+27. Evolutionarily stable strategy (ESS) — Choose behavioural strategies in a population; successful strategies become common until their very frequency changes their payoff.
+28. Hawk–Dove game — Compete for resources by escalating or retreating; too many aggressive individuals make aggression costly, allowing peaceful strategies back in.
+29. Optimal foraging theory — Control a hungry animal deciding which prey to chase, balancing calories against search and handling time.
+30. Marginal value theorem — Harvest food from patches and decide exactly when declining returns make travelling to another patch worthwhile.
+31. Predator–prey coevolution — Improve prey speed, camouflage and defenses while predator adaptations continually respond, creating an evolutionary arms race.
+32. Red Queen hypothesis — Race against parasites that continuously evolve around your defenses; standing still evolutionarily means falling behind.
+33. Host–parasite coevolution — Alternate between evolving parasite infection mechanisms and host immune defenses.
+34. Antibiotic resistance — Treat a bacterial population with different antibiotic regimes; susceptible bacteria disappear while resistant survivors reproduce.
+35. Pesticide resistance — Protect crops by spraying insects, only to discover that intense selection repeatedly amplifies resistant variants.
+36. Virulence evolution — Play a pathogen balancing replication against keeping hosts alive long enough to transmit.
+37. Trade-offs — Allocate a finite biological budget among growth, reproduction, defense and maintenance; maximizing everything is impossible.
+38. Life-history evolution — Evolve age at maturity, offspring number, offspring size and lifespan under different mortality environments.
+39. r/K-type strategies — Colonize unstable versus crowded habitats and discover why producing many cheap offspring works in some conditions while investing heavily in fewer offspring works in others.
+40. Parental investment — Decide how much food/time to give each offspring; extra investment improves survival but reduces opportunities for additional offspring.
+41. Parent–offspring conflict — Play alternately as parent and offspring: offspring demand more resources than is optimal from the parent’s perspective.
+42. Sibling rivalry — Compete with genetically related siblings for limited parental resources, balancing selfish gain against harm to relatives.
+43. Sex allocation — Adjust the proportion of sons and daughters under different ecological and mating conditions.
+44. Fisher’s principle / 1:1 sex ratio — Begin with a skewed sex ratio; the rarer sex gains higher reproductive value until evolution pushes the population toward equilibrium.
+45. Mate choice — Inspect potential mates using imperfect cues about health, resources or genes while paying costs for continued searching.
+46. Sperm competition — Allocate reproductive resources between attracting mates and competing after mating.
+47. Mimicry — Evolve resemblance to dangerous species; protection increases—but can collapse if harmless mimics become too common.
+48. Müllerian mimicry — Multiple genuinely toxic species converge on the same warning pattern, collectively teaching predators faster.
+49. Aposematism — Evolve bright warning colours while simultaneously evolving toxicity; conspicuousness is dangerous until predators learn what it means.
+50. Camouflage / crypsis — Generate prey patterns across different backgrounds while predators repeatedly hunt them, evolving environmental matching.
+51. Speciation — Start with one population and manipulate geography, ecology and mating preferences until gene flow collapses and two species emerge.
+52. Allopatric speciation — A river divides a population; evolve each side independently before reconnecting them and testing whether they still interbreed.
+53. Sympatric speciation — Without a physical barrier, specialize individuals on different resources until ecological and mating differences split the population.
+54. Reproductive isolation — Accumulate differences between populations and watch pre- and post-mating barriers gradually prevent gene exchange.
+55. Hybrid zones — Two diverged populations meet; hybrids can thrive, fail, or occupy a narrow boundary depending on their fitness.
+56. Reinforcement — When hybrids have low fitness, selection increasingly favors individuals that avoid mating with the other population.
+57. Adaptive radiation — Release one ancestral species onto islands containing many empty niches and evolve it into multiple specialized descendants.
+58. Ecological niche — Give species different environmental requirements; competition forces them toward distinct ways of making a living.
+59. Competitive exclusion — Put two species dependent on exactly the same limiting resource together and watch one eventually displace the other.
+60. Character displacement — Two similar species develop more divergent traits where they coexist because intermediate competitors perform poorly.
+61. Convergent evolution — Evolve unrelated creatures in similar environments and see them independently arrive at similar body designs.
+62. Divergent evolution — Begin with one ancestor and expose descendant populations to contrasting environments, producing increasingly different forms.
+63. Homology vs analogy — Reconstruct creatures from structures such as wings, fins and limbs, determining whether similarities came from shared ancestry or independent adaptation.
+64. Exaptation — A trait evolved for one function suddenly becomes useful for another—feathers first aid insulation/display, then become useful in flight.
+65. Evolutionary constraint — Try to evolve an “ideal” organism, but ancestry, development and available variation restrict which evolutionary paths are reachable.
+66. Fitness landscape — Move a population across a landscape where genotype combinations correspond to peaks and valleys; reaching the highest peak may require temporarily crossing low-fitness territory.
+67. Local fitness optimum — Your organisms become extremely well adapted, yet remain trapped on a mediocre fitness peak because every immediate mutation is worse.
+68. Epistasis — A mutation’s effect changes depending on which other alleles are present; individually bad mutations can sometimes form excellent combinations.
+69. Pleiotropy — Change one gene and unexpectedly alter several traits, forcing compromises between beneficial and harmful effects.
+70. Neutral evolution — Many mutations change without affecting survival; watch enormous molecular variation accumulate invisibly beneath outward adaptation.
+71. Molecular clock — Compare accumulated neutral mutations between lineages to estimate when their common ancestor lived.
+72. Common ancestry — Start with one ancestral organism and generate branching descendants; later reconstruct their relationships from inherited traits.
+73. Phylogenetic trees — Receive mystery species and traits/DNA sequences and build the evolutionary tree that best explains them.
+74. Maximum parsimony — Construct competing evolutionary trees and seek the one requiring the fewest independent evolutionary changes.
+75. Incomplete lineage sorting — Gene trees give conflicting answers about closely related species, forcing players to distinguish gene history from species history.
+76. Horizontal gene transfer — Bacteria steal genes from unrelated neighbors, abruptly gaining abilities that ordinary parent-to-offspring inheritance couldn’t explain.
+77. Endosymbiosis — Begin as separate microbes; engulf another cell without digesting it and gradually transform the partnership into an organelle-like dependency.
+78. Multicellularity — Single cells can cooperate, specialize and sacrifice reproduction; discover conditions where staying together beats living alone.
+79. Major evolutionary transitions — Progress from replicators → chromosomes → cells → multicellular organisms → societies, repeatedly solving conflicts between lower-level units.
+80. Levels of selection — Let selfish cells compete within organisms while organisms compete against one another; traits favored at one level can be harmful at another.
+81. Group cooperation — Groups containing cooperators outperform selfish groups, while selfish individuals can outperform cooperators within each group.
+82. Niche construction — Organisms modify their own environment—building dams, enriching soil, etc.—which changes the selection pressures acting on their descendants.
+83. Ecosystem engineering — Evolve a species whose behavior physically restructures the habitat and therefore changes which other species survive.
+84. Coevolution — Change a flower’s shape and pollinator anatomy responds; each species becomes part of the other’s environment.
+85. Mutualism — Two species exchange resources; evolve the partnership while preventing either side from taking benefits without paying costs.
+86. Parasitism — Exploit hosts for resources while balancing extraction against host defenses and survival.
+87. Resource partitioning — Several competing species survive by specializing on different foods, locations or feeding times.
+88. Density-dependent selection — Traits that work brilliantly in sparse populations become poor strategies once population density increases.
+89. Carrying capacity — Reproduce rapidly in an initially empty habitat until limited resources transform exponential growth into competition.
+90. Allee effect — A tiny population struggles because mates, cooperative defense or group foraging are difficult to obtain; survival improves above a critical density.
+91. Hardy–Weinberg equilibrium — Manipulate mating, migration, mutation and selection, seeing exactly which forces cause genotype frequencies to depart from the null expectation.
+92. Assortative mating — Let creatures choose partners resembling themselves; watch genetic structure emerge even without geographical separation.
+93. Inbreeding depression — A tiny isolated population breeds among relatives, exposing harmful recessive alleles and reducing average fitness.
+94. Outbreeding / heterosis — Cross divergent populations and sometimes produce unusually vigorous heterozygous offspring.
+95. Mutation–selection balance — Harmful alleles are continually removed by selection but continually recreated through mutation, producing a persistent low frequency.
+96. Evolvability — Competing lineages differ not just in current fitness but in their ability to generate useful future variation when environments change.
+97. Phenotypic plasticity — The same genotype produces different phenotypes depending on environmental cues; players choose when flexible development is worth its cost.
+98. Reaction norms — Instead of evolving a fixed trait, evolve the rule connecting environmental conditions to the phenotype an organism develops.
+99. Gene–environment interaction — Place identical genotypes in different environments and discover that which genotype performs “best” can reverse between environments.
+100. Evolution is not goal-directed — Give the player an environmental challenge but remove the ability to choose mutations. They can only select among whatever random variation appears, making the game’s final lesson that evolution has selection, but no foresight.

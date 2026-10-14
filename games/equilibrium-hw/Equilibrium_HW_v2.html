@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equilibrium — a Hardy–Weinberg game</title>
+<style>
+:root {
+  --ground1: #ece6d6; --ground2: #e0d8c3; --ink: #1f2328; --muted: #5a5f68; --accent: #c0265b; --A: #2f5fd0; --a: #e8b416; --body: #2c2824;
+  --plate: #fbf8f1; --a-ink: #8f6800; --panel: rgba(251, 248, 241, .94); --line: rgba(31, 35, 40, .15); --btn: #1f2328; --btn-ink: #fbf8f1; --good: #1e7a4f;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground1: #191b20; --ground2: #15171b; --ink: #eceef2; --muted: #a3a8b4; --accent: #ff6b98; --A: #5b8cff; --a: #f2c94c; --body: #3b3732; --plate: #22252b; --a-ink: #f2c94c; --panel: rgba(30, 33, 39, .95); --line: rgba(236, 238, 242, .15); --btn: #eceef2; --btn-ink: #16181c; --good: #4cc38a; } }
+:root[data-theme="dark"] { --a-ink: #f2c94c; --ground1: #191b20; --ground2: #15171b; --ink: #eceef2; --muted: #a3a8b4; --accent: #ff6b98; --A: #5b8cff; --a: #f2c94c; --body: #3b3732; --plate: #22252b; --panel: rgba(30, 33, 39, .95); --line: rgba(236, 238, 242, .15); --btn: #eceef2; --btn-ink: #16181c; --good: #4cc38a; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+body { margin: 0; height: 100%; overflow: hidden; background: var(--ground1); color: var(--ink); font-family: var(--sans); -webkit-tap-highlight-color: transparent; }
+#cv { position: fixed; inset: 0; display: block; touch-action: none; }
+#top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 6px; display: flex; align-items: center; gap: 8px; z-index: 5; background: linear-gradient(var(--ground1), rgba(0,0,0,0)); }
+#top.hide { display: none; }
+.st { flex: 1; min-width: 0; }
+#st-name { font-family: var(--serif); font-size: 19px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#st-sub { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ibtn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; height: 36px; min-width: 36px; padding: 0 12px; font: 600 13px var(--sans); cursor: pointer; }
+#lens { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 54px); z-index: 5; display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+#lens.on { display: flex; }
+#lens button { border: 0; background: transparent; color: var(--ink); font: 600 13px var(--sans); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+#lens button.sel { background: var(--btn); color: var(--btn-ink); }
+#panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); width: min(700px, calc(100% - 20px)); max-height: 46vh; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px 12px; z-index: 5; box-shadow: 0 8px 30px rgba(0, 0, 0, .12); }
+#panel.hide { display: none; }
+#say { font-size: 15.5px; line-height: 1.5; }
+#say:empty { display: none; }
+#ctl:not(:empty) { margin-top: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.btn { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 10px 16px; font: 600 14.5px var(--sans); cursor: pointer; min-height: 42px; }
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: transparent; }
+.btn.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.btn.good { background: var(--good); color: #fff; border-color: transparent; }
+.btn.bad { background: var(--accent); color: #fff; border-color: transparent; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn:focus-visible, .ibtn:focus-visible, input:focus-visible, #lens button:focus-visible, .lv:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.wide { flex: 1 1 100%; text-align: left; }
+.sld { display: flex; align-items: center; gap: 10px; width: 100%; margin: 2px 0; }
+.sld input { flex: 1; accent-color: var(--accent); height: 28px; }
+.sl-l { font-size: 13px; color: var(--muted); min-width: 56px; }
+.sl-v { min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; font-size: 15px; }
+.A { color: var(--A); font-weight: 800; font-family: var(--serif); }
+.a { color: var(--a-ink); font-weight: 800; font-family: var(--serif); font-style: italic; }
+.fx { font-family: var(--serif); font-size: 1.07em; white-space: nowrap; }
+.sw { display: flex; flex-wrap: wrap; gap: 6px; }
+.sw button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 10px; padding: 7px 10px; font: 600 13px var(--sans); cursor: pointer; }
+.sw button.on { background: var(--good); color: #fff; border-color: transparent; }
+.sw button.off { background: var(--accent); color: #fff; border-color: transparent; }
+#modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 10; background: rgba(10, 12, 16, .35); padding: calc(env(safe-area-inset-top, 0px) + 16px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+#modal.on { display: flex; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; max-width: 560px; width: 100%; max-height: 100%; overflow: auto; padding: 20px 20px 14px; color: var(--ink); box-shadow: 0 20px 60px rgba(0, 0, 0, .25); }
+.card h2 { font-family: var(--serif); font-weight: 600; font-size: 25px; margin: 0 0 6px; line-height: 1.15; }
+.card h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 14px 0 2px; }
+.card p, .card li { line-height: 1.55; margin: 8px 0; font-size: 15px; }
+.card ul { padding-left: 20px; margin: 6px 0; }
+.card-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.card table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0; }
+.card td, .card th { padding: 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.stars { font-size: 28px; color: #d4a017; letter-spacing: 4px; }
+.stars .off { opacity: .22; }
+.big-eq { font-family: var(--serif); font-size: 26px; text-align: center; margin: 12px 0; }
+.mini { display: flex; gap: 12px; align-items: flex-end; height: 88px; padding: 18px 4px 0; }
+.mini span { flex: 1; border-radius: 5px 5px 2px 2px; position: relative; border: 1px solid var(--line); }
+.mini span i { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-style: normal; font-size: 12px; color: var(--ink); }
+.optc { border: 1px solid var(--line); border-radius: 14px; padding: 6px 10px 6px; cursor: pointer; background: transparent; color: var(--ink); width: calc(50% - 6px); }
+.optgrid { display: flex; flex-wrap: wrap; gap: 12px; }
+#levels { position: fixed; inset: 0; z-index: 4; overflow: auto; display: none; padding: calc(env(safe-area-inset-top, 0px) + 60px) 14px calc(env(safe-area-inset-bottom, 0px) + 24px); }
+#levels.on { display: block; }
+#levels .wrap { max-width: 640px; margin: 0 auto; }
+#levels h2 { font-family: var(--serif); font-weight: 600; font-size: 21px; margin: 22px 0 6px; }
+#levels .chp { color: var(--muted); font-size: 14px; margin: 0 0 8px; line-height: 1.45; }
+.lv { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 14px; padding: 10px 12px; margin: 6px 0; cursor: pointer; font: inherit; }
+.lv .n { font-family: var(--serif); font-size: 20px; width: 30px; text-align: center; color: var(--muted); }
+.lv .t { flex: 1; } .lv .t b { display: block; font-family: var(--serif); font-size: 16.5px; font-weight: 600; } .lv .t span { font-size: 13px; color: var(--muted); }
+.lv .s { color: #d4a017; font-size: 15px; letter-spacing: 1px; white-space: nowrap; }
+.lv.locked { opacity: .45; }
+#titlecard { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; z-index: 4; padding: calc(env(safe-area-inset-top, 0px) + 9vh) 24px 24px; pointer-events: none; }
+#titlecard.on { display: flex; }
+#titlecard > * { pointer-events: auto; }
+#titlecard h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(46px, 11vw, 90px); margin: 0; line-height: 1; }
+#titlecard p { color: var(--muted); max-width: 30em; margin: 10px auto 0; font-size: 16px; line-height: 1.5; }
+#titlecard .row { justify-content: center; position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 7vh); }
+#toasts { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 96px); width: min(560px, calc(100% - 24px)); z-index: 8; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.toast { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; font-size: 14px; line-height: 1.45; transition: opacity .4s; }
+.toast.out { opacity: 0; }
+#err { display: none; position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 99; background: #3b0a12; color: #ffd7dd; font: 12px monospace; padding: 10px; border-radius: 8px; white-space: pre-wrap; max-height: 40vh; overflow: auto; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="top" class="hide">
+  <button class="ibtn" id="b-map">Levels</button>
+  <div class="st"><div id="st-name"></div><div id="st-sub"></div></div>
+  <button class="ibtn" id="b-guide">Guide</button>
+  <button class="ibtn" id="b-set" aria-label="Settings">⚙︎</button>
+</div>
+<div id="lens" role="group" aria-label="Lens"><button data-l="phen">Phenotype</button><button data-l="geno">Genotype</button></div>
+<div id="titlecard">
+  <h1>Equilibrium</h1>
+  <p>A game about the Hardy–Weinberg principle. Each beetle wears its genes on its wings.</p>
+  <div class="row"><button class="btn primary" id="b-begin">Begin</button><button class="btn" id="b-guide2">Guide</button></div>
+</div>
+<div id="levels"><div class="wrap" id="lv-body"></div></div>
+<div id="panel" class="hide"><div id="say"></div><div id="ctl"></div></div>
+<div id="toasts"></div>
+<div id="modal"></div>
+<div id="err"></div>
+<script>
+(function () {
+'use strict';
+/* ================= Equilibrium v2: engine ================= */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2, R = Math.random;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t;
+const pick = a => a[(R() * a.length) | 0];
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (R() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const mean = a => a.reduce((s, x) => s + x, 0) / (a.length || 1);
+const pct = (v, d = 0) => (v * 100).toFixed(d) + '%';
+const fx2 = v => (+v).toFixed(2), fx3 = v => (+v).toFixed(3);
+const ease = t => 1 - Math.pow(1 - t, 3), easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const last = a => a[a.length - 1];
+function rng(seed) { let s = (seed >>> 0) || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function binom(n, p) { let k = 0; for (let i = 0; i < n; i++) if (R() < p) k++; return k; }
+const SERIF = '"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif', SANS = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+
+/* ---- genetics: counts are [AA, Aa, aa] ---- */
+const hwExp = p => [p * p, 2 * p * (1 - p), (1 - p) * (1 - p)];
+const pOf = c => { const N = c[0] + c[1] + c[2]; return N ? (2 * c[0] + c[1]) / (2 * N) : 0; };
+const frac = c => { const N = (c[0] + c[1] + c[2]) || 1; return c.map(v => v / N); };
+function hwCounts(p, N) { const e = hwExp(p).map(f => f * N), c = e.map(Math.floor); const rem = N - c[0] - c[1] - c[2]; const o = e.map((v, i) => [v - c[i], i]).sort((a, b) => b[0] - a[0]); for (let k = 0; k < rem; k++) c[o[k % 3][1]]++; return c; }
+function countsToList(c) { const L = []; for (let i = 0; i < c[0]; i++) L.push('AA'); for (let i = 0; i < c[1]; i++) L.push('Aa'); for (let i = 0; i < c[2]; i++) L.push('aa'); return L; }
+const listCounts = L => { const c = [0, 0, 0]; for (const g of L) c[g === 'AA' ? 0 : g === 'Aa' ? 1 : 2]++; return c; };
+const gtOf = (a, b) => a === b ? (a === 'A' ? 'AA' : 'aa') : 'Aa';
+const gamete = g => g === 'AA' ? 'A' : g === 'aa' ? 'a' : (R() < 0.5 ? 'A' : 'a');
+const allelesOf = g => g === 'AA' ? ['A', 'A'] : g === 'aa' ? ['a', 'a'] : ['A', 'a'];
+const GI = { AA: 0, Aa: 1, aa: 2 };
+function wfNext(par, N) { const out = []; for (let i = 0; i < N; i++) out.push(gtOf(gamete(pick(par)), gamete(pick(par)))); return out; }
+const chi2 = (obs, p) => { const N = obs[0] + obs[1] + obs[2], E = hwExp(p).map(f => f * N); return { E, x2: obs.reduce((s, o, i) => s + (E[i] > 0 ? (o - E[i]) ** 2 / E[i] : 0), 0) }; };
+
+/* ---- palette ---- */
+const Pal = {};
+function readPal() { const cs = getComputedStyle(document.documentElement); for (const k of ['ground1', 'ground2', 'ink', 'muted', 'accent', 'A', 'a', 'body', 'plate', 'good']) Pal[k] = cs.getPropertyValue('--' + k).trim() || '#888888'; const th = document.documentElement.dataset.theme; Pal.dark = th === 'dark' || (th !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches); Bg.dirty = true; }
+function hexRGB(h) { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(x => x + x).join(''); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+const hexA = (h, a) => { const [r, g, b] = hexRGB(h); return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; };
+const AC = al => al === 'A' ? Pal.A : Pal.a;
+const phenCol = g => g === 'aa' ? Pal.a : Pal.A;
+
+/* ---- drawing primitives ---- */
+function ink(c, txt, x, y, size, col, align = 'center', weight = 600, fam) { c.font = weight + ' ' + size + 'px ' + (fam === 'serif' ? SERIF : SANS); c.fillStyle = col; c.textAlign = align; c.textBaseline = 'middle'; c.fillText(txt, x, y); }
+function rrect(c, x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function plate(c, x, y, w, h, r = 12, a = 0.92) { c.fillStyle = hexA(Pal.plate, a); rrect(c, x, y, w, h, r); c.fill(); c.strokeStyle = hexA(Pal.ink, 0.1); c.lineWidth = 1; c.stroke(); }
+function token(c, x, y, r, al, a = 1) { c.globalAlpha = a; c.fillStyle = AC(al); c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.strokeStyle = hexA(Pal.ink, 0.35); c.lineWidth = 1; c.stroke(); if (r >= 6) ink(c, al, x, y + 0.5, Math.round(r * 1.2), al === 'A' ? '#fff' : '#2a2200', 'center', 700, 'serif'); c.globalAlpha = 1; }
+
+/* a top-down beetle wearing its two alleles on its wing cases */
+function beetle(c, x, y, s, g, o = {}) {
+  const lens = o.lens || Lens.mode, al = o.al || allelesOf(g), cl = lens === 'geno' ? AC(al[0]) : phenCol(g), cr = lens === 'geno' ? AC(al[1]) : phenCol(g);
+  c.save(); c.translate(x, y); if (o.rot) c.rotate(o.rot); if (o.alpha != null) c.globalAlpha = o.alpha;
+  c.strokeStyle = Pal.body; c.lineWidth = Math.max(1, s * 0.07); c.lineCap = 'round';
+  if (s >= 8) for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) { const yy = -s * 0.15 + k * s * 0.3; c.beginPath(); c.moveTo(sd * s * 0.3, yy); c.lineTo(sd * s * 0.62, yy + (k - 1) * s * 0.18); c.lineTo(sd * s * 0.7, yy + (k - 1) * s * 0.3 + s * 0.08); c.stroke(); }
+  if (s >= 10) { c.beginPath(); c.moveTo(-s * 0.08, -s * 0.72); c.lineTo(-s * 0.22, -s * 0.98); c.moveTo(s * 0.08, -s * 0.72); c.lineTo(s * 0.22, -s * 0.98); c.stroke(); }
+  c.fillStyle = Pal.body; c.beginPath(); c.ellipse(0, -s * 0.66, s * 0.17, s * 0.13, 0, 0, TAU); c.fill(); c.beginPath(); c.ellipse(0, -s * 0.42, s * 0.3, s * 0.16, 0, 0, TAU); c.fill();
+  const ey = s * 0.14, rx = s * 0.4, ry = s * 0.56;
+  c.fillStyle = cl; c.beginPath(); c.moveTo(0, ey - ry); c.ellipse(0, ey, rx, ry, 0, -Math.PI / 2, Math.PI / 2, true); c.closePath(); c.fill();
+  c.fillStyle = cr; c.beginPath(); c.moveTo(0, ey - ry); c.ellipse(0, ey, rx, ry, 0, -Math.PI / 2, Math.PI / 2, false); c.closePath(); c.fill();
+  c.strokeStyle = hexA('#000000', 0.45); c.lineWidth = Math.max(0.8, s * 0.05); c.beginPath(); c.ellipse(0, ey, rx, ry, 0, 0, TAU); c.stroke(); c.beginPath(); c.moveTo(0, ey - ry); c.lineTo(0, ey + ry); c.stroke();
+  if (lens === 'geno' && s >= 15 && !o.noLetters) { ink(c, al[0], -rx * 0.48, ey, Math.round(s * 0.42), al[0] === 'A' ? '#fff' : '#2a2200', 'center', 700, 'serif'); ink(c, al[1], rx * 0.48, ey, Math.round(s * 0.42), al[1] === 'A' ? '#fff' : '#2a2200', 'center', 700, 'serif'); }
+  c.restore();
+  if (o.ring) { c.strokeStyle = o.ring; c.lineWidth = 2.5; c.beginPath(); c.arc(x, y, s * 0.95, 0, TAU); c.stroke(); }
+}
+const elytra = (P, s) => [{ x: P.x - s * 0.2, y: P.y + s * 0.14 }, { x: P.x + s * 0.2, y: P.y + s * 0.14 }];
+
+/* ---- layout ---- */
+function field(n, Rc, seed = 1, o = {}) {
+  const r = rng(seed), cols = Math.max(2, Math.round(Math.sqrt(n * Rc.w / Math.max(1, Rc.h)))), rows = Math.max(1, Math.ceil(n / cols)), cw = Rc.w / cols, ch = Rc.h / rows, s = clamp(Math.min(cw, ch) * 0.4, 5, o.max || 24);
+  const pts = []; for (let i = 0; i < n; i++) pts.push({ x: Rc.x + ((i % cols) + 0.5 + (r() - 0.5) * 0.3) * cw, y: Rc.y + (((i / cols) | 0) + 0.5 + (r() - 0.5) * 0.25) * ch, s, rot: (r() - 0.5) * 0.7 }); return pts;
+}
+function hitList(pts, x, y, ok) { let bi = -1, bd = 1e9; pts.forEach((p, i) => { if (ok && !ok(i)) return; const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; bi = i; } }); return bi >= 0 && bd < Math.max(18, pts[bi].s * 1.1) ? bi : -1; }
+function jarSlots(Rc, n) { let r = 10; for (; r > 1.5; r -= 0.5) { const cols = Math.floor((Rc.w - 4) / (2 * r + 1.5)), rows = Math.floor((Rc.h - 4) / (2 * r + 1.5)); if (cols * rows >= n) break; } const cols = Math.max(1, Math.floor((Rc.w - 4) / (2 * r + 1.5))), out = []; for (let k = 0; k < n; k++) out.push({ x: Rc.x + 2 + r + (k % cols) * (2 * r + 1.5), y: Rc.y + Rc.h - 2 - r - ((k / cols) | 0) * (2 * r + 1.5), r }); return out; }
+function drawJar(c, Rc, al, n, tot) { c.strokeStyle = hexA(AC(al), 0.9); c.lineWidth = 2; rrect(c, Rc.x, Rc.y, Rc.w, Rc.h, 10); c.stroke(); c.fillStyle = hexA(AC(al), 0.08); c.fill(); ink(c, al + ' alleles', Rc.x + Rc.w / 2, Rc.y - 11, 13, Pal.ink, 'center', 700); if (n != null) ink(c, n + (tot ? '  (' + pct(n / tot) + ')' : ''), Rc.x + Rc.w / 2, Rc.y + Rc.h + 13, 13, Pal.ink, 'center', 700); }
+
+/* the "break into alleles" animation: every wing case flies to its jar */
+function makeSplit(pop, pts, jarA, jarB) {
+  const toks = [], sA = [], sB = []; pop.forEach((g, i) => { const P = pts[i], E = elytra(P, P.s), al = allelesOf(g); al.forEach((a, k) => toks.push({ al: a, x0: E[k].x, y0: E[k].y, i })); });
+  const nA = toks.filter(t => t.al === 'A').length, slA = jarSlots(jarA, nA), slB = jarSlots(jarB, toks.length - nA); let ia = 0, ib = 0;
+  toks.forEach(t => { const s = t.al === 'A' ? slA[ia++] : slB[ib++]; t.x1 = s.x; t.y1 = s.y; t.r = s.r; });
+  return { toks, t: 0, dir: 0, nA, na: toks.length - nA, jarA, jarB, update(dt) { this.t = clamp(this.t + this.dir * dt / 1.4, 0, 1); }, done() { return this.t >= 1; },
+    draw(c) { const n = this.toks.length; this.toks.forEach((t, k) => { const kk = clamp(this.t * 1.6 - (k / n) * 0.6, 0, 1), e = easeIO(kk); if (this.t <= 0) return; token(c, lerp(t.x0, t.x1, e), lerp(t.y0, t.y1, e) - Math.sin(e * Math.PI) * 30, lerp(Math.max(3, t.r * 0.8), t.r, e), t.al); }); } };
+}
+
+/* ---- bars ---- */
+function genoBar(c, x, y, w, h, f, o = {}) {
+  let cx = x; const cols = [Pal.A, null, Pal.a], labs = ['AA', 'Aa', 'aa'];
+  for (let i = 0; i < 3; i++) { const ww = w * clamp(f[i], 0, 1); if (ww < 0.5) continue; if (i === 1) { c.fillStyle = Pal.A; c.fillRect(cx, y, ww, h / 2); c.fillStyle = Pal.a; c.fillRect(cx, y + h / 2, ww, h / 2); } else { c.fillStyle = cols[i]; c.fillRect(cx, y, ww, h); } if (ww > 34 && o.labels !== false) ink(c, labs[i] + ' ' + pct(f[i]), cx + ww / 2, y + h / 2, 11.5, i === 2 ? '#2a2200' : '#fff', 'center', 700); cx += ww; }
+  c.strokeStyle = hexA(Pal.ink, 0.35); c.lineWidth = 1; c.strokeRect(x, y, w, h);
+  if (o.exp) { let ex = x; for (let i = 0; i < 2; i++) { ex += w * o.exp[i]; c.fillStyle = Pal.ink; c.beginPath(); c.moveTo(ex, y - 2); c.lineTo(ex - 5, y - 9); c.lineTo(ex + 5, y - 9); c.closePath(); c.fill(); } if (o.expLabel) ink(c, o.expLabel, x + w, y - 16, 10.5, Pal.muted, 'right', 600); }
+  if (o.title) ink(c, o.title, x, y - (o.exp ? 22 : 10), 11.5, Pal.muted, 'left', 700);
+}
+function alleleBar(c, x, y, w, h, p, o = {}) { c.fillStyle = Pal.A; c.fillRect(x, y, w * p, h); c.fillStyle = Pal.a; c.fillRect(x + w * p, y, w * (1 - p), h); c.strokeStyle = hexA(Pal.ink, 0.35); c.lineWidth = 1; c.strokeRect(x, y, w, h); if (w * p > 46) ink(c, 'p ' + fx2(p), x + w * p / 2, y + h / 2, 11.5, '#fff', 'center', 700); if (w * (1 - p) > 46) ink(c, 'q ' + fx2(1 - p), x + w * p + w * (1 - p) / 2, y + h / 2, 11.5, '#2a2200', 'center', 700); if (o.title) ink(c, o.title, x, y - 10, 11.5, Pal.muted, 'left', 700); }
+function lineChart(c, x, y, w, h, series, o = {}) {
+  plate(c, x - 10, y - 10, w + 20, h + (o.title ? 38 : 20), 12);
+  c.strokeStyle = hexA(Pal.ink, 0.25); c.lineWidth = 1; c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + h); c.lineTo(x + w, y + h); c.stroke();
+  if (o.ref != null) { const ry = y + h - h * o.ref; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(x, ry); c.lineTo(x + w, ry); c.stroke(); c.setLineDash([]); }
+  const n = Math.max(2, o.n || Math.max(2, ...series.map(s => s.d.length)));
+  for (const s of series) { if (!s.d.length) continue; c.strokeStyle = s.col; c.lineWidth = s.wd || 2.4; c.beginPath(); s.d.forEach((v, i) => { const X = x + w * i / (n - 1), Y = y + h - h * clamp(v, 0, 1); i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.stroke(); }
+  if (o.title) ink(c, o.title, x + w / 2, y + h + 15, 11.5, Pal.muted, 'center', 600);
+  if (o.yl) { ink(c, o.yl[1], x - 4, y + 2, 10, Pal.muted, 'right', 600); ink(c, o.yl[0], x - 4, y + h, 10, Pal.muted, 'right', 600); }
+}
+
+/* ---- the de Finetti triangle: horizontal = share of a alleles, height = share of heterozygotes ---- */
+const Fin = {
+  geo(x, y, size) { const H = size * 0.866; return { x, y, size, H, AA: { x, y: y + H }, aa: { x: x + size, y: y + H }, Aa: { x: x + size / 2, y } }; },
+  pt(G, f) { return { x: G.AA.x + (f[1] * 0.5 + f[2]) * G.size, y: G.AA.y - f[1] * G.H }; },
+  inv(G, x, y) { const h = (G.AA.y - y) / G.H, xr = (x - G.AA.x) / G.size, faa = xr - h / 2, fAA = 1 - h - faa; if (h < -0.02 || faa < -0.02 || fAA < -0.02) return null; return [clamp(fAA, 0, 1), clamp(h, 0, 1), clamp(faa, 0, 1)]; },
+  draw(c, G, o = {}) {
+    plate(c, G.x - 22, G.y - 30, G.size + 44, G.H + 70, 14);
+    c.strokeStyle = hexA(Pal.ink, 0.5); c.lineWidth = 1.5; c.beginPath(); c.moveTo(G.AA.x, G.AA.y); c.lineTo(G.Aa.x, G.Aa.y); c.lineTo(G.aa.x, G.aa.y); c.closePath(); c.stroke();
+    c.strokeStyle = Pal.good; c.lineWidth = 2.5; c.beginPath(); for (let k = 0; k <= 60; k++) { const P = this.pt(G, hwExp(1 - k / 60)); k ? c.lineTo(P.x, P.y) : c.moveTo(P.x, P.y); } c.stroke();
+    ink(c, 'all AA', G.AA.x, G.AA.y + 14, 11, Pal.ink, 'center', 700); ink(c, 'all aa', G.aa.x, G.aa.y + 14, 11, Pal.ink, 'center', 700); ink(c, 'all Aa', G.Aa.x, G.Aa.y - 12, 11, Pal.ink, 'center', 700);
+    if (o.axis !== false) { ink(c, 'share of a alleles →', G.x + G.size / 2, G.AA.y + 30, 10.5, Pal.muted, 'center', 600); ink(c, 'HW curve', G.x + G.size * 0.5, G.AA.y - G.H * 0.5 + 12, 10.5, Pal.good, 'center', 700); }
+    if (o.trail && o.trail.length > 1) { c.strokeStyle = hexA(o.trailCol || Pal.accent, 0.7); c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); o.trail.forEach((f, k) => { const P = this.pt(G, f); k ? c.lineTo(P.x, P.y) : c.moveTo(P.x, P.y); }); c.stroke(); c.setLineDash([]); }
+    for (const q of (o.pts || [])) { const P = this.pt(G, q.f); c.fillStyle = q.col || Pal.accent; c.beginPath(); c.arc(P.x, P.y, q.r || 6, 0, TAU); c.fill(); c.strokeStyle = Pal.plate; c.lineWidth = 2; c.stroke(); if (q.label) ink(c, q.label, P.x + 10, P.y - 10, 11, Pal.ink, 'left', 700); }
+    if (o.pred) { const P = this.pt(G, o.pred); c.strokeStyle = Pal.ink; c.lineWidth = 2; c.beginPath(); c.moveTo(P.x - 7, P.y - 7); c.lineTo(P.x + 7, P.y + 7); c.moveTo(P.x + 7, P.y - 7); c.lineTo(P.x - 7, P.y + 7); c.stroke(); ink(c, 'your guess', P.x, P.y + 16, 10.5, Pal.ink, 'center', 700); }
+  }
+};
+
+/* ---- lens ---- */
+const Lens = {
+  mode: 'geno',
+  init() { document.querySelectorAll('#lens button').forEach(b => b.onclick = () => { Snd.click(); this.set(b.dataset.l); }); },
+  show(on, mode) { $('lens').classList.toggle('on', !!on); if (mode) this.set(mode, true); },
+  set(m, quiet) { this.mode = m; document.querySelectorAll('#lens button').forEach(b => b.classList.toggle('sel', b.dataset.l === m)); if (!quiet && Game.scene && Game.scene.onLens) Game.scene.onLens(m); }
+};
+
+/* ---- background: a quiet field, nothing moves ---- */
+const Bg = { dirty: true, off: null,
+  build() { const w = Stage.w, h = Stage.h; this.off = document.createElement('canvas'); this.off.width = Math.max(1, Math.round(w * Stage.dpr)); this.off.height = Math.max(1, Math.round(h * Stage.dpr)); const c = this.off.getContext('2d'); c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0); const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, Pal.ground1); g.addColorStop(1, Pal.ground2); c.fillStyle = g; c.fillRect(0, 0, w, h); const r = rng(3); c.fillStyle = hexA(Pal.ink, Pal.dark ? 0.035 : 0.045); for (let i = 0; i < w * h / 900; i++) c.fillRect(r() * w, r() * h, 1.4, 1.4); this.dirty = false; },
+  draw(c, w, h) { if (this.dirty || !this.off) this.build(); c.drawImage(this.off, 0, 0, w, h); } };
+
+/* ---- stage ---- */
+const Stage = {
+  w: 0, h: 0, dpr: 1, down: null,
+  init() { this.cv = $('cv'); this.c = this.cv.getContext('2d'); addEventListener('resize', () => this.resize()); this.resize(); this.bind(); },
+  resize() { this.dpr = Math.min(2, window.devicePixelRatio || 1); this.w = window.innerWidth; this.h = window.innerHeight; this.cv.width = Math.round(this.w * this.dpr); this.cv.height = Math.round(this.h * this.dpr); this.cv.style.width = this.w + 'px'; this.cv.style.height = this.h + 'px'; Bg.dirty = true; if (Game.scene && Game.scene.resize) Game.scene.resize(); },
+  area() { const tp = $('top'), ln = $('lens'), pn = $('panel'); let t = tp.classList.contains('hide') ? 0 : tp.getBoundingClientRect().bottom; if (ln.classList.contains('on')) t = Math.max(t, ln.getBoundingClientRect().bottom); const b = pn.classList.contains('hide') ? this.h : pn.getBoundingClientRect().top; return { x: 0, y: t + 6, w: this.w, h: Math.max(160, b - t - 12) }; },
+  bind() {
+    const pos = e => { const r = this.cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    this.cv.addEventListener('pointerdown', e => { Snd.unlock(); if (UI.modal) return; const [x, y] = pos(e); this.down = { x, y }; const S = Game.scene; if (S && S.down) S.down(x, y); });
+    this.cv.addEventListener('pointermove', e => { if (!this.down) return; const [x, y] = pos(e); const S = Game.scene; if (S && S.move) S.move(x, y); });
+    const up = e => { if (!this.down) return; const [x, y] = pos(e), d = this.down; this.down = null; const S = Game.scene; if (S && S.up) S.up(x, y); if (Math.hypot(x - d.x, y - d.y) < 14 && S && S.tap) S.tap(x, y); };
+    this.cv.addEventListener('pointerup', up); this.cv.addEventListener('pointercancel', () => { this.down = null; });
+  }
+};
+
+/* ---- feedback effects (only ones that carry meaning) ---- */
+const FX = {
+  ps: [],
+  add(p) { this.ps.push(Object.assign({ t: 0, life: 1, delay: 0 }, p)); return p; },
+  fly(x0, y0, x1, y1, al, life, done, o = {}) { return this.add(Object.assign({ kind: 'fly', x0, y0, x1, y1, x: x0, y: y0, al, life, done, lift: 24 }, o)); },
+  update(dt) { for (const p of this.ps) { p.t += dt; const tt = p.t - p.delay; if (p.kind === 'fly') { const k = easeIO(clamp(tt / p.life, 0, 1)); p.x = lerp(p.x0, p.x1, k); p.y = lerp(p.y0, p.y1, k) - Math.sin(k * Math.PI) * p.lift; } if (tt >= p.life && p.done && !p.fired) { p.fired = true; p.done(p); } } this.ps = this.ps.filter(p => p.t - p.delay < p.life); },
+  draw(c) { for (const p of this.ps) { if (p.t < p.delay) continue; const k = clamp((p.t - p.delay) / p.life, 0, 1); if (p.kind === 'fly') { if (p.g) beetle(c, p.x, p.y, p.s || 12, p.g, { lens: p.lens }); else token(c, p.x, p.y, p.r || 6, p.al); } else if (p.kind === 'ring') { c.strokeStyle = hexA(p.col, 0.8 * (1 - k)); c.lineWidth = 2.5; c.beginPath(); c.arc(p.x, p.y, 6 + k * (p.rad || 30), 0, TAU); c.stroke(); } else if (p.kind === 'text') { c.globalAlpha = 1 - k * k; ink(c, p.txt, p.x, p.y - k * 18, p.size || 18, p.col || Pal.ink, 'center', 800, 'serif'); c.globalAlpha = 1; } } },
+  clear() { this.ps = []; },
+  ring(x, y, col, rad = 30) { this.add({ kind: 'ring', x, y, col: col || Pal.accent, rad, life: 0.55 }); },
+  text(x, y, txt, col, size) { this.add({ kind: 'text', x, y, txt, col, size, life: 1.2 }); }
+};
+
+/* ---- sound ---- */
+const Snd = {
+  ctx: null,
+  unlock() { if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { this.ctx = null; } } if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  tone(f, d = 0.15, type = 'sine', v = 0.05, delay = 0) { if (Save.d.mute || !this.ctx) return; try { const t0 = this.ctx.currentTime + delay, o = this.ctx.createOscillator(), g = this.ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d); o.connect(g); g.connect(this.ctx.destination); o.start(t0); o.stop(t0 + d + 0.03); } catch (e) { } },
+  click() { this.tone(900, 0.05, 'triangle', 0.025); }, pop() { this.tone(520 + R() * 200, 0.07, 'sine', 0.03); },
+  good() { this.tone(660, 0.13, 'sine', 0.05); this.tone(990, 0.18, 'sine', 0.045, 0.08); }, bad() { this.tone(233, 0.24, 'triangle', 0.045); },
+  star() { [523, 659, 784].forEach((f, i) => this.tone(f, 0.26, 'sine', 0.045, i * 0.09)); }
+};
+
+/* ---- save ---- */
+const Save = {
+  k: 'equilibrium_hw_v2', d: { stars: {}, done: {}, mute: false, all: false, best: 0, theme: '' },
+  load() { try { const s = localStorage.getItem(this.k); if (s) { const o = JSON.parse(s); if (o && typeof o === 'object') Object.assign(this.d, o); } } catch (e) { } if (!this.d.stars) this.d.stars = {}; if (!this.d.done) this.d.done = {}; },
+  save() { try { localStorage.setItem(this.k, JSON.stringify(this.d)); } catch (e) { } },
+  star(id, n) { if (n > (this.d.stars[id] || 0)) this.d.stars[id] = n; this.d.done[id] = 1; this.save(); }
+};
+const starStr = n => '★'.repeat(n) + '<span class="off">' + '★'.repeat(Math.max(0, 3 - n)) + '</span>';
+
+/* ---- interface ---- */
+const UI = {
+  modal: false,
+  clear() { $('say').innerHTML = ''; $('ctl').innerHTML = ''; },
+  say(h) { $('say').innerHTML = h; },
+  ctl(...nodes) { const c = $('ctl'); c.innerHTML = ''; for (const n of nodes) if (n) c.appendChild(n); },
+  btn(t, fn, cls) { const b = document.createElement('button'); b.className = 'btn' + (cls ? ' ' + cls : ''); b.innerHTML = t; b.addEventListener('click', () => { if (b.disabled) return; Snd.unlock(); Snd.click(); fn(b); }); return b; },
+  row(...nodes) { const d = document.createElement('div'); d.className = 'row'; for (const n of nodes) if (n) d.appendChild(n); return d; },
+  slider(o) { const w = document.createElement('label'); w.className = 'sld'; w.innerHTML = '<span class="sl-l">' + o.label + '</span><input type="range" min="' + o.min + '" max="' + o.max + '" step="' + o.step + '" value="' + o.value + '" aria-label="' + (o.aria || o.label) + '"><b class="sl-v"></b>'; const inp = w.querySelector('input'), v = w.querySelector('.sl-v'); const upd = () => { v.textContent = o.fmt ? o.fmt(+inp.value) : inp.value; if (o.oninput) o.oninput(+inp.value); }; inp.addEventListener('input', upd); upd(); w.inp = inp; return w; },
+  choices(opts, fn, wide) { return UI.row(...opts.map(([k, t]) => UI.btn(t, b => { $('ctl').querySelectorAll('button').forEach(x => x.disabled = true); fn(k, b); }, wide ? 'wide' : ''))); },
+  card(o) {
+    const m = $('modal'); m.innerHTML = ''; const box = document.createElement('div'); box.className = 'card'; box.innerHTML = (o.title ? '<h2>' + o.title + '</h2>' : '') + (o.html || '');
+    const row = document.createElement('div'); row.className = 'card-btns'; let armed = false; setTimeout(() => { armed = true; }, 330);
+    for (const b of (o.buttons || [{ t: 'Continue', primary: true }])) { const el = document.createElement('button'); el.className = 'btn' + (b.primary ? ' primary' : ''); el.innerHTML = b.t; el.addEventListener('click', () => { if (!armed) return; Snd.unlock(); Snd.click(); UI.close(); if (b.fn) b.fn(); }); row.appendChild(el); }
+    box.appendChild(row); m.appendChild(box); m.classList.add('on'); this.modal = true;
+  },
+  close() { $('modal').classList.remove('on'); $('modal').innerHTML = ''; this.modal = false; },
+  toast(h, ms = 3800) { const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = h; const box = $('toasts'); while (box.children.length >= 2) box.firstChild.remove(); box.appendChild(t); setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 450); },
+  top(name, sub) { $('st-name').textContent = name || ''; $('st-sub').textContent = sub || ''; }
+};
+function stepper(S) { S.si = -1; S.next = function () { this.si++; const f = this.steps[this.si]; if (f) f.call(this); }; }
+/* ask a question in the panel, then explain; the answer drives what happens next */
+function quiz(S, q, opts, ans, why, after) { UI.say(q); UI.ctl(UI.choices(opts, k => { const ok = k === ans; if (ok) { S.score = (S.score || 0) + 1; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + why); UI.ctl(UI.row(UI.btn('Next', () => after(ok), 'primary'))); }, opts.some(o => o[1].length > 18))); }
+
+/* ---- loop ---- */
+const Game = {
+  scenes: {}, scene: null, id: '', t: 0, last: 0,
+  reg(s) { this.scenes[s.id] = s; },
+  go(id, arg) {
+    if (this.scene && this.scene.exit) this.scene.exit(); UI.close(); UI.clear(); FX.clear(); Lens.show(false);
+    const S = this.scenes[id]; this.scene = S; this.id = id; $('levels').classList.remove('on');
+    $('panel').classList.toggle('hide', !!S.noPanel); $('top').classList.toggle('hide', !!S.noTop); UI.top(S.title || '', S.sub || ''); S.enter(arg);
+  },
+  frame() {
+    const now = performance.now(), dt = Math.min(0.05, this.last ? (now - this.last) / 1000 : 0.016); this.last = now; this.t += dt;
+    const c = Stage.c; c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0);
+    try { Bg.draw(c, Stage.w, Stage.h); const S = this.scene; if (S) { if (!UI.modal && S.update) S.update(dt); if (S.draw) S.draw(c, Stage.w, Stage.h); } FX.update(dt); FX.draw(c); } catch (e) { showErr(e); }
+    setTimeout(() => this.frame(), 16);
+  }
+};
+function showErr(e) { const b = $('err'); if (b && b.style.display !== 'block') { b.style.display = 'block'; b.textContent = 'Something went wrong: ' + ((e && e.stack) || e); } }
+window.addEventListener('error', e => showErr(e.error || e.message));
+
+/* ================= Level index, title, levels 1–4 ================= */
+const CHAPTERS = [
+  { n: 'I. Alleles in a population', d: 'What a population is made of, allele by allele.', lv: ['l1', 'l2', 'l3'] },
+  { n: 'II. Where the equation comes from', d: 'Random mating, step by step, builds p² + 2pq + q².', lv: ['l4', 'l5', 'l6', 'l7'] },
+  { n: 'III. The Hardy–Weinberg world', d: 'What a population looks like when nothing is changing it.', lv: ['l8'] },
+  { n: 'IV. Breaking the equilibrium', d: 'One assumption at a time, and what each one does.', lv: ['l9', 'l10', 'l11', 'l12', 'l13', 'l14', 'l15'] },
+  { n: 'V. Using Hardy–Weinberg', d: 'Detective work with real populations.', lv: ['l16', 'l17', 'cases'] }
+];
+const LV = {
+  l1: ['Two copies each', 'Genotype, phenotype, dominance'], l2: ['Break into alleles', 'p and q describe alleles, not beetles'], l3: ['Dominant isn’t common', 'Dominance and frequency are different things'],
+  l4: ['The gamete pool', 'Random mating is random drawing'], l5: ['Why p²?', 'Two independent draws multiply'], l6: ['Why 2pq?', 'Two routes to a heterozygote'], l7: ['One generation', 'Equilibrium in one round of mating'],
+  l8: ['Equilibrium Island', 'The five assumptions and the null model'],
+  l9: ['The bird', 'Selection, and why recessives hide'], l10: ['The slow ray', 'Mutation'], l11: ['The bridge', 'Migration'], l12: ['Five tiny islands', 'Genetic drift'], l13: ['Volcano and castaways', 'Bottlenecks and founders'], l14: ['The matchmaker', 'Non-random mating'], l15: ['Evolving, or just unbalanced?', 'Disequilibrium is not evolution'],
+  l16: ['Invisible carriers', 'Counting what you cannot see'], l17: ['Real populations', 'Testing equilibrium with real data'], cases: ['The case files', 'Eight mystery populations']
+};
+const ORDER = CHAPTERS.flatMap(c => c.lv);
+const unlocked = id => Save.d.all || ORDER.indexOf(id) === 0 || !!Save.d.done[ORDER[ORDER.indexOf(id) - 1]];
+function finishLevel(id, stars, html) {
+  Save.star(id, stars); Snd.star(); const nx = ORDER[ORDER.indexOf(id) + 1];
+  UI.card({ title: LV[id][0] + ': complete', html: '<div class="stars">' + starStr(stars) + '</div>' + html, buttons: [{ t: 'All levels', fn: () => Game.go('map') }].concat(nx ? [{ t: 'Next: ' + LV[nx][0], primary: true, fn: () => Game.go(nx) }] : []) });
+}
+
+/* ---- title: the equation, and the three beetles it describes ---- */
+Game.reg({
+  id: 'title', noPanel: true, noTop: true,
+  enter() { $('titlecard').classList.add('on'); }, exit() { $('titlecard').classList.remove('on'); },
+  draw(c, w, h) {
+    const y = h * 0.52, s = clamp(w / 11, 26, 52), xs = [w / 2 - s * 3, w / 2, w / 2 + s * 3], terms = ['p²', '2pq', 'q²'], cols = [Pal.A, Pal.ink, Pal.a];
+    ['AA', 'Aa', 'aa'].forEach((g, i) => { beetle(c, xs[i], y, s, g, { lens: 'geno' }); ink(c, terms[i], xs[i], y - s * 1.75, Math.round(s * 0.8), cols[i], 'center', 600, 'serif'); ink(c, g, xs[i], y + s * 1.2, 15, Pal.ink, 'center', 700, 'serif'); });
+    ink(c, '+', (xs[0] + xs[1]) / 2, y - s * 1.75, Math.round(s * 0.6), Pal.muted, 'center', 500, 'serif'); ink(c, '+', (xs[1] + xs[2]) / 2, y - s * 1.75, Math.round(s * 0.6), Pal.muted, 'center', 500, 'serif');
+    ink(c, '= 1', xs[2] + s * 1.6, y - s * 1.75, Math.round(s * 0.6), Pal.muted, 'center', 500, 'serif');
+  }
+});
+
+/* ---- level index ---- */
+Game.reg({
+  id: 'map', noPanel: true, title: 'Levels', sub: 'Each level adds one idea',
+  enter() {
+    const body = $('lv-body'); let html = ''; const n = ORDER.filter(id => Save.d.done[id]).length;
+    html += '<p class="chp" style="margin-top:6px">Levels complete: <b>' + n + ' of ' + ORDER.length + '</b>.</p>';
+    CHAPTERS.forEach(ch => { html += '<h2>' + ch.n + '</h2><p class="chp">' + ch.d + '</p>'; ch.lv.forEach(id => { const k = ORDER.indexOf(id) + 1, on = unlocked(id), st = Save.d.stars[id] || 0; html += '<button class="lv' + (on ? '' : ' locked') + '" data-id="' + id + '"><span class="n">' + (id === 'cases' ? '★' : k) + '</span><span class="t"><b>' + LV[id][0] + '</b><span>' + LV[id][1] + '</span></span><span class="s">' + (Save.d.done[id] ? '★'.repeat(st) : on ? '' : 'locked') + '</span></button>'; }); });
+    body.innerHTML = html; $('levels').classList.add('on'); $('levels').scrollTop = 0;
+    body.querySelectorAll('.lv').forEach(b => b.onclick = () => { Snd.unlock(); Snd.click(); const id = b.dataset.id; if (!unlocked(id)) { UI.toast('Finish <b>' + LV[ORDER[ORDER.indexOf(id) - 1]][0] + '</b> first.'); return; } Game.go(id); });
+  },
+  exit() { $('levels').classList.remove('on'); }
+});
+
+/* ================= Level 1: Two copies each ================= */
+Game.reg({
+  id: 'l1', title: 'Two copies each', sub: 'Genotype, phenotype, dominance',
+  enter() { this.al = ['A', 'a']; this.made = new Set(); this.score = 0; this.mode = 'build'; this.reveal = null; Lens.set('geno', true); stepper(this); this.next(); },
+  geo() { const A = Stage.area(), s = clamp(Math.min(A.h * 0.2, A.w * 0.2), 36, 84); return { A, s, x: A.w / 2, y: A.y + A.h * 0.5 }; },
+  steps: [
+    function () { UI.say('Every beetle carries <b>two copies</b> of the colour gene, one from each parent. Here you can see them: <b>one on each wing case</b>. Each copy is an <b>allele</b>: <span class="A">A</span> (blue) or <span class="a">a</span> (yellow). <b>Tap a wing case</b> to swap its allele, and make all three combinations.'); this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true; UI.ctl(UI.row(this.nb)); this.track(); },
+    function () { this.mode = 'trio'; this.seenPhen = false; Lens.show(true, 'geno'); UI.say('The pair of alleles is the beetle’s <b>genotype</b>: AA, Aa or aa. What you see from outside is its <b>phenotype</b>. A is <b>dominant</b>: one copy is enough to colour the whole beetle blue. Use the lens at the top to look at these three from the outside.'); this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true; UI.ctl(UI.row(this.nb)); },
+    function () { this.mode = 'read'; Lens.show(false); Lens.set('phen', true); this.pop = shuffle(['AA', 'AA', 'Aa', 'Aa', 'Aa', 'aa', 'aa', 'Aa']); this.qi = 0; this.ask(); }
+  ],
+  onLens(m) { if (this.mode === 'trio' && m === 'phen') { this.seenPhen = true; this.nb.disabled = false; UI.say('From outside, <b>AA and Aa look identical</b>: both blue. The a allele in Aa is still there — the beetle is a <b>carrier</b> — but you cannot see it. Only aa beetles show a.'); } },
+  track() { const g = gtOf(this.al[0], this.al[1]); this.made.add(g); if (this.nb) this.nb.disabled = this.made.size < 3; },
+  ask() { const g = this.pop[this.qi], ans = g === 'aa' ? 'aa' : 'cant'; UI.say('Out in the field you only see phenotypes. Beetle <b>' + (this.qi + 1) + ' of 8</b> (circled): what is its genotype?'); UI.ctl(UI.choices([['AA', 'AA'], ['Aa', 'Aa'], ['aa', 'aa'], ['cant', 'Can’t tell']], k => this.answer(k, ans, g))); },
+  answer(k, ans, g) {
+    if (this.mode !== 'read') return; const ok = k === ans; if (ok) { this.score++; Snd.good(); } else Snd.bad(); this.reveal = { i: this.qi, t: 0 };
+    UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + (g === 'aa' ? 'Yellow can only mean aa.' : 'It was <b>' + g + '</b> — but from outside a blue beetle could be AA or Aa, so “can’t tell” is the honest answer.'));
+    this.qi++; UI.ctl(UI.row(UI.btn(this.qi < 8 ? 'Next beetle' : 'Finish', () => { if (this.qi < 8) this.ask(); else { this.mode = 'done'; finishLevel('l1', this.score >= 7 ? 3 : this.score >= 5 ? 2 : 1, '<p>You read <b>' + this.score + ' of 8</b> beetles.</p><p>A <b>genotype</b> is the pair of alleles; a <b>phenotype</b> is what shows. A <b>dominant</b> allele hides a recessive one, so a blue beetle may secretly carry a. Hardy–Weinberg will let you count those hidden carriers — later.</p>'); } }, 'primary')));
+  },
+  tap(x, y) { if (this.mode !== 'build') return; const G = this.geo(), ey = G.y + G.s * 0.14; if (((x - G.x) / (G.s * 0.45)) ** 2 + ((y - ey) / (G.s * 0.62)) ** 2 > 1) return; const k = x < G.x ? 0 : 1; this.al[k] = this.al[k] === 'A' ? 'a' : 'A'; Snd.pop(); FX.ring(G.x + (k ? 1 : -1) * G.s * 0.2, ey, AC(this.al[k]), 24); this.track(); },
+  hot() { if (this.mode !== 'build') return []; const G = this.geo(); return [{ x: G.x - G.s * 0.2, y: G.y + G.s * 0.14 }, { x: G.x + G.s * 0.2, y: G.y + G.s * 0.14 }]; },
+  update(dt) { if (this.reveal) { this.reveal.t += dt; if (this.reveal.t > 2.2) this.reveal = null; } },
+  draw(c) {
+    const G = this.geo();
+    if (this.mode === 'build') { const g = gtOf(this.al[0], this.al[1]); beetle(c, G.x, G.y, G.s, g, { lens: 'geno', al: this.al }); ink(c, 'genotype ' + g, G.x, G.y - G.s * 1.35, 16, Pal.ink, 'center', 700, 'serif'); ink(c, 'tap a wing case', G.x, G.y + G.s * 1.05, 12, Pal.muted, 'center', 600); ['AA', 'Aa', 'aa'].forEach((k, i) => { const x = G.x + (i - 1) * 50, y = G.A.y + 24; beetle(c, x, y, 12, k, { lens: 'geno', alpha: this.made.has(k) ? 1 : 0.25 }); ink(c, k, x, y + 20, 11, Pal.ink, 'center', 700, 'serif'); }); return; }
+    if (this.mode === 'trio') { const s = clamp(G.s * 0.7, 28, 60); ['AA', 'Aa', 'aa'].forEach((g, i) => { const x = G.x + (i - 1) * s * 2.6; beetle(c, x, G.y, s, g); ink(c, Lens.mode === 'geno' ? g : (g === 'aa' ? 'yellow' : 'blue'), x, G.y + s * 1.25, 15, Pal.ink, 'center', 700, 'serif'); }); return; }
+    const pts = field(8, { x: G.A.x + 20, y: G.A.y + 10, w: G.A.w - 40, h: G.A.h - 20 }, 11, { max: 34 });
+    this.pop.forEach((g, i) => { const rv = this.reveal && this.reveal.i === i; beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { lens: rv ? 'geno' : 'phen', rot: pts[i].rot, ring: this.mode === 'read' && i === this.qi ? Pal.accent : null }); });
+  }
+});
+
+/* ================= Level 2: Break into alleles ================= */
+Game.reg({
+  id: 'l2', title: 'Break into alleles', sub: 'p and q describe alleles, not beetles',
+  enter() { this.score = 0; this.ri = 0; Lens.set('geno', true); this.round(); },
+  lay(n) { const A = Stage.area(), port = A.w < A.h * 1.1; return port ? { F: { x: 20, y: A.y + 8, w: A.w - 40, h: A.h * 0.48 }, J1: { x: 24, y: A.y + A.h * 0.62, w: (A.w - 72) / 2, h: A.h * 0.3 }, J2: { x: 48 + (A.w - 72) / 2, y: A.y + A.h * 0.62, w: (A.w - 72) / 2, h: A.h * 0.3 } } : { F: { x: 20, y: A.y + 10, w: A.w * 0.52, h: A.h - 30 }, J1: { x: A.w * 0.6, y: A.y + 30, w: A.w * 0.17, h: A.h - 70 }, J2: { x: A.w * 0.8, y: A.y + 30, w: A.w * 0.17, h: A.h - 70 } }; },
+  round() {
+    const R = this.ri; this.sp = null; this.sp2 = null; this.pts = null; this.pts2 = null;
+    if (R === 0) { this.pop = shuffle(countsToList([8, 8, 4])); this.guess = 20; UI.say('Here are <b>20 beetles</b>. Count the alleles, not the beetles: how many <span class="A">A</span> alleles are in this population altogether?'); const v = document.createElement('b'); v.className = 'fx'; v.style.minWidth = '60px'; v.style.textAlign = 'center'; v.style.alignSelf = 'center'; const upd = () => { v.textContent = this.guess + ' A'; }; upd(); const st = d => UI.btn((d > 0 ? '+' : '−') + Math.abs(d), () => { this.guess = clamp(this.guess + d, 0, 40); upd(); }); UI.ctl(UI.row(st(-5), st(-1), v, st(1), st(5)), UI.row(this.go = UI.btn('Break into alleles', () => this.split(), 'primary'))); }
+    else if (R === 1) { this.pop = shuffle(countsToList([9, 22, 19])); this.guess = 0.5; UI.say('Now <b>50 beetles</b>. Before breaking them up, estimate <b>p</b>: the share of all alleles that are A.'); UI.ctl(UI.slider({ label: 'p', min: 0, max: 1, step: 0.01, value: 0.5, fmt: fx2, oninput: v => { this.guess = v; } }), UI.row(this.go = UI.btn('Break into alleles', () => this.split(), 'primary'))); }
+    else { this.pop = shuffle(countsToList([0, 20, 0])); this.pop2 = shuffle(countsToList([10, 0, 10])); UI.say('Two populations. On the left, <b>20 Aa</b> beetles. On the right, <b>10 AA and 10 aa</b>.'); UI.ctl(UI.row(UI.btn('Which has more A alleles?', () => quiz(this, 'Which population has more A alleles?', [['L', 'The left'], ['R', 'The right'], ['S', 'They have the same']], 'S', 'Each has 20 A alleles out of 40. Break them up to see it.', () => this.split()), 'primary'))); }
+  },
+  split() {
+    if (this.sp && this.sp.dir) return; if (this.go) this.go.disabled = true; const L = this.lay();
+    if (this.ri < 2) { const pts = field(this.pop.length, L.F, 5 + this.ri, { max: 24 }); this.sp = makeSplit(this.pop, pts, L.J1, L.J2); this.sp.dir = 1; this.pts = pts; }
+    else { const A = Stage.area(), half = (A.w - 60) / 2, top = { y: A.y + 8, h: A.h * 0.42 }, F1 = { x: 20, y: top.y, w: half, h: top.h }, F2 = { x: 40 + half, y: top.y, w: half, h: top.h }, jh = A.h * 0.36, jy = A.y + A.h * 0.56, jw = (half - 14) / 2;
+      this.pts = field(20, F1, 7); this.pts2 = field(20, F2, 8); this.sp = makeSplit(this.pop, this.pts, { x: 20, y: jy, w: jw, h: jh }, { x: 34 + jw, y: jy, w: jw, h: jh }); this.sp2 = makeSplit(this.pop2, this.pts2, { x: 40 + half, y: jy, w: jw, h: jh }, { x: 54 + half + jw, y: jy, w: jw, h: jh }); this.sp.dir = 1; this.sp2.dir = 1; }
+    Snd.pop(); this.waiting = true; UI.ctl();
+  },
+  update(dt) { if (this.sp) this.sp.update(dt); if (this.sp2) this.sp2.update(dt); if (this.waiting && this.sp && this.sp.done() && (!this.sp2 || this.sp2.done())) { this.waiting = false; this.reveal(); } },
+  reveal() {
+    const S = this.sp, n = S.nA + S.na, p = S.nA / n;
+    if (this.ri === 0) { const ok = this.guess === S.nA; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say('<b>' + S.nA + '</b> A alleles and <b>' + S.na + '</b> a alleles: 40 in all, two per beetle. You said ' + this.guess + (ok ? ' — exactly.' : '.') + ' Each AA beetle gave two A, each Aa gave one. The share of A is <b>p = ' + S.nA + ' ÷ 40 = ' + fx2(p) + '</b>, and the share of a is <b>q = ' + fx2(1 - p) + '</b>. Together they make 1.'); }
+    else if (this.ri === 1) { const ok = Math.abs(this.guess - p) <= 0.03; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say('The jars hold <b>' + S.nA + '</b> A and <b>' + S.na + '</b> a, so <b>p = ' + fx2(p) + '</b> and <b>q = ' + fx2(1 - p) + '</b>. You said ' + fx2(this.guess) + (ok ? ' — close.' : '.') + ' Notice there are more beetles carrying A (31) than not (19), yet A is the <b>minority</b> allele: most carriers have just one copy.'); }
+    else { UI.say('Same jars: <b>20 A and 20 a</b> on both sides, so both have <b>p = 0.50</b> — from completely different beetles. <b>p and q describe the gene pool, not the beetles.</b> They say nothing yet about how alleles are packaged into genotypes; that is what the rest of the game is about.'); }
+    UI.ctl(UI.row(UI.btn(this.ri < 2 ? 'Next population' : 'Finish', () => { this.ri++; if (this.ri < 3) this.round(); else finishLevel('l2', Math.max(1, this.score), '<p>Counting the jars is all there is to an <b>allele frequency</b>. In shorthand:</p><div class="big-eq">p = (2 × AA + Aa) ÷ 2N</div><p>q = 1 − p. And the lesson of the last pair: very different populations can share the same p.</p>'); }, 'primary')));
+  },
+  draw(c) {
+    const L = this.lay();
+    if (this.ri < 2) { const pts = this.pts || field(this.pop.length, L.F, 5 + this.ri, { max: 24 }); const a = this.sp ? 1 - this.sp.t : 1; this.pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot, alpha: Math.max(0.12, a) })); drawJar(c, L.J1, 'A', this.sp && this.sp.done() ? this.sp.nA : null, this.sp && this.sp.done() ? this.sp.nA + this.sp.na : 0); drawJar(c, L.J2, 'a', this.sp && this.sp.done() ? this.sp.na : null, this.sp && this.sp.done() ? this.sp.nA + this.sp.na : 0); if (this.sp) this.sp.draw(c); return; }
+    const A = Stage.area(), half = (A.w - 60) / 2; const P1 = this.pts || field(20, { x: 20, y: A.y + 8, w: half, h: A.h * 0.42 }, 7), P2 = this.pts2 || field(20, { x: 40 + half, y: A.y + 8, w: half, h: A.h * 0.42 }, 8); const a = this.sp ? 1 - this.sp.t : 1;
+    this.pop.forEach((g, i) => beetle(c, P1[i].x, P1[i].y, P1[i].s, g, { rot: P1[i].rot, alpha: Math.max(0.12, a) })); this.pop2.forEach((g, i) => beetle(c, P2[i].x, P2[i].y, P2[i].s, g, { rot: P2[i].rot, alpha: Math.max(0.12, a) }));
+    c.strokeStyle = hexA(Pal.ink, 0.2); c.beginPath(); c.moveTo(A.w / 2, A.y + 6); c.lineTo(A.w / 2, A.y + A.h - 6); c.stroke();
+    if (this.sp) { const d = this.sp.done(); drawJar(c, this.sp.jarA, 'A', d ? this.sp.nA : null); drawJar(c, this.sp.jarB, 'a', d ? this.sp.na : null); drawJar(c, this.sp2.jarA, 'A', d ? this.sp2.nA : null); drawJar(c, this.sp2.jarB, 'a', d ? this.sp2.na : null); this.sp.draw(c); this.sp2.draw(c); }
+  }
+});
+
+/* ================= Level 3: Dominant isn't common ================= */
+Game.reg({
+  id: 'l3', title: 'Dominant isn’t common', sub: 'Dominance and frequency are different things',
+  enter() { this.pop = shuffle(countsToList([2, 16, 32])); this.score = 0; this.sp = null; this.rev = -1; Lens.set('phen', true); stepper(this); this.next(); },
+  lay() { const A = Stage.area(), port = A.w < A.h * 1.1; return port ? { F: { x: 20, y: A.y + 8, w: A.w - 40, h: A.h * 0.5 }, J1: { x: 24, y: A.y + A.h * 0.63, w: (A.w - 72) / 2, h: A.h * 0.3 }, J2: { x: 48 + (A.w - 72) / 2, y: A.y + A.h * 0.63, w: (A.w - 72) / 2, h: A.h * 0.3 } } : { F: { x: 20, y: A.y + 10, w: A.w * 0.52, h: A.h - 30 }, J1: { x: A.w * 0.6, y: A.y + 30, w: A.w * 0.17, h: A.h - 70 }, J2: { x: A.w * 0.8, y: A.y + 30, w: A.w * 0.17, h: A.h - 70 } }; },
+  steps: [
+    function () { quiz(this, 'In this population <b>blue is dominant</b>: 18 beetles are blue and 32 are yellow. Which allele do you think is more common?', [['A', 'A, the dominant one'], ['a', 'a, the recessive one'], ['eq', 'They’re about equal']], 'a', 'Let’s check by breaking every beetle into its alleles — including the hidden ones.', () => this.next()); },
+    function () { const L = this.lay(); this.pts = field(50, L.F, 13, { max: 22 }); this.sp = makeSplit(this.pop, this.pts, L.J1, L.J2); this.sp.dir = 1; this.wait = 'split'; UI.say('Breaking into alleles…'); UI.ctl(); },
+    function () { UI.say('<b>20 A and 80 a</b>: the recessive allele makes up <b>80%</b> of the gene pool. Dominance only describes what happens <b>inside a heterozygote</b> — which allele shows. It says nothing about how common an allele is. (The idea that dominant alleles must spread was exactly the puzzle Hardy was asked to solve in 1908.)'); UI.ctl(UI.row(UI.btn('Put the beetles back', () => { this.sp.dir = -1; this.wait = 'back'; UI.ctl(); }, 'primary'))); },
+    function () { this.guess = 9; UI.say('There are <b>18 blue beetles</b>. How many of them are secretly carrying an a allele?'); UI.ctl(UI.slider({ label: 'carriers', min: 0, max: 18, step: 1, value: 9, fmt: v => v + ' of 18', oninput: v => { this.guess = v; } }), UI.row(UI.btn('Reveal with the genotype lens', b => { b.disabled = true; this.rev = 0; Lens.set('geno', true); Lens.show(true); const ok = Math.abs(this.guess - 16) <= 2; if (ok) { this.score++; Snd.good(); } else Snd.bad(); setTimeout(() => { UI.say('<b>16 of the 18</b> blue beetles are Aa carriers; only 2 are AA. You said ' + this.guess + (ok ? ' — close.' : '.') + ' When a recessive allele is common, most beetles that show the dominant colour are carriers. When it is rare, the opposite — as you will see.'); UI.ctl(UI.row(UI.btn('Finish', () => finishLevel('l3', 1 + this.score, '<p><b>Dominant does not mean common.</b> Dominance describes which allele shows in a heterozygote; frequency is how much of the gene pool an allele makes up. Here the dominant allele was only 20% of the pool, and nearly every blue beetle was a hidden carrier.</p>'), 'primary'))); }, 900); }, 'primary'))); }
+  ],
+  update(dt) { if (this.sp) this.sp.update(dt); if (this.wait === 'split' && this.sp.done()) { this.wait = null; this.next(); } if (this.wait === 'back' && this.sp.t <= 0) { this.wait = null; this.sp = null; this.next(); } if (this.rev >= 0) this.rev += dt; },
+  draw(c) {
+    const L = this.lay(), pts = this.pts || field(50, L.F, 13, { max: 22 }), a = this.sp ? 1 - this.sp.t : 1;
+    this.pop.forEach((g, i) => { const shown = this.rev >= 0 && this.rev > (i / 50) * 0.8; beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot, alpha: Math.max(0.12, a), lens: shown ? 'geno' : 'phen', ring: shown && g === 'Aa' ? Pal.accent : null }); });
+    if (this.sp) { const d = this.sp.done(); drawJar(c, L.J1, 'A', d ? this.sp.nA : null, 100); drawJar(c, L.J2, 'a', d ? this.sp.na : null, 100); this.sp.draw(c); }
+    else if (this.rev < 0) { const blue = this.pop.filter(g => g !== 'aa').length; ink(c, blue + ' blue, ' + (50 - blue) + ' yellow', L.F.x + L.F.w / 2, L.F.y + L.F.h + 18, 15, Pal.ink, 'center', 700, 'serif'); }
+  }
+});
+
+/* ================= Level 4: The gamete pool ================= */
+Game.reg({
+  id: 'l4', title: 'The gamete pool', sub: 'Random mating is random drawing',
+  enter() { this.score = 0; this.tally = [0, 0, 0]; this.kids = []; this.busy = 0; Lens.set('geno', true); const r = rng(41); this.pool = []; for (let i = 0; i < 40; i++) this.pool.push({ al: i < 28 ? 'A' : 'a', u: r(), v: r() }); stepper(this); this.next(); },
+  lay() { const A = Stage.area(); return { pool: { x: 24, y: A.y + 22, w: A.w - 48, h: A.h * 0.3 }, egg: { x: A.w * 0.3, y: A.y + A.h * 0.42 }, sperm: { x: A.w * 0.7, y: A.y + A.h * 0.42 }, mid: { x: A.w / 2, y: A.y + A.h * 0.47 }, nest: { x: 24, y: A.y + A.h * 0.56, w: A.w - 48, h: A.h * 0.24 }, bar: { x: 24, y: A.y + A.h * 0.88, w: A.w - 48, h: 18 } }; },
+  tokPos(k, L) { const t = this.pool[k]; return { x: L.pool.x + 12 + t.u * (L.pool.w - 24), y: L.pool.y + 12 + t.v * (L.pool.h - 24) }; },
+  steps: [
+    function () { quiz(this, 'This is the <b>gamete pool</b> of a population where <b>70% of alleles are A</b>. Each new beetle gets one allele from an <b>egg</b> and one from a <b>sperm</b>, each drawn from this pool at random. Which genotype will be most common among the offspring?', [['AA', 'AA'], ['Aa', 'Aa'], ['aa', 'aa'], ['eq', 'All equal']], 'AA', 'Let’s draw and see.', () => this.next()); },
+    function () { UI.say('Draw eggs and sperm from the pool. Each pair becomes one offspring beetle below. Draw at least 100 and watch the bar.'); this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true; UI.ctl(UI.row(UI.btn('Draw 1', () => this.draw1(true, 0)), UI.btn('Draw 10', () => { for (let i = 0; i < 10; i++) this.draw1(true, i * 0.14); }), UI.btn('Draw 100', () => { for (let i = 0; i < 90; i++) this.draw1(false); for (let i = 0; i < 10; i++) this.draw1(true, i * 0.1); }), this.nb)); },
+    function () { this.showExp = true; const f = frac(this.tally); UI.say('After ' + this.n() + ' offspring: <b>' + pct(f[0]) + ' AA, ' + pct(f[1]) + ' Aa, ' + pct(f[2]) + ' aa</b>. The black markers show where the bar settles with endless drawing: <b>49%, 42% and 9%</b>. Those are the <b>Hardy–Weinberg proportions</b> for p = 0.7, written <span class="fx">p² + 2pq + q²</span>. You found them by drawing from a pool; the next two levels show why those are the numbers.'); UI.ctl(UI.row(UI.btn('One more prediction', () => quiz(this, 'If the pool were <b>50% A and 50% a</b>, what share of offspring would be Aa?', [['25', '25%'], ['50', '50%'], ['75', '75%']], '50', 'Half the draws give two different alleles: A then a, or a then A. So half the offspring are Aa (2 × 0.5 × 0.5).', () => finishLevel('l4', 1 + this.score, '<p><b>Random mating is random drawing from the gene pool.</b> Draw two alleles, independently, again and again, and the offspring settle into fixed proportions set only by p: 49%, 42% and 9% for p = 0.7.</p>')), 'primary'))); }
+  ],
+  n() { return this.tally[0] + this.tally[1] + this.tally[2]; },
+  draw1(vis, delay) {
+    const L = this.lay(), i1 = (R() * 40) | 0, i2 = (R() * 40) | 0, a1 = this.pool[i1].al, a2 = this.pool[i2].al, g = gtOf(a1, a2);
+    const add = () => { this.tally[GI[g]]++; this.kids.push(g); if (this.kids.length > 120) this.kids.shift(); if (this.nb) this.nb.disabled = this.n() < 100; };
+    if (!vis) { add(); return; } const P1 = this.tokPos(i1, L), P2 = this.tokPos(i2, L);
+    FX.fly(P1.x, P1.y, L.egg.x, L.egg.y, a1, 0.45, () => FX.fly(L.egg.x, L.egg.y, L.mid.x - 7, L.mid.y, a1, 0.3, null), { delay, lift: 0, r: 8 });
+    FX.fly(P2.x, P2.y, L.sperm.x, L.sperm.y, a2, 0.45, () => FX.fly(L.sperm.x, L.sperm.y, L.mid.x + 7, L.mid.y, a2, 0.3, () => { add(); Snd.pop(); FX.ring(L.mid.x, L.mid.y, Pal.ink, 20); }), { delay, lift: 0, r: 8 });
+  },
+  draw(c) {
+    const L = this.lay(); plate(c, L.pool.x, L.pool.y, L.pool.w, L.pool.h, 14, 0.6); ink(c, 'gene pool: 70% A, 30% a', L.pool.x + L.pool.w / 2, L.pool.y - 10, 12, Pal.muted, 'center', 700);
+    this.pool.forEach((t, k) => { const P = this.tokPos(k, L); token(c, P.x, P.y, 7, t.al); });
+    ink(c, 'egg', L.egg.x, L.egg.y + 18, 12, Pal.muted, 'center', 700); ink(c, 'sperm', L.sperm.x, L.sperm.y + 18, 12, Pal.muted, 'center', 700); c.strokeStyle = hexA(Pal.ink, 0.25); c.setLineDash([3, 3]); c.beginPath(); c.arc(L.egg.x, L.egg.y, 11, 0, TAU); c.moveTo(L.sperm.x + 11, L.sperm.y); c.arc(L.sperm.x, L.sperm.y, 11, 0, TAU); c.stroke(); c.setLineDash([]);
+    const pts = field(120, L.nest, 3, { max: 10 }); this.kids.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, Math.min(9, pts[i].s), g, { lens: 'geno', noLetters: true }));
+    const n = this.n(); genoBar(c, L.bar.x, L.bar.y, L.bar.w, L.bar.h, n ? frac(this.tally) : [0, 0, 0], { title: n + ' offspring', exp: this.showExp ? hwExp(0.7) : null, expLabel: this.showExp ? '▼ where the bar settles' : '' });
+  }
+});
+
+/* ================= Levels 5–8 ================= */
+function crossDist(g1, g2) { const pa = g => g === 'AA' ? 1 : g === 'Aa' ? 0.5 : 0, a = pa(g1), b = pa(g2); return [a * b, a * (1 - b) + (1 - a) * b, (1 - a) * (1 - b)]; }
+function matingDist(f, rule) { const G = ['AA', 'Aa', 'aa'], out = [0, 0, 0]; let tot = 0; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { if (rule === 'assort' && i !== j) continue; if (rule === 'dis' && i === j) continue; if (rule === 'self' && i !== j) continue; const w = rule === 'random' ? f[i] * f[j] : rule === 'dis' ? f[i] * f[j] : f[i]; if (!w) continue; tot += w; const d = crossDist(G[i], G[j]); for (let k = 0; k < 3; k++) out[k] += w * d[k]; } return out.map(v => v / (tot || 1)); }
+function squareGeo(A) { const L = Math.min(A.w - 90, A.h * 0.56, 380); return { L, x: (A.w - L) / 2 + 14, y: A.y + 42 }; }
+function drawSquare(c, G, p, hi, o = {}) {
+  const q = 1 - p, L = G.L, tiles = [['AA', 0, 0, p, p], ['Aa', p, 0, q, p], ['Aa', 0, p, p, q], ['aa', p, p, q, q]];
+  c.fillStyle = Pal.A; c.fillRect(G.x, G.y - 18, L * p, 12); c.fillStyle = Pal.a; c.fillRect(G.x + L * p, G.y - 18, L * q, 12); c.fillStyle = Pal.A; c.fillRect(G.x - 18, G.y, 12, L * p); c.fillStyle = Pal.a; c.fillRect(G.x - 18, G.y + L * p, 12, L * q);
+  ink(c, 'egg: A ' + (L * p > 60 ? '(p)' : ''), G.x + L * p / 2, G.y - 30, 11.5, Pal.ink, 'center', 700); ink(c, 'a', G.x + L * p + L * q / 2, G.y - 30, 11.5, Pal.ink, 'center', 700);
+  c.save(); c.translate(G.x - 30, G.y + L * p / 2); c.rotate(-Math.PI / 2); ink(c, 'sperm: A', 0, 0, 11.5, Pal.ink, 'center', 700); c.restore(); c.save(); c.translate(G.x - 30, G.y + L * p + L * q / 2); c.rotate(-Math.PI / 2); ink(c, 'a', 0, 0, 11.5, Pal.ink, 'center', 700); c.restore();
+  tiles.forEach(([g, tx, ty, tw, th], k) => { const on = !hi || hi.includes(k); const x = G.x + tx * L, y = G.y + ty * L, w = tw * L, h = th * L; c.globalAlpha = on ? 1 : 0.18; if (g === 'Aa') { c.fillStyle = Pal.A; c.fillRect(x + 1, y + 1, w - 2, (h - 2) / 2); c.fillStyle = Pal.a; c.fillRect(x + 1, y + h / 2, w - 2, (h - 2) / 2); } else { c.fillStyle = g === 'AA' ? Pal.A : Pal.a; c.fillRect(x + 1, y + 1, w - 2, h - 2); } c.globalAlpha = 1; if (on && w > 44 && h > 30) { const v = tw * th; plate(c, x + w / 2 - 34, y + h / 2 - 15, 68, 30, 8, 0.9); ink(c, g === 'AA' ? 'p × p' : g === 'aa' ? 'q × q' : 'p × q', x + w / 2, y + h / 2 - 5, 11, Pal.ink, 'center', 700, 'serif'); ink(c, pct(v), x + w / 2, y + h / 2 + 8, 11, Pal.ink, 'center', 700); } });
+}
+
+/* ================= Level 5: Why p²? ================= */
+Game.reg({
+  id: 'l5', title: 'Why p²?', sub: 'Two independent draws multiply',
+  TG: [{ g: 'AA', v: 0.36 }, { g: 'aa', v: 0.04 }, { g: 'AA', v: 0.81 }, { g: 'aa', v: 0.25 }],
+  enter() { this.p = 0.5; this.score = 0; this.ti = -1; this.hi = [0]; stepper(this); this.next(); },
+  steps: [
+    function () { UI.say('Picture <b>every possible offspring</b> as this square. Across the top: the egg’s allele, A with chance <b>p</b> (blue) and a with chance <b>q</b>. Down the side: the sperm’s allele, the same way. An offspring is <b>AA</b> only if <b>both</b> draws are A — the top-left corner, whose area is <b>p × p</b>. Drag p and watch the corner.'); UI.ctl(UI.slider({ label: 'p', min: 0.05, max: 0.95, step: 0.01, value: this.p, fmt: fx2, oninput: v => { this.p = v; } }), UI.row(UI.btn('Play: hit the target', () => this.next(), 'primary'))); },
+    function () { this.target(); }
+  ],
+  target() {
+    this.ti++; if (this.ti >= this.TG.length) { finishLevel('l5', this.score >= 4 ? 3 : this.score >= 2 ? 2 : 1, '<p>You hit <b>' + this.score + ' of 4</b> targets first time.</p><p>Two independent draws multiply: an offspring is AA with chance <b>p × p = p²</b> and aa with chance <b>q × q = q²</b>. To make AA 36% you needed p = 0.6, because 0.6 × 0.6 = 0.36.</p>'); return; }
+    const T = this.TG[this.ti]; this.hi = T.g === 'AA' ? [0] : [3]; this.first = true; this.tries = 0;
+    UI.say('<b>Target ' + (this.ti + 1) + ' of 4:</b> set p so that exactly <b>' + pct(T.v) + '</b> of offspring are <b>' + T.g + '</b>.');
+    UI.ctl(UI.slider({ label: 'p', min: 0.05, max: 0.95, step: 0.01, value: 0.5, fmt: fx2, oninput: v => { this.p = v; } }), UI.row(UI.btn('Lock it in', () => this.check(), 'primary'))); this.p = 0.5;
+  },
+  check() { const T = this.TG[this.ti], v = T.g === 'AA' ? this.p * this.p : (1 - this.p) ** 2, ok = Math.abs(v - T.v) <= 0.012; if (ok) { if (this.first) this.score++; Snd.good(); FX.text(Stage.w / 2, Stage.area().y + 20, 'On target', Pal.good, 20); UI.toast((T.g === 'AA' ? 'p = ' + fx2(this.p) + ', and p × p = ' : 'q = ' + fx2(1 - this.p) + ', and q × q = ') + pct(v) + '.'); this.target(); } else { this.first = false; this.tries++; Snd.bad(); if (this.tries >= 3) { const sol = T.g === 'AA' ? Math.sqrt(T.v) : 1 - Math.sqrt(T.v); this.p = sol; UI.toast('Here’s the answer: p = ' + fx2(sol) + ', because ' + (T.g === 'AA' ? fx2(sol) + ' × ' + fx2(sol) : fx2(1 - sol) + ' × ' + fx2(1 - sol)) + ' = ' + pct(T.v) + '.', 5000); this.target(); return; } UI.toast('That gives ' + pct(v) + '. ' + (v > T.v ? 'Too big' : 'Too small') + ' — adjust p and try again.'); } },
+  draw(c) { const A = Stage.area(), G = squareGeo(A); drawSquare(c, G, this.p, this.hi); if (this.ti >= 0 && this.ti < 4) { const T = this.TG[this.ti]; ink(c, 'target: ' + T.g + ' = ' + pct(T.v), A.w / 2, G.y + G.L + 26, 16, Pal.accent, 'center', 700, 'serif'); } }
+});
+
+/* ================= Level 6: Why 2pq? ================= */
+Game.reg({
+  id: 'l6', title: 'Why 2pq?', sub: 'Two routes to a heterozygote',
+  enter() { this.score = 0; this.cells = [null, null, null, null]; this.mode = 'board'; this.p = 0.6; this.col = 0; this.done = false; stepper(this); this.next(); },
+  board() { const A = Stage.area(), L = Math.min(A.w - 100, A.h * 0.6, 340), x = (A.w - L) / 2 + 20, y = A.y + 46; return { L, x, y, cw: L / 2 }; },
+  steps: [
+    function () { UI.say('An egg can carry A or a; so can a sperm. That makes <b>four</b> possible pairings. <b>Tap each cell</b> to breed that egg with that sperm.'); },
+    function () { quiz(this, 'Look at the board. How many of the four routes produce an <b>Aa</b> beetle?', [['1', 'One'], ['2', 'Two'], ['4', 'Four']], '2', 'A from the egg with a from the sperm — <b>or</b> a from the egg with A from the sperm. Two routes, each with chance p × q.', () => this.next()); },
+    function () { this.mode = 'square'; UI.say('Here is the same idea as areas. The two pink-and-blue tiles are the two routes to Aa, each with area <b>p × q</b>. Press <b>Collect the tiles</b> to stack all four into one bar.'); UI.ctl(UI.slider({ label: 'p', min: 0.1, max: 0.9, step: 0.01, value: this.p, fmt: fx2, oninput: v => { if (!this.col) this.p = v; } }), UI.row(this.cb = UI.btn('Collect the tiles', b => { b.disabled = true; this.col = 0.0001; Snd.pop(); }, 'primary'))); },
+    function () { UI.say('The four tiles fill one bar of length 1: <span class="fx">p² + pq + pq + q² = <b>p² + 2pq + q²</b> = 1</span>. The heterozygote share is <b>2pq</b> because there are two ways to be one. This bar is the <b>Hardy–Weinberg equation</b>.'); UI.ctl(UI.row(UI.btn('Use it', () => this.next(), 'primary'))); },
+    function () { this.mode = 'pred'; this.pred(); }
+  ],
+  tap(x, y) { if (this.mode !== 'board' || this.si !== 0) return; const B = this.board(), i = Math.floor((x - B.x) / B.cw), j = Math.floor((y - B.y) / B.cw); if (i < 0 || i > 1 || j < 0 || j > 1) return; const k = j * 2 + i; if (this.cells[k]) return; const egg = j === 0 ? 'A' : 'a', sp = i === 0 ? 'A' : 'a'; this.cells[k] = gtOf(egg, sp); Snd.pop(); FX.ring(B.x + (i + 0.5) * B.cw, B.y + (j + 0.5) * B.cw, Pal.ink, 30); if (this.cells.every(Boolean)) setTimeout(() => { if (this.si === 0) this.next(); }, 600); },
+  hot() { if (this.mode !== 'board' || this.si !== 0) return []; const B = this.board(); return [0, 1, 2, 3].filter(k => !this.cells[k]).map(k => ({ x: B.x + ((k % 2) + 0.5) * B.cw, y: B.y + (((k / 2) | 0) + 0.5) * B.cw })); },
+  pred() {
+    const p = 0.3, q = 0.7, opts = shuffle([['ok', hwExp(p)], ['no2', [p * p, p * q, q * q]], ['flat', [p, 0, q]], ['eq', [1 / 3, 1 / 3, 1 / 3]]]);
+    UI.say('<b>Forecast:</b> a gene pool has <b>p = 0.3</b>. Which bar shows its offspring?'); const grid = document.createElement('div'); grid.className = 'optgrid';
+    opts.forEach(([k, v], i) => { const b = document.createElement('button'); b.className = 'optc'; b.setAttribute('aria-label', 'Option ' + (i + 1)); b.innerHTML = '<div class="mini">' + v.map((x, j) => '<span style="height:' + Math.max(2, x * 66) + 'px;background:' + (j === 1 ? 'linear-gradient(' + Pal.A + ' 50%, ' + Pal.a + ' 50%)' : j === 0 ? Pal.A : Pal.a) + '"><i>' + Math.round(x * 100) + '%</i></span>').join('') + '</div><div style="display:flex;justify-content:space-around;font:600 12px var(--serif)"><span>AA</span><span>Aa</span><span>aa</span></div>'; b.onclick = () => { if (this.done) return; this.done = true; Snd.click(); const ok = k === 'ok'; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + 'p² = 0.09, 2pq = 2 × 0.3 × 0.7 = 0.42, q² = 0.49. ' + (k === 'no2' ? 'That bar forgot the second route: it adds up to only 79%.' : '')); UI.ctl(UI.row(UI.btn('Finish', () => finishLevel('l6', 1 + this.score, '<p>A heterozygote can form two ways, so its share is <b>2pq</b>. The four tiles of the square add up to <span class="fx">(p + q)² = p² + 2pq + q² = 1</span>: <b>the Hardy–Weinberg equation is just the probabilities of drawing two alleles at random from the gene pool.</b></p>'), 'primary'))); }; grid.appendChild(b); });
+    UI.ctl(grid);
+  },
+  update(dt) { if (this.col > 0 && this.col < 1) { this.col = Math.min(1, this.col + dt / 1.6); if (this.col >= 1 && this.si === 2) this.next(); } },
+  draw(c) {
+    const A = Stage.area();
+    if (this.mode === 'board') { const B = this.board(); ink(c, 'sperm A', B.x + B.cw * 0.5, B.y - 14, 12, Pal.ink, 'center', 700); ink(c, 'sperm a', B.x + B.cw * 1.5, B.y - 14, 12, Pal.ink, 'center', 700); ink(c, 'egg A', B.x - 36, B.y + B.cw * 0.5, 12, Pal.ink, 'center', 700); ink(c, 'egg a', B.x - 36, B.y + B.cw * 1.5, 12, Pal.ink, 'center', 700);
+      for (let k = 0; k < 4; k++) { const i = k % 2, j = (k / 2) | 0, x = B.x + i * B.cw, y = B.y + j * B.cw; plate(c, x + 3, y + 3, B.cw - 6, B.cw - 6, 12, 0.7); const egg = j ? 'a' : 'A', sp = i ? 'a' : 'A'; token(c, x + 16, y + 16, 9, egg); token(c, x + B.cw - 16, y + 16, 9, sp); if (this.cells[k]) { beetle(c, x + B.cw / 2, y + B.cw * 0.56, B.cw * 0.24, this.cells[k], { lens: 'geno' }); ink(c, this.cells[k], x + B.cw / 2, y + B.cw - 14, 13, Pal.ink, 'center', 700, 'serif'); if (this.cells[k] === 'Aa' && this.si >= 1) { c.strokeStyle = Pal.accent; c.lineWidth = 3; rrect(c, x + 3, y + 3, B.cw - 6, B.cw - 6, 12); c.stroke(); } } else ink(c, 'tap', x + B.cw / 2, y + B.cw / 2, 13, Pal.muted, 'center', 600); } return; }
+    const G = squareGeo(A), p = this.p, q = 1 - p, L = G.L, t = easeIO(clamp(this.col, 0, 1)), by = G.y + L + 54, bh = 34;
+    if (t <= 0) { drawSquare(c, G, p, null); return; }
+    const src = [[0, 0, p, p, 'AA'], [p, 0, q, p, 'Aa'], [0, p, p, q, 'Aa'], [p, p, q, q, 'aa']], dst = [[0, p * p], [p * p, p * q], [p * p + p * q, p * q], [p * p + 2 * p * q, q * q]];
+    src.forEach(([sx, sy, sw, sh, g], k) => { const x = lerp(G.x + sx * L, G.x + dst[k][0] * L, t), y = lerp(G.y + sy * L, by, t), w = lerp(sw * L, dst[k][1] * L, t), h = lerp(sh * L, bh, t); if (g === 'Aa') { c.fillStyle = Pal.A; c.fillRect(x + 1, y + 1, w - 2, (h - 2) / 2); c.fillStyle = Pal.a; c.fillRect(x + 1, y + h / 2, w - 2, (h - 2) / 2); } else { c.fillStyle = g === 'AA' ? Pal.A : Pal.a; c.fillRect(x + 1, y + 1, w - 2, h - 2); } });
+    if (t >= 1) { const labs = [['p²', 0, p * p], ['2pq', p * p, 2 * p * q], ['q²', p * p + 2 * p * q, q * q]]; labs.forEach(([s, a, w]) => { ink(c, s, G.x + (a + w / 2) * L, by + bh + 18, 20, Pal.ink, 'center', 600, 'serif'); ink(c, pct(w), G.x + (a + w / 2) * L, by - 12, 12, Pal.ink, 'center', 700); }); ink(c, '= 1', G.x + L + 26, by + bh / 2, 18, Pal.ink, 'center', 600, 'serif'); }
+  }
+});
+
+/* ================= Level 7: One generation ================= */
+Game.reg({
+  id: 'l7', title: 'One generation', sub: 'Equilibrium in one round of mating',
+  POPS: [[20, 0, 20], [32, 0, 8], [0, 40, 0]],
+  enter() { this.score = 0; this.ri = -1; this.pred = null; this.anim = null; Lens.set('geno', true); stepper(this); this.next(); },
+  lay() { const A = Stage.area(), port = A.w < A.h * 1.1; if (port) { const sz = Math.min(A.w - 80, A.h * 0.5); return { F: { x: 20, y: A.y + 6, w: A.w - 40, h: A.h * 0.28 }, bar: { x: 30, y: A.y + A.h * 0.32 + 6, w: A.w - 60 }, T: Fin.geo((A.w - sz) / 2, A.y + A.h * 0.4 + 30, sz) }; } const sz = Math.min(A.w * 0.4, A.h * 0.7); return { F: { x: 20, y: A.y + 10, w: A.w * 0.45, h: A.h * 0.6 }, bar: { x: 30, y: A.y + A.h * 0.7 + 20, w: A.w * 0.42 }, T: Fin.geo(A.w * 0.52, A.y + 40, sz) }; },
+  steps: [
+    function () { this.setPop([20, 0, 20]); UI.say('This triangle is a <b>map of every possible population</b>. Each corner is a population of only one genotype. <b>Left to right</b> is the share of a alleles; <b>height</b> is the share of heterozygotes. The <b>green curve</b> is where Hardy–Weinberg proportions sit. The red dot is this population: half AA, half aa, no heterozygotes — on the floor of the triangle.'); UI.ctl(UI.row(UI.btn('Start predicting', () => this.next(), 'primary'))); },
+    function () { this.round(); }
+  ],
+  setPop(c) { this.cnt = c; this.pop = shuffle(countsToList(c)); this.f = frac(c); this.trail = [this.f.slice()]; },
+  round() { this.ri++; if (this.ri >= 3) { finishLevel('l7', this.score >= 3 ? 3 : this.score >= 2 ? 2 : 1, '<p>You placed <b>' + this.score + ' of 3</b> populations correctly.</p><p>One round of random mating moves a population <b>straight up or down</b> onto the Hardy–Weinberg curve — and then it stays. It never moves <b>sideways</b>, because mating only reshuffles alleles; it does not change how many of each there are. <b>Sideways motion means allele frequencies are changing: that is evolution.</b> Keep this map in mind for the rest of the game.</p>'); return; }
+    if (this.ri > 0) this.setPop(this.POPS[this.ri]); this.pred = null; this.gens = 0; const c = this.cnt;
+    UI.say('Population ' + (this.ri + 1) + ' of 3: <b>' + c[0] + ' AA, ' + c[1] + ' Aa, ' + c[2] + ' aa</b>. <b>Tap the triangle</b> where you think it will be after <b>one generation</b> of random mating.'); this.rb = UI.btn('Run one generation', () => this.gen(), 'primary'); this.rb.disabled = true; UI.ctl(UI.row(this.rb));
+  },
+  tap(x, y) { if (this.si !== 1 || this.gens > 0 || this.anim) return; const L = this.lay(), f = Fin.inv(L.T, x, y); if (!f) return; this.pred = f; Snd.pop(); this.rb.disabled = false; },
+  hot() { if (this.si !== 1 || this.gens > 0) return []; const L = this.lay(), p = pOf(this.cnt); return [Fin.pt(L.T, hwExp(p)), Fin.pt(L.T, [0.3, 0.3, 0.4])]; },
+  gen() {
+    if (this.anim) return; const p = pOf(this.cnt), nc = hwCounts(p, 40), from = this.f.slice(), to = frac(nc); this.anim = { t: 0, from, to }; this.cnt = nc; this.pop = shuffle(countsToList(nc)); this.f = to; this.gens++; Snd.pop(); UI.ctl();
+    if (this.gens === 1) { const L = this.lay(), P = Fin.pt(L.T, to), Q = Fin.pt(L.T, this.pred), d = Math.hypot(P.x - Q.x, P.y - Q.y) / L.T.size, ok = d < 0.09; if (ok) this.score++; this.ok = ok; }
+  },
+  update(dt) { if (this.anim) { this.anim.t += dt / 1.1; if (this.anim.t >= 1) { this.trail.push(this.anim.to.slice()); this.anim = null; this.after(); } } },
+  after() {
+    const p = pOf(this.cnt), f = this.f;
+    if (this.gens === 1) { (this.ok ? Snd.good : Snd.bad).call(Snd); UI.say((this.ok ? '<b>Good call.</b> ' : '<b>Here is where it went.</b> ') + 'After one generation: <b>' + pct(f[0]) + ' AA, ' + pct(f[1]) + ' Aa, ' + pct(f[2]) + ' aa</b> — exactly p², 2pq and q² for p = ' + fx2(p) + '. The dot moved <b>straight ' + (this.ri === 2 ? 'down' : 'up') + '</b> onto the curve. Run another generation.'); UI.ctl(UI.row(UI.btn('Another generation', () => this.gen(), 'primary'))); }
+    else { UI.say('It did not move at all. Once on the curve, random mating keeps a population there: <b>equilibrium</b>. And it never moved sideways: <b>p stayed ' + fx2(p) + '</b> the whole time.'); UI.ctl(UI.row(UI.btn(this.ri < 2 ? 'Next population' : 'Finish', () => this.round(), 'primary'))); }
+  },
+  draw(c) {
+    const L = this.lay(), pts = field(40, L.F, 9 + this.ri, { max: 20 }); this.pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot }));
+    genoBar(c, L.bar.x, L.bar.y, L.bar.w, 16, this.anim ? this.anim.from : this.f, { title: 'genotypes' });
+    const cur = this.anim ? this.anim.from.map((v, i) => lerp(v, this.anim.to[i], easeIO(this.anim.t))) : this.f;
+    Fin.draw(c, L.T, { trail: this.trail.concat([cur]), pts: [{ f: cur, col: Pal.accent, r: 7 }], pred: this.pred });
+  }
+});
+
+/* ================= Level 8: Equilibrium Island ================= */
+const SWITCHES = [['mate', 'Random mating'], ['sel', 'No selection'], ['mut', 'No mutation'], ['mig', 'No migration'], ['big', 'Large population']];
+function islandStep(f, sw) {
+  let p = f[0] + f[1] / 2;
+  if (!sw.mut) p *= 0.97; if (!sw.mig) p = 0.85 * p + 0.15 * 0.1;
+  let off = sw.mate ? hwExp(p) : matingDist(hwExp(p).map((v, i) => 0.5 * v + 0.5 * f[i]), 'assort');
+  if (!sw.mate) off = matingDist(f, 'assort').map((v, i) => 0.6 * v + 0.4 * hwExp(p)[i]);
+  if (!sw.big) { const n = 16, c = [0, 0, 0]; for (let k = 0; k < n; k++) { const u = R(); c[u < off[0] ? 0 : u < off[0] + off[1] ? 1 : 2]++; } off = frac(c); }
+  if (!sw.sel) { const w = [1, 1, 0.55], s = off.map((v, i) => v * w[i]), t = s[0] + s[1] + s[2]; off = s.map(v => v / t); }
+  return off;
+}
+Game.reg({
+  id: 'l8', title: 'Equilibrium Island', sub: 'The five assumptions and the null model',
+  enter() { this.sw = { mate: 1, sel: 1, mut: 1, mig: 1, big: 1 }; this.f = hwExp(0.6); this.trail = [this.f.slice()]; this.run = 0; this.score = 0; this.mi = -1; Lens.set('geno', true); stepper(this); this.next(); },
+  lay() { const A = Stage.area(), port = A.w < A.h * 1.1; if (port) { const sz = Math.min(A.w - 80, A.h * 0.5); return { F: { x: 20, y: A.y + 4, w: A.w - 40, h: A.h * 0.26 }, bar: { x: 30, y: A.y + A.h * 0.31, w: A.w - 60 }, T: Fin.geo((A.w - sz) / 2, A.y + A.h * 0.4 + 26, sz) }; } const sz = Math.min(A.w * 0.4, A.h * 0.7); return { F: { x: 20, y: A.y + 10, w: A.w * 0.45, h: A.h * 0.6 }, bar: { x: 30, y: A.y + A.h * 0.72 + 20, w: A.w * 0.42 }, T: Fin.geo(A.w * 0.52, A.y + 40, sz) }; },
+  swRow(hidden, locked) { const d = document.createElement('div'); d.className = 'sw'; SWITCHES.forEach(([k, t]) => { const b = document.createElement('button'); b.className = hidden ? '' : this.sw[k] ? 'on' : 'off'; b.textContent = hidden ? '?' : (this.sw[k] ? '✓ ' : '✗ ') + t; if (locked) b.disabled = true; if (!hidden && !locked) b.onclick = () => { Snd.click(); this.sw[k] = this.sw[k] ? 0 : 1; b.className = this.sw[k] ? 'on' : 'off'; b.textContent = (this.sw[k] ? '✓ ' : '✗ ') + t; }; d.appendChild(b); }); return d; },
+  steps: [
+    function () { UI.say('Hardy–Weinberg makes five assumptions. On this island, all five hold: each switch is green. Run twenty generations and watch the dot.'); UI.ctl(this.swRow(false, true), UI.row(UI.btn('Run 20 generations', b => { b.disabled = true; this.go(20, () => this.next()); }, 'primary'))); },
+    function () { UI.say('Nothing moved — not the dot, not p. That is the point of Hardy–Weinberg: it is the <b>null model</b>, what a population looks like when nothing is changing it. Now experiment. Flip any switch and run: watch <b>which way</b> the dot goes.'); UI.ctl(this.swRow(false), UI.row(UI.btn('Run 12 generations', () => { this.trail = [this.f.slice()]; this.go(12); }), UI.btn('Reset the island', () => { this.f = hwExp(0.6); this.trail = [this.f.slice()]; }), UI.btn('Start the mystery rounds', () => this.next(), 'primary'))); },
+    function () { this.mystery(); }
+  ],
+  go(n, done) { this.run = n; this.acc = 0; this.done = done; },
+  mystery() {
+    this.mi++; if (this.mi >= 4) { finishLevel('l8', this.score >= 4 ? 3 : this.score >= 2 ? 2 : 1, '<p>You diagnosed <b>' + this.score + ' of 4</b> islands from the dot’s movement alone.</p><table><tr><th>Broken assumption</th><th>On the map</th></tr><tr><td>Selection</td><td>slides steadily along the curve</td></tr><tr><td>Migration</td><td>slides toward the migrants’ allele frequency</td></tr><tr><td>Small population</td><td>wanders at random along the curve</td></tr><tr><td>Non-random mating</td><td>drops below the curve; p stays put</td></tr><tr><td>Mutation</td><td>creeps along the curve, very slowly in reality</td></tr></table>'); return; }
+    if (this.mi === 0) this.order = shuffle(['sel', 'mig', 'big', 'mate']); const k = this.order[this.mi]; this.sw = { mate: 1, sel: 1, mut: 1, mig: 1, big: 1 }; this.sw[k] = 0; this.secret = k; this.f = hwExp(0.6); this.trail = [this.f.slice()];
+    UI.say('<b>Mystery island ' + (this.mi + 1) + ' of 4.</b> One assumption has been secretly broken. Watch the dot for twelve generations.'); UI.ctl(this.swRow(true));
+    this.go(12, () => { UI.say('Which assumption was broken?'); UI.ctl(UI.choices(SWITCHES.map(([kk, t]) => [kk, t]), a => { const ok = a === this.secret; if (ok) { this.score++; Snd.good(); } else Snd.bad(); const exp = { sel: 'Selection against aa drove the dot steadily along the curve toward fewer a alleles.', mig: 'Migrants with few a alleles pulled the dot along the curve toward their allele frequency.', big: 'In a tiny population, chance made the dot wander back and forth along the curve.', mate: 'Like-with-like mating dropped the dot <b>below</b> the curve: fewer heterozygotes, same p.' }[this.secret]; UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite:</b> it was <b>' + SWITCHES.find(s => s[0] === this.secret)[1].toLowerCase() + '</b> that was broken. ') + exp); UI.ctl(UI.row(UI.btn('Next island', () => this.mystery(), 'primary'))); })); });
+  },
+  update(dt) { if (this.run > 0) { this.acc += dt; if (this.acc > 0.28) { this.acc = 0; this.f = islandStep(this.f, this.sw); this.trail.push(this.f.slice()); if (this.trail.length > 40) this.trail.shift(); this.run--; if (this.run === 0 && this.done) { const d = this.done; this.done = null; d(); } } } },
+  draw(c) {
+    const L = this.lay(), cnt = hwCounts(0, 0), n = 40, c3 = [Math.round(this.f[0] * n), Math.round(this.f[1] * n)]; c3.push(Math.max(0, n - c3[0] - c3[1])); const pop = countsToList(c3), pts = field(pop.length, L.F, 21, { max: 18 }); pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot }));
+    genoBar(c, L.bar.x, L.bar.y, L.bar.w, 16, this.f, { title: 'genotypes  (p = ' + fx2(this.f[0] + this.f[1] / 2) + ')', exp: hwExp(this.f[0] + this.f[1] / 2) });
+    Fin.draw(c, L.T, { trail: this.trail, pts: [{ f: this.f, col: Pal.accent, r: 7 }] });
+  }
+});
+
+/* ================= Levels 9–13: breaking the equilibrium ================= */
+function fieldRect(A, frac0, frac1) { return { x: 20, y: A.y + A.h * frac0, w: A.w - 40, h: A.h * (frac1 - frac0) }; }
+
+/* ================= Level 9: The bird ================= */
+Game.reg({
+  id: 'l9', title: 'The bird', sub: 'Selection, and why recessives hide',
+  enter() { this.score = 0; this.gen = 1; this.qs = [0.5]; this.mode = 'intro'; this.setPop([10, 20, 10]); Lens.show(true, 'phen'); stepper(this); this.next(); },
+  setPop(c) { this.pop = shuffle(countsToList(c)); this.alive = this.pop.map(() => true); },
+  q() { const c = listCounts(this.pop.filter((g, i) => this.alive[i])); return 1 - pOf(c); },
+  steps: [
+    function () { quiz(this, 'Hardy–Weinberg assumes <b>no selection</b>. Here a bird hunts beetles, and it can only see <b>colour</b> — phenotype, not genotype. Yellow beetles stand out on this ground. If the bird takes mostly yellow beetles, which allele becomes rarer?', [['a', 'a'], ['A', 'A'], ['none', 'Neither']], 'a', 'Every yellow beetle eaten removes two a alleles.', () => this.next()); },
+    function () { this.mode = 'hunt'; this.bites = 10; this.timer = 12; UI.say('<b>You are the bird.</b> Generation ' + this.gen + ' of 3. Lower the share of a alleles, <b>q</b>, from 0.50 to <b>0.30 or less</b>. Ten bites per generation; tap beetles to eat them. Try the genotype lens: the bird can’t.'); UI.ctl(UI.row(UI.btn('Done hunting', () => this.endHunt()))); }
+  ],
+  tap(x, y) { if (this.mode !== 'hunt') return; const A = Stage.area(), pts = this.fieldPts(A), i = hitList(pts, x, y, k => this.alive[k]); if (i < 0) return; this.alive[i] = false; this.bites--; Snd.pop(); FX.ring(pts[i].x, pts[i].y, Pal.accent, 22); if (this.bites <= 0) this.endHunt(); },
+  hot() { if (this.mode !== 'hunt') return []; const pts = this.fieldPts(Stage.area()); return pts.filter((p, i) => this.alive[i]); },
+  fieldPts(A) { return field(this.pop.length, fieldRect(A, 0.04, 0.66), 31 + this.gen, { max: 22 }); },
+  endHunt() {
+    if (this.mode !== 'hunt') return; this.mode = 'review'; const q = this.q(); UI.say('The survivors have <b>q = ' + fx2(q) + '</b>. They breed at random, so their offspring are in Hardy–Weinberg proportions for this <b>new</b> q.');
+    UI.ctl(UI.row(UI.btn('Let the survivors breed', () => { const c = hwCounts(1 - q, 40); this.setPop(c); this.qs.push(q); this.gen++; const A = Stage.area(); this.fieldPts(A).forEach((P, i) => { if (i % 5 === 0) FX.ring(P.x, P.y, phenCol(this.pop[i]), 14); }); if (q <= 0.3 + 1e-9 || this.gen > 3) { const ok = q <= 0.3 + 1e-9; if (ok) this.score++; UI.say((ok ? '<b>Goal reached:</b> q = ' + fx2(q) + '. ' : 'Three generations, and q = ' + fx2(q) + '. ') + 'Selection changes allele frequencies by changing who breeds.'); UI.ctl(UI.row(UI.btn('What if you kept going?', () => this.partB(), 'primary'))); } else { this.mode = 'hunt'; this.bites = 10; UI.say('Generation <b>' + this.gen + ' of 3</b>, q = ' + fx2(q) + '. Hunt again.'); UI.ctl(UI.row(UI.btn('Done hunting', () => this.endHunt()))); } }, 'primary')));
+  },
+  partB() { this.mode = 'sim'; Lens.set('phen', true); quiz(this, 'Suppose the bird eats <b>every</b> yellow beetle, every generation, starting from q = 0.5. After <b>20 generations</b>, will the a allele be gone?', [['gone', 'Yes, gone'], ['rare', 'No: rare, but still there'], ['back', 'It bounces back']], 'rare', 'Watch why.', () => { this.simQ = [0.5]; this.simT = 0; this.mode = 'simrun'; UI.say('Every yellow beetle removed, every generation…'); UI.ctl(); }); },
+  update(dt) {
+    if (this.mode === 'hunt') { this.timer -= dt; if (this.timer <= 0) { this.timer = 12; this.endHunt(); } }
+    if (this.mode === 'simrun') { this.simT += dt; if (this.simT > 0.22) { this.simT = 0; const q = last(this.simQ); this.simQ.push(q / (1 + q)); this.setPop(hwCounts(1 - last(this.simQ), 60)); if (this.simQ.length > 20) { this.mode = 'simdone'; const qq = last(this.simQ); Lens.show(true, 'geno'); UI.say('After 20 generations q = <b>' + fx3(qq) + '</b> — small, but not zero, and falling ever more slowly. Look through the genotype lens: almost every a allele left is inside a <b>blue carrier</b>. Of all the a copies, <b>' + pct(1 - qq) + '</b> are in heterozygotes, where the bird cannot see them.'); UI.ctl(UI.row(UI.btn('Finish', () => finishLevel('l9', 1 + this.score, '<p><b>Selection changes allele frequencies</b> by changing who survives and breeds. But selection can only act on what it can see. As a recessive allele becomes rare, nearly all its copies hide in heterozygotes — a share equal to p — so selection against it slows to a crawl. That is why harmful recessive alleles linger in populations.</p>'), 'primary'))); } } }
+  },
+  draw(c) {
+    const A = Stage.area();
+    if (this.mode === 'simrun' || this.mode === 'simdone') { const pts = field(this.pop.length, fieldRect(A, 0.04, 0.58), 77, { max: 18 }); this.pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot, ring: this.mode === 'simdone' && g === 'Aa' ? Pal.accent : null })); lineChart(c, 46, A.y + A.h * 0.68, A.w - 80, A.h * 0.2, [{ d: this.simQ, col: Pal.a, wd: 3 }], { n: 21, title: 'q over 20 generations of eating every yellow beetle', yl: ['0', '0.5'] }); return; }
+    const pts = this.fieldPts(A); this.pop.forEach((g, i) => { if (this.alive[i]) beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot }); else { c.fillStyle = hexA(Pal.ink, 0.15); c.beginPath(); c.arc(pts[i].x, pts[i].y, 3, 0, TAU); c.fill(); } });
+    lineChart(c, 46, A.y + A.h * 0.74, Math.min(220, A.w * 0.45), A.h * 0.14, [{ d: this.qs.concat(this.mode === 'hunt' || this.mode === 'review' ? [this.q()] : []), col: Pal.a, wd: 3 }], { n: 5, ref: 0.6, title: 'q by generation (goal ≤ 0.30)', yl: ['0', '0.5'] });
+    if (this.mode === 'hunt') ink(c, this.bites + ' bites · ' + Math.ceil(this.timer) + ' s', A.w - 24, A.y + A.h * 0.78, 16, Pal.ink, 'right', 700, 'serif');
+  }
+});
+
+/* ================= Level 10: The slow ray (mutation) ================= */
+Game.reg({
+  id: 'l10', title: 'The slow ray', sub: 'Mutation',
+  enter() { this.score = 0; this.p = 0.5; this.mu = 1e-5; this.gen = 0; this.run = 0; this.ps = [0.5]; this.flip = []; stepper(this); this.next(); },
+  steps: [
+    function () { quiz(this, 'Mutation turns an <b>A</b> allele into an <b>a</b> at a realistic rate of about <b>1 in 100,000</b> copies per generation. Starting from p = 0.5, how much will p fall in <b>1,000 generations</b>?', [['005', 'About 0.005'], ['05', 'About 0.05'], ['5', 'About 0.5']], '005', 'p falls by a fraction μ each generation: after 1,000 generations, by about 1%, from 0.500 to 0.495.', () => this.next()); },
+    function () { UI.say('This jar is the gene pool. Run 1,000 generations at the realistic rate and watch for flipped alleles.'); UI.ctl(UI.row(UI.btn('Run 1,000 generations', b => { b.disabled = true; this.go(1000, 1e-5, () => this.next()); }, 'primary'))); },
+    function () { UI.say('p moved from 0.500 to <b>' + fx3(this.p) + '</b>: in this jar of 100 alleles, about <b>half an allele</b> changed in a thousand generations. Now turn the dial up to a fantasy rate, a thousand times faster, and run 100 generations.'); this.muv = -2; UI.ctl(UI.slider({ label: 'rate', min: -6, max: -1, step: 0.5, value: -2, fmt: v => '1 in ' + Math.round(Math.pow(10, -v)).toLocaleString('en-GB'), oninput: v => { this.muv = v; } }), UI.row(UI.btn('Run 100 generations', b => { b.disabled = true; this.go(100, Math.pow(10, this.muv), () => this.next()); }, 'primary'))); },
+    function () { quiz(this, 'At 1 in ' + Math.round(1 / this.mu).toLocaleString('en-GB') + ', p fell to <b>' + fx2(this.p) + '</b>. Which statement is right?', [['src', 'Mutation is the source of new alleles, but on its own changes frequencies very slowly'], ['fast', 'Mutation is the main reason allele frequencies change quickly'], ['none', 'Mutation never changes allele frequencies']], 'src', 'Real mutation rates are tiny, so over a few generations Hardy–Weinberg can ignore them. Over evolutionary time, mutation supplies every new allele that selection and drift then act upon.', () => finishLevel('l10', 1 + this.score, '<p>Mutation changes allele frequencies by turning one allele into another: <span class="fx">p<sub>t</sub> = p<sub>0</sub>(1 − μ)<sup>t</sup></span>. At real rates of about 1 in 100,000, that takes tens of thousands of generations to matter. Its real role is creative: <b>every allele began as a mutation</b>.</p>')); }
+  ],
+  go(n, mu, done) { this.mu = mu; this.run = n; this.left = n; this.done = done; this.acc = 0; Snd.pop(); },
+  update(dt) {
+    if (this.left > 0) { const per = Math.max(1, Math.round(this.run / 60)); this.acc += dt; if (this.acc > 0.03) { this.acc = 0; const before = Math.round(this.p * 100); for (let k = 0; k < per && this.left > 0; k++) { this.p *= (1 - this.mu); this.left--; this.gen++; } this.ps.push(this.p); const after = Math.round(this.p * 100); if (after < before) for (let k = after; k < before; k++) this.flip.push({ i: k, t: 0 }); if (this.left === 0 && this.done) { const d = this.done; this.done = null; d(); } } }
+    this.flip.forEach(f => f.t += dt); this.flip = this.flip.filter(f => f.t < 1.2);
+  },
+  draw(c) {
+    const A = Stage.area(), J = { x: A.w / 2 - Math.min(150, A.w * 0.4), y: A.y + 30, w: Math.min(300, A.w * 0.8), h: A.h * 0.42 }, sl = jarSlots(J, 100), nA = Math.round(this.p * 100);
+    plate(c, J.x - 8, J.y - 8, J.w + 16, J.h + 16, 12, 0.5); sl.forEach((s, k) => token(c, s.x, s.y, s.r, k < nA ? 'A' : 'a')); this.flip.forEach(f => { const s = sl[f.i]; if (s) FX.ring && (c.strokeStyle = hexA(Pal.accent, 1 - f.t / 1.2), c.lineWidth = 3, c.beginPath(), c.arc(s.x, s.y, s.r + 4 + f.t * 10, 0, TAU), c.stroke()); });
+    ink(c, 'p = ' + fx3(this.p) + '   generation ' + this.gen.toLocaleString('en-GB'), A.w / 2, J.y - 14, 15, Pal.ink, 'center', 700, 'serif');
+    lineChart(c, 46, A.y + A.h * 0.62, A.w - 80, A.h * 0.24, [{ d: this.ps, col: Pal.A, wd: 3 }], { n: Math.max(2, this.ps.length), title: 'p over every generation run so far', yl: ['0', '1'] });
+  }
+});
+
+/* ================= Level 11: The bridge (migration) ================= */
+Game.reg({
+  id: 'l11', title: 'The bridge', sub: 'Migration',
+  enter() { this.score = 0; this.pW = 0.9; this.pE = 0.2; this.m = 0.25; this.gen = 0; this.hist = [[0.9, 0.2]]; this.walk = 0; stepper(this); this.next(); Lens.show(true, 'phen'); },
+  lay() { const A = Stage.area(), port = A.w < A.h; return port ? { W: { x: 20, y: A.y + 8, w: A.w - 40, h: A.h * 0.24 }, E: { x: 20, y: A.y + A.h * 0.42, w: A.w - 40, h: A.h * 0.24 }, br: 'v', chart: { x: 46, y: A.y + A.h * 0.75, w: A.w - 80, h: A.h * 0.14 } } : { W: { x: 20, y: A.y + 10, w: A.w * 0.38, h: A.h * 0.55 }, E: { x: A.w * 0.6, y: A.y + 10, w: A.w * 0.38, h: A.h * 0.55 }, br: 'h', chart: { x: 46, y: A.y + A.h * 0.72, w: A.w - 80, h: A.h * 0.16 } }; },
+  steps: [
+    function () { quiz(this, 'Hardy–Weinberg assumes <b>no migration</b>. Two islands: <b>West</b> has p = 0.9 (mostly A), <b>East</b> has p = 0.2. A bridge opens, and next season <b>a quarter</b> of East’s breeders are migrants from West. What will East’s p be?', [['375', '0.375'], ['55', '0.55'], ['2', 'Still 0.2'], ['9', '0.9']], '375', 'Three quarters of East’s alleles are still East’s (0.75 × 0.2 = 0.15) and a quarter come from West (0.25 × 0.9 = 0.225): 0.15 + 0.225 = 0.375.', () => this.next()); },
+    function () { UI.say('Now run it. Set what share of each island’s breeders cross the bridge each season, and watch the migrants walk.'); UI.ctl(UI.slider({ label: 'migrants', min: 0, max: 0.5, step: 0.05, value: this.m, fmt: v => Math.round(v * 100) + '% a season', oninput: v => { this.m = v; } }), UI.row(this.gb = UI.btn('Run a season', () => this.season(), 'primary'), this.nb = UI.btn('Next', () => this.next()))); this.nb.disabled = true; },
+    function () { quiz(this, 'If the bridge stays open for good, what happens in the end?', [['same', 'Both islands end up with the same p'], ['swap', 'They swap allele frequencies'], ['apart', 'They drift further apart']], 'same', 'Each season pulls the two islands toward each other; with the bridge open long enough they meet in the middle — here at p = 0.55.', () => finishLevel('l11', 1 + this.score, '<p><b>Migration moves alleles between populations</b>, pulling each island’s allele frequency toward the other’s: <span class="fx">p′ = (1 − m) p + m p<sub>migrants</sub></span>. It only changes anything when the migrants differ genetically from the residents — and it is the reason neighbouring populations stay alike.</p>')); }
+  ],
+  season() {
+    if (this.walk > 0) return; if (this.nb) this.nb.disabled = true; const L = this.lay(), n = Math.round(this.m * 20), W = field(20, L.W, 5), E = field(20, L.E, 6), cW = hwCounts(this.pW, 20), cE = hwCounts(this.pE, 20), gW = countsToList(cW), gE = countsToList(cE);
+    for (let k = 0; k < n; k++) { const a = W[k], b = E[k]; FX.fly(a.x, a.y, b.x, b.y, null, 1.2, null, { g: gW[k], s: a.s, lens: Lens.mode, lift: 0, delay: k * 0.05 }); FX.fly(b.x, b.y, a.x, a.y, null, 1.2, null, { g: gE[k], s: b.s, lens: Lens.mode, lift: 0, delay: k * 0.05 }); }
+    this.walk = 1.3 + n * 0.05; const nW = (1 - this.m) * this.pW + this.m * this.pE, nE = (1 - this.m) * this.pE + this.m * this.pW; this.pend = [nW, nE];
+  },
+  update(dt) { if (this.walk > 0) { this.walk -= dt; if (this.walk <= 0) { this.walk = 0; [this.pW, this.pE] = this.pend; this.hist.push([this.pW, this.pE]); this.gen++; Snd.pop(); if (this.si !== 1) return; UI.say('Season ' + this.gen + ': West p = <b>' + fx3(this.pW) + '</b>, East p = <b>' + fx3(this.pE) + '</b>. ' + (this.m === 0 ? 'With the bridge closed, nothing changes.' : 'They are converging.')); if (this.gen >= 3) this.nb.disabled = false; UI.ctl(UI.slider({ label: 'migrants', min: 0, max: 0.5, step: 0.05, value: this.m, fmt: v => Math.round(v * 100) + '% a season', oninput: v => { this.m = v; } }), UI.row(UI.btn('Run a season', () => this.season(), 'primary'), this.nb)); } } },
+  draw(c) {
+    const L = this.lay(); const W = field(20, L.W, 5), E = field(20, L.E, 6), gW = countsToList(hwCounts(this.pW, 20)), gE = countsToList(hwCounts(this.pE, 20)), hide = this.walk > 0 ? Math.round(this.m * 20) : 0;
+    for (const [Rc, nm, p] of [[L.W, 'West', this.pW], [L.E, 'East', this.pE]]) { c.fillStyle = hexA(Pal.good, 0.1); rrect(c, Rc.x - 6, Rc.y - 6, Rc.w + 12, Rc.h + 12, 26); c.fill(); ink(c, nm + '  p = ' + fx2(p), Rc.x + 8, Rc.y + 6, 13, Pal.ink, 'left', 700, 'serif'); }
+    c.strokeStyle = hexA(Pal.ink, 0.35); c.lineWidth = 6; c.setLineDash([2, 6]); c.beginPath(); if (L.br === 'v') { c.moveTo(Stage.w / 2, L.W.y + L.W.h + 4); c.lineTo(Stage.w / 2, L.E.y - 4); } else { c.moveTo(L.W.x + L.W.w + 4, L.W.y + L.W.h / 2); c.lineTo(L.E.x - 4, L.E.y + L.E.h / 2); } c.stroke(); c.setLineDash([]);
+    gW.forEach((g, i) => { if (i < hide) return; beetle(c, W[i].x, W[i].y, W[i].s, g, { rot: W[i].rot }); }); gE.forEach((g, i) => { if (i < hide) return; beetle(c, E[i].x, E[i].y, E[i].s, g, { rot: E[i].rot }); });
+    lineChart(c, L.chart.x, L.chart.y, L.chart.w, L.chart.h, [{ d: this.hist.map(h => h[0]), col: Pal.A, wd: 3 }, { d: this.hist.map(h => h[1]), col: Pal.a, wd: 3 }], { n: Math.max(6, this.hist.length), title: 'p on West (blue) and East (yellow), season by season', yl: ['0', '1'] });
+  }
+});
+
+/* ================= Level 12: Five tiny islands (drift) ================= */
+Game.reg({
+  id: 'l12', title: 'Five tiny islands', sub: 'Genetic drift',
+  enter() { this.score = 0; this.N = 10; this.lines = null; this.t = 0; this.sizes = new Set(); this.tries = 0; Lens.set('geno', true); stepper(this); this.next(); },
+  sim(N) { const L = []; for (let k = 0; k < 5; k++) { let p = 0.5; const d = [p]; for (let g = 0; g < 30; g++) { p = binom(2 * N, p) / (2 * N); d.push(p); } L.push(d); } return L; },
+  run(N, done) { this.N = N; this.lines = this.sim(N); this.t = 0; this.done = done; Snd.pop(); },
+  steps: [
+    function () { quiz(this, 'Hardy–Weinberg assumes a <b>very large population</b>. Here are five islands, each with just <b>10 beetles</b> and p = 0.5 — no selection, no migration, no mutation. After 30 generations, what will they look like?', [['same', 'All still near 0.5'], ['spread', 'Scattered — some may have lost an allele'], ['allA', 'All lost the a allele']], 'spread', 'Each generation is a random sample of the last. Watch.', () => { UI.say('Thirty generations on five islands of 10…'); UI.ctl(); this.run(10, () => this.next()); }); },
+    function () { const lost = this.lines.filter(d => { const e = last(d); return e === 0 || e === 1; }).length; UI.say('Nothing chose a direction, yet the islands scattered, and <b>' + lost + ' of 5</b> lost an allele for good. That is <b>genetic drift</b>: chance in sampling. Now compare sizes: run the five islands with 100 and with 1,000 beetles each.'); this.sizes.add(10); this.nb = UI.btn('Next', () => this.next(), 'primary'); this.nb.disabled = true; UI.ctl(UI.row(...[10, 100, 1000].map(N => UI.btn(N + ' beetles', () => { if (this.t < 3.2 && this.lines && !this.idle()) return; this.run(N, () => { this.sizes.add(N); this.nb.disabled = this.sizes.size < 3; }); })), this.nb)); },
+    function () { UI.say('The bigger the population, the smaller the wobble. <b>Challenge:</b> choose the smallest island size that keeps <b>both alleles alive on at least 4 of the 5 islands</b> for 30 generations.'); this.N = 20; UI.ctl(UI.slider({ label: 'beetles', min: 4, max: 200, step: 1, value: 20, fmt: v => v + ' each', oninput: v => { this.N = v; } }), UI.row(this.cb = UI.btn('Run the challenge', () => { this.cb.disabled = true; this.tries++; this.run(this.N, () => this.judge()); }, 'primary'))); }
+  ],
+  idle() { return !this.done; },
+  judge() { const kept = this.lines.filter(d => { const e = last(d); return e > 0 && e < 1; }).length, ok = kept >= 4; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say('With <b>' + this.N + '</b> beetles per island, both alleles survived on <b>' + kept + ' of 5</b>. ' + (ok ? 'Success.' : 'Not enough — drift was too strong.') + ' On average an island loses a share <span class="fx">1 ÷ 2N</span> of its heterozygosity every generation.'); UI.ctl(UI.row(!ok && this.tries < 4 ? UI.btn('Try another size', () => this.steps[2].call(this)) : null, UI.btn('Finish', () => finishLevel('l12', 1 + this.score + (this.sizes.size >= 3 ? 1 : 0) > 3 ? 3 : 1 + this.score + (this.sizes.size >= 3 ? 1 : 0), '<p><b>Genetic drift</b> is change by chance: each generation’s alleles are a random sample of the last generation’s. It has no direction, it is strongest in small populations, and it can remove an allele entirely. Hardy–Weinberg assumes an infinitely large population to rule it out.</p>'), 'primary'))); },
+  update(dt) { if (this.lines) { this.t += dt; if (this.t > 3.2 && this.done) { const d = this.done; this.done = null; d(); } } },
+  draw(c) {
+    const A = Stage.area(), n = this.lines ? Math.min(31, 1 + Math.floor(this.t / 3 * 30)) : 1, cols = [Pal.A, Pal.a, Pal.accent, Pal.good, Pal.muted], iw = (A.w - 40) / 5;
+    for (let k = 0; k < 5; k++) { const x = 20 + k * iw, y = A.y + 6, h = A.h * 0.3, p = this.lines ? this.lines[k][n - 1] : 0.5, show = Math.min(this.N, 12), pop = countsToList(hwCounts(p, show)), pts = field(show, { x: x + 4, y: y + 14, w: iw - 8, h: h - 18 }, 40 + k, { max: 12 }); c.fillStyle = hexA(cols[k], 0.12); rrect(c, x + 2, y, iw - 4, h, 14); c.fill(); pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { lens: 'geno', noLetters: true })); ink(c, 'p ' + fx2(p), x + iw / 2, y + h + 12, 12, Pal.ink, 'center', 700); }
+    if (this.lines) lineChart(c, 46, A.y + A.h * 0.42, A.w - 80, A.h * 0.42, this.lines.map((d, k) => ({ d: d.slice(0, n), col: cols[k], wd: 2.4 })), { n: 31, ref: 0.5, title: 'p on each island over 30 generations (' + this.N + ' beetles each)', yl: ['0', '1'] });
+  }
+});
+
+/* ================= Level 13: Volcano and castaways ================= */
+Game.reg({
+  id: 'l13', title: 'Volcano and castaways', sub: 'Bottlenecks and founders',
+  enter() { this.score = 0; this.mode = 'main'; this.pop = shuffle(countsToList([15, 30, 15])); this.surv = null; this.chosen = []; this.hist = null; Lens.show(true, 'phen'); stepper(this); this.next(); },
+  steps: [
+    function () { quiz(this, 'A volcano erupts. Only <b>4 beetles</b> survive. Within a few generations their descendants number 60 again. Will the <b>genetic diversity</b> come back too?', [['yes', 'Yes, with the numbers'], ['no', 'No — it stays low']], 'no', 'Numbers can recover in a few generations; lost alleles and lost heterozygosity cannot.', () => this.erupt()); }
+  ],
+  erupt() {
+    this.mode = 'erupt'; this.surv = shuffle([...Array(60).keys()]).slice(0, 4); this.t = 0; Snd.bad(); UI.say('The eruption…'); UI.ctl();
+    const sv = this.surv.map(i => this.pop[i]); let cur = sv.slice(), N = 4; const H0 = 0.5, hist = [{ N: 60, H: H0 }, { N: 4, H: 2 * pOf(listCounts(cur)) * (1 - pOf(listCounts(cur))) }]; let He = hist[1].H;
+    for (const n of [8, 16, 32, 60, 60, 60]) { cur = wfNext(cur, n); He = He * (1 - 1 / (2 * N)); N = n; const p = pOf(listCounts(cur)); hist.push({ N: n, H: Math.min(He, 2 * p * (1 - p)) }); }
+    this.hist = hist; this.final = cur;
+  },
+  update(dt) { if (this.mode === 'erupt') { this.t += dt; if (this.t > 1.6) { this.mode = 'recover'; this.t = 0; } } else if (this.mode === 'recover') { this.t += dt; if (this.t > 2.4) { this.mode = 'recovered'; const H = last(this.hist).H; UI.say('Sixty beetles again — but diversity (the share of heterozygotes expected) is <b>' + pct(H / 0.5) + '</b> of what it was. The four survivors carried only a sample of the old gene pool, and the small generations after them lost more by drift. <b>Numbers recovered; genetic diversity did not.</b>'); UI.ctl(UI.row(UI.btn('Now: castaways', () => this.castaway(), 'primary'))); } } },
+  castaway() { this.mode = 'pick'; this.pop = shuffle(countsToList([15, 30, 15])); this.chosen = []; Lens.show(false); Lens.set('phen', true); UI.say('A storm will carry <b>5 beetles</b> to an empty island. You choose them — but like the storm, you can only see colours. <b>Tap 5 beetles.</b> The mainland has p = 0.50.'); UI.ctl(); },
+  tap(x, y) { if (this.mode !== 'pick') return; const A = Stage.area(), pts = field(60, fieldRect(A, 0.04, 0.62), 51, { max: 20 }), i = hitList(pts, x, y, k => !this.chosen.includes(k)); if (i < 0) return; this.chosen.push(i); Snd.pop(); if (this.chosen.length === 5) this.found(); },
+  hot() { if (this.mode !== 'pick') return []; const pts = field(60, fieldRect(A0(), 0.04, 0.62), 51, { max: 20 }); return pts.filter((p, i) => !this.chosen.includes(i)); },
+  found() {
+    this.mode = 'island'; const mine = this.chosen.map(i => this.pop[i]), pm = pOf(listCounts(mine)); const others = [0, 1].map(() => shuffle(this.pop.slice()).slice(0, 5)); this.islands = [mine].concat(others).map(f => { let cur = f.slice(), d = [pOf(listCounts(cur))]; for (let g = 0; g < 20; g++) { cur = wfNext(cur, Math.min(30, 5 + g * 3)); d.push(pOf(listCounts(cur))); } return d; }); this.t = 0;
+    Lens.set('geno', true); const ok = true; this.score++;
+    UI.say('Your five founders had <b>p = ' + fx2(pm) + '</b> (the mainland: 0.50). Two other storms took their own five. Watch the three islands over 20 generations as they grow.');
+    UI.ctl(UI.row(UI.btn('Finish', () => finishLevel('l13', 1 + this.score, '<p>A <b>bottleneck</b> and a <b>founder event</b> are both drift at its most extreme: a handful of individuals carry a random sample of the gene pool. Numbers can bounce back; the lost diversity cannot, and each founded island starts with its own accidental allele frequency.</p>'), 'primary')));
+  },
+  draw(c) {
+    const A = Stage.area(), pts = field(60, fieldRect(A, 0.04, 0.62), 51, { max: 20 });
+    if (this.mode === 'main' || this.mode === 'erupt' || this.mode === 'pick') { const k = this.mode === 'erupt' ? clamp(this.t / 1.2, 0, 1) : 0; this.pop.forEach((g, i) => { const sv = this.surv && this.surv.includes(i); beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot, alpha: this.mode === 'erupt' && !sv ? 1 - k : 1, ring: (this.mode === 'erupt' && sv) || this.chosen.includes(i) ? Pal.accent : null }); }); if (this.mode === 'erupt') { c.fillStyle = hexA('#7a3a1a', 0.25 * (1 - k)); c.fillRect(0, A.y, A.w, A.h * 0.66); } if (this.mode === 'pick') ink(c, this.chosen.length + ' of 5 chosen', A.w / 2, A.y + A.h * 0.66, 15, Pal.ink, 'center', 700, 'serif'); return; }
+    if (this.mode === 'recover' || this.mode === 'recovered') { const H = this.hist, n = this.mode === 'recover' ? Math.min(H.length, 2 + Math.floor(this.t / 2.4 * (H.length - 1))) : H.length, cur = this.final, show = this.mode === 'recovered' ? cur : cur.slice(0, Math.min(60, H[n - 1].N)); const pp = field(show.length, fieldRect(A, 0.04, 0.5), 52, { max: 18 }); show.forEach((g, i) => beetle(c, pp[i].x, pp[i].y, pp[i].s, g, { rot: pp[i].rot })); lineChart(c, 46, A.y + A.h * 0.6, A.w - 80, A.h * 0.26, [{ d: H.slice(0, n).map(h => h.N / 60), col: Pal.ink, wd: 3 }, { d: H.slice(0, n).map(h => h.H / 0.5), col: Pal.accent, wd: 3 }], { n: H.length, title: 'population size (dark) and genetic diversity (red), relative to before', yl: ['0', '100%'] }); return; }
+    if (this.mode === 'island') { this.t += 0.016; const n = Math.min(21, 1 + Math.floor(this.t * 6)), cols = [Pal.accent, Pal.A, Pal.a]; lineChart(c, 46, A.y + A.h * 0.12, A.w - 80, A.h * 0.6, this.islands.map((d, k) => ({ d: d.slice(0, n), col: cols[k], wd: k ? 2 : 3.5 })), { n: 21, ref: 0.5, title: 'p on your island (red) and two others, over 20 generations', yl: ['0', '1'] }); }
+  }
+});
+function A0() { return Stage.area(); }
+
+/* ================= Levels 14–17, case files, guide, boot ================= */
+function finLay() { const A = Stage.area(), port = A.w < A.h * 1.1; if (port) { const sz = Math.min(A.w - 80, A.h * 0.48); return { A, F: { x: 20, y: A.y + 4, w: A.w - 40, h: A.h * 0.3 }, T: Fin.geo((A.w - sz) / 2, A.y + A.h * 0.42 + 28, sz) }; } const sz = Math.min(A.w * 0.4, A.h * 0.7); return { A, F: { x: 20, y: A.y + 10, w: A.w * 0.45, h: A.h * 0.75 }, T: Fin.geo(A.w * 0.52, A.y + 40, sz) }; }
+function popFromF(f, n) { const c = [Math.round(f[0] * n), Math.round(f[1] * n)]; c.push(Math.max(0, n - c[0] - c[1])); return countsToList(c); }
+function phenAssort(f) { const b = f[0] + f[1], pb = b > 0 ? (f[0] + f[1] / 2) / b : 0; return [b * pb * pb, b * 2 * pb * (1 - pb), b * (1 - pb) * (1 - pb) + f[2]]; }
+function selfing(f) { return [f[0] + f[1] / 4, f[1] / 2, f[2] + f[1] / 4]; }
+
+/* ================= Level 14: The matchmaker ================= */
+Game.reg({
+  id: 'l14', title: 'The matchmaker', sub: 'Non-random mating',
+  enter() { this.score = 0; this.pop = shuffle(countsToList([6, 12, 6])); this.sel = -1; this.pairs = []; this.kids = []; this.trails = []; this.f = hwExp(0.5); this.mode = 'pair'; this.modes = new Set(); Lens.show(true, 'phen'); stepper(this); this.next(); },
+  steps: [
+    function () { UI.say('Hardy–Weinberg assumes <b>random mating</b>. These beetles prefer partners of <b>their own colour</b>. You are the matchmaker: <b>tap two beetles of the same colour</b> to pair them. Make 6 pairs.'); UI.ctl(); },
+    function () { this.mode = 'map'; UI.say('Now let every beetle follow that rule for <b>5 generations</b>. Watch the red dot on the map — and keep an eye on p.'); UI.ctl(UI.row(UI.btn('Same colour, 5 generations', b => this.runMode('assort', b), 'primary'), UI.btn('Self-fertilising, 5 generations', b => this.runMode('self', b)), UI.btn('Opposites attract, 5 generations', b => this.runMode('dis', b)))); }
+  ],
+  tap(x, y) { if (this.mode !== 'pair') return; const L = finLay(), pts = field(24, L.F, 61, { max: 22 }), i = hitList(pts, x, y, k => !this.pairs.some(p => p.includes(k))); if (i < 0) return; if (this.sel < 0) { this.sel = i; Snd.pop(); return; } if (i === this.sel) { this.sel = -1; return; } const g1 = this.pop[this.sel], g2 = this.pop[i]; if (phenCol(g1) !== phenCol(g2)) { UI.toast('These beetles only accept a partner of <b>the same colour</b>.'); Snd.bad(); return; } this.pairs.push([this.sel, i]); this.kids.push(gtOf(gamete(g1), gamete(g2))); this.sel = -1; Snd.good(); if (this.pairs.length >= 6) { this.score++; setTimeout(() => { if (this.mode === 'pair') this.next(); }, 500); } },
+  hot() { if (this.mode !== 'pair') return []; const pts = field(24, finLay().F, 61, { max: 22 }); const used = k => this.pairs.some(p => p.includes(k)); if (this.sel < 0) return pts.filter((p, i) => !used(i)); return pts.filter((p, i) => !used(i) && i !== this.sel && phenCol(this.pop[i]) === phenCol(this.pop[this.sel])); },
+  runMode(m, b) { if (this.anim) return; b.disabled = true; let f = hwExp(0.5); const tr = [f]; for (let g = 0; g < 5; g++) { f = m === 'assort' ? phenAssort(f) : m === 'self' ? selfing(f) : matingDist(f, 'dis'); tr.push(f); } this.trails.push({ m, tr, col: m === 'assort' ? Pal.accent : m === 'self' ? Pal.ink : Pal.good }); this.anim = { t: 0, tr }; this.modes.add(m); Snd.pop(); },
+  update(dt) { if (this.anim) { this.anim.t += dt; const k = Math.min(this.anim.tr.length - 1, Math.floor(this.anim.t / 0.45)); this.f = this.anim.tr[k]; if (this.anim.t > 0.45 * this.anim.tr.length) { const m = last(this.trails).m, f = this.f, p = f[0] + f[1] / 2; this.anim = null; UI.say({ assort: 'Like-with-like mating: heterozygotes fell to <b>' + pct(f[1]) + '</b> and the dot dropped <b>below</b> the curve. p is still <b>' + fx2(p) + '</b>.', self: 'Self-fertilising halves the heterozygotes every generation: down to <b>' + pct(f[1]) + '</b>. The dot sinks toward the floor — straight down. p: still <b>' + fx2(p) + '</b>.', dis: 'Opposites attract: heterozygotes rose to <b>' + pct(f[1]) + '</b> and the dot rose <b>above</b> the curve. p: still <b>' + fx2(p) + '</b>.' }[m] + (this.modes.size < 3 ? ' Try the other kinds of mating.' : '')); if (this.modes.size >= 3) UI.ctl(UI.row(UI.btn('What changed?', () => quiz(this, 'Across all three kinds of non-random mating, what changed?', [['geno', 'Genotype frequencies, but not allele frequencies'], ['allele', 'Allele frequencies'], ['both', 'Both']], 'geno', 'Every dot moved straight up or down: the share of heterozygotes changed, but p — the left-to-right position — never did. Non-random mating repackages alleles without changing how many there are.', () => finishLevel('l14', 1 + this.score, '<p><b>Non-random mating changes genotype frequencies without changing allele frequencies.</b> Mating with similar partners, or with yourself, makes heterozygotes scarcer (below the curve); mating with opposites makes them commoner (above it). This is why inbreeding exposes hidden recessive conditions — and why a population can be out of Hardy–Weinberg proportions without evolving.</p>')), 'primary'))); } } },
+  draw(c) {
+    const L = finLay();
+    if (this.mode === 'pair') { const pts = field(24, L.F, 61, { max: 22 }); this.pairs.forEach(([a, b]) => { c.strokeStyle = hexA(Pal.accent, 0.7); c.lineWidth = 2.5; c.beginPath(); c.moveTo(pts[a].x, pts[a].y); c.lineTo(pts[b].x, pts[b].y); c.stroke(); }); this.pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot, ring: i === this.sel ? Pal.accent : null, alpha: this.pairs.some(p => p.includes(i)) ? 0.55 : 1 })); ink(c, 'offspring: ' + (this.kids.join('  ') || '—'), L.A.w / 2, L.F.y + L.F.h + 14, 13, Pal.ink, 'center', 700, 'serif'); }
+    else { const pop = popFromF(this.f, 24), pts = field(24, L.F, 62, { max: 22 }); pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot })); }
+    Fin.draw(c, L.T, { pts: [{ f: this.f, col: Pal.accent, r: 7 }] }); for (const T of this.trails) { c.strokeStyle = hexA(T.col, 0.8); c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); T.tr.forEach((f, k) => { const P = Fin.pt(L.T, f); k ? c.lineTo(P.x, P.y) : c.moveTo(P.x, P.y); }); c.stroke(); c.setLineDash([]); }
+  }
+});
+
+/* ================= Level 15: Evolving, or just unbalanced? ================= */
+function trajSel() { const t = []; let q = 0.3; for (let g = 0; g < 10; g++) { t.push(hwExp(1 - q)); q = q + 0.04; } return t; }
+function trajDrop() { const t = []; let f = hwExp(0.5); for (let g = 0; g < 10; g++) { t.push(f); f = phenAssort(f).map((v, i) => 0.7 * v + 0.3 * f[i]); } return t; }
+function trajBoth() { const t = []; let f = hwExp(0.75); for (let g = 0; g < 10; g++) { t.push(f); const p = f[0] + f[1] / 2 - 0.035, het = f[1] * 0.85; const fAA = p - het / 2; f = [Math.max(0, fAA), het, Math.max(0, 1 - Math.max(0, fAA) - het)]; } return t; }
+function trajStill() { const t = []; for (let g = 0; g < 10; g++) t.push(hwExp(0.25)); return t; }
+Game.reg({
+  id: 'l15', title: 'Evolving, or just unbalanced?', sub: 'Disequilibrium is not evolution',
+  enter() { this.score = 0; this.ci = -1; this.t = 0; const T = shuffle([['sel', trajSel()], ['drop', trajDrop()], ['both', trajBoth()], ['still', trajStill()]]); this.T = T; this.next1(); },
+  next1() { this.ci++; this.t = 0; if (this.ci >= 4) { finishLevel('l15', this.score >= 4 ? 3 : this.score >= 2 ? 2 : 1, '<p>You sorted <b>' + this.score + ' of 4</b> populations.</p><p>Two different questions: <b>Is the population evolving?</b> — are allele frequencies changing (the dot moving sideways)? <b>Is it in Hardy–Weinberg proportions?</b> — is the dot on the curve? Non-random mating can push a population off the curve without any evolution; selection can move it along the curve while it stays in proportion. Departure from Hardy–Weinberg is a clue, not a verdict.</p>'); return; }
+    UI.say('<b>Population ' + 'ABCD'[this.ci] + '.</b> Watch its dot over ten generations (dashed trail). Then choose the best description.');
+    UI.ctl(UI.choices([['sel', 'Evolving, and in Hardy–Weinberg proportions'], ['drop', 'Not evolving, but out of Hardy–Weinberg proportions'], ['both', 'Evolving, and out of Hardy–Weinberg proportions'], ['still', 'Neither: in equilibrium']], k => { const ans = this.T[this.ci][0], ok = k === ans; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + { sel: 'It moved <b>sideways along the curve</b>: allele frequencies changed, but genotypes stayed in Hardy–Weinberg proportions — selection or migration, for example.', drop: 'It moved <b>straight down</b>: fewer heterozygotes, but p never changed. Non-random mating, not evolution.', both: 'It moved sideways <b>and</b> below the curve: allele frequencies are changing and genotypes are out of proportion — say, selection plus inbreeding.', still: 'It sat on the curve and never moved: Hardy–Weinberg equilibrium.' }[ans]); UI.ctl(UI.row(UI.btn('Next population', () => this.next1(), 'primary'))); }, true));
+  },
+  update(dt) { this.t += dt; },
+  draw(c) { const A = Stage.area(), sz = Math.min(A.w - 80, A.h * 0.78), G = Fin.geo((A.w - sz) / 2, A.y + 36, sz); if (this.ci < 0 || this.ci >= 4) { Fin.draw(c, G); return; } const tr = this.T[this.ci][1], n = Math.min(tr.length, 1 + Math.floor(this.t / 0.35)); Fin.draw(c, G, { trail: tr.slice(0, n), pts: [{ f: tr[n - 1], col: Pal.accent, r: 7, label: 'ABCD'[this.ci] }] }); }
+});
+
+/* ================= Level 16: Invisible carriers ================= */
+Game.reg({
+  id: 'l16', title: 'Invisible carriers', sub: 'Counting what you cannot see',
+  enter() { this.score = 0; this.pop = shuffle(countsToList([81, 18, 1])); this.xray = false; this.mode = 'meadow'; this.q = 0.2; Lens.show(false); Lens.set('phen', true); stepper(this); this.next(); },
+  steps: [
+    function () { quiz(this, 'Blue is dominant, so carriers look blue. In these <b>100 beetles</b>, just <b>1 is yellow</b> (aa). How many blue ones secretly carry a? Step one: yellow beetles are aa, so <span class="fx">q² = 0.01</span>. What is <b>q</b>?', [['01', '0.01'], ['1', '0.1'], ['05', '0.05'], ['5', '0.5']], '1', 'q is the square root of q²: √0.01 = 0.1. So p = 0.9.', () => this.next()); },
+    function () { quiz(this, 'With p = 0.9 and q = 0.1, what share of the beetles are carriers (Aa)?', [['18', '18%'], ['9', '9%'], ['81', '81%'], ['1', '1%']], '18', '2pq = 2 × 0.9 × 0.1 = 0.18. Switching to the genotype lens…', () => { this.xray = true; Lens.set('geno', true); Snd.pop(); this.next(); }); },
+    function () { UI.say('<b>Eighteen carriers</b> were hiding among the blue beetles — eighteen times as many as the one yellow beetle you could see. That ratio grows as an allele gets rarer. <b>Drag q</b> down and find where carriers outnumber yellow beetles <b>50 to 1</b>.'); this.mode = 'ratio'; this.first = true; this.tries = 0; UI.ctl(UI.slider({ label: 'q', min: 0.005, max: 0.5, step: 0.0025, value: 0.2, fmt: v => v.toFixed(3), oninput: v => { this.q = v; } }), UI.row(UI.btn('Lock it in', () => { const r = 2 * (1 - this.q) / this.q, ok = Math.abs(r - 50) <= 5; if (ok) { if (this.first) this.score++; Snd.good(); UI.toast('At q = ' + this.q.toFixed(3) + ', carriers outnumber yellow beetles <b>' + r.toFixed(0) + ' to 1</b>.'); this.next(); } else { this.first = false; this.tries++; Snd.bad(); if (this.tries >= 3) { this.q = 2 / 52; UI.toast('Here’s the answer: q ≈ 0.038, where 2pq ÷ q² = 2p ÷ q = 50.', 5000); this.next(); return; } UI.toast('That gives ' + r.toFixed(0) + ' to 1. ' + (r > 50 ? 'q is too small.' : 'q is too big.')); } }, 'primary'))); },
+    function () { this.mode = 'human'; quiz(this, 'People too. <b>Cystic fibrosis</b> is recessive and affects about <b>1 in 2,500</b> newborns of Northern European ancestry. Roughly how many people are carriers?', [['25', '1 in 25'], ['50', '1 in 50'], ['1250', '1 in 1,250'], ['2500', '1 in 2,500']], '25', 'q² = 1/2,500, so q = 1/50 = 0.02, and 2pq ≈ 0.039: about <b>1 in 25</b>. This assumes Hardy–Weinberg holds; carrier rates differ between populations, but estimates like this are used in genetic counselling.', () => finishLevel('l16', 1 + Math.min(2, this.score - 1 > 0 ? this.score - 1 : 0), '<p><b>Hardy–Weinberg turns what you can see into what you cannot.</b> From recessive phenotypes: <span class="fx">q = √(share that are aa)</span>; carriers are <span class="fx">2pq</span>. The rarer the allele, the more of its copies hide in carriers: at q = 0.01 there are about 200 carriers for every affected individual.</p>')); }
+  ],
+  draw(c) {
+    const A = Stage.area();
+    if (this.mode === 'meadow') { const pts = field(100, fieldRect(A, 0.03, 0.9), 71, { max: 15 }); this.pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { rot: pts[i].rot, ring: this.xray && g === 'Aa' ? Pal.accent : null, noLetters: true })); return; }
+    if (this.mode === 'ratio' || this.mode === 'human') { const q = this.q, p = 1 - q, het = 2 * p * q, aa = q * q, r = het / aa, nAa = Math.min(200, Math.round(r)); ink(c, 'for every yellow beetle (aa)…', A.w / 2, A.y + 18, 14, Pal.ink, 'center', 700, 'serif'); beetle(c, A.w / 2, A.y + 52, 18, 'aa', { lens: 'geno' }); ink(c, '…there are ' + r.toFixed(0) + ' hidden carriers (Aa)', A.w / 2, A.y + 86, 14, Pal.ink, 'center', 700, 'serif'); const pts = field(nAa, fieldRect(A, 0.24, 0.94), 72, { max: 14 }); for (let i = 0; i < nAa; i++) beetle(c, pts[i].x, pts[i].y, pts[i].s, 'Aa', { lens: 'geno', noLetters: true }); }
+  }
+});
+
+/* ================= Level 17: Real populations ================= */
+const REALDATA = [
+  { n: 'Scarlet tiger moths, Cothill Fen near Oxford', note: 'Fisher, Ford and Sheppard’s collections, 1939–1964: the three wing forms are the three genotypes.', labels: ['typica', 'medionigra', 'bimacula'], c: [15784, 1221, 28], fits: true, why: 'χ² is small: these moths fit Hardy–Weinberg proportions. Yet selection against medionigra and non-random mating have both been reported in this colony. A good fit means any forces were too weak to distort the genotype proportions much — not that no forces act.' },
+  { n: 'Sickle-cell haemoglobin, West African adults', note: 'A classic survey from the 1950s, reproduced in population-genetics textbooks.', labels: ['AA', 'AS', 'SS'], c: [25374, 5482, 67], fits: false, why: 'Far too many AS adults and far too few SS. Malaria kills more AA children than AS children, and sickle-cell disease kills most SS children before adulthood. These are survivors, sampled after selection: <b>heterozygote advantage</b>.' },
+  { n: 'A beetle colony on a tiny island', note: 'A game population: forty years of sibling matings in a colony of a few dozen.', labels: ['AA', 'Aa', 'aa'], c: [41, 18, 41], fits: false, why: 'Far too few heterozygotes for p = 0.5: inbreeding. The dot sits well below the curve.' }
+];
+Game.reg({
+  id: 'l17', title: 'Real populations', sub: 'Testing equilibrium with real data',
+  enter() { this.score = 0; this.di = -1; this.shown = false; this.next1(); },
+  next1() { this.di++; this.shown = false; if (this.di >= 3) { finishLevel('l17', this.score >= 3 ? 3 : this.score >= 2 ? 2 : 1, '<p>You judged <b>' + this.score + ' of 3</b> populations correctly.</p><p>A <b>χ² test</b> compares observed genotype counts with Hardy–Weinberg expectations: <span class="fx">χ² = Σ (O − E)² ÷ E</span>, with one degree of freedom; above 3.84 is a significant departure. Real departures are clues: excess heterozygotes among sickle-cell adults pointed to malaria; a deficit points to inbreeding or mixed populations. And a fit, like the moths’, does not prove nothing is happening.</p>'); return; }
+    const D = REALDATA[this.di]; UI.say('<b>' + D.n + '.</b> ' + D.note + ' Counts: <b>' + D.c.map((v, i) => v.toLocaleString('en-GB') + ' ' + D.labels[i]).join(', ') + '</b>. Do you think it fits Hardy–Weinberg?');
+    UI.ctl(UI.row(UI.btn('Work it out', b => { this.shown = true; const K = this.calc(D); UI.say('p = <b>' + fx3(K.p) + '</b>. Hardy–Weinberg expects <b>' + K.E.map(e => Math.round(e).toLocaleString('en-GB')).join('</b>, <b>') + '</b>. <span class="fx">χ² = ' + (K.x2 < 10 ? K.x2.toFixed(2) : K.x2.toFixed(0)) + '</span> (threshold 3.84). Your verdict?'); UI.ctl(UI.choices([['y', 'Fits Hardy–Weinberg'], ['n', 'Departs from it']], k => { const ok = (k === 'y') === D.fits; if (ok) { this.score++; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + D.why); UI.ctl(UI.row(UI.btn(this.di < 2 ? 'Next population' : 'Finish', () => this.next1(), 'primary'))); })); }, 'primary')));
+  },
+  calc(D) { const p = pOf(D.c), r = chi2(D.c, p); return { p, E: r.E, x2: r.x2 }; },
+  draw(c) {
+    if (this.di < 0 || this.di >= 3) return; const D = REALDATA[this.di], A = Stage.area(), K = this.calc(D), port = A.w < A.h * 1.1, sz = port ? Math.min(A.w - 80, A.h * 0.42) : Math.min(A.w * 0.38, A.h * 0.7), G = port ? Fin.geo((A.w - sz) / 2, A.y + A.h * 0.36 + 26, sz) : Fin.geo(A.w * 0.55, A.y + 40, sz), bw = port ? A.w - 60 : A.w * 0.42;
+    genoBar(c, 30, A.y + 30, bw, 20, frac(D.c), { title: 'observed', labels: false }); D.labels.forEach((l, i) => ink(c, l + ' ' + pct(frac(D.c)[i], 1), 30 + bw * (i + 0.5) / 3, A.y + 64, 11.5, Pal.ink, 'center', 700));
+    if (this.shown) { genoBar(c, 30, A.y + 98, bw, 20, hwExp(K.p), { title: 'Hardy–Weinberg expectation', labels: false }); }
+    Fin.draw(c, G, { pts: this.shown ? [{ f: hwExp(K.p), col: Pal.good, r: 5 }, { f: frac(D.c), col: Pal.accent, r: 7 }] : [{ f: frac(D.c), col: Pal.accent, r: 7 }] });
+  }
+});
+
+/* ================= The case files ================= */
+const CASES = [
+  { t: 'The quiet meadow', ex: 'counts', d: [36, 48, 16], txt: 'Genotypes of 100 beetles from a large, undisturbed meadow: 36 AA, 48 Aa, 16 aa.', qs: [{ q: 'What is p?', o: [['6', '0.6'], ['36', '0.36'], ['48', '0.48'], ['4', '0.4']], a: '6', why: '(2 × 36 + 48) ÷ 200 = 0.6.' }, { q: 'Is this population in Hardy–Weinberg proportions?', o: [['y', 'Yes'], ['n', 'No']], a: 'y', why: 'p² = 0.36, 2pq = 0.48, q² = 0.16: an exact match.' }] },
+  { t: 'The yellow minority', ex: 'phen', d: [91, 9], txt: 'Only phenotypes are known: 91 blue, 9 yellow, out of 100. Blue is dominant. Assume Hardy–Weinberg.', qs: [{ q: 'How many of the 100 are hidden carriers (Aa)?', o: [['42', 'About 42'], ['9', 'About 9'], ['18', 'About 18'], ['49', 'About 49']], a: '42', why: 'q² = 0.09, so q = 0.3, p = 0.7 and 2pq = 0.42.' }] },
+  { t: 'The two valleys', ex: 'counts', d: [82, 36, 82], txt: 'A survey pooled beetles from two valleys either side of a ridge: 82 AA, 36 Aa, 82 aa. p = 0.5, so Hardy–Weinberg expects 50, 100, 50.', qs: [{ q: 'What best explains so few heterozygotes?', o: [['w', 'Two separate populations were pooled'], ['s', 'Selection against heterozygotes'], ['m', 'Mutation'], ['h', 'Heterozygote advantage']], a: 'w', why: 'Each valley alone could be in equilibrium (one mostly A, one mostly a); pooled, they show a deficit of heterozygotes — the Wahlund effect.' }] },
+  { t: 'The vanishing yellow', ex: 'trace', d: [0.5, 0.53, 0.56, 0.59, 0.62, 0.65, 0.67, 0.7, 0.72, 0.74], txt: 'p rose steadily over ten generations in a large population. Mark–recapture: 70% of blue beetles survive each season, but only 40% of yellow ones. No migrants arrive.', qs: [{ q: 'Which process best explains the change?', o: [['sel', 'Selection'], ['dr', 'Drift'], ['mut', 'Mutation'], ['nr', 'Non-random mating']], a: 'sel', why: 'A steady, directional change with a clear survival difference between phenotypes is selection.' }] },
+  { t: 'The castaways', ex: 'trace', d: [0.5, 0.8, 0.7, 0.9, 0.75, 0.85, 1, 1, 1, 1], txt: 'Six beetles rafted to a new island from a mainland with p = 0.5. The island has stayed tiny. No selection has been detected.', qs: [{ q: 'Which process best explains the island’s history?', o: [['dr', 'Founder effect and drift'], ['sel', 'Selection'], ['mig', 'Migration'], ['mut', 'Mutation']], a: 'dr', why: 'A tiny founding sample, erratic swings, and finally the loss of an allele: drift.' }] },
+  { t: 'The ferry', ex: 'trace', d: [0.2, 0.26, 0.31, 0.36, 0.4, 0.43, 0.46, 0.49, 0.51, 0.53], txt: 'An island at p = 0.2. Since a ferry service began, about 50 mainland beetles (mainland p = 0.6) arrive in cargo every year.', qs: [{ q: 'Which process best explains the trend?', o: [['mig', 'Migration'], ['sel', 'Selection'], ['dr', 'Drift'], ['nr', 'Non-random mating']], a: 'mig', why: 'p climbs toward the mainland’s 0.6, ever more slowly as the gap closes: gene flow.' }] },
+  { t: 'Like with like', ex: 'fin', d: [[0.25, 0.5, 0.25], [0.31, 0.38, 0.31], [0.34, 0.32, 0.34], [0.36, 0.28, 0.36]], txt: 'Over three generations, observers saw beetles pair almost only with partners of their own colour. The dot’s path on the map is shown.', qs: [{ q: 'Which process is at work?', o: [['nr', 'Non-random mating'], ['sel', 'Selection'], ['dr', 'Drift'], ['mig', 'Migration']], a: 'nr', why: 'The dot dropped straight down: fewer heterozygotes, unchanged p.' }, { q: 'Is this population evolving?', o: [['n', 'No: allele frequencies are unchanged'], ['y', 'Yes: genotype frequencies changed']], a: 'n', why: 'Evolution is a change in allele frequencies. Here only the packaging of alleles into genotypes changed.' }] },
+  { t: 'The final case', ex: 'trace', d: [0.3, 0.38, 0.36, 0.45, 0.47, 0.44, 0.53, 0.55, 0.6, 0.58], txt: 'A small island colony (about 20 beetles). Yellow beetles survive a little less well than blue. Every year a few blue-rich migrants arrive from a mainland where p = 0.8.', qs: [{ q: 'What best explains the record?', o: [['combo', 'Selection and migration pushing p up, with drift adding noise'], ['dr', 'Drift alone'], ['nr', 'Non-random mating'], ['mut', 'Mutation alone']], a: 'combo', why: 'A steady upward trend has two directional causes here (selection against yellow and blue-rich migrants), while the small size adds random wobbles.' }] }
+];
+Game.reg({
+  id: 'cases', title: 'The case files', sub: 'Eight mystery populations',
+  enter() { this.ci = -1; this.qi = 0; this.right = 0; this.total = CASES.reduce((s, C) => s + C.qs.length, 0); this.nextCase(); },
+  nextCase() { this.ci++; this.qi = 0; if (this.ci >= CASES.length) { const r = this.right, n = this.total, rank = r === n ? 'Population geneticist' : r >= n - 2 ? 'Field geneticist' : r >= n / 2 ? 'Field assistant' : 'Apprentice'; finishLevel('cases', r >= n - 1 ? 3 : r >= n - 3 ? 2 : 1, '<p><b>' + rank + '.</b> You solved <b>' + r + ' of ' + n + '</b> questions across eight cases.</p><p>The whole game in one line: alleles form a gene pool; random mating draws from it to give p², 2pq and q²; selection, mutation, migration and drift change the allele frequencies, while non-random mating changes only the genotype frequencies. Hardy–Weinberg is the baseline that lets you tell them apart.</p>'); return; } this.ask(); },
+  ask() { const C = CASES[this.ci], Q = C.qs[this.qi]; UI.say('<b>Case ' + (this.ci + 1) + ' of ' + CASES.length + ': ' + C.t + '.</b> ' + (this.qi === 0 ? C.txt + ' ' : '') + '<br><b>' + Q.q + '</b>'); UI.ctl(UI.choices(Q.o, k => { const ok = k === Q.a; if (ok) { this.right++; Snd.good(); } else Snd.bad(); UI.say((ok ? '<b>Right.</b> ' : '<b>Not quite.</b> ') + Q.why); UI.ctl(UI.row(UI.btn(this.qi < C.qs.length - 1 ? 'Next question' : 'Next case', () => { this.qi++; if (this.qi < C.qs.length) this.ask(); else this.nextCase(); }, 'primary'))); }, Q.o.some(o => o[1].length > 18))); },
+  draw(c) {
+    if (this.ci < 0 || this.ci >= CASES.length) return; const C = CASES[this.ci], A = Stage.area(); ink(c, 'Exhibit ' + (this.ci + 1), 24, A.y + 16, 14, Pal.muted, 'left', 700, 'serif');
+    if (C.ex === 'counts') { const pop = countsToList(C.d.map(v => Math.round(v / 2))), pts = field(pop.length, fieldRect(A, 0.1, 0.62), 90 + this.ci, { max: 16 }); pop.forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { lens: 'geno', noLetters: true, rot: pts[i].rot })); genoBar(c, 30, A.y + A.h * 0.74, A.w - 60, 20, frac(C.d), { title: 'observed genotypes', exp: hwExp(pOf(C.d)), expLabel: '▼ Hardy–Weinberg expectation' }); }
+    if (C.ex === 'phen') { const pop = shuffle(countsToList([49, 42, 9]).slice()), pts = field(100, fieldRect(A, 0.1, 0.9), 93, { max: 15 }); pop.sort().forEach((g, i) => beetle(c, pts[i].x, pts[i].y, pts[i].s, g, { lens: 'phen', rot: pts[i].rot })); }
+    if (C.ex === 'trace') lineChart(c, 50, A.y + A.h * 0.14, A.w - 90, A.h * 0.62, [{ d: C.d, col: Pal.A, wd: 3 }], { n: C.d.length, title: 'p by generation', yl: ['0', '1'] });
+    if (C.ex === 'fin') { const sz = Math.min(A.w - 80, A.h * 0.75), G = Fin.geo((A.w - sz) / 2, A.y + 40, sz); Fin.draw(c, G, { trail: C.d, pts: [{ f: last(C.d), col: Pal.accent, r: 7 }] }); }
+  }
+});
+
+/* ================= Guide, settings, boot ================= */
+const GUIDE = '<h3>Alleles, genotypes, phenotypes</h3><p>Each beetle carries two alleles of the colour gene: its <b>genotype</b> (AA, Aa or aa). Its colour is its <b>phenotype</b>. A is <b>dominant</b>: Aa looks like AA. Dominance says nothing about how common an allele is.</p>'
+  + '<h3>Allele frequencies</h3><p>Break every individual into its two alleles and count: <span class="fx">p = (2 × AA + Aa) ÷ 2N</span>, <span class="fx">q = 1 − p</span>.</p>'
+  + '<h3>The equation</h3><p>Random mating draws two alleles from the gene pool, independently. AA needs A twice (<b>p²</b>); aa needs a twice (<b>q²</b>); Aa can form two ways (<b>2pq</b>). <span class="fx">p² + 2pq + q² = (p + q)² = 1</span>.</p>'
+  + '<h3>Equilibrium</h3><p>With random mating and nothing else acting, allele frequencies stay constant and genotype frequencies reach p², 2pq, q² after <b>one generation</b>.</p>'
+  + '<h3>The triangle map (de Finetti diagram)</h3><p>Each population is a point: left to right is the share of a alleles; height is the share of heterozygotes. The curve is Hardy–Weinberg. <b>Sideways</b> = allele frequencies changing (evolution). <b>Up or down off the curve</b> = genotypes out of proportion.</p>'
+  + '<h3>Breaking the assumptions</h3><table><tr><th>Broken</th><th>What happens</th></tr><tr><td>No selection</td><td>Allele frequencies change; rare recessives hide in carriers</td></tr><tr><td>No mutation</td><td>Allele frequencies change, very slowly; the source of new alleles</td></tr><tr><td>No migration</td><td>Allele frequencies move toward the migrants’</td></tr><tr><td>Large population</td><td>Drift: random change, allele loss, bottlenecks, founders</td></tr><tr><td>Random mating</td><td>Genotype frequencies change; allele frequencies do not</td></tr></table>'
+  + '<h3>Using it</h3><p>Carriers from recessive phenotypes: <span class="fx">q = √(aa)</span>, carriers = <span class="fx">2pq</span>. Testing equilibrium: <span class="fx">χ² = Σ (O − E)² ÷ E</span>, one degree of freedom, significant above 3.84.</p>';
+function openGuide() { UI.card({ title: 'Field guide', html: GUIDE, buttons: [{ t: 'Close', primary: true }] }); }
+function applyTheme() { const t = Save.d.theme; if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; readPal(); }
+function openSettings() {
+  const th = Save.d.theme || '';
+  UI.card({ title: 'Settings', html: '<p>Sound: <b>' + (Save.d.mute ? 'off' : 'on') + '</b>. Colours: <b>' + (th || 'match my device') + '</b>. Levels: <b>' + (Save.d.all ? 'all unlocked' : 'unlock in order') + '</b>.</p>', buttons: [
+    { t: Save.d.mute ? 'Turn sound on' : 'Turn sound off', fn: () => { Save.d.mute = !Save.d.mute; Save.save(); openSettings(); } },
+    { t: 'Colours: ' + (th === '' ? 'dark' : th === 'dark' ? 'light' : 'device'), fn: () => { Save.d.theme = th === '' ? 'dark' : th === 'dark' ? 'light' : ''; Save.save(); applyTheme(); openSettings(); } },
+    { t: Save.d.all ? 'Lock levels in order' : 'Unlock all levels', fn: () => { Save.d.all = !Save.d.all; Save.save(); if (Game.id === 'map') Game.go('map'); openSettings(); } },
+    { t: 'Reset progress', fn: () => UI.card({ title: 'Reset progress?', html: '<p>This clears every star.</p>', buttons: [{ t: 'Keep my progress' }, { t: 'Reset', primary: true, fn: () => { Save.d.stars = {}; Save.d.done = {}; Save.save(); Game.go('map'); } }] }) },
+    { t: 'Done', primary: true }] });
+}
+function boot() {
+  Save.load(); applyTheme(); try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => readPal()); } catch (e) { }
+  Stage.init(); Lens.init();
+  const missing = ORDER.concat(['title', 'map']).filter(id => !Game.scenes[id]); if (missing.length) showErr('Missing levels: ' + missing.join(', '));
+  $('b-map').onclick = () => { Snd.unlock(); Snd.click(); Game.go('map'); }; $('b-guide').onclick = () => { Snd.unlock(); Snd.click(); openGuide(); }; $('b-guide2').onclick = () => { Snd.unlock(); Snd.click(); openGuide(); }; $('b-set').onclick = () => { Snd.unlock(); Snd.click(); openSettings(); }; $('b-begin').onclick = () => { Snd.unlock(); Snd.click(); Game.go('map'); };
+  window.HW = { Game, Save, UI, Stage, FX, Pal, Lens, ORDER, LV };
+  Game.go('title'); Game.frame();
+}
+boot();
+
+})();
+
+</script>
+</body>
+</html>

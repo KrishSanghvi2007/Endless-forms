@@ -1,0 +1,61 @@
+/* ================= Chapter: Two Fruits (sympatric host races) ================= */
+const CH_FRUITS = {
+  id: 'fruits', G: 150, KA: 0.4,
+  theme: { cab: '#f2ecdf', hud: '#e6dcc6', text: '#2d2418', dim: 'rgba(45,36,24,.68)', line: 'rgba(45,36,24,.2)', acc: '#b03a2a', hi: '#5a8a3a', meter: '#c08a2a', inv: '#faf6ee' },
+  intro: {
+    hook: 'In the 1860s, flies that lived on hawthorn berries in the Hudson Valley began laying eggs in apples. Today apple and hawthorn flies are partly separate “host races”, living side by side. Can one population split in two without any barrier between them? Run the experiments — but predict each result first.',
+    how: 'Each experiment sets how flies mate, how their genes are arranged, and how far apart the two fruits ripen. Choose your prediction, then watch 150 generations.',
+    goal: 'Level 1: three predictions; level 2: three more. A star for each level with every prediction right, and a third for all six.'
+  },
+  real: 'Guy Bush (1969) proposed that Rhagoletis pomonella was splitting sympatrically: flies mate on the fruit where they lay their eggs, so choosing a host is also choosing mates. Apple and hawthorn flies now differ in host preference and in the timing of their emergence, which tracks the earlier ripening of apples, and gene flow between them is only a few per cent a generation (Feder et al. 1994). Some of the timing genes lie in chromosomal inversions that suppress recombination — and those inversions arose long ago in Mexican populations and entered through gene flow (Feder et al. 2003), so the story is not purely sympatric. Joe Felsenstein (1981) explained the key theory: divergence with gene flow is hard when mating preference and adaptation are separate genes that recombination keeps pulling apart, and much easier when one trait does both jobs.',
+  maths: 'Two genes: host preference (hawthorn or apple) and emergence time (late or early). Flies choose their preferred fruit 90% of the time. Larvae survive fully on a fruit whose ripening matches their emergence, and lose a fraction s when it does not; s grows with the gap between the two fruiting seasons. Mating is either in one big swarm or on the fruit. Offspring are formed with recombination r between the genes (r = 0.5 if unlinked, 0 inside an inversion). The race index is the correlation between the two genes across the population: 0 means preference and timing are independent; 1 means every apple-lover emerges early and every hawthorn-lover late. Here it counts as two host races above 0.6, partial between 0.3 and 0.6. Each fruit supports a fixed share of the next generation (apples 40%), so apple flies are never simply outcompeted.',
+  ideas: ['<p>Selection favours apple flies that emerge early and hawthorn flies that emerge late. But if everyone mates in one swarm, every generation recombines preference and timing at random.</p><p>If flies mate on the fruit, only flies that chose the same fruit meet. Think about what that does before you run it.</p>', '<p>Now the genes can sit inside an inversion — a flipped stretch of chromosome that does not recombine — and flies can be perfectly faithful to their fruit.</p>'],
+  EXP: [
+    [{ t: 'Flies mate in one swarm; genes unlinked; fruits ripen three weeks apart.', fruit: false, r: 0.5, s: 0.5, c: 0.9 }, { t: 'Flies mate on their fruit; genes unlinked; fruits ripen three weeks apart.', fruit: true, r: 0.5, s: 0.5, c: 0.9 }, { t: 'Flies mate on their fruit; genes unlinked; fruits ripen almost together.', fruit: true, r: 0.5, s: 0.08, c: 0.9 }],
+    [{ t: 'Mate on fruit; unlinked; fruits ripen two weeks apart.', fruit: true, r: 0.5, s: 0.3, c: 0.9 }, { t: 'Mate on fruit; both genes inside an inversion; two weeks apart.', fruit: true, r: 0, s: 0.3, c: 0.9 }, { t: 'Mate on fruit and never stray (100% faithful); unlinked; two weeks apart.', fruit: true, r: 0.5, s: 0.3, c: 1.0 }]
+  ],
+  start() { this.lv = 0; this.res = []; this.allRight = 0; this.beginLevel(); },
+  beginLevel() { $('bar-gen').textContent = 'level ' + (this.lv + 1) + ' of 2'; this.ei = 0; this.right = 0; this.newExp(); },
+  newExp() {
+    this.E = this.EXP[this.lv][this.ei]; this.pred = null; this.runH = null; this.gen = 0; this.msg = this.msg || '';
+    HUD.set('<div class="hud-goal"><span><b>Experiment ' + (this.lv * 3 + this.ei + 1) + ' of 6</b></span><b id="tf-g"></b></div><div class="hud-line" id="tf-st"></div><div class="hud-row"><button class="btn" data-p="one">One population</button><button class="btn" data-p="partial">Partly split</button><button class="btn" data-p="two">Two host races</button></div>');
+    $('hud').querySelectorAll('[data-p]').forEach(b => b.onclick = () => this.predict(b.dataset.p)); this.upd();
+  },
+  upd() { $('tf-g').textContent = this.runH ? 'generation ' + this.gen : ''; const H = this.runH && this.runH[Math.min(this.gen, this.runH.length - 1)]; HUD.line('tf-st', (this.msg ? this.msg + '<br>' : '') + '<b>' + this.E.t + '</b>' + (H ? ' Race index <b>' + H.corr.toFixed(2) + '</b>; apple flies ' + pct(H.apple) + '.' : ' What will happen after 150 generations?')); $('hud').querySelectorAll('[data-p]').forEach(b => { b.disabled = !!this.pred; b.classList.toggle('sel', b.dataset.p === this.pred); }); },
+  sim(E) {
+    let x = [0.81, 0.09, 0.09, 0.01]; const out = [], hb = i => i >> 1, eb = i => i & 1;
+    const norm = v => { const s = v.reduce((a, b) => a + b, 0) || 1; return v.map(z => z / s); };
+    const rec = (m, d) => { const o = [0, 0, 0, 0]; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { const p = m[i] * d[j]; if (!p) continue; o[i] += p * (1 - E.r) / 2; o[j] += p * (1 - E.r) / 2; o[hb(i) * 2 + eb(j)] += p * E.r / 2; o[hb(j) * 2 + eb(i)] += p * E.r / 2; } return o; };
+    for (let g = 0; g <= this.G; g++) {
+      const pH = x[0] + x[1], pE = x[0] + x[2], D = x[0] - pH * pE, den = Math.sqrt(pH * (1 - pH) * pE * (1 - pE)); out.push({ corr: den > 1e-9 ? D / den : 0, apple: x[2] + x[3] });
+      const toA = i => hb(i) === 1 ? E.c : 1 - E.c, yA = x.map((v, i) => v * toA(i)), yW = x.map((v, i) => v * (1 - toA(i))), sA = yA.reduce((a, b) => a + b, 0), sW = yW.reduce((a, b) => a + b, 0), mA = norm(yA), mW = norm(yW), all = norm(x);
+      const oA = rec(mA, E.fruit ? mA : all), oW = rec(mW, E.fruit ? mW : all), vA = i => eb(i) === 1 ? 1 : 1 - E.s, vW = i => eb(i) === 0 ? 1 : 1 - E.s;
+      const nA = norm(oA.map((v, i) => v * vA(i))), nW = norm(oW.map((v, i) => v * vW(i))); x = nA.map((v, i) => this.KA * v + (1 - this.KA) * nW[i]);
+    }
+    return out;
+  },
+  cat(corr) { return corr >= 0.6 ? 'two' : corr >= 0.3 ? 'partial' : 'one'; },
+  predict(p) { if (this.pred) return; this.pred = p; this.runH = this.sim(this.E); this.gen = 0; this.acc = 0; Snd.flood(); this.upd(); },
+  update(dt) {
+    if (!this.runH || this.done) return; if (this.gen >= this.G) return; this.acc += dt; const step = Math.max(1, Math.round(dt * 40)); this.gen = Math.min(this.G, this.gen + step); if (((this.gen / 5) | 0) !== (((this.gen - step) / 5) | 0)) this.upd();
+    if (this.gen >= this.G) { const L = last(this.runH), truth = this.cat(L.corr), ok = truth === this.pred; if (ok) { this.right++; this.allRight++; } ok ? Snd.chime() : Snd.miss(); this.msg = (ok ? '<b>Correct.</b> ' : '<b>Not what you predicted.</b> ') + 'Result: ' + { one: 'one population', partial: 'partly split', two: 'two host races' }[truth] + ' (race index ' + L.corr.toFixed(2) + ').'; this.upd(); setTimeout(() => { if (App.mode !== this) return; this.ei++; if (this.ei < 3) this.newExp(); else this.endLevel(); }, 2200); }
+  },
+  endLevel() {
+    const pass = this.right === 3; this.res.push({ lv: this.lv, pass }); if (pass) Snd.star(); this.msg = ''; this.lv++;
+    const note0 = 'With a single swarm, recombination scrambled preference and timing every generation, and the population stayed one. Mating on the fruit made host choice double as mate choice, so selection on timing built an association the swarm could not — as long as the fruits ripened far enough apart for the selection to be strong.';
+    const note1 = 'An inversion stops recombination between preference and timing, so the association selection builds is no longer broken down; perfect host fidelity removes gene flow altogether. Both split the flies even with fruits only two weeks apart.';
+    if (this.lv < 2) Cards.open({ cls: 'intro', html: '<h3>' + (pass ? 'Level passed' : 'Interesting result') + '</h3><p>' + this.right + ' of 3 predictions right.</p><p>' + note0 + '</p>', buttons: [{ t: 'Next level', primary: true, fn: () => { Cards.close(); this.beginLevel(); } }] });
+    else { const stars = this.res.filter(r => r.pass).length + (this.allRight === 6 ? 1 : 0); End.show(this, { stars, title: this.allRight + ' of 6 predictions', insight: note0 + ' ' + note1 + ' Divergence without geographic barriers is possible when the same trait does two jobs — choosing a habitat and choosing a mate — or when recombination is suppressed. In real apple maggot flies, both are part of the story, along with genetic variation that arrived from Mexico long ago.' }); }
+  },
+  draw(c, w, h) {
+    c.fillStyle = '#eee6d2'; c.fillRect(0, 0, w, h); const H = this.runH && this.runH[Math.min(this.gen, this.runH.length - 1)], apple = H ? H.apple : 0.1, corr = H ? H.corr : 0;
+    const tree = (x, col, fruitCol, lab) => { c.fillStyle = '#6a5030'; c.fillRect(x - 5, h * 0.32, 10, h * 0.22); c.fillStyle = col; for (let k = 0; k < 7; k++) { c.beginPath(); c.arc(x + Math.cos(k) * 34, h * 0.26 + Math.sin(k * 1.3) * 22, 30, 0, TAU); c.fill(); } c.fillStyle = fruitCol; for (let k = 0; k < 12; k++) { c.beginPath(); c.arc(x + Math.cos(k * 2.1) * 40, h * 0.26 + Math.sin(k * 1.7) * 26, lab === 'apple' ? 6 : 3.5, 0, TAU); c.fill(); } ink(c, lab, x, h * 0.58, 13, '#2d2418', 'center', 'b', 600); };
+    tree(w * 0.27, '#5a7a3a', '#a0202a', 'hawthorn'); tree(w * 0.73, '#6a8a3a', '#d0503a', 'apple');
+    const r = rng(this.lv * 10 + this.ei), n = 80; for (let i = 0; i < n; i++) { const onA = i < n * apple, early = onA ? r() < (0.5 + corr / 2) : r() < (0.5 - corr / 2); const x = (onA ? w * 0.73 : w * 0.27) + (r() - 0.5) * 110 + Math.sin(App.t * 4 + i) * 3, y = h * 0.26 + (r() - 0.5) * 80; c.fillStyle = early ? '#c08a2a' : '#2d2418'; c.beginPath(); c.ellipse(x, y, 3, 2, 0, 0, TAU); c.fill(); }
+    ink(c, 'gold flies emerge early (apple timing); dark flies emerge late (hawthorn timing)', w / 2, h * 0.63, 10, 'rgba(45,36,24,.7)', 'center', 'b', 'italic');
+    const y0 = h - 16, gh = h * 0.26, x0 = 30, gw = w - 50; c.strokeStyle = 'rgba(45,36,24,.3)'; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + gw, y0); c.moveTo(x0, y0); c.lineTo(x0, y0 - gh); c.stroke(); [[0.6, 'two races'], [0.3, 'partial']].forEach(([v, lab]) => { c.strokeStyle = 'rgba(45,36,24,.2)'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(x0, y0 - gh * v); c.lineTo(x0 + gw, y0 - gh * v); c.stroke(); c.setLineDash([]); ink(c, lab, x0 + gw, y0 - gh * v - 3, 10, 'rgba(45,36,24,.6)', 'right', 'b', 'italic'); });
+    if (this.runH) { c.strokeStyle = '#b03a2a'; c.lineWidth = 2.5; c.beginPath(); for (let g = 0; g <= this.gen; g++) { const X = x0 + gw * g / this.G, Y = y0 - gh * clamp(this.runH[g].corr, 0, 1); g ? c.lineTo(X, Y) : c.moveTo(X, Y); } c.stroke(); c.strokeStyle = '#5a8a3a'; c.lineWidth = 1.5; c.beginPath(); for (let g = 0; g <= this.gen; g++) { const X = x0 + gw * g / this.G, Y = y0 - gh * this.runH[g].apple; g ? c.lineTo(X, Y) : c.moveTo(X, Y); } c.stroke(); }
+    ink(c, 'red: race index   green: share of flies preferring apple', w / 2, y0 + 12, 10, 'rgba(45,36,24,.65)', 'center', 'b');
+  },
+  notes() { const E = this.E || this.EXP[0][0], H = this.runH && this.runH[Math.min(this.gen, this.runH.length - 1)]; return { idea: this.ideas[this.lv > 0 ? 1 : 0], stats: [['Mating', E.fruit ? 'on the fruit' : 'one swarm', E.fruit ? 'Choosing a fruit is choosing mates.' : 'Everyone meets everyone.'], ['Recombination between the genes', E.r === 0 ? 'none (inversion)' : '50% (unlinked)', ''], ['Loss for wrong timing', pct(E.s), 'Bigger when the fruits ripen further apart.'], ['Host fidelity', pct(E.c), ''], ['Race index', H ? H.corr.toFixed(2) : '—', 'Correlation between host preference and timing.']], charts: [] }; }
+};
