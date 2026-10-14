@@ -205,12 +205,14 @@ const Hunt = {
   },
   notes() {
     const ch = this.ch, rows = [['Generation', this.gen + ' of ' + (ch.maxGen + 1), 'Each morning is one generation. Only the ones you miss get to breed.'], [this.obj.label, pct(this.obj.value), 'The goal meter. Goal ' + (this.obj.below ? 'under ' : '') + pct(this.obj.goal) + '.'], ['Eaten so far', this.total, '']];
-    let S = 0, Rr = 0; for (const r of this.hist) if (r.R != null) { S += r.S; Rr += r.R; }
+    // soot: selection flips direction once the soot thins, so sum S and R only within the current phase (opposite pushes would cancel)
+    const g0 = ch.id === 'soot' && this.phase && this.phase.cleanGen != null && this.gen > this.phase.cleanGen ? this.phase.cleanGen + 1 : -1;
+    let S = 0, Rr = 0; for (const r of this.hist) if (r.R != null && r.gen >= g0) { S += r.S; Rr += r.R; }
     const r = this.lastRec;
     if (r) {
-      rows.push(['Last morning: selection differential (S)', f2(r.S), 'How different the moths you spared were from their whole generation, in ' + ch.focusName + '. That difference is what you selected.']);
-      if (r.R != null) rows.push(['Last morning: response (R)', f2(r.R), 'How far their offspring actually moved. Some of what you selected was luck of development, not genes, so R is usually smaller than S.']);
-      if (Math.abs(S) > 0.03) rows.push(['Realised heritability (sum of R ÷ sum of S)', (Rr / S).toFixed(2), 'The share of your selection that was passed on. Breeders write R = h²S.']);
+      rows.push(['Last morning: selection differential (S)', f2(r.S), 'How different the ones you spared were from their whole generation, in ' + ch.focusName + '. That difference is what you selected.']);
+      if (r.R != null) rows.push(['Last morning: response (R)', f2(r.R), ch.id === 'soot' ? 'How far their offspring actually moved. Dominance hides copies: black survivors can carry a pale copy, and pale survivors’ copies hide inside black young, so R is usually smaller in size than S. With thirty moths, any one morning is noisy.' : 'How far their offspring actually moved. Some of what you selected was luck of development, not genes, so on average R is a little smaller than S. Chance in which survivors leave the most young, and which gene copies each passes on, makes any one morning noisy.']);
+      if (Math.abs(S) > (ch.id === 'soot' ? 0.25 : 0.03)) rows.push(['Realised heritability' + (g0 > 0 ? ' since the soot thinned' : '') + ' (sum of R ÷ sum of S)', (Rr / S).toFixed(2), 'The share of your selection that was passed on. Breeders write R = h²S.' + (ch.id === 'soot' ? ' With one dominant gene this share is not fixed: it changes as carbonaria spreads.' + (g0 > 0 ? ' Summed only since pale moths became favoured, because pushes in opposite directions would cancel out.' : '') : '')]);
     }
     if (ch.noteExtra) rows.push(...ch.noteExtra(this));
     const f = ch.focus, vals = this.pop.map(x => f.get(x.ph));
@@ -291,7 +293,7 @@ const CH_LICHEN = {
     premise: 'Moths spend the day pressed flat against bark. The ones you can’t see live to breed, and their offspring inherit their looks — roughly.',
     part: 'You’re a bird with twelve seconds of morning. Tap moths to eat them, up to fifteen a morning. Tapping bare bark costs half a second.',
     goal: 'Camouflage reaches 75%: the average moth closely matching the lichen. Three stars by generation 10.',
-    real: 'Bond and Kamil (2002) let blue jays hunt digital moths on a screen. The moths the jays missed were bred for the next screen, and the population evolved camouflage — and a spread of different looks, because jays hunt with a search image for whatever is common. Here, you were the jay.'
+    real: 'Bond and Kamil (2002) let blue jays hunt digital moths on a screen. The moths the jays missed were bred for the next screen, and the population evolved camouflage — and a spread of different looks, because jays hunt with a search image for whatever is common. Here, you were the jay, though with one kind of bark and a short season this game scores only average camouflage, and there is little to keep several looks going at once.'
   },
   traits: [{ k: 'tone', n: 8, m0: 0.30, s0: 0.13, mu: 0.03, msd: 0.05, ve: 0.03 }, { k: 'hue', n: 6, m0: 0.22, s0: 0.13, mu: 0.03, msd: 0.05, ve: 0.03 }, { k: 'mot', n: 4, m0: 0.30, s0: 0.13, mu: 0.03, msd: 0.05, ve: 0.03 }],
   N: 30, cap: 15, roundTime: 12, missCost: 0.5, maxGen: 16, target: { T: 0.70, H: 0.85, M: 0.6 },
@@ -321,7 +323,13 @@ const CH_LICHEN = {
     let S = 0, Rr = 0; for (const r of Hn.hist) if (r.R != null) { S += r.S; Rr += r.R; }
     const h2 = Math.abs(S) > 0.04 ? clamp(Rr / S, -1, 2) : null;
     let s = 'Summed over the run, the moths you spared were ' + Math.abs(S).toFixed(2) + (S >= 0 ? ' paler' : ' darker') + ' than their generations — the selection differential, S. Their offspring moved ' + Math.abs(Rr).toFixed(2) + ' — the response, R. ';
-    if (h2 != null) s += 'So about ' + Math.round(h2 * 100) + '% of what you selected was passed on: the realised heritability, in breeders’ shorthand R = h²S. The rest was developmental luck — moths paler than their genes, spared for something they couldn’t pass on.';
+    if (h2 != null) {
+      const pc = Math.round(h2 * 100), pd = S >= 0 ? 'paler' : 'darker';
+      s += 'So about ' + pc + '% of what you selected was passed on: the realised heritability, in breeders’ shorthand R = h²S. ';
+      s += pc >= 100 ? 'Reaching 100% or more is partly chance: in thirty moths, which survivors happen to leave the most young, and which gene copies each passes on, add noise in both directions. In this wood colour is almost entirely genetic, with a true heritability of about 0.95.'
+        : pc >= 75 ? 'In this wood colour is almost entirely genetic (heritability about 0.95). The small remainder was developmental luck — moths ' + pd + ' than their genes, spared for something they couldn’t pass on.'
+        : 'That is below this wood’s true heritability of about 0.95: over a short run in thirty moths, chance in which survivors leave the most young, and which gene copies each passes on, adds noise, on top of developmental luck — moths ' + pd + ' than their genes, spared for something they couldn’t pass on.';
+    }
     else s += 'You didn’t push hard enough in one direction to measure heritability.';
     return s;
   }
@@ -332,11 +340,11 @@ const CH_SOOT = {
   id: 'soot', mode: 'hunt', num: 'II', title: 'The Black Country', concept: 'Industrial melanism',
   intro: {
     premise: 'Lancashire, 1848. Coal smoke is killing the lichen and staining the trees. A few peppered moths carry carbonaria, a single dominant mutation that turns them black.',
-    part: 'Hunt as before and watch the bark. The soot arrives over a few generations; later, the air will clear. Each generation one pale moth flies in from cleaner woods.',
+    how: 'Hunt as before and watch the bark. The soot arrives over a few generations; later, the air will clear. Each generation one moth flies in: usually a pale one from cleaner woods, but a black one from the city if carbonaria dies out here before the soot takes hold.',
     goal: 'First, black moths reach 75%. Then, once the Clean Air Act cleans the trees, bring them back under 40%.',
     real: 'The first black peppered moth was recorded in Manchester in 1848; by 1895 about 98% there were black. Carbonaria turned out to be a jumping gene inserted into the gene cortex, dated to around 1819 (van’t Hof et al. 2016). After clean-air laws the black form declined across Britain, and Majerus’s six-year field experiment confirmed that birds take the conspicuous form (Cook et al. 2012).'
   },
-  traits: [{ k: 'carb', n: 1, kind: 'dom', p0: 0.05, mu: 0.01, back: 0 }, { k: 'tone', n: 4, m0: 0.74, s0: 0.04, mu: 0.02, msd: 0.03, ve: 0.02 }, { k: 'hue', n: 4, m0: 0.84, s0: 0.06, mu: 0.02, msd: 0.04, ve: 0.02 }],
+  traits: [{ k: 'carb', n: 1, kind: 'dom', p0: 0.05, mu: 0, back: 0 }, { k: 'tone', n: 4, m0: 0.74, s0: 0.04, mu: 0.02, msd: 0.03, ve: 0.02 }, { k: 'hue', n: 4, m0: 0.84, s0: 0.06, mu: 0.02, msd: 0.04, ve: 0.02 }],
   N: 30, cap: 15, roundTime: 9, missCost: 0.5, maxGen: 24,
   tg: { lichen: { T: 0.70, H: 0.85 }, soot: { T: 0.12, H: 0.36 } },
   phen(lay, g) { const black = Gen.dom(lay, g, 'carb'); return black ? { black: true, tone: 0.05 + 0.05 * R(), hue: 0.38, mot: 0.12 } : { black: false, tone: Gen.ph(lay, g, 'tone'), hue: Gen.ph(lay, g, 'hue'), mot: 0.78 }; },
@@ -347,14 +355,22 @@ const CH_SOOT = {
     this.tg = { lichen: { T: a.T, H: a.H }, soot: { T: b.T, H: b.H } };
     return { draw: (c, W, H, env) => { c.drawImage(a.cv, 0, 0, W, H); if (env && env.soot > 0) { c.globalAlpha = env.soot; c.drawImage(b.cv, 0, 0, W, H); c.globalAlpha = 1; } } };
   },
-  setup(Hn) { Hn.phase = { aGen: null, cleanGen: null, q0: Gen.freq(Hn.lay, Hn.pop, 'carb') }; },
+  setup(Hn) {
+    // carbonaria arose once (no recurrent mutation): make sure the first generation carries at least one copy
+    const s = Hn.lay.T.carb; if (Gen.freq(Hn.lay, Hn.pop, 'carb') === 0) { const i = (R() * Hn.pop.length) | 0, g = Hn.pop[i].g.slice(); g[s.off] = 1; Hn.pop[i] = Hn.mk(g); }
+    Hn.phase = { aGen: null, cleanGen: null, q0: Gen.freq(Hn.lay, Hn.pop, 'carb'), migB: 0 };
+  },
   sootAt(Hn) { const g = Hn.gen, P = Hn.phase; let s = g <= 1 ? 0 : g === 2 ? 0.45 : g === 3 ? 0.8 : 1; if (P.cleanGen != null && g >= P.cleanGen) s = Math.max(0, 1 - 0.4 * (g - P.cleanGen + 1)); return s; },
   env(Hn) { const s = this.sootAt(Hn); return { soot: s, T: lerp(this.tg.lichen.T, this.tg.soot.T, s), H: lerp(this.tg.lichen.H, this.tg.soot.H, s) }; },
   black(pop) { return pop.length ? pop.filter(x => x.ph.black).length / pop.length : 0; },
   focus: { get: ph => ph.black ? 1 : 0 },
   onBred(Hn) {
-    const lay = Hn.lay, s = lay.T.carb, g = Gen.genome(lay); g[s.off] = 0; g[lay.L + s.off] = 0; Hn.pop[(R() * Hn.pop.length) | 0] = Hn.mk(g);
-    const f = this.black(Hn.pop), P = Hn.phase;
+    const lay = Hn.lay, s = lay.T.carb, g = Gen.genome(lay), P = Hn.phase; g[s.off] = 0; g[lay.L + s.off] = 0;
+    // the migrant is pale, unless carbonaria has been lost here before goal 1: then a black heterozygote arrives from the city
+    const lost = P.aGen == null && Gen.freq(lay, Hn.pop, 'carb') === 0; if (lost) g[s.off] = 1;
+    Hn.pop[(R() * Hn.pop.length) | 0] = Hn.mk(g);
+    if (lost && !P.migB++ && !Hn.sync) { const lr = Hn.lastRec; toast((lr && lr.eb > 0 && lr.soot < 1 ? 'Before the soot took hold, the black moths stood out and were eaten, and carbonaria has been lost from this wood.' : 'Carbonaria has been lost from this wood: by chance, none of the young inherited it.') + ' A black moth flies in from the sootier woods near the city.'); }
+    const f = this.black(Hn.pop);
     if (P.aGen == null && f >= 0.75) { P.aGen = Hn.gen; P.cleanGen = Hn.gen + 2; if (!Hn.sync) toast('Black moths passed <b>75%</b>. Parliament passes a Clean Air Act: the trees start to clean in two generations.'); }
     if (P.cleanGen == null && Hn.gen >= 15) { P.cleanGen = Hn.gen; if (!Hn.sync) toast('The Clean Air Act passes. The trees are starting to clean.'); }
   },
@@ -373,7 +389,7 @@ const CH_SOOT = {
       title: 'Generation ' + rec.gen + ': morning over',
       leg: '<div class="leg"><span><i style="background:rgba(41,33,27,.25)"></i>missed</span><span><i style="background:#a8263f"></i>eaten</span></div>',
       bars: { groups: [{ label: 'pale (typica)', parts: [{ v: rec.ep, c: '#a8263f' }, { v: rec.sp, c: 'rgba(41,33,27,.25)' }] }, { label: 'black (carbonaria)', parts: [{ v: rec.eb, c: '#a8263f' }, { v: rec.sb, c: 'rgba(41,33,27,.25)' }] }] },
-      text: 'You ate ' + rec.ep + ' pale and ' + rec.eb + ' black moths. Carbonaria is now ' + pct(rec.q) + ' of gene copies — more than the black moths alone suggest would be hidden, because heterozygotes are black too.'
+      text: 'You ate ' + rec.ep + ' pale and ' + rec.eb + ' black moths. This generation, carbonaria made up ' + pct(rec.q) + ' of gene copies' + (rec.q > 0 && rec.q < (rec.eb + rec.sb) / Math.max(1, rec.eb + rec.ep + rec.sb + rec.sp) - 1e-9 ? ' — less than the share of black moths, because one copy makes a moth black, so many black moths hide a pale copy.' : '.')
     };
   },
   endLeg: '<div class="leg"><span><i style="background:#2f7f7a"></i>black moths</span><span><i style="background:#8a5d10"></i>carbonaria copies</span><span><i style="background:rgba(41,33,27,.18)"></i>soot</span></div>',
@@ -385,7 +401,7 @@ const CH_SOOT = {
   what(Hn) {
     const qs = Hn.hist.filter(r => r.q != null).map(r => r.q), q0 = Hn.phase.q0, qmax = qs.length ? Math.max(...qs) : q0, qn = Gen.freq(Hn.lay, Hn.pop, 'carb');
     const pale = 1 - this.black(Hn.pop);
-    return 'Carbonaria started as ' + pct(q0) + ' of gene copies, peaked at ' + pct(qmax) + ' and ended at ' + pct(qn) + '. Dominance makes the two directions unequal. On the way up, every carbonaria copy showed, so you could select it hard. The pale allele never quite vanished, though: its recessive copies hid inside black heterozygotes, invisible to you — and that hidden reserve is what let the pale form return when the trees cleaned. Pale moths ended at ' + pct(pale) + ' of the population.';
+    return 'Carbonaria started as ' + pct(q0) + ' of gene copies, peaked at ' + pct(qmax) + ' and ended at ' + pct(qn) + '. Dominance makes the two directions unequal. On the way up, every carbonaria copy showed, so you could select it hard. The pale allele never quite vanished, though: its recessive copies hid inside black heterozygotes, invisible to you — and that hidden reserve, topped up by pale migrants from cleaner woods, is what let the pale form return when the trees cleaned. Pale moths ended at ' + pct(pale) + ' of the population.';
   }
 };
 
@@ -393,10 +409,10 @@ const CH_SOOT = {
 const CH_BITTER = {
   id: 'bitter', mode: 'hunt', num: 'III', title: 'Bitter Wings', concept: 'Mimicry',
   intro: {
-    premise: 'Bitterwings are loaded with toxins and wear black and red to say so. Palewings are cream-coloured, harmless and good to eat — and on green leaves they have nowhere to hide. Nothing stops a palewing from dressing like a bitterwing.',
+    premise: 'Bitterwings are loaded with toxins and wear black and red to say so. Palewings are cream-coloured, harmless and good to eat — and on green leaves they have nowhere to hide. Nothing stops palewings from evolving to look like bitterwings.',
     part: 'Eat palewings, up to twelve a morning. A bitterwing makes you retch and costs three seconds. Bitterwings stay as they are; palewings evolve.',
     goal: 'Palewings evolve a 70% resemblance to bitterwings. Three stars by generation 12.',
-    real: 'Henry Walter Bates described palatable Amazonian butterflies copying toxic ones in 1862, three years after the Origin. Birds that learn a warning pattern the hard way then spare its look-alikes. The same logic runs in reverse: mimics only work while they are rare, because every harmless copy teaches predators that the warning is a bluff.'
+    real: 'Henry Walter Bates described palatable Amazonian butterflies that look like distasteful ones in 1862, three years after the Origin. Birds that learn a warning pattern the hard way then spare its look-alikes. The same logic runs in reverse: mimics do best while they are rare compared with their models, because every harmless look-alike teaches predators that the warning may be a bluff.'
   },
   traits: [{ k: 'red', n: 6, m0: 0.16, s0: 0.16, mu: 0.06, msd: 0.07, ve: 0.03 }, { k: 'dark', n: 6, m0: 0.13, s0: 0.15, mu: 0.06, msd: 0.07, ve: 0.03 }],
   N: 24, cap: 12, models: 8, roundTime: 12, missCost: 0.5, bitterCost: 3, maxGen: 20,
@@ -425,6 +441,6 @@ const CH_BITTER = {
   chartCap: 'Average resemblance of palewings to bitterwings.',
   what(Hn) {
     const r1 = mean(Hn.pop.map(x => this.resem(x.ph)));
-    return 'Resemblance started at ' + pct(Hn.phase.r0) + ' and reached ' + pct(r1) + '. You paid ' + Hn.bitterTotal + ' bitter mouthful' + (Hn.bitterTotal === 1 ? '' : 's') + ' over the run. Every morning you ate the palewings that looked safest, and every morning the ones that made you hesitate bred. Your caution, not any intent of theirs, is what they evolved against. If you noticed yourself sampling red wings again once the copies were good, you felt the limit on Batesian mimicry: the signal is only worth copying while it stays honest.';
+    return 'Resemblance started at ' + pct(Hn.phase.r0) + ' and reached ' + pct(r1) + '. You paid ' + Hn.bitterTotal + ' bitter mouthful' + (Hn.bitterTotal === 1 ? '' : 's') + ' over the run. Every morning you ate the palewings that looked safest, and every morning the ones that made you hesitate bred. Your caution, not any intent of theirs, did the selecting. If you noticed yourself sampling red wings again once the look-alikes were good, you felt the limit on Batesian mimicry: the signal protects mimics only while it stays mostly honest.';
   }
 };
