@@ -1,0 +1,568 @@
+{
+ "seed": 7,
+ "steps": 3000,
+ "every": 50,
+ "viewport": [
+  390,
+  780
+ ],
+ "v1": false,
+ "browser": "141.0.7390.37",
+ "recorded": "2026-10-14 12:49",
+ "git": "ac168f4",
+ "chapters": {
+  "mendel": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    0
+   ],
+   "errs": 0,
+   "secs": 20.5
+  },
+  "scribe": {
+   "status": "end",
+   "at": 962,
+   "cps": 21,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 1.2
+  },
+  "cross": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [],
+   "errs": 0,
+   "secs": 3.2
+  },
+  "census": {
+   "status": "end",
+   "at": 178,
+   "cps": 5,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.3
+  },
+  "coal": {
+   "status": "end",
+   "at": 416,
+   "cps": 10,
+   "ends": [
+    1,
+    1,
+    1
+   ],
+   "errs": 0,
+   "secs": 6.2
+  },
+  "casino": {
+   "status": "end",
+   "at": 2183,
+   "cps": 45,
+   "ends": [
+    0,
+    0,
+    2
+   ],
+   "errs": 0,
+   "secs": 12.0
+  },
+  "castaways": {
+   "status": "end",
+   "at": 1709,
+   "cps": 36,
+   "ends": [
+    1,
+    1,
+    2
+   ],
+   "errs": 0,
+   "secs": 9.9
+  },
+  "sex": {
+   "status": "end",
+   "at": 1588,
+   "cps": 33,
+   "ends": [
+    1,
+    2,
+    2
+   ],
+   "errs": 0,
+   "secs": 9.8
+  },
+  "lichen": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 12.9
+  },
+  "soot": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 13.2
+  },
+  "fancier": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [],
+   "errs": 0,
+   "secs": 17.3
+  },
+  "sieve": {
+   "status": "end",
+   "at": 2296,
+   "cps": 47,
+   "ends": [
+    1,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 8.6
+  },
+  "bitter": {
+   "status": "end",
+   "at": 2788,
+   "cps": 57,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 13.6
+  },
+  "landscape": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [],
+   "errs": 0,
+   "secs": 8.4
+  },
+  "jaws": {
+   "status": "end",
+   "at": 2246,
+   "cps": 46,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 9.4
+  },
+  "hawks": {
+   "status": "end",
+   "at": 2717,
+   "cps": 56,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 8.7
+  },
+  "bats": {
+   "status": "end",
+   "at": 715,
+   "cps": 16,
+   "ends": [
+    2,
+    3,
+    3
+   ],
+   "errs": 0,
+   "secs": 2.5
+  },
+  "brood": {
+   "status": "end",
+   "at": 1082,
+   "cps": 23,
+   "ends": [
+    1,
+    0,
+    1
+   ],
+   "errs": 0,
+   "secs": 1.2
+  },
+  "gametes": {
+   "status": "end",
+   "at": 662,
+   "cps": 15,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 2.5
+  },
+  "lek": {
+   "status": "end",
+   "at": 927,
+   "cps": 20,
+   "ends": [
+    0,
+    1,
+    0
+   ],
+   "errs": 0,
+   "secs": 4.1
+  },
+  "raffle": {
+   "status": "end",
+   "at": 1304,
+   "cps": 28,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 5.7
+  },
+  "spindle": {
+   "status": "end",
+   "at": 2514,
+   "cps": 52,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 17.9
+  },
+  "meadow": {
+   "status": "end",
+   "at": 1844,
+   "cps": 38,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 7.3
+  },
+  "alarm": {
+   "status": "end",
+   "at": 770,
+   "cps": 17,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 2.9
+  },
+  "nest": {
+   "status": "end",
+   "at": 2356,
+   "cps": 49,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 9.2
+  },
+  "commons": {
+   "status": "end",
+   "at": 396,
+   "cps": 9,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.7
+  },
+  "many": {
+   "status": "end",
+   "at": 151,
+   "cps": 5,
+   "ends": [
+    0,
+    0,
+    2
+   ],
+   "errs": 0,
+   "secs": 0.2
+  },
+  "livefast": {
+   "status": "end",
+   "at": 327,
+   "cps": 8,
+   "ends": [
+    1,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.2
+  },
+  "forager": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    0
+   ],
+   "errs": 0,
+   "secs": 10.1
+  },
+  "crowd": {
+   "status": "end",
+   "at": 887,
+   "cps": 19,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 2.6
+  },
+  "plastic": {
+   "status": "end",
+   "at": 225,
+   "cps": 6,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.2
+  },
+  "lock": {
+   "status": "end",
+   "at": 322,
+   "cps": 8,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.6
+  },
+  "clinic": {
+   "status": "end",
+   "at": 592,
+   "cps": 13,
+   "ends": [
+    1,
+    1,
+    1
+   ],
+   "errs": 0,
+   "secs": 2.8
+  },
+  "virulence": {
+   "status": "end",
+   "at": 500,
+   "cps": 11,
+   "ends": [
+    1,
+    1,
+    0
+   ],
+   "errs": 0,
+   "secs": 3.9
+  },
+  "guest": {
+   "status": "end",
+   "at": 427,
+   "cps": 10,
+   "ends": [
+    1,
+    1,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.6
+  },
+  "switch": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    1,
+    0
+   ],
+   "errs": 0,
+   "secs": 4.1
+  },
+  "copy": {
+   "status": "end",
+   "at": 330,
+   "cps": 8,
+   "ends": [
+    1,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.5
+  },
+  "sweep": {
+   "status": "end",
+   "at": 430,
+   "cps": 10,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 2.1
+  },
+  "clock": {
+   "status": "end",
+   "at": 139,
+   "cps": 4,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.4
+  },
+  "river": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    0
+   ],
+   "errs": 0,
+   "secs": 8.2
+  },
+  "fruits": {
+   "status": "end",
+   "at": 789,
+   "cps": 17,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 3.5
+  },
+  "ring": {
+   "status": "end",
+   "at": 1453,
+   "cps": 31,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 3.1
+  },
+  "double": {
+   "status": "steps",
+   "at": null,
+   "cps": 61,
+   "ends": [
+    3
+   ],
+   "errs": 0,
+   "secs": 5.7
+  },
+  "arch": {
+   "status": "end",
+   "at": 93,
+   "cps": 3,
+   "ends": [
+    0,
+    1,
+    1
+   ],
+   "errs": 0,
+   "secs": 0.3
+  },
+  "tree": {
+   "status": "end",
+   "at": 102,
+   "cps": 4,
+   "ends": [
+    1,
+    2,
+    1
+   ],
+   "errs": 0,
+   "secs": 0.2
+  },
+  "web": {
+   "status": "end",
+   "at": 140,
+   "cps": 4,
+   "ends": [
+    1,
+    0,
+    1
+   ],
+   "errs": 0,
+   "secs": 0.3
+  },
+  "islands": {
+   "status": "end",
+   "at": 93,
+   "cps": 3,
+   "ends": [
+    0,
+    0,
+    0
+   ],
+   "errs": 0,
+   "secs": 0.2
+  },
+  "fire": {
+   "status": "end",
+   "at": 261,
+   "cps": 7,
+   "ends": [
+    0,
+    1,
+    0
+   ],
+   "errs": 0,
+   "secs": 1.0
+  }
+ }
+}

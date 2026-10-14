@@ -31,7 +31,7 @@ V2.forEach(reg);
 
 function boot() {
   Save.load(); Snd.on = Save.d.snd !== false;
-  Stage.init();
+  Stage.init(); Shell.init();
   $('btn-begin').onclick = () => { Snd.init(); Snd.resume(); Snd.click(); App.go('menu'); };
   $('btn-title').onclick = () => { Title.t = 0; Title.drawn = false; App.go('title'); };
   const sb = $('btn-snd'); const sl = () => { sb.textContent = Snd.on ? 'Sound on' : 'Sound off'; sb.setAttribute('aria-pressed', Snd.on ? 'true' : 'false'); }; sl();
@@ -42,6 +42,11 @@ function boot() {
   document.querySelectorAll('#sh-tabs button').forEach(b => b.onclick = () => { Notes.tab = b.dataset.t; Snd.click(); Notes.render(); });
   for (const id in REG) { const ch = REG[id]; for (const k of ['start', 'update', 'draw', 'notes']) if (ch.mode !== 'hunt' && typeof ch[k] !== 'function') throw new Error('Chapter ' + id + ' lacks ' + k); if (!ch.intro || !ch.intro.goal) throw new Error('Chapter ' + id + ' lacks intro'); }
   App.go('title'); frame();
+  // deep links (D2-1): ?lab=<id>&dev=1 opens the scene lab; ?unit=<id>[&level=n][&seed=s] plays that unit at once
+  if (Url.lab && Url.dev && typeof SceneLab !== 'undefined') SceneLab.open(Url.lab);
+  else if (Url.unit && REG[Url.unit]) App.playLevel(REG[Url.unit], Url.level || 0, { seed: Url.seed });
 }
-window.TB = { App, Hunt, REG, ORDER, Gen, seed, R, Save, Stage, Cards, Notes, End };
+window.TB = Object.assign({ App, Hunt, REG, ORDER, Gen, seed, R, Save, Stage, Cards, Notes, End,
+  Det: typeof Det !== 'undefined' ? Det : undefined, Events: typeof Events !== 'undefined' ? Events : undefined,
+  Url, Teacher, Hooks, HUD, Dock, Strip }, EXPORT);
 boot();

@@ -1,4 +1,45 @@
 /* ================= ENDLESS FORMS: framework ================= */
+/* Wave 2 shell (docs/design/API_v2.md §4). Every v2 path is gated on ch.v2: a legacy chapter must play exactly as
+   before (tests/golden.py checks all 48), and ?v1=1 shows none of the new UI. */
+const EXPORT = {};   // v2 modules that tests need add themselves (EXPORT.Fx = Fx); boot.js merges this into window.TB
+const Hooks = {
+  pre: [],            // fn(c, w, h)      before App.mode.draw (shake transform)
+  frame: [],          // fn(dt, c, w, h)  after App.mode.draw, only while the stage is live (no pause, no card)
+  dt: [],             // fn(dt) → dt      before update (hit-stop); legacy dt passes through unchanged
+  play: [],           // fn(ch, o)        after App.mode.start
+  exit: [],           // fn(ch)           in App.exit
+  key: [],            // fn(e) → true if handled; runs before Teacher and chapter keys
+  chart: null,        // (cv, spec, theme) → void         set by 01_widgets (LiveGraph.draw)
+  chartPointer: null  // (i, type, x, y, cv) → void       set by Predict while an ask is open; type 'down'|'move'|'up', x and y in CSS px of cv
+};
+/* A plug-in hook that throws is reported once and dropped, so it cannot take a chapter down with it. */
+function runHooks(list, ...a) { for (let i = 0; i < list.length; i++) { try { list[i](...a); } catch (e) { list.splice(i--, 1); showErr(e); } } }
+
+/* URL parameters (D2-1), parsed once. 'level' and 'seed' are integers or null; theme, calm and lab only in dev builds. */
+const Url = (() => {
+  const L = typeof location !== 'undefined' ? location : null, q = {};
+  const dec = s => { try { return decodeURIComponent(s.replace(/\+/g, ' ')); } catch (e) { return s; } };
+  for (const kv of String((L && L.search) || '').replace(/^\?/, '').split('&')) { if (!kv) continue; const i = kv.indexOf('='); q[dec(i < 0 ? kv : kv.slice(0, i))] = i < 0 ? '' : dec(kv.slice(i + 1)); }
+  const int = v => v != null && /^\s*-?\d+\s*$/.test(v) ? parseInt(v, 10) : null, on = v => v != null && !/^(0|false|no|off)$/i.test(v);
+  const dev = !!(L && L.protocol === 'file:') || q.dev === '1', locks = {}, lv = int(q.level), sd = int(q.seed);
+  for (const p of String(q.locks || '').split(',')) { const i = p.lastIndexOf(':'), v = i > 0 ? parseFloat(p.slice(i + 1)) : NaN; if (isFinite(v)) locks[p.slice(0, i).trim()] = v; }
+  return {
+    q, dev, locks, unit: q.unit || null, level: lv != null && lv >= 0 ? lv : null, seed: sd == null ? null : sd >>> 0,
+    teacher: on(q.teacher), projector: on(q.projector), v1: on(q.v1),
+    cvd: /^(deut|prot|trit|mono)$/.test(q.cvd || '') ? q.cvd : null,
+    lab: dev && q.lab ? q.lab : null, theme: dev && /^(dusk|paper|projector)$/.test(q.theme || '') ? q.theme : null, calm: dev && on(q.calm),
+    link(o) {   // → share URL: unit, level, seed first, then any other keys; true → 1, objects (locks) → 'k:v,k:v'
+      o = o || {}; const ps = [], base = L ? String(L.href).split(/[?#]/)[0] : '';
+      const put = (k, v) => { if (v == null || v === false || v === '') return; if (v === true) v = 1; else if (typeof v === 'object') v = Object.keys(v).map(x => x + ':' + v[x]).join(','); ps.push(encodeURIComponent(k) + '=' + encodeURIComponent(v)); };
+      for (const k of ['unit', 'level', 'seed']) put(k, o[k]);
+      for (const k in o) if (k !== 'unit' && k !== 'level' && k !== 'seed') put(k, o[k]);
+      return base + (ps.length ? '?' + ps.join('&') : '');
+    },
+    lock(unit, key, def) { const v = this.locks[unit + '.' + key]; return v != null ? v : def; }
+  };
+})();
+if (typeof document !== 'undefined' && document.documentElement) { const de = document.documentElement; if (Url.v1) de.classList.add('v1'); if (Url.projector) de.dataset.theme = 'projector'; }
+
 const PLAN = [
   { n: 'Heredity', c: [['mendel', 'Mendel’s Garden', 'Inheritance and dominance'], ['scribe', 'The Scribe', 'Mutation'], ['cross', 'Crossing Over', 'Recombination and linkage'], ['census', 'The Census', 'Hardy–Weinberg and what breaks it'], ['coal', 'The Coalescent', 'Common ancestry']] },
   { n: 'Chance', c: [['casino', 'Drift Casino', 'Genetic drift'], ['castaways', 'The Castaways', 'Founders, bottlenecks and rescue'], ['sex', 'Why Sex?', 'Muller’s ratchet']] },
@@ -27,8 +68,18 @@ const HUD = {
   set(html) { $('hud').innerHTML = html; },
   meterHTML(label) { return '<div class="hud-goal"><span id="m-l">' + label + '</span><b id="m-v"></b></div><div class="meter"><i id="m-i"></i><em id="m-e"></em></div>'; },
   meter(v, goal, txt, col) { const i = $('m-i'); if (!i) return; i.style.width = pct(clamp(v, 0, 1)); if (col) i.style.background = col; const e = $('m-e'); if (goal == null) e.style.display = 'none'; else { e.style.display = ''; e.style.left = 'calc(' + pct(goal) + ' - 1px)'; } $('m-v').textContent = txt; },
-  line(id, html) { const e = $(id); if (e) e.innerHTML = html; }
+  line(id, html) { const e = $(id); if (e) e.innerHTML = html; },
+  /* v2 HUD line over the top 56 px of the stage: one sentence (≤ 15 words) and one live number in mono */
+  say(text, num) {
+    let el = $('hud-say');
+    if (!el) { $('hud').innerHTML = '<div id="hud-say" class="hud-say"><span></span><b class="mono"></b></div>'; el = $('hud-say'); }
+    const t = text == null ? '' : String(text), n = num == null ? '' : String(num);
+    if (el.firstChild.textContent !== t) { el.firstChild.textContent = t; if (Url.dev && wordCount(t) > 15 && HUD.warnings.indexOf(t) < 0) HUD.warnings.push(t); }
+    if (el.lastChild.textContent !== n) el.lastChild.textContent = n;
+  },
+  warnings: []   // dev builds: HUD lines over budget
 };
+const wordCount = s => String(s).split(/\s+/).filter(Boolean).length;
 
 function introHTML(ch) {
   const i = ch.intro;
@@ -55,7 +106,7 @@ const End = {
 
 const Notes = {
   tab: 'idea',
-  open() { if (!App.mode || !App.mode.notes || Cards.isOpen()) return; App.paused = true; $('sheet').classList.add('on'); $('sh-title').textContent = 'Notes: ' + App.ch.title; this.render(); Snd.click(); },
+  open() { if (App.ch && App.ch.v2) return; /* v2: the live strip shows notes(); the sheet is retired */ if (!App.mode || !App.mode.notes || Cards.isOpen()) return; App.paused = true; $('sheet').classList.add('on'); $('sh-title').textContent = 'Notes: ' + App.ch.title; this.render(); Snd.click(); },
   close() { if (!$('sheet').classList.contains('on')) return; $('sheet').classList.remove('on'); App.paused = false; lastT = performance.now(); },
   isOpen() { return $('sheet').classList.contains('on'); },
   render() {
@@ -74,36 +125,79 @@ const THEME_KEYS = { cab: '--cab', hud: '--cab2', text: '--paper', dim: '--paper
 function applyTheme(t) { const el = $('scr-play'); for (const k in THEME_KEYS) el.style.removeProperty(THEME_KEYS[k]); if (t) for (const k in t) if (THEME_KEYS[k]) el.style.setProperty(THEME_KEYS[k], t[k]); const m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', (t && t.cab) || '#152120'); }
 const legP = items => '<div class="leg">' + items.map(([c, t]) => '<span><i style="background:' + c + '"></i>' + t + '</span>').join('') + '</div>';
 
+/* v2 layout classes (D4 §6.1, API_v2 §4.5). Only a v2 chapter gets them; legacy chapters keep the 560 px column. */
+const Layout = {
+  kind() {
+    if (Url.projector) return 'projector';
+    const w = window.innerWidth || 390, h = window.innerHeight || 780;
+    if (w > h && h < 600) return 'phone-land';
+    return w >= 1024 ? 'desktop' : w >= 600 ? (h >= w ? 'tablet' : 'desktop') : 'phone';
+  },
+  apply(ch) {
+    const b = document.body, v2 = !!(ch && ch.v2), k = v2 ? this.kind() : 'legacy';
+    $('scr-play').classList.toggle('v2', v2); Stage.layout = k;
+    if (!v2) { if (b.dataset.layout) delete b.dataset.layout; return; }
+    if (b.dataset.layout !== k) b.dataset.layout = k;
+    const ui = Save.d.ui || {}; b.classList.toggle('lh', !!ui.lh); b.classList.toggle('calm', !!ui.calm || Url.calm);
+  },
+  clear() { $('scr-play').classList.remove('v2'); if (document.body.dataset.layout) delete document.body.dataset.layout; Stage.layout = 'legacy'; }
+};
+
+function freshSeed() { return (Date.now() ^ (Math.random() * 1e9)) >>> 0 || 1; }
 const App = {
-  scr: 'title', mode: null, ch: null, paused: false,
+  scr: 'title', mode: null, ch: null, paused: false, seed: null, _o: null,
   go(scr) {
+    if (scr !== 'play') Layout.clear();
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 'scr-' + scr)); this.scr = scr;
     if (scr === 'menu') Menu.render();
     if (scr === 'play') Stage.resize();
   },
   open(ch) { Cards.open({ cls: 'intro', html: introHTML(ch), buttons: [{ t: 'Back', fn: () => Cards.close() }, { t: 'Begin', primary: true, fn: () => { Cards.close(); this.play(ch); } }] }); },
+  /* Options travel only through playLevel: ch99.js wraps App.play(ch) and drops a second argument. */
+  playLevel(ch, n, o) { this._o = Object.assign({}, o, { level: n || 0 }); this.play(ch); },
   play(ch) {
-    Notes.close(); Cards.close(); { const tc = document.getElementById('toasts'); if (tc) tc.innerHTML = ''; } this.ch = ch; this.mode = null; this.paused = false; this.go('play'); applyTheme(ch.theme);
+    const o = this._o || {}; this._o = null;
+    Notes.close(); Cards.close(); { const tc = document.getElementById('toasts'); if (tc) tc.innerHTML = ''; } this.ch = ch; this.mode = null; this.paused = false;
+    Layout.apply(ch); if (ch.v2) { Strip.reset(); Dock.set([]); }
+    this.go('play'); applyTheme(ch.theme);
     $('bar-title').innerHTML = '<span class="n">' + ch.num + '</span>' + ch.title; $('bar-gen').textContent = ''; $('hud').innerHTML = '';
     Stage.resize();
-    this.mode = ch.mode === 'hunt' ? Hunt : ch; this.mode.start(ch);
+    // Seed: an explicit option, else ?seed= for this unit, else a fresh one for v2 (and in teacher mode, so the seed chip works); a legacy run is never reseeded otherwise
+    let s = o.seed != null ? o.seed : Url.unit === ch.id && Url.seed != null ? Url.seed : null;
+    if (s == null && (ch.v2 || Teacher.on)) s = freshSeed();
+    if (s != null) { s >>>= 0; seed(s); }
+    this.seed = s; Teacher.reset();
+    this.mode = ch.mode === 'hunt' ? Hunt : ch;
+    if (ch.v2) this.mode.start(ch, o); else this.mode.start(ch);
+    runHooks(Hooks.play, ch, o);
+    if (typeof Events !== 'undefined' && Events.emit) Events.emit('open', { level: o.level || 0 });
   },
-  exit() { if (this.mode === Hunt) Hunt.state = 'idle'; if (this.mode && this.mode.stop) this.mode.stop(); this.mode = null; Notes.close(); Cards.close(); this.go('menu'); }
+  exit() { const ch = this.ch; if (this.mode === Hunt) Hunt.state = 'idle'; if (this.mode && this.mode.stop) this.mode.stop(); this.mode = null; Notes.close(); Cards.close(); runHooks(Hooks.exit, ch); this.go('menu'); }
 };
 
+/* Star icons (FCR-5): inline SVG, outline when unearned; the count is in the aria-label. Legacy cards keep their ★ text. */
+function starSVG(n, of) {
+  of = of || 3; let h = '';
+  for (let i = 0; i < of; i++) h += '<svg class="star' + (i < n ? '' : ' off') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.6l2.8 6 6.6.7-4.9 4.5 1.4 6.5L12 17l-5.9 3.3 1.4-6.5-4.9-4.5 6.6-.7z"/></svg>';
+  return '<span class="stars-i" role="img" aria-label="' + n + ' of ' + of + ' stars">' + h + '</span>';
+}
 const Menu = {
   render() {
     let h = '', tot = 0, built = 0;
     PLAN.forEach((p, pi) => {
-      h += '<div class="part"><h3><span>' + ROM[pi] + '</span>' + p.n + '</h3></div>';
+      // act-aware heading: 'Act 3' when the section has an act number, the name alone when act is null, else the legacy numeral
+      h += '<div class="part"><h3>' + (p.act === null ? '' : '<span>' + (p.act != null ? 'Act ' + p.act : ROM[pi]) + '</span>') + p.n + '</h3></div>';
       for (const [id, t, c] of p.c) {
         const ch = REG[id], st = Save.d.stars[id] || 0; tot += st; if (ch) built++;
-        h += '<button class="chap' + (ch ? '' : ' soon') + (st ? ' won' : '') + '" data-id="' + id + '"' + (ch ? '' : ' aria-disabled="true"') + '><span class="no">' + chNum(id) + '</span><span class="tt"><b>' + t + '</b><i>' + c + '</i></span><span class="st">' + (ch ? '★'.repeat(st) + '<span class="off">' + '★'.repeat(3 - st) + '</span>' : 'in preparation') + '</span></button>';
+        const stars = Url.v1 ? '★'.repeat(st) + '<span class="off">' + '★'.repeat(3 - st) + '</span>' : starSVG(st);
+        const row = '<button class="chap' + (ch ? '' : ' soon') + (st ? ' won' : '') + '" data-id="' + id + '"' + (ch ? '' : ' aria-disabled="true"') + '><span class="no">' + chNum(id) + '</span><span class="tt"><b>' + t + '</b><i>' + c + '</i></span><span class="st">' + (ch ? stars : 'in preparation') + '</span></button>';
+        h += ch && ch.v2 && ch.levels && ch.levels.length > 1 && !Url.v1 ? '<div class="chap-row">' + row + '<button class="lv-open" data-lv="' + id + '" aria-label="Levels of ' + t + '">Levels</button></div>' : row;
       }
     });
     $('menu-body').innerHTML = h;
     $('menu-stars').textContent = built + ' of ' + ORDER.length + ' chapters ready' + (tot ? '. ' + tot + ' of ' + built * 3 + ' stars earned.' : '. Start anywhere.');
     $('menu-body').querySelectorAll('.chap').forEach(b => b.onclick = () => { const ch = REG[b.dataset.id]; if (!ch) { toast('This chapter is still being written.'); return; } Snd.init(); Snd.resume(); Snd.click(); App.open(ch); });
+    $('menu-body').querySelectorAll('.lv-open').forEach(b => b.onclick = () => { Snd.init(); Snd.resume(); Snd.click(); LevelSelect.open(REG[b.dataset.lv]); });
   }
 };
 
@@ -138,17 +232,279 @@ const Title = {
   }
 };
 
+/* ---------- Stage additions (API_v2 §4.4): u, layout, zones, hit ---------- */
+Object.defineProperty(Stage, 'u', { get() { return Math.min(this.w, 1.2 * this.h); }, configurable: true });   // D4's size unit
+Stage.layout = 'legacy';   // 'legacy' | 'phone' | 'phone-land' | 'tablet' | 'desktop' | 'projector'
+Stage.zones = { hud: { x: 0, y: 0, w: 1, h: 1 }, thumb: { x: 0, y: 0, w: 1, h: 1 }, graph: null };   // canvas px; hud has no targets, thumb holds actions
+Stage.rezone = function () {
+  const w = this.w, h = this.h, z = this.zones, ty = Math.round(h * 0.65), st = $('strip');
+  z.hud = { x: 0, y: 0, w, h: Math.min(56, h) }; z.thumb = { x: 0, y: ty, w, h: h - ty }; z.graph = null;
+  if (this.cv && st && st.classList.contains('open')) {   // the expanded phone strip overlaps the canvas: keep actors out of this rect
+    const a = this.cv.getBoundingClientRect(), b = st.getBoundingClientRect(), x0 = Math.max(a.left, b.left), x1 = Math.min(a.right, b.right), y0 = Math.max(a.top, b.top), y1 = Math.min(a.bottom, b.bottom);
+    if (x1 > x0 && y1 > y0) z.graph = { x: x0 - a.left, y: y0 - a.top, w: x1 - x0, h: y1 - y0 };
+  }
+};
+Stage.hit = function (x, y, pts, rmin) {   // → index of the nearest centre within max(rmin, p.r), else −1
+  const m = rmin == null ? 22 : rmin; let best = -1, bd = Infinity;
+  for (let i = 0; i < pts.length; i++) { const p = pts[i]; if (!p) continue; const dx = p.x - x, dy = p.y - y, d = dx * dx + dy * dy, r = Math.max(m, p.r || 0); if (d <= r * r && d < bd) { bd = d; best = i; } }
+  return best;
+};
+{ const _rs = Stage.resize; Stage.resize = function () { if (App.scr === 'play' && App.ch && App.ch.v2) Layout.apply(App.ch); const r = _rs.apply(this, arguments); this.rezone(); return r; }; }
+
+const keyName = k => ({ ' ': 'Space', Spacebar: 'Space', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' })[k] || (String(k).length === 1 ? String(k).toUpperCase() : String(k));
+const sameKey = (a, b) => { const n = s => s === ' ' || s === 'Spacebar' ? 'space' : String(s).toLowerCase(); return n(a) === n(b); };
+
+/* ---------- Dock: the v2 action row, under the strip (never inside #hud) ---------- */
+const Dock = {
+  items: [], warnings: [],
+  set(buttons) {   // [{id, label (≤ 2 words), key, fn, primary, disabled, why, busy, pressed, aria}] or {id, el} for a ready-made control
+    const box = $('dock'), a = document.activeElement, had = a && box.contains(a) ? a.dataset.id : null;
+    this.items = (buttons || []).map(b => Object.assign({}, b)); box.innerHTML = '';
+    for (const b of this.items) {
+      const el = b.el || document.createElement('button');
+      if (!b.el) { el.type = 'button'; el.addEventListener('click', () => this.press(b)); }
+      el.dataset.id = b.id; b._el = el; box.appendChild(el);
+    }
+    this.paint();
+    if (had) { const f = this.items.find(b => b.id === had); if (f) f._el.focus(); }
+  },
+  update(id, patch) { const b = this.items.find(x => x.id === id); if (b) { Object.assign(b, patch); this.paint(); } },
+  paint() {
+    const own = this.items.filter(b => !b.el), allOff = own.length > 1 && own.every(b => b.disabled);   // FCR-5: choices never grey out together
+    for (const b of own) {
+      const el = b._el;
+      el.className = 'btn' + (b.primary ? ' primary' : '') + (b.busy || (b.disabled && allOff) ? ' busy' : b.disabled ? ' locked' : '');
+      el.textContent = b.label || '';
+      if (b.key) { const k = document.createElement('kbd'); k.textContent = keyName(b.key); el.appendChild(k); el.setAttribute('aria-keyshortcuts', keyName(b.key) === 'Space' ? 'Space' : b.key); } else el.removeAttribute('aria-keyshortcuts');
+      const attr = (n, v) => v == null ? el.removeAttribute(n) : el.setAttribute(n, v);
+      attr('aria-label', b.aria || null); attr('aria-pressed', b.pressed == null ? null : String(!!b.pressed)); attr('aria-disabled', b.disabled ? 'true' : null); attr('title', b.why || null);
+      if (Url.dev && wordCount(b.label || '') > 2 && this.warnings.indexOf(b.label) < 0) this.warnings.push(b.label);
+    }
+  },
+  press(b) { if (b.disabled) { if (b.why) toast(b.why); return; } Snd.click(); if (b.fn) b.fn(b); },
+  key(k) { const b = this.items.find(x => x.key && !x.el && sameKey(x.key, k)); if (!b) return false; this.press(b); return true; }
+};
+
+/* ---------- Strip: the live graphs (D5 decision 10). Polls App.mode.notes() at 2 Hz; never pauses the game ---------- */
+const Strip = {
+  t: 0, sigs: [], isOpen: false, data: false, _tbl: '',
+  init() {
+    const g = $('strip-grip'), st = $('strip'); let y0 = 0, h0 = 0, drag = false, down = false;
+    g.addEventListener('pointerdown', e => { down = true; drag = false; y0 = e.clientY; h0 = st.offsetHeight; try { g.setPointerCapture(e.pointerId); } catch (_) { } });
+    g.addEventListener('pointermove', e => {
+      if (!down || !this.phone()) return; const dy = e.clientY - y0; if (!drag && Math.abs(dy) < 6) return; drag = true;
+      const max = Math.round($('scr-play').clientHeight * 0.6), h = clamp(h0 - dy, 112, Math.max(112, max));
+      st.classList.add('open'); st.style.height = h + 'px';
+    });
+    const up = () => { if (!down) return; down = false; if (!drag) { this.open(!this.isOpen); return; } const big = st.offsetHeight > 124; if (!big) st.style.height = ''; this.open(big, true); };
+    g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+    $('strip-data').onclick = () => this.showData(!this.data);
+  },
+  phone() { return /^(phone|tablet)$/.test(document.body.dataset.layout || ''); },
+  reset() { this.t = 0; this.sigs = []; this._tbl = ''; $('strip-charts').innerHTML = ''; $('strip-table').innerHTML = ''; this.showData(false); this.open(false); },
+  tick(dt) { if ((this.t += dt) >= 0.5) { this.t = 0; this.poll(false); } },
+  theme() { return typeof Pal !== 'undefined' && Pal.theme ? Pal.theme : document.documentElement.dataset.theme === 'projector' ? 'projector' : 'dusk'; },
+  poll(force) {
+    const m = App.mode; if (App.scr !== 'play' || !App.ch || !App.ch.v2 || !m || !m.notes) return;
+    const n = m.notes() || {}, cs = n.charts || [], box = $('strip-charts'), th = this.theme();
+    if (box.children.length !== cs.length) this.build(cs.length);
+    cs.forEach((spec, i) => {
+      const fig = box.children[i], cv = fig.lastChild, typed = !!(spec.type && Hooks.chart), cap = spec.title || '';
+      if (fig.firstChild.textContent !== cap) { fig.firstChild.textContent = cap; cv.setAttribute('aria-label', cap || 'graph'); }
+      fig.classList.toggle('plate', !typed);   // legacy draw(cv, 'paper') charts sit on a paper plate
+      const sig = typed && typeof LiveGraph !== 'undefined' && LiveGraph.sig ? LiveGraph.sig(spec) + '|' + th + '|' + cv.clientWidth + 'x' + cv.clientHeight : null;
+      if (!force && sig != null && sig === this.sigs[i]) return;
+      this.sigs[i] = sig;
+      if (typed) Hooks.chart(cv, spec, th); else if (spec.draw) spec.draw(cv, 'paper');
+    });
+    if (this.data) this.table(n, cs);
+  },
+  build(k) {
+    const box = $('strip-charts'); box.innerHTML = ''; this.sigs = [];
+    for (let i = 0; i < k; i++) {
+      const fig = document.createElement('figure'), cap = document.createElement('figcaption'), cv = document.createElement('canvas'); let down = false;
+      cv.setAttribute('role', 'img'); fig.append(cap, cv); box.appendChild(fig);
+      const fwd = (type, e) => { if (!Hooks.chartPointer) return; const r = cv.getBoundingClientRect(); Hooks.chartPointer(i, type, e.clientX - r.left, e.clientY - r.top, cv); e.preventDefault(); };
+      cv.addEventListener('pointerdown', e => { if (Cards.isOpen()) return; down = true; try { cv.setPointerCapture(e.pointerId); } catch (_) { } fwd('down', e); });
+      cv.addEventListener('pointermove', e => { if (down) fwd('move', e); });
+      const up = e => { if (!down) return; down = false; fwd('up', e); };
+      cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    }
+  },
+  table(n, cs) {   // the data twin behind "Show data": the stats rows, then LiveGraph's table for each typed chart
+    let h = (n.stats || []).map(r => '<tr><th scope="row">' + r[0] + '</th><td class="mono">' + r[1] + '</td><td>' + (r[2] || '') + '</td></tr>').join('');
+    if (h) h = '<table>' + h + '</table>';
+    if (typeof LiveGraph !== 'undefined' && LiveGraph.table) for (const s of cs) if (s.type) h += LiveGraph.table(s);
+    if (h !== this._tbl) { this._tbl = h; $('strip-table').innerHTML = h || '<p>Numbers appear once something has happened.</p>'; }
+  },
+  redraw() { this.poll(true); },
+  canvas(i) { const f = $('strip-charts').children[i]; return f ? f.lastChild : null; },
+  open(b, keepH) {   // phone and tablet: expand over the canvas (up to 60%) or collapse to 112 px
+    const st = $('strip'); this.isOpen = !!b && this.phone();
+    st.classList.toggle('open', this.isOpen); if (!this.isOpen || !keepH) st.style.height = '';
+    $('strip-grip').setAttribute('aria-expanded', String(this.isOpen)); $('strip-grip').setAttribute('aria-label', this.isOpen ? 'Shrink the graphs' : 'Enlarge the graphs');
+    this.sigs = []; Stage.rezone(); if (App.mode) requestFrame(() => this.poll(true));
+  },
+  toggle() { if (this.phone()) this.open(!this.isOpen); else { const c = this.canvas(0); if (c) { c.tabIndex = -1; c.focus(); } } },
+  showData(b) {
+    this.data = !!b; this._tbl = ''; const t = $('strip-table'), btn = $('strip-data');
+    t.hidden = !this.data; btn.textContent = this.data ? 'Hide data' : 'Show data'; btn.setAttribute('aria-expanded', String(this.data));
+    if (this.data && this.phone() && !this.isOpen) this.open(true);
+    if (this.data) this.poll(true);
+  }
+};
+
+/* ---------- Teacher strip and keys (FCR-10): play/pause, step, speed, seed link, reveal, freeze ---------- */
+const Teacher = {
+  on: Url.teacher && !Url.v1, speed: 1, revealed: false, frozen: false,
+  init() {
+    if (!this.on) return; document.body.classList.add('teacher');
+    $('t-play').onclick = () => this.toggle(); $('t-step').onclick = () => this.step(); $('t-seed').onclick = () => this.copySeed();
+    $('t-reveal').onclick = () => this.reveal(); $('t-freeze').onclick = () => this.freeze();
+    document.querySelectorAll('#t-speed button').forEach(b => b.onclick = () => this.setSpeed(+b.dataset.s));
+    this.sync();
+  },
+  reset() { this.revealed = false; this.frozen = false; this.sync(); },
+  live() { return App.scr === 'play' && !!App.mode && !Cards.isOpen(); },
+  emit(type, d) { if (typeof Events !== 'undefined' && Events.emit) Events.emit(type, d || {}); },
+  toggle() { if (!this.live()) return; App.paused = !App.paused; this.frozen = false; this.sync(); },
+  step() {   // one generation (ch.teacherStep) or one 1/30 s tick, then leave the stage paused
+    if (!this.live()) return; App.paused = true;
+    try {
+      const ch = App.ch; if (ch && typeof ch.teacherStep === 'function') ch.teacherStep(); else App.mode.update(1 / 30);
+      if (App.mode && !Cards.isOpen()) { const c = Stage.ctx, w = Stage.w, h = Stage.h; c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0); runHooks(Hooks.pre, c, w, h); App.mode.draw(c, w, h); runHooks(Hooks.frame, 0, c, w, h); }
+      if (App.ch && App.ch.v2) Strip.poll(true);
+    } catch (e) { showErr(e); App.mode = null; }
+    this.sync();
+  },
+  setSpeed(n) { this.speed = n === 4 || n === 16 ? n : 1; this.sync(); },
+  reveal() { if (this.frozen) { this.frozen = false; App.paused = false; this.revealed = true; } else this.revealed = !this.revealed; this.emit('reveal', { on: this.revealed }); this.sync(); },
+  freeze() { if (!this.live()) return; App.paused = true; this.frozen = true; const ch = App.ch; if (ch && typeof ch.freezeAsk === 'function') ch.freezeAsk(); this.emit('freeze'); this.sync(); },
+  copySeed() { const ch = App.ch; if (!ch || App.seed == null) return; copyText(Url.link({ unit: ch.id, level: ch.v2 ? ch.level || 0 : null, seed: App.seed })); toast('Seed link copied.'); },
+  key(K) {
+    const sp = [1, 4, 16], i = sp.indexOf(this.speed);
+    switch (K) {
+      case ' ': this.toggle(); return true;
+      case 'ArrowRight': this.step(); return true;
+      case '[': this.setSpeed(sp[Math.max(0, i - 1)]); return true;
+      case ']': this.setSpeed(sp[Math.min(2, i + 1)]); return true;
+      case 'S': this.copySeed(); return true;
+      case 'R': this.reveal(); return true;
+      case 'F': this.freeze(); return true;
+    }
+    return false;
+  },
+  sync() {
+    if (!this.on || typeof document === 'undefined' || !$('teacher')) return;
+    const v2 = !!(App.ch && App.ch.v2);
+    $('t-play').textContent = App.paused ? 'Play' : 'Pause'; $('t-play').setAttribute('aria-pressed', String(!App.paused));
+    $('t-speed').style.display = v2 ? '' : 'none';
+    document.querySelectorAll('#t-speed button').forEach(b => { const on = +b.dataset.s === this.speed; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+    $('t-seed').textContent = 'seed ' + (App.seed != null ? App.seed : '—'); $('t-seed').disabled = App.seed == null;
+    $('t-reveal').setAttribute('aria-pressed', String(this.revealed)); $('t-freeze').setAttribute('aria-pressed', String(this.frozen));
+  }
+};
+function copyText(s) {
+  const fall = () => { const t = document.createElement('textarea'); t.value = s; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;left:-9999px;opacity:0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(s).catch(fall); return; } } catch (e) { }
+  fall();
+}
+
+/* ---------- Keys (D4 §8): Hooks.key → teacher keys → global (M, ?, G) → dock keys → App.mode.onKey(key, e) ---------- */
+const Keys = {
+  down(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    const t = e.target || {}, tag = t.tagName || '';
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || t.isContentEditable) return;   // keys typed into inputs are the input's
+    for (let i = 0; i < Hooks.key.length; i++) { try { if (Hooks.key[i](e)) { e.preventDefault(); return; } } catch (err) { Hooks.key.splice(i--, 1); showErr(err); } }
+    if (Url.v1) return;
+    const k = e.key || '', K = k.length === 1 ? k.toUpperCase() : k, play = App.scr === 'play' && !!App.mode, card = Cards.isOpen(), help = card && !!document.querySelector('#cards .card.help');
+    if ((k === ' ' || k === 'Enter') && /^(BUTTON|A|SUMMARY)$/.test(tag)) return;   // let the focused control act
+    if (help && (k === 'Escape' || k === '?')) { Cards.close(); return; }
+    if (play && !card && Teacher.on && Teacher.key(K)) { e.preventDefault(); return; }
+    if (K === 'M') { this.mute(); return; }
+    if (k === '?') { if (!card) this.help(); return; }
+    if (!play || card) return;
+    const v2 = !!(App.ch && App.ch.v2);
+    if (v2 && K === 'G') { Strip.toggle(); e.preventDefault(); return; }
+    if (v2 && Dock.key(k)) { e.preventDefault(); return; }
+    if (App.mode.onKey) { App.mode.onKey(k, e); if (k === ' ' || /^Arrow/.test(k)) e.preventDefault(); }
+  },
+  mute() {
+    Snd.on = !Snd.on; Save.d.snd = Snd.on; Save.save(); Snd.init();
+    const sb = $('btn-snd'); if (sb) { sb.textContent = Snd.on ? 'Sound on' : 'Sound off'; sb.setAttribute('aria-pressed', String(Snd.on)); }
+    toast(Snd.on ? 'Sound on.' : 'Sound off.');
+  },
+  help() {   // the keys for this screen: the chapter's map, its dock, then the global and teacher keys
+    const ch = App.scr === 'play' && App.mode ? App.ch : null, rows = [], seen = {}, add = (k, d) => { const n = keyName(k); if (!seen[n] && d) { seen[n] = 1; rows.push([n, d]); } };
+    if (ch && ch.keys) for (const k in ch.keys) add(k, ch.keys[k]);
+    if (ch && ch.v2) for (const b of Dock.items) if (b.key) add(b.key, b.label);
+    if (Teacher.on && ch) [[' ', 'play or pause'], ['ArrowRight', 'one step'], ['[ ]', 'slower, faster'], ['S', 'copy seed link'], ['R', 'reveal'], ['F', 'freeze and ask']].forEach(r => add(r[0], r[1]));
+    add('M', 'sound on or off'); if (ch && ch.v2) add('G', 'graphs'); add('?', 'this list');
+    Cards.open({ cls: 'help', html: '<h3>Keys</h3><table class="keys">' + rows.map(r => '<tr><th><kbd>' + r[0] + '</kbd></th><td>' + r[1] + '</td></tr>').join('') + '</table>', buttons: [{ t: 'Close', primary: true, fn: () => Cards.close() }] });
+  }
+};
+
+/* ---------- Level select (D2-2, D4 §6.2): chips L1…, the boss double-outlined; a locked level plays on a second tap ---------- */
+const LevelSelect = {
+  jump: {},
+  open(ch) {
+    if (!ch) return; if (!ch.levels || !ch.levels.length) { App.open(ch); return; }
+    const lv = (Save.d.lv && Save.d.lv[ch.id]) || [], n = ch.levels.length, done = !!(Save.d.done && Save.d.done[ch.id]);
+    const isOpen = i => i === 0 || Teacher.on || done || lv[i - 1] != null, pop = m => (m & 1) + (m >> 1 & 1) + (m >> 2 & 1);
+    let next = 0; while (next < n - 1 && lv[next] != null) next++;
+    const chips = ch.levels.map((L, i) => '<button class="lvchip' + (i === n - 1 ? ' boss' : '') + (isOpen(i) ? '' : ' locked') + (i === next ? ' next' : '') + '" data-n="' + i + '" aria-label="Level ' + (i + 1) + ': ' + L.name + (isOpen(i) ? ', ' + pop(lv[i] || 0) + ' of 3 stars' : ', locked') + '">L' + (i + 1) + (lv[i] ? '<i>' + pop(lv[i]) + '</i>' : '') + '</button>').join('');
+    const box = Cards.open({ cls: 'levels v2', html: '<h3>' + ch.title + '</h3><div class="lvrow">' + chips + '</div><p class="lvline"><span></span> <span class="mins mono"></span></p>', buttons: [{ t: 'Back', fn: () => Cards.close() }] });
+    const line = box.querySelector('.lvline'), show = i => { const L = ch.levels[i]; line.firstChild.textContent = L.name; line.lastChild.textContent = L.minutes ? L.minutes + ' min' : ''; };
+    show(next);
+    box.querySelectorAll('.lvchip').forEach(b => {
+      const i = +b.dataset.n; b.addEventListener('focus', () => show(i)); b.addEventListener('mouseenter', () => show(i));
+      b.addEventListener('click', () => {
+        if (box.dataset.armed !== '1') return; show(i);
+        if (!isOpen(i) && !this.jump[ch.id + i]) { this.jump[ch.id + i] = 1; toast('Finish L' + i + ' first, or tap again to jump.'); return; }
+        Snd.click(); Cards.close(); if (typeof Save.migrate === 'function') Save.migrate(ch.id); App.playLevel(ch, i);
+      });
+    });
+  }
+};
+
+/* ---------- wiring, called from boot() after Stage.init() ---------- */
+const Shell = {
+  init() {
+    window.addEventListener('keydown', e => Keys.down(e));
+    Teacher.init(); Strip.init();
+    $('lv-btn').onclick = () => { if (App.ch) LevelSelect.open(App.ch); };
+  }
+};
+EXPORT.Layout = Layout; EXPORT.Keys = Keys; EXPORT.LevelSelect = LevelSelect; EXPORT.starSVG = starSVG;
+
 function showErr(e) { const el = $('err'); el.style.display = 'block'; el.textContent = 'Something broke: ' + (e && (e.stack || e.message) || e) + '\n(Tap to dismiss.)'; el.onclick = () => el.style.display = 'none'; }
 window.addEventListener('error', e => showErr(e.error || e.message));
 
-let lastT = performance.now();
+/* FCR-2: the loop runs on requestAnimationFrame. Under tests/vclock.js without its rAF shim a native rAF never fires inside a
+   synchronous __advance, so the loop keeps the legacy 16 ms timer there (both reach the same virtual 40 ms cadence). */
+let lastT = performance.now(), nextFrame = null;
+function pickFrame() {
+  const raf = typeof requestAnimationFrame === 'function', virt = typeof window !== 'undefined' && typeof window.__advance === 'function';
+  return raf && !(virt && /\[native code\]/.test(String(requestAnimationFrame))) ? f => requestAnimationFrame(f) : f => setTimeout(f, 16);
+}
+const stageLive = () => !(App.paused || Cards.isOpen());
 function frame() {
   const now = performance.now(), dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)); lastT = now; App.t = (App.t || 0) + dt;
   try {
     if (App.scr === 'title') Title.tick(dt);
-    else if (App.scr === 'play' && App.mode) { Stage.ctx.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0); if (!(App.paused || Cards.isOpen())) App.mode.update(dt); if (App.mode && !(App.paused || Cards.isOpen())) App.mode.draw(Stage.ctx, Stage.w, Stage.h); }
+    else if (App.scr === 'play' && App.mode) {
+      const c = Stage.ctx, v2 = !!(App.ch && App.ch.v2); c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0);
+      if (stageLive()) {
+        let d = dt;
+        for (let i = 0; i < Hooks.dt.length; i++) { try { const r = Hooks.dt[i](d); if (typeof r === 'number' && r >= 0) d = r; } catch (e) { Hooks.dt.splice(i--, 1); showErr(e); } }
+        for (let k = v2 ? Teacher.speed : 1; k > 0 && App.mode && stageLive(); k--) App.mode.update(d);   // teacher speed: v2 only
+      }
+      if (App.mode && stageLive()) { runHooks(Hooks.pre, c, Stage.w, Stage.h); App.mode.draw(c, Stage.w, Stage.h); runHooks(Hooks.frame, dt, c, Stage.w, Stage.h); }
+      if (v2 && App.mode) Strip.tick(dt);
+    }
   } catch (e) { showErr(e); App.mode = null; }
-  setTimeout(frame, 16);
+  (nextFrame || (nextFrame = pickFrame()))(frame);
 }
 
 /* small drawing helpers shared by chapters */
