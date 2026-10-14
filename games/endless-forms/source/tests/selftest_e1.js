@@ -255,8 +255,8 @@ for (const v of ['1.2', '2004']) {
   ok(S.adapter.kind === 'scorm', 'SCORM ' + v + ' adapter found two frames up');
   ok(!S.d.stars.lichen, 'SCORM: no import from this browser\'s legacy save (the LMS is authoritative)');
   ok(calls.includes(v === '1.2' ? 'cmi.core.exit' : 'cmi.exit'), 'SCORM ' + v + ' sets exit = suspend');
-  S.star2('mixer', 0, 3); ok(JSON.parse(data['cmi.suspend_data']).u.mixer === '0.3', 'SCORM ' + v + ' writes suspend_data');
-  const S2 = boot({ window: win }).Save; S2.load(); ok(S2.d.stars.mixer === 2, 'SCORM ' + v + ' resumes from suspend_data');
+  S.star2('census', 0, 3); ok(JSON.parse(data['cmi.suspend_data']).u.census === '0.3', 'SCORM ' + v + ' writes suspend_data');
+  const S2 = boot({ window: win }).Save; S2.load(); ok(S2.d.stars.census === 2, 'SCORM ' + v + ' resumes from suspend_data');
 }
 
 /* ---------- 10. Events ---------- */

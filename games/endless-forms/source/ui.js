@@ -1,5 +1,5 @@
 /* ================= ENDLESS FORMS: framework ================= */
-/* Wave 2 shell (docs/design/API_v2.md §4). Every v2 path is gated on ch.v2: a legacy chapter must play exactly as
+/* Wave 2 shell (docs/design/API_v2.md §4). Every v2 path is gated on isV2(ch): a legacy chapter must play exactly as
    before (tests/golden.py checks all 48), and ?v1=1 shows none of the new UI. */
 const EXPORT = {};   // v2 modules that tests need add themselves (EXPORT.Fx = Fx); boot.js merges this into window.TB
 const Hooks = {
@@ -12,6 +12,8 @@ const Hooks = {
   chart: null,        // (cv, spec, theme) → void         set by 01_widgets (LiveGraph.draw)
   chartPointer: null  // (i, type, x, y, cv) → void       set by Predict while an ask is open; type 'down'|'move'|'up', x and y in CSS px of cv
 };
+/* A v2 chapter has v2 === true. Test it strictly: legacy CH_NEST (ch11.js) uses this.v2 as a visit counter (0…12). */
+const isV2 = ch => !!ch && ch.v2 === true;
 /* A plug-in hook that throws is reported once and dropped, so it cannot take a chapter down with it. */
 function runHooks(list, ...a) { for (let i = 0; i < list.length; i++) { try { list[i](...a); } catch (e) { list.splice(i--, 1); showErr(e); } } }
 
@@ -106,7 +108,7 @@ const End = {
 
 const Notes = {
   tab: 'idea',
-  open() { if (App.ch && App.ch.v2) return; /* v2: the live strip shows notes(); the sheet is retired */ if (!App.mode || !App.mode.notes || Cards.isOpen()) return; App.paused = true; $('sheet').classList.add('on'); $('sh-title').textContent = 'Notes: ' + App.ch.title; this.render(); Snd.click(); },
+  open() { if (isV2(App.ch)) return; /* v2: the live strip shows notes(); the sheet is retired */ if (!App.mode || !App.mode.notes || Cards.isOpen()) return; App.paused = true; $('sheet').classList.add('on'); $('sh-title').textContent = 'Notes: ' + App.ch.title; this.render(); Snd.click(); },
   close() { if (!$('sheet').classList.contains('on')) return; $('sheet').classList.remove('on'); App.paused = false; lastT = performance.now(); },
   isOpen() { return $('sheet').classList.contains('on'); },
   render() {
@@ -134,11 +136,10 @@ const Layout = {
     return w >= 1024 ? 'desktop' : w >= 600 ? (h >= w ? 'tablet' : 'desktop') : 'phone';
   },
   apply(ch) {
-    const b = document.body, v2 = !!(ch && ch.v2), k = v2 ? this.kind() : 'legacy';
+    const b = document.body, v2 = isV2(ch), k = v2 ? this.kind() : 'legacy';
     $('scr-play').classList.toggle('v2', v2); Stage.layout = k;
     if (!v2) { if (b.dataset.layout) delete b.dataset.layout; return; }
     if (b.dataset.layout !== k) b.dataset.layout = k;
-    const ui = Save.d.ui || {}; b.classList.toggle('lh', !!ui.lh); b.classList.toggle('calm', !!ui.calm || Url.calm);
   },
   clear() { $('scr-play').classList.remove('v2'); if (document.body.dataset.layout) delete document.body.dataset.layout; Stage.layout = 'legacy'; }
 };
@@ -152,23 +153,23 @@ const App = {
     if (scr === 'menu') Menu.render();
     if (scr === 'play') Stage.resize();
   },
-  open(ch) { Cards.open({ cls: 'intro', html: introHTML(ch), buttons: [{ t: 'Back', fn: () => Cards.close() }, { t: 'Begin', primary: true, fn: () => { Cards.close(); this.play(ch); } }] }); },
+  open(ch) { if (isV2(ch)) { this.playLevel(ch, 0); return; } /* fallback: 00_entry.js wraps open() outermost for v2 */ Cards.open({ cls: 'intro', html: introHTML(ch), buttons: [{ t: 'Back', fn: () => Cards.close() }, { t: 'Begin', primary: true, fn: () => { Cards.close(); this.play(ch); } }] }); },
   /* Options travel only through playLevel: ch99.js wraps App.play(ch) and drops a second argument. */
   playLevel(ch, n, o) { this._o = Object.assign({}, o, { level: n || 0 }); this.play(ch); },
   play(ch) {
     const o = this._o || {}; this._o = null;
     Notes.close(); Cards.close(); { const tc = document.getElementById('toasts'); if (tc) tc.innerHTML = ''; } this.ch = ch; this.mode = null; this.paused = false;
-    Layout.apply(ch); if (ch.v2) { Strip.reset(); Dock.set([]); }
+    Shell.prefs(); Layout.apply(ch); if (isV2(ch)) { Strip.reset(); Dock.set([]); }
     this.go('play'); applyTheme(ch.theme);
     $('bar-title').innerHTML = '<span class="n">' + ch.num + '</span>' + ch.title; $('bar-gen').textContent = ''; $('hud').innerHTML = '';
     Stage.resize();
     // Seed: an explicit option, else ?seed= for this unit, else a fresh one for v2 (and in teacher mode, so the seed chip works); a legacy run is never reseeded otherwise
     let s = o.seed != null ? o.seed : Url.unit === ch.id && Url.seed != null ? Url.seed : null;
-    if (s == null && (ch.v2 || Teacher.on)) s = freshSeed();
+    if (s == null && (isV2(ch) || Teacher.on)) s = freshSeed();
     if (s != null) { s >>>= 0; seed(s); }
     this.seed = s; Teacher.reset();
     this.mode = ch.mode === 'hunt' ? Hunt : ch;
-    if (ch.v2) this.mode.start(ch, o); else this.mode.start(ch);
+    if (isV2(ch)) this.mode.start(ch, o); else this.mode.start(ch);
     runHooks(Hooks.play, ch, o);
     if (typeof Events !== 'undefined' && Events.emit) Events.emit('open', { level: o.level || 0 });
   },
@@ -191,7 +192,7 @@ const Menu = {
         const ch = REG[id], st = Save.d.stars[id] || 0; tot += st; if (ch) built++;
         const stars = Url.v1 ? '★'.repeat(st) + '<span class="off">' + '★'.repeat(3 - st) + '</span>' : starSVG(st);
         const row = '<button class="chap' + (ch ? '' : ' soon') + (st ? ' won' : '') + '" data-id="' + id + '"' + (ch ? '' : ' aria-disabled="true"') + '><span class="no">' + chNum(id) + '</span><span class="tt"><b>' + t + '</b><i>' + c + '</i></span><span class="st">' + (ch ? stars : 'in preparation') + '</span></button>';
-        h += ch && ch.v2 && ch.levels && ch.levels.length > 1 && !Url.v1 ? '<div class="chap-row">' + row + '<button class="lv-open" data-lv="' + id + '" aria-label="Levels of ' + t + '">Levels</button></div>' : row;
+        h += isV2(ch) && ch.levels && ch.levels.length > 1 && !Url.v1 ? '<div class="chap-row">' + row + '<button class="lv-open" data-lv="' + id + '" aria-label="Levels of ' + t + '">Levels</button></div>' : row;
       }
     });
     $('menu-body').innerHTML = h;
@@ -249,7 +250,7 @@ Stage.hit = function (x, y, pts, rmin) {   // → index of the nearest centre wi
   for (let i = 0; i < pts.length; i++) { const p = pts[i]; if (!p) continue; const dx = p.x - x, dy = p.y - y, d = dx * dx + dy * dy, r = Math.max(m, p.r || 0); if (d <= r * r && d < bd) { bd = d; best = i; } }
   return best;
 };
-{ const _rs = Stage.resize; Stage.resize = function () { if (App.scr === 'play' && App.ch && App.ch.v2) Layout.apply(App.ch); const r = _rs.apply(this, arguments); this.rezone(); return r; }; }
+{ const _rs = Stage.resize; Stage.resize = function () { if (App.scr === 'play' && isV2(App.ch)) Layout.apply(App.ch); const r = _rs.apply(this, arguments); this.rezone(); return r; }; }
 
 const keyName = k => ({ ' ': 'Space', Spacebar: 'Space', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' })[k] || (String(k).length === 1 ? String(k).toUpperCase() : String(k));
 const sameKey = (a, b) => { const n = s => s === ' ' || s === 'Spacebar' ? 'space' : String(s).toLowerCase(); return n(a) === n(b); };
@@ -290,6 +291,7 @@ const Strip = {
   t: 0, sigs: [], isOpen: false, data: false, _tbl: '',
   init() {
     const g = $('strip-grip'), st = $('strip'); let y0 = 0, h0 = 0, drag = false, down = false;
+    if (!g || !g.addEventListener) return;
     g.addEventListener('pointerdown', e => { down = true; drag = false; y0 = e.clientY; h0 = st.offsetHeight; try { g.setPointerCapture(e.pointerId); } catch (_) { } });
     g.addEventListener('pointermove', e => {
       if (!down || !this.phone()) return; const dy = e.clientY - y0; if (!drag && Math.abs(dy) < 6) return; drag = true;
@@ -305,7 +307,7 @@ const Strip = {
   tick(dt) { if ((this.t += dt) >= 0.5) { this.t = 0; this.poll(false); } },
   theme() { return typeof Pal !== 'undefined' && Pal.theme ? Pal.theme : document.documentElement.dataset.theme === 'projector' ? 'projector' : 'dusk'; },
   poll(force) {
-    const m = App.mode; if (App.scr !== 'play' || !App.ch || !App.ch.v2 || !m || !m.notes) return;
+    const m = App.mode; if (App.scr !== 'play' || !isV2(App.ch) || !m || !m.notes) return;
     const n = m.notes() || {}, cs = n.charts || [], box = $('strip-charts'), th = this.theme();
     if (box.children.length !== cs.length) this.build(cs.length);
     cs.forEach((spec, i) => {
@@ -373,14 +375,14 @@ const Teacher = {
     try {
       const ch = App.ch; if (ch && typeof ch.teacherStep === 'function') ch.teacherStep(); else App.mode.update(1 / 30);
       if (App.mode && !Cards.isOpen()) { const c = Stage.ctx, w = Stage.w, h = Stage.h; c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0); runHooks(Hooks.pre, c, w, h); App.mode.draw(c, w, h); runHooks(Hooks.frame, 0, c, w, h); }
-      if (App.ch && App.ch.v2) Strip.poll(true);
+      if (isV2(App.ch)) Strip.poll(true);
     } catch (e) { showErr(e); App.mode = null; }
     this.sync();
   },
   setSpeed(n) { this.speed = n === 4 || n === 16 ? n : 1; this.sync(); },
   reveal() { if (this.frozen) { this.frozen = false; App.paused = false; this.revealed = true; } else this.revealed = !this.revealed; this.emit('reveal', { on: this.revealed }); this.sync(); },
   freeze() { if (!this.live()) return; App.paused = true; this.frozen = true; const ch = App.ch; if (ch && typeof ch.freezeAsk === 'function') ch.freezeAsk(); this.emit('freeze'); this.sync(); },
-  copySeed() { const ch = App.ch; if (!ch || App.seed == null) return; copyText(Url.link({ unit: ch.id, level: ch.v2 ? ch.level || 0 : null, seed: App.seed })); toast('Seed link copied.'); },
+  copySeed() { const ch = App.ch; if (!ch || App.seed == null) return; copyText(Url.link({ unit: ch.id, level: isV2(ch) ? ch.level || 0 : null, seed: App.seed })); toast('Seed link copied.'); },
   key(K) {
     const sp = [1, 4, 16], i = sp.indexOf(this.speed);
     switch (K) {
@@ -396,7 +398,7 @@ const Teacher = {
   },
   sync() {
     if (!this.on || typeof document === 'undefined' || !$('teacher')) return;
-    const v2 = !!(App.ch && App.ch.v2);
+    const v2 = isV2(App.ch);
     $('t-play').textContent = App.paused ? 'Play' : 'Pause'; $('t-play').setAttribute('aria-pressed', String(!App.paused));
     $('t-speed').style.display = v2 ? '' : 'none';
     document.querySelectorAll('#t-speed button').forEach(b => { const on = +b.dataset.s === this.speed; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
@@ -425,7 +427,7 @@ const Keys = {
     if (K === 'M') { this.mute(); return; }
     if (k === '?') { if (!card) this.help(); return; }
     if (!play || card) return;
-    const v2 = !!(App.ch && App.ch.v2);
+    const v2 = isV2(App.ch);
     if (v2 && K === 'G') { Strip.toggle(); e.preventDefault(); return; }
     if (v2 && Dock.key(k)) { e.preventDefault(); return; }
     if (App.mode.onKey) { App.mode.onKey(k, e); if (k === ' ' || /^Arrow/.test(k)) e.preventDefault(); }
@@ -438,9 +440,9 @@ const Keys = {
   help() {   // the keys for this screen: the chapter's map, its dock, then the global and teacher keys
     const ch = App.scr === 'play' && App.mode ? App.ch : null, rows = [], seen = {}, add = (k, d) => { const n = keyName(k); if (!seen[n] && d) { seen[n] = 1; rows.push([n, d]); } };
     if (ch && ch.keys) for (const k in ch.keys) add(k, ch.keys[k]);
-    if (ch && ch.v2) for (const b of Dock.items) if (b.key) add(b.key, b.label);
+    if (isV2(ch)) for (const b of Dock.items) if (b.key) add(b.key, b.label);
     if (Teacher.on && ch) [[' ', 'play or pause'], ['ArrowRight', 'one step'], ['[ ]', 'slower, faster'], ['S', 'copy seed link'], ['R', 'reveal'], ['F', 'freeze and ask']].forEach(r => add(r[0], r[1]));
-    add('M', 'sound on or off'); if (ch && ch.v2) add('G', 'graphs'); add('?', 'this list');
+    add('M', 'sound on or off'); if (isV2(ch)) add('G', 'graphs'); add('?', 'this list');
     Cards.open({ cls: 'help', html: '<h3>Keys</h3><table class="keys">' + rows.map(r => '<tr><th><kbd>' + r[0] + '</kbd></th><td>' + r[1] + '</td></tr>').join('') + '</table>', buttons: [{ t: 'Close', primary: true, fn: () => Cards.close() }] });
   }
 };
@@ -474,9 +476,14 @@ const Shell = {
     window.addEventListener('keydown', e => Keys.down(e));
     Teacher.init(); Strip.init();
     $('lv-btn').onclick = () => { if (App.ch) LevelSelect.open(App.ch); };
+    this.prefs(); if (typeof Save.onLoad === 'function') Save.onLoad(() => { this.prefs(); if (App.scr === 'menu') Menu.render(); });
+  },
+  prefs() {   // body classes from Save.d.ui: readable (Atkinson), calm (no motion), lh (left-handed dock); none under ?v1=1
+    const ui = (!Url.v1 && Save.d.ui) || {}, b = document.body;
+    b.classList.toggle('readable', !!ui.read); b.classList.toggle('calm', !!ui.calm || Url.calm); b.classList.toggle('lh', !!ui.lh);
   }
 };
-EXPORT.Layout = Layout; EXPORT.Keys = Keys; EXPORT.LevelSelect = LevelSelect; EXPORT.starSVG = starSVG;
+EXPORT.isV2 = isV2; EXPORT.Layout = Layout; EXPORT.Keys = Keys; EXPORT.LevelSelect = LevelSelect; EXPORT.starSVG = starSVG;
 
 function showErr(e) { const el = $('err'); el.style.display = 'block'; el.textContent = 'Something broke: ' + (e && (e.stack || e.message) || e) + '\n(Tap to dismiss.)'; el.onclick = () => el.style.display = 'none'; }
 window.addEventListener('error', e => showErr(e.error || e.message));
@@ -494,7 +501,7 @@ function frame() {
   try {
     if (App.scr === 'title') Title.tick(dt);
     else if (App.scr === 'play' && App.mode) {
-      const c = Stage.ctx, v2 = !!(App.ch && App.ch.v2); c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0);
+      const c = Stage.ctx, v2 = isV2(App.ch); c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0);
       if (stageLive()) {
         let d = dt;
         for (let i = 0; i < Hooks.dt.length; i++) { try { const r = Hooks.dt[i](d); if (typeof r === 'number' && r >= 0) d = r; } catch (e) { Hooks.dt.splice(i--, 1); showErr(e); } }

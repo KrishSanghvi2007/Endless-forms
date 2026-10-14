@@ -48,6 +48,10 @@
       S.eq([Stage.layout, App.seed], ['legacy', null], 'legacy: Stage.layout and no reseed');
       S.t($('app').getBoundingClientRect().width <= 560, 'legacy: 560 px column');
       Notes.open(); S.t($('sheet').classList.contains('on') && App.paused, 'legacy: Notes opens and pauses'); Notes.close();
+      // a legacy chapter whose state has a numeric v2 field (CH_NEST counts visits in this.v2) stays legacy
+      App.play(REG.nest); REG.nest.v2 = 5; Stage.resize(); Notes.open();
+      S.t(!$('scr-play').classList.contains('v2') && Stage.layout === 'legacy' && $('sheet').classList.contains('on'), 'ch.v2 must be === true (nest keeps a visit counter in v2)');
+      Notes.close(); delete REG.nest.v2; App.play(REG.lichen);
       // Stage.u, Stage.hit
       S.eq(Stage.u, Math.min(Stage.w, 1.2 * Stage.h), 'Stage.u = min(w, 1.2h)');
       const pts = [{ x: 100, y: 100 }, { x: 130, y: 100, r: 40 }, null, { x: -1e4, y: -1e4 }];

@@ -416,7 +416,7 @@ const Save = {
       const m = own(d.v1stars, id), n = clamp((m ? d.v1stars[id] : d.stars[id]) | 0, 0, 9), dn = d.done[id] ? '!' : '';
       if (n || m || dn) u[id] = n + (m ? '.' + (d.lv[id] || []).map(x => x & 7).join('') : '') + dn;
     }
-    if (ids.length) o.u = u;
+    if (Object.keys(u).length) o.u = u;
     if (Object.keys(d.res).length) o.res = d.res;
     const ui = {}; for (const k in d.ui) if (d.ui[k] !== this._UI[k]) ui[k] = d.ui[k];
     if (Object.keys(ui).length) o.ui = ui;
@@ -463,7 +463,7 @@ const Save = {
   },
   _pop(m) { return (m & 1) + (m >> 1 & 1) + (m >> 2 & 1); },
   _v1() {
-    try { if (Url) return !!Url.v1; } catch (e) { }   // Url (ui.js) when present
+    try { if (Url.v1) return true; } catch (e) { }   // Url (ui.js) when present
     try { return /[?&]v1=(1|true)(&|$)/.test(location.search || ''); } catch (e) { return false; }
   },
 
