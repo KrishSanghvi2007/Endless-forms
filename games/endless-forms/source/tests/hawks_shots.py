@@ -1,0 +1,97 @@
+"""Hawks and Doves (v2) screenshots: every level and its main phases at two viewports, plus Calm and colour-vision views.
+
+  GAME_HTML=/abs/build.html python3 tests/hawks_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3,4,5] [--cvd]
+
+Plays each level with a scripted player (Hawk/Dove picks, holds, a prediction drag) under virtual time and saves PNGs named
+L<n>_<phase>_<w>x<h>.png. Prints any page error. Exit 1 on an error."""
+import os, sys, json, argparse
+from playwright.sync_api import sync_playwright
+
+SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHROME = {"executable_path": "/opt/pw-browsers/chromium"} if os.path.exists("/opt/pw-browsers/chromium") else {}
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('out')
+    ap.add_argument('--vp', default='390x780,1280x720')
+    ap.add_argument('--levels', default='0,1,2,3,4,5')
+    ap.add_argument('--cvd', action='store_true')
+    ap.add_argument('--calm', action='store_true')
+    ap.add_argument('--query', default='')
+    a = ap.parse_args()
+    html = os.environ.get('GAME_HTML') or os.path.join(SRC, 'Endless_Forms_v1.html')
+    os.makedirs(a.out, exist_ok=True)
+    vclock = open(os.path.join(SRC, 'vclock.js')).read()
+    errs = []
+    with sync_playwright() as p:
+        b = p.chromium.launch(**CHROME)
+        for vp in a.vp.split(','):
+            w, h = [int(x) for x in vp.split('x')]
+            ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1, reduced_motion='reduce' if a.calm else 'no-preference')
+            pg = ctx.new_page()
+            pg.add_init_script(vclock)
+            pg.on('pageerror', lambda e: errs.append(str(e)))
+            pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
+            q = a.query
+            pg.goto('file://' + html + q)
+            pg.evaluate("()=>window.__advance(600)")
+            tag = '%dx%d' % (w, h) + ('_calm' if a.calm else '') + (('_' + q.strip('?').replace('=', '-').replace('&', '_')) if q else '')
+            for lv in [int(x) for x in a.levels.split(',')]:
+                pg.evaluate("(lv)=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.hawks, lv, {seed: 7}); window.__advance(300); }", lv)
+                shot = lambda name: pg.screenshot(path=os.path.join(a.out, 'L%d_%s_%s.png' % (lv + 1, name, tag)))
+                pg.evaluate("()=>window.__advance(500)")
+                shot('start')
+                # play: a scripted player; hawk mostly in L2/L4, owner-wins in L5, varied holds in L6
+                for step in range(4000):
+                    st = pg.evaluate("""(lv)=>{ const ch = TB.REG.hawks, s = ch.sim.s, D = s.duel, card = document.querySelector('#cards.on .card');
+                      if (card) return {card: card.className};
+                      if (s.ask) return {ask: s.ask.id, phase: s.phase};
+                      if (lv === 5) { if (D && D.st === 'face') { TB.Sim.act(ch, {k: 'hold', on: true}); ch._want = [3, 14, 7, 22, 1, 9, 30, 5][s.dn % 8]; } else if (D && D.st === 'hold' && D.raps >= ch._want) TB.Sim.act(ch, {k: 'hold', on: false}); }
+                      else if (D && (D.st === 'walk' || D.st === 'face') && D.a == null) { const a = lv === 4 ? (D.d < 0 ? 1 : 0) : lv === 0 ? (s.dn % 2) : lv === 2 ? (s.dn % 3 === 0 ? 1 : 0) : 1; TB.Sim.act(ch, {k: 'pick', a}); }
+                      return {phase: s.phase, st: D && D.st, dn: s.dn, tide: s.tide}; }""", lv)
+                    if 'card' in st:
+                        pg.evaluate("()=>window.__advance(1500)")
+                        shot('card'); break
+                    if 'ask' in st:
+                        shot('ask')
+                        # drag the ghost on chart 0 to the middle of the plot, then tap it to commit
+                        box = pg.evaluate("()=>{ const c = TB.Strip.canvas(0); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }")
+                        if box:
+                            x, y, bw, bh = box
+                            pg.mouse.move(x + bw * 0.5, y + bh * 0.5); pg.mouse.down(); pg.mouse.move(x + bw * 0.55, y + bh * 0.45, steps=4); pg.mouse.up()
+                            pg.evaluate("()=>window.__advance(200)")
+                            shot('askmoved')
+                        pg.evaluate("()=>{ TB.Predict && TB.Predict.commit && TB.Predict.commit(); window.__advance(400); }")
+                        shot('committed')
+                        continue
+                    if st.get('phase') == 'tide' and not os.path.exists(os.path.join(a.out, 'L%d_tide_%s.png' % (lv + 1, tag))):
+                        pg.evaluate("()=>window.__advance(350)")
+                        shot('tide')
+                    if st.get('st') == 'clash' and st.get('dn') == 3 and not os.path.exists(os.path.join(a.out, 'L%d_clash_%s.png' % (lv + 1, tag))):
+                        pg.evaluate("()=>window.__advance(250)")
+                        shot('clash')
+                    if lv == 5 and st.get('st') == 'hold' and st.get('dn') == 3 and not os.path.exists(os.path.join(a.out, 'L%d_hold_%s.png' % (lv + 1, tag))):
+                        pg.evaluate("()=>window.__advance(2500)")
+                        shot('hold')
+                    if st.get('phase') == 'duel' and st.get('tide') == 3 and st.get('st') == 'face' and not os.path.exists(os.path.join(a.out, 'L%d_mid_%s.png' % (lv + 1, tag))):
+                        shot('mid')
+                    if st.get('phase') == 'nbrun' and not os.path.exists(os.path.join(a.out, 'L%d_nbrun_%s.png' % (lv + 1, tag))):
+                        pg.evaluate("()=>window.__advance(2500)")
+                        shot('nbrun')
+                    pg.evaluate("()=>window.__advance(100)")
+                pg.evaluate("()=>{ const b = [...document.querySelectorAll('#cards .card-btns button')].find(x => /why/i.test(x.textContent)); if (b) { b.click(); window.__advance(200); } }")
+                shot('why')
+            if a.cvd:
+                for kind in ('mono', 'deut'):
+                    pg.goto('file://' + html + '?cvd=' + kind); pg.evaluate("()=>window.__advance(600)")
+                    for lv in (0, 1, 4, 5):
+                        pg.evaluate("(lv)=>{ TB.App.playLevel(TB.REG.hawks, lv, {seed: 7}); window.__advance(5000); }", lv)
+                        pg.screenshot(path=os.path.join(a.out, 'L%d_cvd-%s_%s.png' % (lv + 1, kind, tag)))
+            ctx.close()
+        b.close()
+    for e in errs[:20]: print('ERR', e)
+    print('shots in', a.out, '; errors:', len(errs))
+    sys.exit(1 if errs else 0)
+
+if __name__ == '__main__':
+    main()

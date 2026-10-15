@@ -319,6 +319,21 @@ body[data-layout=projector] .strip-charts figcaption{font-size:20px}
 .card table.keys th{text-align:left;padding:4px 14px 4px 0;font-weight:400}
 .card table.keys td{padding:4px 0}
 @media (prefers-reduced-motion:reduce){.btn.busy{animation:none}}
+/* Batch 1: settings card, folded-strip charts, DOM ghost hand */
+.v1 #btn-set{display:none}
+.card.settings .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(41,33,27,.12)}
+.card.settings .setrow small{display:block;font-size:13px;color:var(--ink2)}
+.card.settings .tog{min-width:64px;min-height:44px;color:var(--ink);border-color:var(--ink)}
+body[data-layout=phone] #scr-play.v2 #strip:not(.open) figure.nofold,body[data-layout=tablet] #scr-play.v2 #strip:not(.open) figure.nofold{display:none}
+#ghost-dom{position:fixed;z-index:6;width:0;height:0;pointer-events:none;display:none}
+body:has(#cards.on) #ghost-dom{visibility:hidden}
+#ghost-dom .gd-ring{position:absolute;left:-26px;top:-26px;width:52px;height:52px;box-sizing:border-box;border-radius:50%;border:4px solid #1B1612;box-shadow:0 0 0 2px #F4EEDD,inset 0 0 0 2px #F4EEDD;animation:ef-gd 1.2s ease-out infinite}
+#ghost-dom img{position:absolute;left:-14px;top:-1px;width:60px;height:72px;opacity:0;animation:ef-gdh 4s ease-in-out infinite}
+@keyframes ef-gd{0%{transform:scale(.7);opacity:.95}100%{transform:scale(1.25);opacity:0}}
+@keyframes ef-gdh{0%{transform:translate(46px,64px);opacity:0}15%{opacity:.6}25%,29%{transform:translate(0,0) scale(1);opacity:.6}33%{transform:scale(.85);opacity:.6}40%{transform:scale(1);opacity:.6}70%,100%{transform:translate(0,10px);opacity:0}}
+body.calm #ghost-dom .gd-ring,body.calm #ghost-dom img{animation:none}body.calm #ghost-dom img{display:none}
+@media (prefers-reduced-motion:reduce){#ghost-dom .gd-ring,#ghost-dom img{animation:none}#ghost-dom img{display:none}}
+#scr-play.v2 #whisper.ctr{left:50%;transform:translateX(-50%)}
 /* Readable mode (Save.d.ui.read, D4 §3): Atkinson Hyperlegible, no italic, line height 1.6, tracking +0.04em */
 body.readable{--fb:"Atkinson Hyperlegible","EF Symbols Serif","EF Symbols Mono",Verdana,sans-serif;letter-spacing:.04em;line-height:1.6}
 body.readable :is(i,em,.kicker,.quote,.clade,.part h3,.card .cap,.chap i){font-style:normal}
@@ -358,7 +373,7 @@ body.calm .btn.busy{animation:none}
  <section id="scr-menu" class="screen">
   <header class="menu-head"><h2>Field notebook</h2><p id="menu-stars"></p></header>
   <div class="menu-body" id="menu-body"></div>
-  <footer class="tree-foot"><button class="btn ghost" id="btn-title">Title</button><button class="btn ghost" id="btn-snd" aria-pressed="true">Sound on</button></footer>
+  <footer class="tree-foot"><button class="btn ghost" id="btn-title">Title</button><button class="btn ghost" id="btn-snd" aria-pressed="true">Sound on</button><button class="btn ghost" id="btn-set">Settings</button></footer>
  </section>
  <section id="scr-play" class="screen">
   <header id="bar">

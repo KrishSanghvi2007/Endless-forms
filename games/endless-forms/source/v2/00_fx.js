@@ -18,7 +18,7 @@ const fxFam = (() => { let f = null; const css = (k, d) => { try { const v = get
   return { get b() { return (f || (f = { b: css('--fb', 'Georgia, serif'), m: css('--fm', 'monospace'), d: css('--fd', 'Georgia, serif') })).b; }, get m() { this.b; return f.m; }, get d() { this.b; return f.d; }, reset() { f = null; } }; })();
 
 const Fx = (() => {
-  const parts = [], rings = [], pops = [], tws = [], flashes = [];
+  const parts = [], rings = [], pops = [], tws = [], flashes = [], afters = [];
   let shake = null, hs = 0, lastShake = -1e9, lastT3 = -1e9, gov = 0, slow = 0, govCalm = false, rnd = rng(1859), t0 = 0;
   let lastFrame = -1e9, pumping = false, lastVis = -1e9, mq = null, epoch = 1, errs = 0;
   const ev = k => { lastVis = fxNow(); if (typeof Snd2 !== 'undefined') Snd2._seen(); if (typeof Events !== 'undefined' && Events.debug) Events.emit('fx', { k }); };
@@ -110,6 +110,7 @@ const Fx = (() => {
       for (let i = pops.length - 1; i >= 0; i--) if ((pops[i].age += d) >= 700) pops.splice(i, 1);
       for (let i = flashes.length - 1; i >= 0; i--) if ((flashes[i].age += d) >= flashes[i].ms) flashes.splice(i, 1);
       if (shake && (shake.age += d) >= shake.ms) shake = null;
+      for (let i = 0; i < afters.length; i++) { const a = afters[i]; if (a.dead) { afters.splice(i--, 1); continue; } if ((a.left -= d) <= 0) { afters.splice(i--, 1); a.dead = true; try { a.fn(); } catch (e) { this._err(e); } } }
       this._tweens(d);
     },
     _tweens(d) {
@@ -197,11 +198,14 @@ const Fx = (() => {
       const step = k === 'scale' ? ((Math.round(rot * 16 / TAU * 2) % 16) + 16) % 16 : 0;   // a flake is symmetric under a half turn
       const s = this._sprite(k, q.ink || DEFINK[k], I, step); c.drawImage(s.cv, x - s.w / 2, y - s.h / 2, s.w, s.h);
     },
+    // fn after ms of live stage time (the frame clock: paused with the stage, frozen by hit-stop, dropped by clear); → {cancel()}
+    // For telegraph-then-act juice (Batch 1 request): Fx.after(90, () => Fx.burst('dust', x, y)). View only: never touch the sim here.
+    after(ms, fn) { const a = { left: Math.max(0, +ms || 0), fn, dead: false, born: epoch }; if (typeof fn === 'function') afters.push(a); return { cancel() { a.dead = true; }, get done() { return a.dead; } }; },
     // everything (the default) or, with false, only what was made before the current epoch (a new level keeps what its start() made)
     clear(all) {
       all = all !== false;
       const keep = a => { for (let i = a.length - 1; i >= 0; i--) if (all || a[i].born < epoch) a.splice(i, 1); };
-      keep(parts); keep(rings); keep(pops); keep(flashes);
+      keep(parts); keep(rings); keep(pops); keep(flashes); keep(afters);
       for (const t of tws) if (all || t.born < epoch) t.dead = true;
       shake = null; hs = 0;
     },
@@ -351,11 +355,17 @@ const Whisper = {
       if (item.v2) el = document.getElementById('whisper');
       if (!el) { const box = document.getElementById('toasts'); if (box) { el = document.createElement('div'); el.className = 'toast'; box.appendChild(el); item.v2 = false; } }
     }
-    item.el = el; this.cur = item; if (el) this._fill(el, item);
+    item.el = el; this.cur = item; if (el) { this._fill(el, item); if (item.v2) this._place(el); }
     this._arm(item, item.ms); Live.say(item.s);
     this.log.push({ t: Math.round(fxNow()), text: Txt.strip(item.s), v2: item.v2 }); if (this.log.length > 100) this.log.shift();
   },
   _arm(item, ms) { if (this._tm) clearTimeout(this._tm); this._tm = setTimeout(() => this._end(item), ms); },
+  // v2: sit 8 px under the HUD as it is now (it wraps to two or three lines on a phone), not at a fixed 64 px; a chapter with
+  // whisperAt: 'centre' gets a top-centre slot (Lichen's chick row sits top-left)
+  _place(el) {
+    try { const hud = document.getElementById('hud'), h = hud && hud.offsetHeight > 0 ? hud.offsetHeight : 56; el.style.top = Math.round(h + 8) + 'px'; el.classList.toggle('ctr', !!(App.ch && App.ch.whisperAt === 'centre')); } catch (e) { }
+  },
+  drop() { this._drop(); },   // hide the current line now (a queued legacy toast still follows); clear(true) empties the queue too
   _end(item) {
     if (this.cur !== item) return; this._tm = 0;
     const el = item.el;
@@ -381,7 +391,21 @@ const Ghost = (() => {
   const BITS = { tap: 1, drag: 2, hold: 4, draw: 8, slide: 16, toggle: 32, sweep: 64, pour: 128 };
   const SAY = { tap: 'Demo: tap the ringed spot.', drag: 'Demo: drag from the ring.', hold: 'Demo: press and hold the ring.', draw: 'Demo: draw from the ring.', slide: 'Demo: slide along the track.', toggle: 'Demo: tap to switch.', sweep: 'Demo: sweep across.', pour: 'Demo: hold to pour.' };
   const DRAG = { drag: 1, slide: 1, draw: 1, sweep: 1 }, HOLD = { hold: 1, pour: 1 };
-  let cur = null, last = null, replay = false, hand = null;
+  let cur = null, last = null, replay = false, hand = null, dom = null;
+  // o.el (an element, or () → element): the ghost rings that control in the DOM (a dock button) instead of a canvas point
+  const domEl = () => {
+    if (dom || typeof document === 'undefined' || !document.createElement || !document.body) return dom;
+    dom = document.createElement('div'); dom.id = 'ghost-dom'; dom.setAttribute('aria-hidden', 'true');
+    const ring = document.createElement('i'); ring.className = 'gd-ring'; dom.appendChild(ring);
+    const im = document.createElement('img'); im.alt = ''; try { hand = hand || bake(); im.src = hand.toDataURL(); } catch (e) { } dom.appendChild(im);
+    document.body.appendChild(dom); return dom;
+  };
+  const domHide = () => { if (dom && dom.style) dom.style.display = 'none'; };
+  const domShow = o => {   // → true when shown
+    const el = typeof o.el === 'function' ? o.el() : o.el, r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null, d = domEl();
+    if (!d || !r || !(r.width > 0)) { domHide(); return false; }
+    d.style.display = 'block'; d.style.left = Math.round(r.left + r.width / 2) + 'px'; d.style.top = Math.round(r.top + r.height / 2) + 'px'; return true;
+  };
   const inert = { hide() { }, active: false, shown: false };
   const out3 = Fx.EASE.out, inout = Fx.EASE.inout, hump = p => 4 * p * (1 - p);
   const lerp2 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
@@ -409,17 +433,18 @@ const Ghost = (() => {
       const me = { o, t: -400, born: Fx.epoch, at: fxNow() }; cur = me;
       Live.say(o.say || SAY[o.verb] || SAY.tap);
       if (typeof Events !== 'undefined' && Events.debug) Events.emit('fx', { k: 'ghost' });
-      return { hide() { if (cur === me) cur = null; }, get active() { return cur === me; }, shown: true };
+      return { hide() { if (cur === me) { cur = null; domHide(); } }, get active() { return cur === me; }, shown: true };
     },
-    hide() { cur = null; },
-    _clear(all) { if (cur && (all || cur.born < Fx.epoch)) cur = null; if (all) replay = false; },
+    hide() { cur = null; domHide(); },
+    _clear(all) { if (cur && (all || cur.born < Fx.epoch)) { cur = null; domHide(); } if (all) replay = false; },
     _input(e) {
       if (e.type === 'keydown') { const k = e.key || ''; if (k === '?') { if (last) replay = true; return; } if (/^(Shift|Control|Alt|Meta|Tab|CapsLock)$/.test(k)) return; }
-      if (cur && fxNow() - cur.at > 150) cur = null;
+      if (cur && fxNow() - cur.at > 150) { cur = null; domHide(); }
     },
     _draw(c, dt) {
-      if (!cur) { if (replay && last && !Cards.isOpen()) { replay = false; this.show(Object.assign({}, last, { force: true })); } if (!cur) return; }
-      const o = cur.o; if (o.until && o.until()) { cur = null; return; }
+      if (!cur) { if (replay && last && !Cards.isOpen()) { replay = false; this.show(Object.assign({}, last, { force: true })); } if (!cur) { domHide(); return; } }
+      const o = cur.o; if (o.until && o.until()) { cur = null; domHide(); return; }
+      if (o.el) { cur.t += Math.max(0, dt) * 1000; domShow(o); if (!o.at) return; }
       cur.t += Math.max(0, dt) * 1000;
       const P = o.at ? o.at() : null; if (!P) return;
       const Q = o.to ? o.to() || [P[0] + 80, P[1]] : [P[0] + 80, P[1]];

@@ -10,7 +10,7 @@
      spelling  British (-ise, colour, behaviour, grey, centre, ageing …)
      agency    D0 §3: variants are selected, populations evolve (no "the moths learned", "you evolved", "genes want")
      science   a few D0 §3 "never" phrases ("mutations are copying errors", "half your genes" …)
-     shape     levels 3–6 with minutes; P tags realistic|designed|xN (xN needs real); MODEL cards; stars, sim and bots hooks;
+     shape     levels 3–6 with minutes (LEVEL_WAIVER: census 8, D6); P tags realistic|designed|xN (xN needs real); MODEL cards; stars, sim and bots hooks;
                CVD pairs and the hue lint through CVD.lint when 00_cvd.js is in the build
    Source (v2/*.js; with ids, only the files that define them):
      every file  Math.exp/log/pow/sin/cos/tan/atan2 (and their kin) or a non-integer ** outside a function marked
@@ -22,8 +22,11 @@
 const fs = require('fs'), path = require('path');
 
 const BUDGET = { firstWords: 40, hud: 15, whispers: 8, labels: 3, interesting: 25, levers: 3, take: 20, body: 60, 'law.title': 4,
-  'boss.inverts': 15, stars: 15, why: 60, chips: 25, captions: 25, panelMin: 35, panelMax: 60, sentence: 18, goal: 15, key: 4, model: 60 };
-const CONTENT_KEYS = ['firstWords', 'hud', 'whispers', 'labels', 'panels', 'interesting', 'levers', 'take', 'body', 'law', 'boss', 'stars', 'model', 'why', 'chips', 'captions'];
+  'boss.inverts': 15, stars: 15, why: 60, chips: 25, captions: 25, panelMin: 35, panelMax: 60, sentence: 18, goal: 15, key: 4, model: 60, live: 25 };
+const CONTENT_KEYS = ['firstWords', 'hud', 'whispers', 'labels', 'panels', 'interesting', 'levers', 'take', 'body', 'law', 'boss', 'stars', 'model', 'why', 'chips', 'captions',
+  'levelTake', 'levelBody', 'levelWhy', 'levelStars', 'whatifBody', 'live', 'data'];   // the per-level keys are read by Entry.show (API_v2 §14.3)
+/* Units with a designer waiver on the level count (D5 §3.4 says 3–6). D6 decision 1b: Equilibrium (census) is one chapter of 8 levels. */
+const LEVEL_WAIVER = { census: 8 };
 
 const plain = s => String(s).replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ');
 /* words: whitespace tokens holding a letter or digit; '{n}' counts as one (Txt.words semantics, API_v2 §5.3) */
@@ -55,6 +58,7 @@ const US = {
   analyzing: 'analysing', paralyze: 'paralyse', paralyzed: 'paralysed', catalyze: 'catalyse', catalyzed: 'catalysed', hydrolyze: 'hydrolyse'
 };
 const US_WARN = { toward: 'towards', license: 'licence (noun)', program: 'programme (not software)', practice: 'practise (verb)' };
+const VERB_ONLY = { practice: 1 };   // "Practice" the noun is British; warn only after "to", a modal or a pronoun
 const IZE_OK = /^(size[sd]?|sizing|sizeable|resize[sd]?|oversized?|undersized?|downsize[sd]?|prize[sd]?|seize[sd]?|seizing|maize|baize|capsize[sd]?|assize[s]?)$/i;
 const IZE = /\b([A-Za-z]+)(iz)(e|es|ed|ing|ation|ations|er|ers|able)\b/g;
 
@@ -80,7 +84,7 @@ function textChecks(str, where, E, W) {
   for (const m of s.matchAll(/[A-Za-z]+/g)) {
     const w = m[0], lw = w.toLowerCase();
     if (US[lw]) E.push(`${where}: US spelling "${w}" → ${US[lw]}`);
-    else if (US_WARN[lw]) W.push(`${where}: check spelling "${w}" → ${US_WARN[lw]}`);
+    else if (US_WARN[lw] && !(VERB_ONLY[lw] && !/\b(?:to|must|can|will|should|we|you|they|I)\s+$/i.test(s.slice(Math.max(0, m.index - 8), m.index)))) W.push(`${where}: check spelling "${w}" → ${US_WARN[lw]}`);
   }
   for (const m of s.matchAll(IZE)) if (!IZE_OK.test(m[0]) && !US[m[0].toLowerCase()]) E.push(`${where}: US spelling "${m[0]}" → ${m[1]}is${m[3]}`);
   for (const [re, why] of AGENCY) { const m = s.match(re); if (m) E.push(`${where}: "${m[0]}": ${why}`); }
@@ -117,7 +121,8 @@ function lintChapter(ch, o) {
   else { budget(ch.intro.goal, BUDGET.goal, 'intro.goal', E); T(ch.intro.goal, 'intro.goal'); }
   if (!C || typeof C !== 'object') E.push('content: missing (all player-facing words live in ch.content, API_v2 §9.2)');
   else {
-    for (const k of Object.keys(C)) if (CONTENT_KEYS.indexOf(k) < 0) W.push(`content.${k}: not a content key in API_v2 §9.2 (checked as text only)`);
+    const deep = (v, at, fn) => { if (typeof v === 'string') fn(v, at); else if (v && typeof v === 'object') for (const k of Object.keys(v)) deep(v[k], `${at}.${k}`, fn); };
+    for (const k of Object.keys(C)) if (CONTENT_KEYS.indexOf(k) < 0) { W.push(`content.${k}: not a content key in API_v2 §9.2 (checked as text only)`); deep(C[k], 'content.' + k, T); }
     if (C.firstWords != null) { budget(C.firstWords, BUDGET.firstWords, 'content.firstWords', E); T(C.firstWords, 'content.firstWords'); } else W.push('content.firstWords: missing (≤ 40 words before the first action)');
     for (const k of ['hud', 'whispers', 'labels', 'interesting', 'levers', 'chips', 'captions'])
       each(C[k], (v, kk) => { budget(v, BUDGET[k], `content.${k}.${kk}`, E); T(v, `content.${k}.${kk}`); });
@@ -126,6 +131,13 @@ function lintChapter(ch, o) {
       else C.panels.forEach((p, i) => { const at = `content.panels[${i}]${p && p.id ? ' (' + p.id + ')' : ''}`; if (!p || typeof p.text !== 'string') { E.push(at + ': expected {id, text}'); return; } budget(p.text, BUDGET.panelMax, at, E, BUDGET.panelMin, W); T(p.text, at); });
     }
     for (const k of ['take', 'body']) if (C[k] != null) { budget(C[k], BUDGET[k], 'content.' + k, E); T(C[k], 'content.' + k); }
+    // per-level card words (Entry.show reads levelTake, levelBody, levelWhy, levelStars by level index; null = use the default)
+    each(C.levelTake, (v, i) => { if (v != null) { budget(v, BUDGET.take, `content.levelTake.${i}`, E); T(v, `content.levelTake.${i}`); } });
+    for (const k of ['levelBody', 'whatifBody']) each(C[k], (v, i) => { if (v != null) { budget(v, BUDGET.body, `content.${k}.${i}`, E); T(v, `content.${k}.${i}`); } });
+    each(C.levelStars, (o2, i) => each(o2, (v, k) => { if (v != null) { budget(v, BUDGET.stars, `content.levelStars.${i}.${k}`, E); T(v, `content.levelStars.${i}.${k}`); } }));
+    each(C.levelWhy, (o2, i) => { if (o2) for (const k of ['real', 'maths']) [].concat(o2[k] == null ? [] : o2[k]).forEach((v, j) => { budget(v, BUDGET.why, `content.levelWhy.${i}.${k}[${j}]`, E); T(v, `content.levelWhy.${i}.${k}[${j}]`); }); });
+    each(C.live, (v, k) => { if (typeof v === 'string') { budget(v, BUDGET.live, `content.live.${k}`, W); T(v, `content.live.${k}`); } });
+    deep(C.data, 'content.data', T);
     if (!C.take) W.push('content.take: missing (the end card TAKE, ≤ 20 words)');
     if (C.law) { budget(C.law.title, BUDGET['law.title'], 'content.law.title', E); T(C.law.title, 'content.law.title'); }
     if (C.boss) { budget(C.boss.inverts, BUDGET['boss.inverts'], 'content.boss.inverts', E); T(C.boss.inverts, 'content.boss.inverts'); }
@@ -151,7 +163,8 @@ function lintChapter(ch, o) {
   if (ch.plan != null) { if (!Array.isArray(ch.plan) || ch.plan.length !== 2) E.push('plan: expected [title, subtitle]'); else ch.plan.forEach((s, i) => T(s, `plan[${i}]`)); }
   if (!Array.isArray(ch.levels)) E.push('levels: missing (3–6 levels, D5 §3.4)');
   else {
-    if (ch.levels.length < 3 || ch.levels.length > 6) E.push(`levels: ${ch.levels.length} levels; a unit has 3–6`);
+    const maxL = LEVEL_WAIVER[id] || 6;
+    if (ch.levels.length < 3 || ch.levels.length > maxL) E.push(`levels: ${ch.levels.length} levels; a unit has 3–${maxL}`);
     ch.levels.forEach((l, i) => {
       const at = `levels[${i}]`;
       if (!l || typeof l.name !== 'string') { E.push(at + '.name: missing'); return; }
@@ -204,7 +217,9 @@ function lintSource(file, src, o) {
   o = o || {}; const E = [], W = [], base = path.basename(file), engine = /^(0\d|zz)_/.test(base), code = skipper(src);
   const lineOf = i => src.slice(0, i).split('\n').length;
   const exempt = [];   // [from, to] ranges: functions marked ghost-only or cosmetic
-  for (const m of src.matchAll(/\/\/[^\n]*\b(ghost-only|cosmetic)\b|\/\*[^]*?\b(ghost-only|cosmetic)\b[^]*?\*\//g)) {
+  // a // marker, or a /* … */ block holding the marker; the block may not run past its own */ (it used to start at a file's
+  // header comment and swallow everything up to the first // cosmetic, so that marker exempted the wrong code)
+  for (const m of src.matchAll(/\/\/[^\n]*\b(ghost-only|cosmetic)\b|\/\*(?:(?!\*\/)[^])*?\b(ghost-only|cosmetic)\b(?:(?!\*\/)[^])*?\*\//g)) {
     const lineStart = src.lastIndexOf('\n', m.index) + 1; let j = lineStart;
     while (j < src.length && !(src[j] === '{' && code[j])) j++;
     exempt.push([lineStart, blockEnd(src, code, j)]);

@@ -9,6 +9,7 @@ const Hooks = {
   play: [],           // fn(ch, o)        after App.mode.start
   exit: [],           // fn(ch)           in App.exit
   key: [],            // fn(e) → true if handled; runs before Teacher and chapter keys
+  keyup: [],          // fn(e) → true if handled; runs before App.mode.onKeyUp (v2 only), so a chapter can hold a key (Batch 1)
   chart: null,        // (cv, spec, theme) → void         set by 01_widgets (LiveGraph.draw)
   chartPointer: null  // (i, type, x, y, cv) → void       set by Predict while an ask is open; type 'down'|'move'|'up', x and y in CSS px of cv
 };
@@ -17,7 +18,8 @@ const isV2 = ch => !!ch && ch.v2 === true;
 /* A plug-in hook that throws is reported once and dropped, so it cannot take a chapter down with it. */
 function runHooks(list, ...a) { for (let i = 0; i < list.length; i++) { try { list[i](...a); } catch (e) { list.splice(i--, 1); showErr(e); } } }
 
-/* URL parameters (D2-1), parsed once. 'level' and 'seed' are integers or null; theme, calm and lab only in dev builds. */
+/* URL parameters (D2-1), parsed once. 'level' and 'seed' are integers or null; theme and lab only in dev builds.
+   calm and untimed work in every build (Batch 1: playtesters need them without a dev build; untimed sets Save.d.ui.unt at boot). */
 const Url = (() => {
   const L = typeof location !== 'undefined' ? location : null, q = {};
   const dec = s => { try { return decodeURIComponent(s.replace(/\+/g, ' ')); } catch (e) { return s; } };
@@ -29,7 +31,8 @@ const Url = (() => {
     q, dev, locks, unit: q.unit || null, level: lv != null && lv >= 0 ? lv : null, seed: sd == null ? null : sd >>> 0,
     teacher: on(q.teacher), projector: on(q.projector), v1: on(q.v1),
     cvd: /^(deut|prot|trit|mono)$/.test(q.cvd || '') ? q.cvd : null,
-    lab: dev && q.lab ? q.lab : null, theme: dev && /^(dusk|paper|projector)$/.test(q.theme || '') ? q.theme : null, calm: dev && on(q.calm),
+    lab: dev && q.lab ? q.lab : null, theme: dev && /^(dusk|paper|projector)$/.test(q.theme || '') ? q.theme : null, calm: q.calm != null && on(q.calm),
+    untimed: q.untimed != null && on(q.untimed),
     link(o) {   // → share URL: unit, level, seed first, then any other keys; true → 1, objects (locks) → 'k:v,k:v'
       o = o || {}; const ps = [], base = L ? String(L.href).split(/[?#]/)[0] : '';
       const put = (k, v) => { if (v == null || v === false || v === '') return; if (v === true) v = 1; else if (typeof v === 'object') v = Object.keys(v).map(x => x + ':' + v[x]).join(','); ps.push(encodeURIComponent(k) + '=' + encodeURIComponent(v)); };
@@ -71,12 +74,17 @@ const HUD = {
   meterHTML(label) { return '<div class="hud-goal"><span id="m-l">' + label + '</span><b id="m-v"></b></div><div class="meter"><i id="m-i"></i><em id="m-e"></em></div>'; },
   meter(v, goal, txt, col) { const i = $('m-i'); if (!i) return; i.style.width = pct(clamp(v, 0, 1)); if (col) i.style.background = col; const e = $('m-e'); if (goal == null) e.style.display = 'none'; else { e.style.display = ''; e.style.left = 'calc(' + pct(goal) + ' - 1px)'; } $('m-v').textContent = txt; },
   line(id, html) { const e = $(id); if (e) e.innerHTML = html; },
-  /* v2 HUD line over the top 56 px of the stage: one sentence (≤ 15 words) and one live number in mono */
-  say(text, num) {
+  /* v2 HUD line over the top 56 px of the stage: one sentence (≤ 15 words) and one live number in mono.
+     The chapter's content.firstWords (shown before the first action) may run to 40 words (D4 §3); the HUD grows to fit. */
+  say(text, num, o) {   // o.first: this is the before-first-action line (≤ 40 words); also detected when text is content.firstWords
     let el = $('hud-say');
     if (!el) { $('hud').innerHTML = '<div id="hud-say" class="hud-say"><span></span><b class="mono"></b></div>'; el = $('hud-say'); }
     const t = text == null ? '' : String(text), n = num == null ? '' : String(num);
-    if (el.firstChild.textContent !== t) { el.firstChild.textContent = t; if (Url.dev && wordCount(t) > 15 && HUD.warnings.indexOf(t) < 0) HUD.warnings.push(t); }
+    if (el.firstChild.textContent !== t) {
+      el.firstChild.textContent = t;
+      const C = App.ch && App.ch.content, first = !!(o && o.first) || (!!C && typeof C.firstWords === 'string' && t === C.firstWords);
+      if (Url.dev && wordCount(t) > (first ? 40 : 15) && HUD.warnings.indexOf(t) < 0) HUD.warnings.push(t);
+    }
     if (el.lastChild.textContent !== n) el.lastChild.textContent = n;
   },
   warnings: []   // dev builds: HUD lines over budget
@@ -314,6 +322,7 @@ const Strip = {
       const fig = box.children[i], cv = fig.lastChild, typed = !!(spec.type && Hooks.chart), cap = spec.title || '';
       if (fig.firstChild.textContent !== cap) { fig.firstChild.textContent = cap; cv.setAttribute('aria-label', cap || 'graph'); }
       fig.classList.toggle('plate', !typed);   // legacy draw(cv, 'paper') charts sit on a paper plate
+      fig.classList.toggle('nofold', spec.fold === false);   // hidden while the phone strip is folded (CSS); shown when it opens
       const sig = typed && typeof LiveGraph !== 'undefined' && LiveGraph.sig ? LiveGraph.sig(spec) + '|' + th + '|' + cv.clientWidth + 'x' + cv.clientHeight : null;
       if (!force && sig != null && sig === this.sigs[i]) return;
       this.sigs[i] = sig;
@@ -423,6 +432,8 @@ const Keys = {
     const k = e.key || '', K = k.length === 1 ? k.toUpperCase() : k, play = App.scr === 'play' && !!App.mode, card = Cards.isOpen(), help = card && !!document.querySelector('#cards .card.help');
     if ((k === ' ' || k === 'Enter') && /^(BUTTON|A|SUMMARY)$/.test(tag)) return;   // let the focused control act
     if (help && (k === 'Escape' || k === '?')) { Cards.close(); return; }
+    if (card && k === 'Escape' && document.querySelector('#cards .card.levels, #cards .card.settings')) { Cards.close(); return; }   // popovers close on Escape
+    if (card && k === 'Escape' && play && document.querySelector('#cards .card.lvl.v2, #cards .card.end.v2')) { App.exit(); return; }   // a v2 level or end card: back to the notebook (reopening resumes)
     if (play && !card && Teacher.on && Teacher.key(K)) { e.preventDefault(); return; }
     if (K === 'M') { this.mute(); return; }
     if (k === '?') { if (!card) this.help(); return; }
@@ -431,6 +442,13 @@ const Keys = {
     if (v2 && K === 'G') { Strip.toggle(); e.preventDefault(); return; }
     if (v2 && Dock.key(k)) { e.preventDefault(); return; }
     if (App.mode.onKey) { App.mode.onKey(k, e); if (k === ' ' || /^Arrow/.test(k)) e.preventDefault(); }
+  },
+  up(e) {   // keyup: Hooks.keyup, then a v2 chapter's onKeyUp(key, e) (a held Space, a released arrow); never under ?v1=1
+    if (Url.v1 || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    const t = e.target || {}, tag = t.tagName || '';
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || t.isContentEditable) return;
+    for (let i = 0; i < Hooks.keyup.length; i++) { try { if (Hooks.keyup[i](e)) { e.preventDefault(); return; } } catch (err) { Hooks.keyup.splice(i--, 1); showErr(err); } }
+    if (App.scr === 'play' && App.mode && isV2(App.ch) && !Cards.isOpen() && typeof App.mode.onKeyUp === 'function') { App.mode.onKeyUp(e.key || '', e); if (e.key === ' ') e.preventDefault(); }
   },
   mute() {
     Snd.on = !Snd.on; Save.d.snd = Snd.on; Save.save(); Snd.init();
@@ -456,7 +474,7 @@ const LevelSelect = {
     const isOpen = i => i === 0 || Teacher.on || done || lv[i - 1] != null, pop = m => (m & 1) + (m >> 1 & 1) + (m >> 2 & 1);
     let next = 0; while (next < n - 1 && lv[next] != null) next++;
     const chips = ch.levels.map((L, i) => '<button class="lvchip' + (i === n - 1 ? ' boss' : '') + (isOpen(i) ? '' : ' locked') + (i === next ? ' next' : '') + '" data-n="' + i + '" aria-label="Level ' + (i + 1) + ': ' + L.name + (isOpen(i) ? ', ' + pop(lv[i] || 0) + ' of 3 stars' : ', locked') + '">L' + (i + 1) + (lv[i] ? '<i>' + pop(lv[i]) + '</i>' : '') + '</button>').join('');
-    const box = Cards.open({ cls: 'levels v2', html: '<h3>' + ch.title + '</h3><div class="lvrow">' + chips + '</div><p class="lvline"><span></span> <span class="mins mono"></span></p>', buttons: [{ t: 'Back', fn: () => Cards.close() }] });
+    const box = Cards.open({ cls: 'levels v2', html: '<h3>' + ch.title + '</h3><div class="lvrow">' + chips + '</div><p class="lvline"><span></span> <span class="mins mono"></span></p>', buttons: [{ t: 'Settings', fn: () => Settings.open() }, { t: 'Back', fn: () => Cards.close() }] });
     const line = box.querySelector('.lvline'), show = i => { const L = ch.levels[i]; line.firstChild.textContent = L.name; line.lastChild.textContent = L.minutes ? L.minutes + ' min' : ''; };
     show(next);
     box.querySelectorAll('.lvchip').forEach(b => {
@@ -470,12 +488,30 @@ const LevelSelect = {
   }
 };
 
+/* ---------- Settings (Batch 1 engine request): Untimed, Calm, Readable, Left-handed, stored in Save.d.ui ----------
+   Reached from the menu footer and the Levels popover. Untimed is read when a level starts, so it applies from the next
+   level; the others apply at once. ?calm=1 and ?untimed=1 do the same from a link (playtests). Hidden under ?v1=1. */
+const Settings = {
+  ROWS: [['unt', 'Untimed', 'No clocks. Takes effect when a level starts.'], ['calm', 'Calm', 'Less motion and no shake.'],
+    ['read', 'Readable', 'A plainer font with more space.'], ['lh', 'Left-handed', 'Action buttons in reverse order.']],
+  open() {
+    if (Url.v1 || !Save.d) return; const ui = Save.d.ui || (Save.d.ui = {});
+    const rows = this.ROWS.map(([k, name, what]) => '<div class="setrow"><span><b>' + name + '</b><small>' + what + '</small></span><button type="button" class="tog" data-k="' + k + '" aria-pressed="' + (ui[k] ? 'true' : 'false') + '" aria-label="' + name + '">' + (ui[k] ? 'On' : 'Off') + '</button></div>').join('');
+    const box = Cards.open({ cls: 'settings v2', html: '<h3>Settings</h3>' + rows, buttons: [{ t: 'Done', primary: true, fn: () => Cards.close() }] });
+    box.querySelectorAll('.tog[data-k]').forEach(b => b.addEventListener('click', () => { if (box.dataset.armed !== '1') return; this.set(b.dataset.k, !ui[b.dataset.k]); b.setAttribute('aria-pressed', String(!!ui[b.dataset.k])); b.textContent = ui[b.dataset.k] ? 'On' : 'Off'; Snd.click(); }));
+    return box;
+  },
+  set(k, on) { const ui = Save.d.ui || (Save.d.ui = {}); ui[k] = on ? 1 : 0; Save.save(); Shell.prefs(); }
+};
+
 /* ---------- wiring, called from boot() after Stage.init() ---------- */
 const Shell = {
   init() {
-    window.addEventListener('keydown', e => Keys.down(e));
+    window.addEventListener('keydown', e => Keys.down(e)); window.addEventListener('keyup', e => Keys.up(e));
     Teacher.init(); Strip.init();
     $('lv-btn').onclick = () => { if (App.ch) LevelSelect.open(App.ch); };
+    { const sb = $('btn-set'); if (sb) sb.onclick = () => { Snd.init(); Snd.click(); Settings.open(); }; }
+    if (Url.untimed && !Url.v1 && Save.d && Save.d.ui && !Save.d.ui.unt) { Save.d.ui.unt = 1; Save.save(); }   // ?untimed=1 (playtests)
     this.prefs(); if (typeof Save.onLoad === 'function') Save.onLoad(() => { this.prefs(); if (App.scr === 'menu') Menu.render(); });
   },
   prefs() {   // body classes from Save.d.ui: readable (Atkinson), calm (no motion), lh (left-handed dock); none under ?v1=1
@@ -483,7 +519,7 @@ const Shell = {
     b.classList.toggle('readable', !!ui.read); b.classList.toggle('calm', !!ui.calm || Url.calm); b.classList.toggle('lh', !!ui.lh);
   }
 };
-EXPORT.isV2 = isV2; EXPORT.Layout = Layout; EXPORT.Keys = Keys; EXPORT.LevelSelect = LevelSelect; EXPORT.starSVG = starSVG;
+EXPORT.isV2 = isV2; EXPORT.Layout = Layout; EXPORT.Keys = Keys; EXPORT.LevelSelect = LevelSelect; EXPORT.starSVG = starSVG; EXPORT.Settings = Settings;
 
 function showErr(e) { const el = $('err'); el.style.display = 'block'; el.textContent = 'Something broke: ' + (e && (e.stack || e.message) || e) + '\n(Tap to dismiss.)'; el.onclick = () => el.style.display = 'none'; }
 window.addEventListener('error', e => showErr(e.error || e.message));

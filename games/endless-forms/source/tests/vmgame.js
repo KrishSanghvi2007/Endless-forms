@@ -64,11 +64,22 @@ function makeDom(o) {
     get value() { return this.el._cls; }
     [Symbol.iterator]() { return this._s[Symbol.iterator](); }
   }
-  // simple selectors only: '#id', '.a.b', 'tag', 'tag.a', '[attr]', '[attr=v]', with descendant combinators matched on the last part
-  function matches(el, sel) {
+  // simple selectors: '#id', '.a.b', 'tag', 'tag.a', '[attr]', '[attr=v]', joined by descendant (' ') or child ('>') combinators
+  function matches(el, sel) {   // compound selectors with descendant (' ') and child ('>') combinators; pseudo-classes pass
     sel = String(sel).trim(); if (!sel) return false;
     if (sel.indexOf(',') >= 0) return sel.split(',').some(s => matches(el, s));
-    const last = sel.split(/\s+|>/).filter(Boolean).pop() || '';
+    const toks = sel.replace(/\s*>\s*/g, ' > ').split(/\s+/).filter(Boolean);
+    if (!one(el, toks[toks.length - 1] || '')) return false;
+    let cur = el;
+    for (let i = toks.length - 2; i >= 0; i--) {
+      if (toks[i] === '>') { i--; cur = cur.parentNode; if (!cur || cur.nodeType !== 1 || i < 0 || !one(cur, toks[i])) return false; continue; }
+      let a = cur.parentNode; while (a && a.nodeType === 1 && !one(a, toks[i])) a = a.parentNode;
+      if (!a || a.nodeType !== 1) return false; cur = a;
+    }
+    return true;
+  }
+  function one(el, last) {   // one compound selector: tag, #id, .class, [attr], [attr=v]
+    if (!el || el.nodeType !== 1 || !el.classList) return false;
     const m = last.match(/^([a-zA-Z0-9*-]*)((?:[#.][\w-]+|\[[^\]]+\]|:[\w-]+(?:\([^)]*\))?)*)$/); if (!m) return false;
     if (m[1] && m[1] !== '*' && m[1].toUpperCase() !== el.tagName) return false;
     for (const p of m[2].match(/[#.][\w-]+|\[[^\]]+\]|:[\w-]+(?:\([^)]*\))?/g) || []) {

@@ -364,7 +364,7 @@ const Save = {
     const d = this.d; this._mig(id);  // a deep link can reach a level without App.open
     const lv = d.lv[id] || (d.lv[id] = []), n = Math.max(0, level | 0);
     while (lv.length <= n) lv.push(0);
-    lv[n] |= mask & 7; d.s2[id] = (d.s2[id] || 0) | (mask & 7); d.stars[id] = this._pop(d.s2[id]);
+    lv[n] |= mask & 7; d.s2[id] = this._unit(id, lv); d.stars[id] = this._pop(d.s2[id]);
     this.save(); return d.stars[id];
   },
   migrate(id) { if (this._mig(id)) this.save(); },
@@ -438,7 +438,7 @@ const Save = {
         const m = /^(\d)(?:\.([0-7]*))?(!?)$/.exec(o.u[id]); if (!m) continue;
         if (m[2] != null) {
           d.v1stars[id] = +m[1]; d.lv[id] = m[2].split('').map(Number);
-          let s = 0; for (const v of d.lv[id]) s |= v; d.s2[id] = s; d.stars[id] = this._pop(s);
+          const s = this._unit(id, d.lv[id]); d.s2[id] = s; d.stars[id] = this._pop(s);
         } else if (+m[1]) d.stars[id] = +m[1];
         if (m[3]) d.done[id] = 1;
       }
@@ -462,6 +462,13 @@ const Save = {
     return true;
   },
   _pop(m) { return (m & 1) + (m >> 1 & 1) + (m >> 2 & 1); },
+  /* The unit's star mask from its level masks: the OR of them, unless the v2 chapter defines unitStars(levelMasks) → mask, so a
+     unit star can need several levels (D1: "Predict on 2 of 3 histograms"). REG lives in ui.js, so it is read at call time. */
+  _unit(id, lv) {
+    let s = 0; for (const v of lv || []) s |= v & 7;
+    try { const ch = typeof REG !== 'undefined' ? REG[id] : null; if (ch && ch.v2 === true && typeof ch.unitStars === 'function') { const m = ch.unitStars((lv || []).map(v => v & 7)); if (typeof m === 'number' && m >= 0) s = m & 7; } } catch (e) { }
+    return s;
+  },
   _v1() {
     try { if (Url.v1) return true; } catch (e) { }   // Url (ui.js) when present
     try { return /[?&]v1=(1|true)(&|$)/.test(location.search || ''); } catch (e) { return false; }

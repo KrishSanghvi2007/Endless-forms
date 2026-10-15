@@ -69,8 +69,10 @@ const { load, runSim, mulberry, makeClock } = require('./vmgame');
   ok(L.words('Eat {n} of {m} beetles — now.') === 6 && L.words('<b>two</b> words') === 2, 'lint: word count ({placeholder} = 1, dashes and tags ignored)');
   const fix = L.lintChapter(TB.REG.e7fix, { CVD: TB.CVD });
   ok(!fix.errors.length, 'lint: the clean fixture passes ' + fix.errors.slice(0, 3).join(' | '));
-  const sk = L.lintChapter(TB.REG.skeleton, { CVD: TB.CVD });
-  ok(sk.errors.some(e => /sentence of \d+ words/.test(e)), 'lint: finds the over-long sentences in the contract skeleton');
+  const sk = L.lintChapter(TB.REG.skeleton, { CVD: TB.CVD });   // the skeleton is copied by every unit, so it must lint clean
+  ok(!sk.errors.length, 'lint: the contract skeleton passes ' + sk.errors.slice(0, 3).join(' | '));
+  const skBody = TB.REG.skeleton.content.body; TB.REG.skeleton.content.body = 'Your meals were the selection, and the survivors’ copies became the next gene pool, so the share climbed on pale sand and fell on dark sand.';
+  ok(L.lintChapter(TB.REG.skeleton, { CVD: TB.CVD }).errors.some(e => /sentence of \d+ words/.test(e)), 'lint: finds an over-long sentence planted in the skeleton'); TB.REG.skeleton.content.body = skBody;
   const base = () => JSON.parse(JSON.stringify(Object.assign({}, TB.REG.e7fix, { sim: undefined, stars: undefined }), (k, v) => typeof v === 'function' ? undefined : v));
   const bad = (mut, re, msg) => { const ch = base(); mut(ch); ch.sim = TB.REG.e7fix.sim; ch.stars = TB.REG.e7fix.stars; const r = L.lintChapter(ch, {}); ok(r.errors.some(e => re.test(e)), 'lint catches ' + msg + ' ' + (r.errors.length ? '' : '(no errors)')); };
   bad(ch => { ch.content.hud.tap = 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen'; }, /hud\.tap: 16 words > 15/, 'a 16-word HUD line');

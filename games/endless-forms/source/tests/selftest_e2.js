@@ -30,6 +30,8 @@
     return T;
   }
   const TBx = () => window.TB;
+  // a chapter that is still legacy in this build: lichen until v2/lichen.js is in it, else an appendix chapter (never rebuilt, D6)
+  const legacyCh = REG => ['lichen', 'web', 'islands', 'fire', 'nest'].map(id => REG[id]).find(c => c && c.v2 !== true);
 
   window.__e2 = {
     core() {
@@ -41,7 +43,7 @@
       S.t(/locks=mixer\.N%3A40$/.test(Url.link({ locks: { 'mixer.N': 40 } })), 'Url.link encodes locks');
       S.eq(Url.lock('mixer', 'N', 3), 3, 'Url.lock default');
       // legacy chapter: nothing v2 appears, geometry is the legacy column
-      Cards.close(); TB.seed(7); App.play(REG.lichen); window.__advance(400);
+      Cards.close(); TB.seed(7); App.play(legacyCh(REG)); window.__advance(400);
       S.t(!$('scr-play').classList.contains('v2') && !document.body.dataset.layout, 'legacy: no v2 class or layout');
       S.eq(['strip', 'dock', 'teacher', 'lv-btn'].map(id => getComputedStyle($(id)).display), ['none', 'none', 'none', 'none'], 'legacy: strip, dock, teacher, Levels hidden');
       S.t(getComputedStyle($('notes-btn')).display !== 'none', 'legacy: Notes button shown');
@@ -51,7 +53,7 @@
       // a legacy chapter whose state has a numeric v2 field (CH_NEST counts visits in this.v2) stays legacy
       App.play(REG.nest); REG.nest.v2 = 5; Stage.resize(); Notes.open();
       S.t(!$('scr-play').classList.contains('v2') && Stage.layout === 'legacy' && $('sheet').classList.contains('on'), 'ch.v2 must be === true (nest keeps a visit counter in v2)');
-      Notes.close(); delete REG.nest.v2; App.play(REG.lichen);
+      Notes.close(); delete REG.nest.v2; App.play(legacyCh(REG));
       // Stage.u, Stage.hit
       S.eq(Stage.u, Math.min(Stage.w, 1.2 * Stage.h), 'Stage.u = min(w, 1.2h)');
       const pts = [{ x: 100, y: 100 }, { x: 130, y: 100, r: 40 }, null, { x: -1e4, y: -1e4 }];
@@ -116,10 +118,10 @@
       // exit: hooks run, layout cleared
       App.exit(); S.eq(exited, ['zz_e2'], 'Hooks.exit gets ch');
       S.t(!document.body.dataset.layout && !$('scr-play').classList.contains('v2') && Stage.layout === 'legacy', 'exit clears the v2 layout');
-      S.t(/<svg class="star/.test($('menu-body').innerHTML) && $('menu-body').querySelector('.part h3 span').textContent === 'I', 'menu: SVG stars, legacy numerals');
+      S.t(/<svg class="star/.test($('menu-body').innerHTML) && $('menu-body').querySelector('.part h3 span').textContent === (window.TB.ACT_PLAN ? 'Act 0' : 'I'), 'menu: SVG stars, act headings (legacy numerals without 00_entry.js)');
       for (const [L, f] of [[Hooks.play, fp], [Hooks.exit, fx], [Hooks.pre, fpre], [Hooks.frame, ffr], [Hooks.dt, fdt], [Hooks.key, fk]]) L.splice(L.indexOf(f), 1);
       // a throwing hook is dropped and reported, the chapter keeps running
-      const boom = () => { throw new Error('boom'); }; Hooks.frame.push(boom); App.play(REG.lichen); window.__advance(200);
+      const boom = () => { throw new Error('boom'); }; Hooks.frame.push(boom); App.play(legacyCh(REG)); window.__advance(200);
       S.t(Hooks.frame.indexOf(boom) < 0 && !!App.mode && /boom/.test($('err').textContent), 'a throwing hook is dropped and reported');
       $('err').style.display = 'none'; window.__errs.length = 0; App.exit();
       return S.done();
@@ -131,7 +133,7 @@
       S.eq([Url.lock('casino', 'Ne', 1), Url.lock('casino', 'N', 1)], [12, 1], 'Url.lock');
       S.eq([App.scr, App.ch && App.ch.id, App.seed], ['play', 'casino', 42], 'deep link plays the unit with its seed');
       S.t(Teacher.on && getComputedStyle($('teacher')).display === 'flex' && $('t-seed').textContent === 'seed 42', 'teacher strip with the seed chip');
-      S.t(getComputedStyle($('t-speed')).display === 'none', 'speed control hidden for a legacy unit');
+      S.t((getComputedStyle($('t-speed')).display === 'none') === !TBx().isV2(App.ch), 'speed control shown only for a v2 unit (casino is v2 once v2/casino.js is in the build)');
       App.play(App.ch); S.t(App.seed === 42, '?seed= applies to every play of that unit');
       return S.done();
     },
@@ -151,7 +153,7 @@
       key('f'); S.t(App.paused && Teacher.frozen && T.asked === 1, 'F freezes and asks');
       key('r'); S.t(!App.paused && Teacher.revealed && !Teacher.frozen, 'R resumes and reveals');
       key('x'); S.eq(T.keysSeen, ['x'], 'non-teacher keys reach the chapter');
-      App.play(REG.lichen); S.t(App.seed > 0, 'teacher mode seeds legacy runs so the seed chip works');
+      App.play(legacyCh(REG)); S.t(App.seed > 0, 'teacher mode seeds legacy runs so the seed chip works');
       App.exit();
       return S.done();
     },
@@ -171,7 +173,7 @@
       const S = suite(), { App, REG, Teacher } = TBx();
       S.t(document.documentElement.classList.contains('v1') && !Teacher.on && !document.body.classList.contains('teacher'), 'v1: no teacher strip');
       App.go('menu'); S.t(!/<svg/.test($('menu-body').innerHTML), 'v1: text stars in the menu');
-      App.play(REG.lichen); const before = TB.Save.d.snd; key('m'); S.eq(TB.Save.d.snd, before, 'v1: no global keys');
+      App.play(legacyCh(REG)); const before = TB.Save.d.snd; key('m'); S.eq(TB.Save.d.snd, before, 'v1: no global keys');
       App.exit();
       return S.done();
     }

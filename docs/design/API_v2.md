@@ -6,7 +6,11 @@
 
 **Status tags.** **[B0]** lands in Batch 0, before any Batch 1 unit merges. **[B0-simple]** lands in Batch 0 as the simple first version described; the full version follows without changing the signature. **[by Bn]** is specified now and must land before Batch *n* starts. **[later]** is a reserved name only.
 
-**Contents.** 1 Ground rules · 2 Work packages · 3 `core.js` · 4 `ui.js`, `shell.html`, `boot.js` · 5 `00_tokens`, `00_cvd`, `00_fx`, `00_wf` · 6 `00_entry`, `zz_v1switch` · 7 `01_widgets` · 8 `02_hunt_ext`, `01_rig`, `01_scenes` · 9 The v2 chapter contract · 10 The act plan · 11 Testing recipe · 12 Deviations from D5
+**Contents.** 1 Ground rules · 2 Work packages · 3 `core.js` · 4 `ui.js`, `shell.html`, `boot.js` · 5 `00_tokens`, `00_cvd`, `00_fx`, `00_wf` · 6 `00_entry`, `zz_v1switch` · 7 `01_widgets` · 8 `02_hunt_ext`, `01_rig`, `01_scenes` · 9 The v2 chapter contract · 10 The act plan · 11 Testing recipe · 12 Deviations from D5 · 13 Where the built engine differs from §§3–9 (integration) · 14 Engine changes after Batch 1
+
+**Integration status (14 Oct 2026).** All Batch 0 engine files are built and integrated. Where the code and the sections below disagree, **§13 and the code win**; §13 lists every difference, package by package, and points to the logs in `docs/changes/wave2/`.
+
+**Batch 1 status (15 Oct 2026).** Five units are built on this engine (`lichen`, `soot`, `hawks`, `census` in `v2/mixer.js`, `casino`). The engine requests they shared are in **§14**, which wins over §§3–13 where they differ. Unit builders also read `docs/changes/wave2/lessons_batch1.md`.
 
 ---
 
@@ -18,7 +22,7 @@
    - the play screen at < 1024 px keeps today's geometry (`Stage.w`, `Stage.h` identical at 390×780), `#hud` content and the `#bar-gen` text;
    - `frame()` delivers the same `dt` sequence and calls `update` then `draw` exactly as today;
    - nothing calls `R()` that did not before (cosmetic randomness uses `Fx.rnd`, never `R()`); nothing reseeds unless asked (`App.playLevel` with a seed, or `?seed=` for that unit);
-   - legacy objects are wrapped, never mutated in place (no edits to `CH_*` fields, `ch.theme`, `Hunt` state); every wrap starts `if (!ch.v2) return orig.apply(this, arguments)`;
+   - legacy objects are wrapped, never mutated in place (no edits to `CH_*` fields, `ch.theme`, `Hunt` state); every wrap starts `if (!isV2(ch)) return orig.apply(this, arguments)`. **Test `isV2(ch)` (`ch.v2 === true`, from `ui.js`), never `ch.v2`:** legacy `CH_NEST` uses `this.v2` as a visit counter (0 to 12), so a truthiness test turns The Nest into a v2 chapter halfway through a run;
    - card DOM (`.card`, `.card-btns button`, `.end`), `#scene`, `#hud`, `#bar-gen`, `#err` and `window.TB` keep their meaning.
 4. **`?v1=1` is the legacy game.** Every plug-in that changes legacy UX (whisper, theme adapter, entry wraps, PLAN rewrite, new save key) checks `Url.v1` at its top level and stays inert.
 5. **Determinism.** A run is `(build, seed, actions)`. The simulation draws only from the shared `R()`. Any value between an `R()` draw and a scored or encoded outcome uses `Det` (§3.2) or `+ − × ÷ Math.sqrt Math.floor Math.round Math.abs` and comparisons, never `Math.exp/log/pow/sin/cos/tan/atan2` or `**` with a non-integer exponent. Expectation curves that need them (Kimura, decline ghosts) are drawn only as ghosts and live in functions marked `// ghost-only`.
@@ -296,10 +300,13 @@ WF.ghost.kimura(p0, Ne, s)  WF.ghost.neutral(p0)  WF.ghost.decay(H0, Ne, t)   //
 - **`Sim`**, the fixed-step driver every v2 chapter uses:
   ```js
   Sim.start(ch, n, o)   // App.seed already set; ch.sim.reset(n, o) (reset handles o.thaw: restore the snapshot, apply the lever); tick = 0; o.replay → queue logged actions
-  Sim.run(ch, dt)       // accumulate dt; while acc ≥ sim.dt: apply replayed actions due this tick, ev.push(...sim.step(sim.dt)), tick++ (≤ 8 ticks per frame) → ev[]
-  Sim.act(ch, a)        // sim.s.log.push([tick, a]); Events.emit('act', {a}); → sim.act(a) (ev[])
-  Sim.tick(ch)
+  Sim.run(ch, dt)       // first the events of live Sim.act calls since the last run; then while acc ≥ sim.dt: apply replayed actions
+                        //   due this tick, ev.push(...sim.step(sim.dt)), tick++ (≤ 8 ticks per call; a bigger backlog is dropped) → ev[]
+                        //   a finished sim (result() not null) never steps again
+  Sim.act(ch, a)        // sim.s.log.push([tick, a]); Events.emit('act', {a}); → sim.act(a) (ev[], for inspection only); ignored while a replay runs
+  Sim.tick(ch)          // → the current tick;  also Sim.log(ch), Sim.replaying(ch), Sim.thawed(ch), Sim.done(ch)
   ```
+  **One event channel.** View code juices from `Sim.run`'s events only. They include a live action's events (handed out again on the next frame, ≤ 40 ms later) and a replayed action's events (applied inside `run`), so a live run and its replay show the same juice in the same order. Juicing `Sim.act`'s return value as well would double it.
 - **`Snap`**: `Snap.enc(obj)` → JSON string with typed arrays as `{"$f32": […]}` / `{"$u32": […]}`; `Snap.dec(str)` inverse; exact round trip.
 - **`Freezer`** (session memory, ≤ 8 vials per unit): `Freezer.put(id, gen, snap)`, `Freezer.list(id)` → `[{gen, snap}]`, `Freezer.thaw(id, gen, lever)` → `App.playLevel(REG[id], REG[id].level, {thaw: {gen, snap, lever}})` and `Events.emit('whatif', {gen, lever})`. **[B0-simple]** What if? on the level card offers the last vial's levers as chips; the drawer UI comes later.
 - **`Replay`**: `Replay.encode(seed, level, log)` → `'R1.' + base64url(JSON)`; `Replay.decode(code)` → `{seed, level, log}` | null; `Replay.play(ch, code)` → `App.playLevel(ch, level, {seed, replay: log})`.
@@ -337,8 +344,11 @@ Predictions are **simulation state**: the sim opens `s.ask = {id, kind, lo, hi, 
 ```js
 Predict.ask({id, chart = 0, kind, axis: {lo, hi}, start, tol, soft = 6, onCommit})
         // kind 'x'|'y'|'pq'|'tri'|'time'; soft: seconds before the current ghost commits (null in untimed mode); → {cancel(), active}
-        // drag or tap on the chart moves the ghost; keys: P focus, arrows move, Enter commits
-        // on commit: Sim.act(App.ch, {k: 'predict', id, v}); Events.emit('predict', …); onCommit({id, v}); the tolerance band hatches in
+        // a tap off the ghost moves it there; a drag moves it; a tap ON the ghost (within 24 px) commits; releasing a drag never commits
+        // keys: P focus, arrows move (Shift ×5), Enter or Space commits, Escape leaves; Predict.commit() for a Dock button
+        // on commit: Sim.act(App.ch, {k: 'predict', id, v}); Events.emit('predict', …); onCommit({id, v}); the band hatches in around
+        //   YOUR mark (± tol); Predict.reveal(id, expect, tol) then moves it onto the expectation. On a phone the strip expands for
+        //   the ask (opt out: expand: false) and folds 1.5 s after the commit; axis.rev measures a pq value from the right-hand end
 Predict.overlay(i)        // → {v, committed, band: [lo, hi] | null} | null
 Predict.reveal(id, expect, tol)   // after scoring: draws the band around the expectation
 Predict.err(kind, v, expect)      // distance in axis units ('tri': Euclidean in simplex coordinates)
@@ -450,9 +460,9 @@ const CH_X_V2 = {
   sim: {…},                             // headless simulation (9.3)
   start(ch, o) { this.startLevel(o.level || 0, o); },
   startLevel(n, o) {…},                 // Sim.start, view state, Dock.set, HUD.say, Ghost.show
-  update(dt) {…},                       // const ev = Sim.run(this, dt); juice from ev; end check
+  update(dt) {…},                       // const ev = Sim.run(this, dt); juice from ev ONLY (it holds live Sim.act events too); end check
   draw(c, w, h) {…},                    // world from sim.s; Lbl.put for words; Fx draws itself
-  down(x, y) / move(x, y) / up(x, y) / tap(x, y),   // → Sim.act(this, {k: …})
+  down(x, y) / move(x, y) / up(x, y) / tap(x, y),   // → Sim.act(this, {k: …}); do not juice its return value: the next Sim.run hands the same events out
   onKey(key, e),  keys: {Space: 'act', ArrowLeft: 'move', L: 'lens'},  // keys: map for help and audit (≤ 4 words each)
   notes() { return {stats: [[label, value, meaning]], charts: [spec…]}; },   // LiveGraph specs; boot.js requires notes
   untimed: true,                        // implements Save.d.ui.unt for timed verbs
@@ -531,7 +541,7 @@ const ACT_PLAN = [
   { act: 4, n: 'Forces', needs: [3], c: [
     ['soot', 'The Black Country', 'A changing world', { spine: 1 }],
     ['casino', 'Drift Casino', 'Genetic drift', { spine: 1 }],
-    ['castaways', 'The Castaways', 'Founders, bottlenecks and rescue', {}],
+    ['castaways', 'The Castaways', 'Bottlenecks and genetic rescue', {}],   // Batch 1: founders open Drift Casino L4
     ['tap', 'The Leaky Tap', 'Mutation–selection balance', { needs: ['soot'] }],
     ['swamp', 'Gene Swamping', 'Migration against selection', { needs: ['soot'] }]] },
   { act: 5, n: 'Adaptation and coevolution', needs: [4], c: [
@@ -603,7 +613,7 @@ python3 tests/shots.py $OUT <id> --vp 390x780,1024x768,1280x720 --cvd mono,deut 
 python3 tests/golden.py check $OUT         # 48 legacy chapters unchanged (ids your file replaces are skipped)
 python3 tests/golden.py check $OUT --v1    # once zz_v1switch.js exists: all 48 must match under ?v1=1
 ```
-Known legacy monkey baseline (seed 1, 390×780): 43/48 reach the end card; `mendel` and `fancier` time out; `cross`, `landscape`, `double` report stuck. Do not "fix" these in chapter files you do not own.
+Known legacy monkey baseline (seed 1, 390×780): **46/48** reach the end card with E7's monkey (it now takes `mendel`, `fancier` and usually `double` to the end); `cross` and `landscape` report stuck (monkey.py `KNOWN` also accepts `double`). The pre-wave build `games/endless-forms/Endless_Forms_v1.html` reaches the same 46 behind the monkey's offline gate, which it fails only because it still loads Google Fonts. Do not "fix" these in chapter files you do not own.
 
 ### 11.2 Golden trajectories (architect; done)
 - `tests/golden.py record [HTML]` plays each legacy id from seed 7 for 3,000 steps (150 ms each) under virtual time with `Math.random` seeded, WebAudio off and the network blocked, and writes `tests/golden/<id>.json` (a hash per top-level state key and of the HUD text every 50 steps, card texts, end cards, errors) plus `_meta.json` (browser version, git commit). Default HTML: a private legacy-only build of the current source.
@@ -633,3 +643,119 @@ Known legacy monkey baseline (seed 1, 390×780): 43/48 reach the end card; `mend
 | sim `{step, act, snapshot, restore}` | adds `dt, s, reset, result, actions, bots` | fixed-step replays, headless oracles and the bot sweep need them |
 | `Gen.layout` sets `lay.x` for extension fields | also for `det: true`, through `_mateX` | keeps `_gam` byte for byte while giving every v2 layout Det maths with the same draws |
 | interim desktop panel for all chapters (D4 §6.1) | v2 chapters only in Batch 0 | polling legacy `notes()` could change legacy runs; no desktop golden yet |
+
+---
+
+## 13. Where the built engine differs from §§3–9 (integration, 14 Oct 2026)
+
+The engine packages E1–E7 each logged their deviations (`docs/changes/wave2/engine_E1.md` … `engine_E7.md`); the integration pass (`engine_integration.md`) checked them together and fixed the cross-file breaks. This section is the short list a unit author needs. **Where it disagrees with §§3–9, this section and the code win.**
+
+### 13.1 Everywhere
+| Contract said | The engine does | Why |
+|---|---|---|
+| `if (!ch.v2) return orig…` | `if (!isV2(ch))`, i.e. `ch.v2 === true` | The Nest counts visits in `this.v2` (E2). |
+| juice from `Sim.run`; `Sim.act` returns ev[] | `Sim.run` also returns the events of live `Sim.act` calls; juice from `Sim.run` only | Without it, live taps showed no juice while replays did (integration). |
+| percentages on charts | shares are rounded by largest remainder, so a bar reads 48% + 52%, never 48% + 53% | integration |
+
+### 13.2 `core.js` (E1)
+- A legacy layout returns exactly `{specs, T, L}`; `lay.x`, `lay.det`, `lay.sexed`, `lay.nextId` exist only on extension layouts (the golden harness hashes `Hunt.lay`).
+- The stored save is a **compact form**, not `JSON.stringify(Save.d)`; `Save.size()` measures the stored string (worst case 3,213 characters). New `ui` or top-level fields cost space: keep them short and store them only when set.
+- base64url **without padding** for snapshots and save codes; `Save.res.put` returns the string (≤ 92 characters).
+- `Gen.pack` → `{v: [2L values], id?, pa?, lin?, sex?}`; `Gen.unpack` takes that or a plain array. Sexed layouts store `g.sex` and throw without `o.sex`. `Gen.hap` needs every trait to have `ploidy`.
+- `star2` migrates first (a deep link reaches `playLevel` without `App.open`). Under SCORM there is no v1 import and no IndexedDB mirror. `fromCode` replaces the save.
+- `'fx'` events are dropped unless `Events.debug`; `lat()` returns null for an act with no fx after it.
+
+### 13.3 Shell (E2)
+- Throwing hooks are reported once and dropped. `Hooks.dt` results are used only when a number ≥ 0. `Hooks.chartPointer(i, 'down'|'move'|'up', x, y, cv)` in CSS px; `move` only while a pointer is down.
+- Under vclock with a native rAF, `frame()` uses `setTimeout(frame, 16)`; with the shim it uses rAF (same 40 ms virtual cadence).
+- `Teacher.on` = `Url.teacher && !Url.v1`, and teacher mode seeds legacy runs too (same draws, new start state).
+- `Dock.set` buttons also take `{id, el}`, `why`, `busy`, `pressed`; a disabled button is `aria-disabled` (focusable; a tap shows `why`). Dock keys run after global keys, before `onKey`.
+- `LevelSelect.open(ch)` ("Levels" on each v2 menu row and in the v2 play bar); `Shell.prefs()` sets `readable`, `calm`, `lh` body classes from `Save.d.ui`. Fonts: Core, Greek-and-symbols and Readable packs are embedded.
+- `boot.js`: `?lab=<id>&dev=1` opens SceneLab; an unknown lab id falls through to `?unit=` (integration).
+
+### 13.4 Look and maths (E3)
+- `Pal.allele(i)` returns `{fill, overlay, over, letter, text, outline}` (its `toString()` is the fill). `Pal.place(id)` adds `raw`, `plate`; unknown ids fall back to the Lab.
+- The legacy theme adapter maps cabinets by hue (light cabinets to the Lab plate) and applies only when text keeps ≥ 4.5:1. `#scr-play.v2` remaps the shell's legacy CSS variables onto the `--v-` tokens.
+- `CVD.apply` filters `#app, #cards, #toasts, #sheet`; `CVD.pairs` returns failures only (`{all: true}` for every pair); extra lints `hue`, `gamut`, `agree`, `lint(ch)`.
+- `Fx.clear()` clears everything; on `Hooks.play` only effects made before the new level began (input/frame epoch), so what `startLevel` creates survives. Extras: `Fx.flash` (≤ 2 a second, none in Calm), `Fx.squash`, `Fx.count`, `Fx.errors`. Calm caps tiers at 300 ms; hit-stop also freezes particles.
+- Outside v2 chapters the whisper sits in `#toasts`, queues up to three lines and keeps the old toast duration; the 8-word warning applies only in v2 play.
+- `Ghost.show(o)` → `{hide(), active, shown}` (`shown: false` when the verb is known, in teacher mode or under `?v1=1`); `o.key`, `o.say`, `o.pop`, `o.force`. `Snd2` twins via `{x, y}`; `Save.d.ui.cc` adds captions.
+- `WF.binom(n ≤ 0)` draws nothing; `multinom` normalises; `run` returns gens + 1 rows; ghosts take `ploidy` (default 1); extra `WF.ghost.absorb`.
+
+### 13.5 Entry, cards, replays (E4)
+- Level cards show `o.take`/`o.body` only when passed (the unit's TAKE and body default on the final card). The first star the unit still lacks shows its `content.stars` line. Why? and What if? appear only when there is something to show.
+- `Freezer` vials carry level and seed; `list(id)` gives the current level's vials; a fresh start of a level clears them; `put` ignores a finished sim.
+- `Snap` handles all nine typed-array kinds, Gen expandos and non-finite numbers. `ResultCode.show(code)` formats "K7M 2QX"; the code row shows only for chapters with `resultBits(s, level)` on an assignment link (`?unit=…&seed=…`).
+- A legacy-shaped `End.show(ch, {stars, insight})` on a v2 chapter opens a v2 card but records no stars.
+
+### 13.6 Widgets (E5)
+- **Predict:** see §7.2 (tap the ghost to commit; the band hatches around your mark, then `reveal` moves it). `overlay(i)` returns the whole ask record. `Events` `predict` is emitted at commit and again at reveal (`reveal: true`). The soft timer counts real seconds while the stage is live, never commits while a pointer is down, and is off in untimed mode whatever the chapter passes. A tap within 24 px of the ghost commits, so a small nudge needs a drag or the arrow keys.
+- `LiveGraph` also draws `deme`, `price`, `tree`, `genome` (spec in E5's log); a typed chart skips its own title when the strip's caption shows it; the top y tick carries the axis label ("1 A share").
+- `Evidence` purchases are view-level: a chapter whose `sample(n)` draws `R()` must route buys through `Sim.act` (`onBuy`). `Chips.dist` divides by the stake. `Invasion` also takes `payoff`, `M`, `from`. `GenePoolLens` takes `key` (default L), `names`, `onChange`.
+
+### 13.7 Hunt, rigs, scenes (E6)
+- Hunt-mode v2 chapters get `ch.startLevel(n, o, Hn)` **before** the population is built (set `N, cap, roundTime, traits, maxGen` and §8.1 fields per level), and end with `End.show(ch, {level, mask, final, …ch.result(Hn, o)})`, the mask coming from `ch.stars.{discover, predict, transfer}(Hn, level, o)`.
+- Moths are placed in a fixed virtual 390 × 540 stage below the HUD band, so runs are viewport-independent. Hunt actions are logged through `Sim.act`, but **Hunt chapters have no replay, Freezer or bot sweep yet**.
+- §8.1 fields gained options: `trunks.ghost.{d, catch}`, `predict.{axis, chart, start, soft, at, every, until}` (and `from` may be a function), `untimed.bitterLooks`, `migrants.mark`, `lens.{k, letters, names}`, `species[].{kills, rig, init}`; `toxicity` may return `{s, starve}`. `Hn.bag` adds `need, chicks, total`. Ids come from a session-wide `HuntX.uid`.
+- `HuntX.WORDS` holds default HUD, whisper and label words; override each key in `content`. `HuntX.camo(ph, T, o)` is the Lichen match with `Det.exp`.
+- `Rig.draw` options add `notch, alert, genes, letters, alpha`; `Rig` adds `row, paints, recipe, has, clear, cached, pixels, ground, defGround`. The moth uses 32 tone bins and no ink outline (tone is what is selected). All D5 §4 rigs and both Batch 3 scenes exist.
+
+### 13.8 Tests (E7) and the integration pass
+- The monkey seeds `R()` and `Math.random` per run, fails v2 runs on `Lbl`, `Whisper`, `HUD` and `Dock` warnings, and blocks the network. The lint uses -ise spelling and exempts `// cosmetic` as well as `// ghost-only`.
+- `tests/vmgame.js` now matches descendant and child selectors (`'#sh-tabs button'` no longer matches every button).
+- `docs/design/v2_chapter_skeleton.js` now lints clean, asks for the a share with `axis.rev`, scores Transfer against the expectation, and passes the five-bot sweep on seeds 1–40.
+- Every engine package ships `tests/selftest_e<N>.js` (and a Chromium runner); run them all after an engine change, plus `python3 tests/selftest_integ.py` (the integration smoke: title, Begin and a legacy card at 390×780 and 1280×720, with and without `?v1=1`; then `tests/fixtures/integ_fixture.js` registered, played through Sim, LiveGraph, Predict, Fx and both v2 cards, and its stars saved and reloaded).
+
+---
+
+## 14. Engine changes after Batch 1 (coordinator, 15 Oct 2026)
+
+Every change below is additive and v2-only (or a test fix): golden 43 ok + 5 replaced (48 ok under `?v1=1`), and the five units still pass their oracles, bots and monkey. `tests/selftest_b1.js` covers all of it (55 checks). Why each exists: `docs/changes/wave2/lessons_batch1.md` §3.
+
+### 14.1 Stars across levels
+- **`ch.unitStars(levelMasks) → mask`** (optional). `Save.star2` and the save loader build the unit mask with it instead of the OR of the level masks, so D1's cross-level rules can be written: `unitStars(lv) { const d = lv.filter(m => m & 1).length; return (d >= 2 ? 1 : 0) | … }`. `levelMasks` is a copy of `Save.d.lv[id]` (one 0–7 mask per level played; 0 for an unplayed level below the furthest one). Without it, nothing changes.
+- **Per-level star lines.** `End.show(ch, {…, stars: {discover, predict, transfer}})`, else `content.levelStars[level]`, else `content.stars`. The card's "still to earn" line names the first missing star that has a line, so give a level only the stars it can award. (Lichen, Hawks and Casino used to swap `content.stars` around `End.show`; they now use this.)
+
+### 14.2 Cards (`00_entry.js`)
+- **Per-level words.** On a level card (not the final card, not a thawed What if? run), an undefined `o.take`, `o.body` or `o.why` is filled from `content.levelTake[level]`, `content.levelBody[level]` or `content.levelWhy[level]` (`{real, maths}`). Pass `null` to show nothing. The lint knows these keys and their budgets (take 20, body 60, why 60 a chunk, star lines 15), plus `whatifBody` (60), `live` (25, warning) and `data` (text checks only). Any other unknown content key is now text-checked too.
+- **`o.bodyFirst: true`** puts the body above the chart (a boss card whose words matter more than its chart on a phone).
+- Why? and What if? panels scroll to the middle of the card when opened (they used to open under the sticky buttons on a phone).
+- `Entry.split` no longer breaks Why? chunks at a decimal point ("11.5").
+- **Resume.** Opening a v2 unit from the menu (and Begin into the Wood) starts just past the furthest level finished (`Entry.resume(ch)`), or at L1 once the unit is done. "Levels" still reaches any level.
+- `Freezer.put(id, gen, snap, {force: true})` keeps a snapshot of a finished sim (for levers that change the ending).
+- `ACT_PLAN`: The Castaways' subtitle is "Bottlenecks and genetic rescue" (its founder level now opens Drift Casino L4).
+
+### 14.3 Predict (`01_widgets.js`)
+```js
+Predict.ask({…, needMove, onStill, onTimeout, linger})
+  // needMove: an untouched ghost never commits. A tap on it, Enter or Predict.commit() calls onStill({id}) instead (whisper
+  //   "drag first" in your words); the soft timer closes the ask without a commit and calls onTimeout({id, moved: false}) —
+  //   send your own logged action (e.g. {k: 'void', id}) so the sim knows there was no prediction
+  // linger: ms the phone strip stays open after a commit (default 900, was 1500); 0 folds at once
+  // onCommit({id, v, moved})   moved: the player dragged, tapped off the ghost or used the arrows
+Predict.clear(chart)   // drop the ghost, band and expectation on one chart index; clear() drops all (use when a chart changes meaning)
+Predict.fold()         // fold the phone strip now if an ask opened it and no ask is active
+Predict.opened         // true while the strip is open because an ask opened it
+```
+P now always focuses the ghost (a second P no longer unfocuses; Escape leaves). Units must not touch `Predict._by`, `_opened` or `_exit` (Census and Casino now use the calls above).
+
+### 14.4 LiveGraph compact mode
+A chart under 100 CSS px tall (the folded 112 px phone strip) is drawn compact: no title, legend, end labels, axis labels, y numbers or "you" words; marks, lines, x numbers and the Predict ghost stay. `spec.compact: true | false` overrides the height rule; a custom type reads `T.compact`. A chart spec with **`fold: false`** is hidden while the phone strip is folded and shown when it opens, so the folded strip can show one readable chart instead of two thin ones.
+
+### 14.5 Shell, look and keys
+- **`HUD.say(text, num, {first})`**: `content.firstWords` (detected, or `first: true`) may run to 40 words (D4 §3); every other line warns above 15.
+- **Whisper** sits 8 px under the HUD's real height (it used to sit at a fixed 64 px, under a wrapped HUD). A chapter with `whisperAt: 'centre'` gets a top-centre slot. **`Whisper.drop()`** hides the current line now.
+- **`Fx.after(ms, fn) → {cancel()}`**: a timer on the live frame clock (paused with the stage, frozen by hit-stop, dropped by `Fx.clear` and on a new level), for telegraph-then-act juice. View only.
+- **`Ghost.show({verb, el})`**: `el` (an element or a function returning one) rings a DOM control such as a dock button, with the hand. Use it to teach an action that lives only in the dock.
+- **Keys:** `Hooks.keyup` and a chapter's **`onKeyUp(key, e)`** (v2 only), so a key can be held (Space in a war of attrition). Escape closes the Levels and Settings popovers; on a v2 level or end card it returns to the notebook (reopening the unit resumes).
+- **Settings card** (`Settings.open()`, `Settings.set(k, on)`): Untimed, Calm, Readable and Left-handed, stored in `Save.d.ui` (`unt`, `calm`, `read`, `lh`). Reached from the menu footer and the Levels popover; hidden under `?v1=1`. Untimed is read when a level starts.
+- **`?calm=1` and `?untimed=1` work in every build** (they were dev-only); `?untimed=1` sets `Save.d.ui.unt` at boot. `Url.untimed` is the parsed flag.
+
+### 14.6 Tests
+- `tests/lint_text.js`: the `// cosmetic` / `// ghost-only` exemption no longer starts at a file's header comment (a block comment may not run past its own `*/`); `LEVEL_WAIVER = {census: 8}` (D6); the per-level content keys above; "Practice" the noun is no longer flagged.
+- `tests/selftest_b1.js` (new): the whole of §14, headless.
+- `tests/selftest_e2.js` and `tests/selftest_integ.py` no longer assume Lichen and Casino are legacy chapters: E2's legacy checks use the first still-legacy chapter (Lichen, else an appendix chapter), and the integration smoke follows Begin into the live Wood before it checks the menu. Both now pass on a full build with every unit (they failed 11 and 1 checks there before).
+
+### 14.7 Still open (not built)
+Hunt-mode replay, Freezer and bot sweep (no Batch 1 unit used Hunt mode; see the lessons); crowd-tier rigs (moth rest pose, hermit crab, beetle); `Pal.allele` B and I reuse the two data inks; a banner allowing 5-word level names; a "?" state for the `pq` chart; the class tournament and class-pool charts; projector-scaled strip charts; an empty-dock state (fill an empty dock with a `{id, el}` status element meanwhile); act locks from `needs`; the station map; axe-core. The primary button stays carmine (D4 §6); never use it to encode a choice (Hawks).
+

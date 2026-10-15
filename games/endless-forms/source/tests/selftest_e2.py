@@ -12,7 +12,7 @@ html = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.environ.get('GAM
 VCLOCK = open(os.path.join(SRC, 'vclock.js')).read()
 RAF = "window.requestAnimationFrame = fn => window.setTimeout(() => fn(performance.now()), 16); window.cancelAnimationFrame = id => window.clearTimeout(id);"
 RUNS = [  # name, query, viewport, extra init, group, arg
-    ('core (timer)', '', (390, 780), '', 'core', None),
+    ('core (timer)', '', (390, 780), 'window.requestAnimationFrame = undefined;', 'core', None),   # vclock now shims rAF; remove it to keep testing the setTimeout fallback
     ('core (rAF)', '', (390, 780), RAF, 'core', None),
     ('url', '?unit=casino&level=2&seed=42&teacher=1&locks=mixer.N:40,casino.Ne:12&cvd=deut&lab=x&theme=paper&calm=1', (390, 780), RAF, 'url', None),
     ('teacher', '?teacher=1', (390, 780), RAF, 'teacher', None),

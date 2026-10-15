@@ -43,8 +43,9 @@ function boot() {
   for (const id in REG) { const ch = REG[id]; for (const k of ['start', 'update', 'draw', 'notes']) if (ch.mode !== 'hunt' && typeof ch[k] !== 'function') throw new Error('Chapter ' + id + ' lacks ' + k); if (!ch.intro || !ch.intro.goal) throw new Error('Chapter ' + id + ' lacks intro'); }
   App.go('title'); frame();
   // deep links (D2-1): ?lab=<id>&dev=1 opens the scene lab; ?unit=<id>[&level=n][&seed=s] plays that unit at once
-  if (Url.lab && Url.dev && typeof SceneLab !== 'undefined') SceneLab.open(Url.lab);
-  else if (Url.unit && REG[Url.unit]) App.playLevel(REG[Url.unit], Url.level || 0, { seed: Url.seed });
+  // an unknown ?lab= id (SceneLab.open → false) falls through to ?unit=
+  const lab = Url.lab && Url.dev && typeof SceneLab !== 'undefined' && SceneLab.open(Url.lab);
+  if (!lab && Url.unit && REG[Url.unit]) App.playLevel(REG[Url.unit], Url.level || 0, { seed: Url.seed });
 }
 window.TB = Object.assign({ App, Hunt, REG, ORDER, Gen, seed, R, Save, Stage, Cards, Notes, End,
   Det: typeof Det !== 'undefined' ? Det : undefined, Events: typeof Events !== 'undefined' ? Events : undefined,

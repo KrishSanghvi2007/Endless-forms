@@ -19,6 +19,8 @@ const wgLive = s => { if (typeof Live !== 'undefined' && Live.say) Live.say(s); 
 const wgEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
 const wgClone = v => { try { return v == null ? v : JSON.parse(JSON.stringify(v)); } catch (e) { return null; } };
 const wgSum = a => { let s = 0; for (const x of a || []) s += +x || 0; return s; };
+// shares → whole numbers that add up to tot (largest remainder), so a bar never reads 48% + 53%
+const wgPcts = (vals, tot = 100) => { const t = wgSum(vals); if (!(t > 0)) return (vals || []).map(() => 0); const raw = (vals || []).map(v => Math.max(0, +v || 0) / t * tot), out = raw.map(Math.floor); let left = Math.round(tot - wgSum(out)); raw.map((v, i) => [v - out[i], i]).sort((a, b) => b[0] - a[0] || a[1] - b[1]).forEach(([, i]) => { if (left > 0) { out[i]++; left--; } }); return out; };
 const wgFin = v => typeof v === 'number' && isFinite(v);
 const wgTheme0 = () => typeof Pal !== 'undefined' && Pal.theme ? Pal.theme : 'dusk';
 // fallback inks when 00_tokens.js is not in the build (D4 §2.1, §2.3)
@@ -126,7 +128,7 @@ function wgAx(a, lo, hi) {
 }
 function wgXY(w, h, spec, T, c, d) {   // d: {xlo, xhi, ylo, yhi, labels}; ticks sit inside the plot (D4 §4.2), end labels in a right margin
   const pad = T.proj ? 8 : 4, tk = T.tk, top = pad + (spec.title ? tk + 5 : 0);
-  let rm = 0; for (const s of d.labels || []) if (s) rm = Math.max(rm, wgW(c, s, tk, 'b', 600) + 22); rm = Math.min(rm, Math.round(w * 0.32));
+  let rm = 0; if (!T.compact) for (const s of d.labels || []) if (s) rm = Math.max(rm, wgW(c, s, tk, 'b', 600) + 22); rm = Math.min(rm, Math.round(w * 0.32));   // compact: no end-label margin
   const bot = tk + 5 + pad, plot = { x: pad, y: top, w: Math.max(12, w - 2 * pad - rm), h: Math.max(12, h - top - bot) };
   const xs = wgAx(spec.x, d.xlo, d.xhi), ys = wgAx(spec.y, d.ylo, d.yhi), G = { w, h, pad, tk, plot, xs, ys, rm };
   G.X = v => plot.x + (v - xs.lo) / (xs.hi - xs.lo) * plot.w; G.Y = v => plot.y + plot.h - (v - ys.lo) / (ys.hi - ys.lo) * plot.h;
@@ -149,9 +151,11 @@ function wgAxes(c, G, spec, T, o) {   // frame: designed dashed, real solid (D4 
       boxes.push([x0, x0 + w]); wgText(c, s, x0, ty, tk, I.text2);
       c.beginPath(); c.moveTo(x, p.y + p.h); c.lineTo(x, p.y + p.h - 4); c.stroke();
     });
-    if (lab && !boxes.some(b => lx0 < b[1] + 6 && lx0 + lw > b[0] - 6)) wgText(c, lab, lx0, ty, tk, I.text2, { fam: 'b', wt: 600 });
+    if (lab && !T.compact && !boxes.some(b => lx0 < b[1] + 6 && lx0 + lw > b[0] - 6)) wgText(c, lab, lx0, ty, tk, I.text2, { fam: 'b', wt: 600 });
   }
-  if (!o.noY) {   // y ticks inside the plot at the left; the label rides on the top tick
+  if (!o.noY && T.compact) {   // compact (folded phone strip): tick marks only; the numbers and the label are in the open strip and Show data
+    for (const v of [ys.lo, ys.hi]) { const y = G.Y(v); c.beginPath(); c.moveTo(p.x, y); c.lineTo(p.x + 4, y); c.stroke(); }
+  } else if (!o.noY) {   // y ticks inside the plot at the left; the label rides on the top tick
     const yt = p.h > 110 ? wgTicks(ys.lo, ys.hi, 3) : [ys.lo, ys.hi];
     yt.forEach((v, k) => {
       const y = G.Y(v); c.beginPath(); c.moveTo(p.x, y); c.lineTo(p.x + 4, y); c.stroke();
@@ -174,7 +178,7 @@ function wgTarget(c, G, tg, axis, T) {   // target band, hatched (D4 §4.2)
   else { const a = clamp(G.Y(+tg.lo), p.y, p.y + p.h), b = clamp(G.Y(+tg.hi), p.y, p.y + p.h); wgHatch(c, p.x, Math.min(a, b), p.w, Math.abs(b - a), col, 6); }
 }
 function wgEnds(c, G, items, T) {   // direct end labels in the right margin, nudged apart; marker in the entity colour, words in text ink
-  if (!items.length || G.rm < 24) return; const p = G.plot, tk = G.tk, gap = tk + 2, x = p.x + p.w + 6, maxW = G.rm - 20;
+  if (!items.length || G.rm < 24 || T.compact) return; const p = G.plot, tk = G.tk, gap = tk + 2, x = p.x + p.w + 6, maxW = G.rm - 20;
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.ly = clamp(it.y, p.y + tk / 2, p.y + p.h - tk / 2);
   for (let i = 1; i < items.length; i++) if (items[i].ly < items[i - 1].ly + gap) items[i].ly = items[i - 1].ly + gap;
@@ -191,7 +195,7 @@ function wgYou(c, G, you, T, kind) {   // the common "you" field: {x, y, label} 
   if (typeof you === 'number') { if (kind === 'y') { x = G.nextX != null ? G.X(G.nextX) : p.x + p.w - 8; y = G.Y(you); } else { x = G.X(you); y = p.y + p.h; } }
   else { x = G.X(+you.x); y = you.y != null ? G.Y(+you.y) : p.y + p.h; }
   x = clamp(x, p.x, p.x + p.w); y = clamp(y, p.y, p.y + p.h); const r = 6 * T.k;
-  wgDiamond(c, x, y, r, T.I.text, T.I.surface, 2);
+  wgDiamond(c, x, y, r, T.I.text, T.I.surface, 2); if (T.compact) return;   // compact: the diamond alone
   const lab = (you && you.label) || 'you', right = x + r + 40 < G.w;
   wgText(c, lab, right ? x + r + 3 : x - r - 3, y - r, T.tk, T.I.text, { align: right ? 'left' : 'right', fam: 'b', wt: 700, halo: T.I.surface });
 }
@@ -199,9 +203,14 @@ function wgYou(c, G, you, T, kind) {   // the common "you" field: {x, y, label} 
 /* ================= LiveGraph (API_v2 §7.1) ================= */
 const LiveGraph = {
   warnings: [], errors: [], T: {},   // T: type → {lay(w, h, spec, T, c) → geometry, draw(c, G, spec, T), rows(spec) → {head, rows}, say(spec)}
+  /* Compact mode (Batch 1, asked by all five units): a chart under 100 CSS px tall (the folded 112 px phone strip) drops its
+     title, legend, end labels, axis labels, y numbers and "you" words, keeping marks, lines, x numbers and the Predict ghost.
+     spec.compact: true or false overrides the height rule. Types read T.compact to drop their own extra words. */
+  _compact(spec, h) { return spec.compact != null ? !!spec.compact : h < 100; },
   draw(cv, spec, theme) {
     if (!cv || !spec || !cv.getContext) return;
-    const f = fitCanvas(cv), c = f.c, T = wgT(theme || wgTheme0()), ty = this.T[spec.type], sp = this._cap(cv, spec);
+    const f = fitCanvas(cv), c = f.c, T = wgT(theme || wgTheme0()), ty = this.T[spec.type];
+    T.compact = this._compact(spec, f.h); const sp = T.compact && spec.title ? Object.assign({}, spec, { title: '' }) : this._cap(cv, spec);
     c.clearRect(0, 0, f.w, f.h); c.save();
     try {
       if (!ty) { wgText(c, spec.title || 'Graph', f.w / 2, f.h / 2, T.tk, T.I.text2, { align: 'center', fam: 'b' }); return; }
@@ -217,7 +226,8 @@ const LiveGraph = {
   map(cv, spec) {   // → {X, Y, ix, iy, plot, …}; tri adds {P, inv}, pq adds {bar}
     const ty = this.T[spec && spec.type]; if (!cv || !ty) return null;
     const r = this._size(cv), T = wgT(cv._lg ? cv._lg.theme : wgTheme0()), c = cv.getContext('2d');
-    c.save(); try { return ty.lay(r.w, r.h, this._cap(cv, spec), T, c); } finally { c.restore(); }
+    T.compact = this._compact(spec, r.h); const sp = T.compact && spec.title ? Object.assign({}, spec, { title: '' }) : this._cap(cv, spec);
+    c.save(); try { return ty.lay(r.w, r.h, sp, T, c); } finally { c.restore(); }
   },
   table(spec) {   // the data twin behind "Show data" (≤ 60 rows)
     const ty = this.T[spec && spec.type]; if (!ty || !ty.rows) return '';
@@ -398,8 +408,9 @@ LiveGraph.T.pq = {
     for (const q of ps) if (q.x > b.x + 0.5 && q.w > 0.3) { c.beginPath(); c.moveTo(q.x, b.y); c.lineTo(q.x, b.y + b.h); c.stroke(); }
     if (T.th === 'dusk') { c.lineWidth = 1; c.strokeStyle = wgRgba(I.text, 0.5); c.strokeRect(b.x - 1.5, b.y - 1.5, b.w + 3, b.h + 3); }
     // numerals inside each segment when they fit, else the letter alone, else nothing (the table has them)
-    for (const q of ps) {
-      const name = q.label || (many ? q.A.letter : q.allele === 0 ? 'A' : q.allele === 1 ? 'a' : q.A.letter), full = name + ' ' + Math.round(q.v * 100) + '%', cx = q.x + q.w / 2, cy = b.y + b.h / 2;
+    const pc = wgPcts(ps.map(q => q.v));
+    for (const [qi, q] of ps.entries()) {
+      const name = q.label || (many ? q.A.letter : q.allele === 0 ? 'A' : q.allele === 1 ? 'a' : q.A.letter), full = name + ' ' + pc[qi] + '%', cx = q.x + q.w / 2, cy = b.y + b.h / 2;
       if (b.h < px + 2) continue;
       if (wgW(c, full, px, 'm', 700) + 8 < q.w) wgText(c, full, cx, cy, px, q.A.text, { align: 'center', wt: 700 });
       else if (wgW(c, name, px, 'b', 700) + 6 < q.w) wgText(c, name, cx, cy, px, q.A.text, { align: 'center', fam: 'b', wt: 700 });
@@ -408,8 +419,8 @@ LiveGraph.T.pq = {
     if (spec.n != null) wgText(c, spec.n + (spec.x_linked ? ' X copies' : ' copies'), b.x + b.w, b.y + b.h + 4 + G.tk / 2, G.tk, I.text2, { align: 'right' });
     if (wgFin(spec.you)) { const yx = G.X(spec.you); wgDiamond(c, yx, b.y - 2, 6 * T.k, I.text, I.surface, 2); }
   },
-  rows(spec) { const ps = this.parts(spec); return { head: ['allele', 'share', 'copies'], rows: ps.map((q, i) => [q.label || (ps.length > 2 ? 'ABCDEFGHIJKL'[q.allele % 12] : q.allele === 0 ? 'A' : 'a'), Math.round(q.v * 100) + '%', spec.n != null ? String(Math.round(q.v * spec.n)) : '']).concat(wgFin(spec.ghost) ? [['expected first share', Math.round(spec.ghost * 100) + '%', '']] : []) }; },
-  say(spec) { return this.parts(spec).map((q, i) => (q.label || (q.allele === 0 ? 'A' : q.allele === 1 ? 'a' : 'ABCDEFGHIJKL'[q.allele % 12])) + ' ' + Math.round(q.v * 100) + '%').join(', '); }
+  rows(spec) { const ps = this.parts(spec), pc = wgPcts(ps.map(q => q.v)), nc = spec.n != null ? wgPcts(ps.map(q => q.v), Math.round(+spec.n || 0)) : null; return { head: ['allele', 'share', 'copies'], rows: ps.map((q, i) => [q.label || (ps.length > 2 ? 'ABCDEFGHIJKL'[q.allele % 12] : q.allele === 0 ? 'A' : 'a'), pc[i] + '%', nc ? String(nc[i]) : '']).concat(wgFin(spec.ghost) ? [['expected first share', Math.round(spec.ghost * 100) + '%', '']] : []) }; },
+  say(spec) { const ps = this.parts(spec), pc = wgPcts(ps.map(q => q.v)); return ps.map((q, i) => (q.label || (q.allele === 0 ? 'A' : q.allele === 1 ? 'a' : 'ABCDEFGHIJKL'[q.allele % 12])) + ' ' + pc[i] + '%').join(', '); }
 };
 
 /* ---- tri: de Finetti triangle with the dashed HW curve, or a neutral simplex; dawn hollow, dusk filled, you a diamond ---- */
@@ -447,8 +458,8 @@ LiveGraph.T.tri = {
     for (const q of spec.pts || []) this.pt(c, G, T, q.f, q.kind, q.label);
     if (Array.isArray(spec.you)) this.pt(c, G, T, spec.you, 'you');
   },
-  rows(spec) { const cn = this.corners(spec); return { head: ['point'].concat(cn), rows: (spec.pts || []).map(q => [q.label || q.kind || 'point'].concat(wgNorm3(q.f).map(v => Math.round(v * 100) + '%'))) }; },
-  say(spec) { return (spec.pts || []).map(q => (q.label || q.kind) + ' ' + wgNorm3(q.f).map(v => Math.round(v * 100) + '%').join(' ')).join('; '); }
+  rows(spec) { const cn = this.corners(spec); return { head: ['point'].concat(cn), rows: (spec.pts || []).map(q => [q.label || q.kind || 'point'].concat(wgPcts(wgNorm3(q.f)).map(v => v + '%'))) }; },
+  say(spec) { return (spec.pts || []).map(q => (q.label || q.kind) + ' ' + wgPcts(wgNorm3(q.f)).map(v => v + '%').join(' ')).join('; '); }
 };
 
 /* ---- scatter: shapes carry categories (disc solid, square barred, triangle dotted); dashed reference line; > 500 points as hatched cells ---- */
@@ -517,7 +528,7 @@ LiveGraph.T.xhud = {
     c.beginPath(); c.arc(G.X(pf), b.y + b.h / 2, 5 * T.k, 0, TAU); c.fillStyle = I.paper; c.fill(); c.lineWidth = 2; c.strokeStyle = I.ink; c.stroke();
     const gap = pf - pm; wgText(c, 'pf − pm = ' + wgFmt(null, Math.round(gap * 100) / 100), b.x + b.w / 2, b.y + b.h + 10 + G.tk / 2, G.tk, I.text, { align: 'center' });
   },
-  rows(spec) { const pf = +spec.pf || 0, pm = +spec.pm || 0, f = spec.female ? wgNorm3(spec.female) : null; return { head: ['measure', 'value'], rows: (f ? [['females AA', Math.round(f[0] * 100) + '%'], ['females Aa', Math.round(f[1] * 100) + '%'], ['females aa', Math.round(f[2] * 100) + '%']] : []).concat([['p in females', wgFmt(null, pf)], ['p in males', wgFmt(null, pm)], ['p̄ = (2pf + pm)/3', wgFmt(null, (2 * pf + pm) / 3)], ['gap pf − pm', wgFmt(null, pf - pm)]]) }; },
+  rows(spec) { const pf = +spec.pf || 0, pm = +spec.pm || 0, f = spec.female ? wgNorm3(spec.female) : null; return { head: ['measure', 'value'], rows: (f ? (pf3 => [['females AA', pf3[0] + '%'], ['females Aa', pf3[1] + '%'], ['females aa', pf3[2] + '%']])(wgPcts(f)) : []).concat([['p in females', wgFmt(null, pf)], ['p in males', wgFmt(null, pm)], ['p̄ = (2pf + pm)/3', wgFmt(null, (2 * pf + pm) / 3)], ['gap pf − pm', wgFmt(null, pf - pm)]]) }; },
   say(spec) { return 'p in females ' + wgFmt(null, +spec.pf || 0) + ', in males ' + wgFmt(null, +spec.pm || 0); }
 };
 
@@ -676,7 +687,8 @@ const Predict = {
     const unt = !!(typeof Save !== 'undefined' && Save.d && Save.d.ui && Save.d.ui.unt), soft = unt ? null : o.soft === undefined ? 6 : o.soft;
     const start = o.start != null ? o.start : kind === 'tri' ? [1 / 3, 1 / 3, 1 / 3] : (ax.lo + ax.hi) / 2;
     const rec = { id: o.id, chart, kind, ax, v: this._norm(kind, start, ax), tol: o.tol, soft: soft > 0 ? soft : null, left: soft > 0 ? soft : null, at: o.at, active: true, committed: false,
-      band: null, expect: null, hatch: 1, born: wgEpoch, onCommit: o.onCommit, down: false, focus: typeof Fx !== 'undefined' && Fx.lastInput === 'key' };
+      band: null, expect: null, hatch: 1, born: wgEpoch, onCommit: o.onCommit, down: false, focus: typeof Fx !== 'undefined' && Fx.lastInput === 'key',
+      linger: o.linger != null ? Math.max(0, +o.linger || 0) : 900, needMove: !!o.needMove, onStill: o.onStill, onTimeout: o.onTimeout, moved: false };
     this._by[chart] = rec; this.cur = rec;
     if (Hooks.chartPointer !== this._ptrFn) { this._prev = Hooks.chartPointer; Hooks.chartPointer = this._ptrFn; }
     if (o.expand !== false && typeof Strip !== 'undefined' && Strip.phone && Strip.phone() && !Strip.isOpen && Strip.open) { Strip.open(true); this._opened = true; }   // a 78 px chart is too small to drag on
@@ -685,12 +697,23 @@ const Predict = {
     const self = this;
     return { get active() { return rec.active; }, get v() { return rec.v; }, cancel() { self._close(rec); }, commit() { self._commit(rec); } };
   },
-  overlay(i) { return this._by[i] || null; },   // → {v, committed, band, expect, kind, ax, active, left, soft, focus, hatch} | null
+  overlay(i) { return this._by[i] || null; },   // → {v, committed, band, expect, kind, ax, active, left, soft, focus, hatch, moved} | null
+  get opened() { return this._opened; },        // true while the phone strip is open because an ask opened it (fold() closes it)
   commit(id) { const r = this.cur; if (r && (id == null || r.id === id)) this._commit(r); },
   cancel(id) { const r = this.cur; if (r && (id == null || r.id === id)) this._close(r); },
+  // drop the ghost, band and expectation drawn on one chart index (or on every chart): use it when a chart changes meaning
+  // mid-level (a new table, the verdict axis back to a trace), so an old band never sits on the new chart (Batch 1 request)
+  clear(chart) {
+    if (chart == null) { this._exit(); return; }
+    const r = this._by[chart]; if (!r) return;
+    if (this.cur === r) { this.cur = null; this._unhook(); }
+    delete this._by[chart]; this._bump(); this._redraw(true);
+  },
+  // fold the phone strip now if an ask opened it and no other ask is active (instead of waiting for the linger after a commit)
+  fold() { if (!this._opened || this.cur) return; this._opened = false; if (typeof Strip !== 'undefined' && Strip.isOpen && Strip.open && wgV2()) Strip.open(false); },
   reveal(id, expect, tol) {
     let r = null; for (const k in this._by) if (this._by[k].id === id) r = this._by[k];
-    if (!r) return null; if (r.active) this._commit(r);
+    if (!r) return null; if (r.active) this._commit(r, 'force');
     if (tol != null) r.tol = tol; r.expect = Array.isArray(expect) ? expect.slice() : +expect;
     r.band = this._band0(r.kind, r.expect, r.tol); r.hatch = wgCalm() ? 1 : 0;
     const err = this.err(r.kind, r.v, r.expect), hit = r.tol != null && err <= r.tol; r.err = err; r.hit = hit;
@@ -738,8 +761,13 @@ const Predict = {
     else if (type === 'move' && r.down) { if (!r.drag && Math.abs(x - r.x0) + Math.abs(y - r.y0) > 5) r.drag = true; if (r.drag) this._set(r, this._val(G, r, x, y)); }
     else if (type === 'up' && r.down) { r.down = false; if (r.onGhost && !r.drag) this._commit(r); }   // tap the ghost again to commit
   },
-  _commit(r) {
+  _commit(r, how) {   // how: 'timer' (the soft timer ran out), 'force' (reveal), else a tap on the ghost, a key or commit()
     if (!r || !r.active) return;
+    if (r.needMove && !r.moved && how !== 'force') {   // needMove: an untouched ghost is no prediction
+      if (how === 'timer') { this._close(r); if (r.onTimeout) try { r.onTimeout({ id: r.id, moved: false }); } catch (e) { LiveGraph._err(e); } }
+      else { if (r.left != null) r.left = Math.max(r.left, 2); if (r.onStill) try { r.onStill({ id: r.id }); } catch (e) { LiveGraph._err(e); } this._bump(); }
+      return;
+    }
     r.active = false; r.committed = true; r.focus = false; r.down = false; r.left = null;
     if (this.cur === r) { this.cur = null; this._unhook(); }
     const v = Array.isArray(r.v) ? r.v.slice() : r.v, ch = typeof App !== 'undefined' ? App.ch : null;
@@ -747,8 +775,8 @@ const Predict = {
     if (typeof Events !== 'undefined' && Events.emit) Events.emit('predict', { id: r.id, kind: r.kind, value: v, tol: r.tol });
     r.band = this._band0(r.kind, v, r.tol); r.hatch = wgCalm() ? 1 : 0;   // the band hatches in around your mark; reveal() moves it to the expectation
     if (typeof Snd !== 'undefined' && Snd.click) Snd.click();
-    if (this._opened) setTimeout(() => { if (this.cur || !this._opened) return; this._opened = false; if (typeof Strip !== 'undefined' && Strip.isOpen && wgV2()) Strip.open(false); }, 1500);   // the strip we opened closes unless another ask follows
-    if (r.onCommit) try { r.onCommit({ id: r.id, v }); } catch (e) { LiveGraph._err(e); }
+    if (this._opened) setTimeout(() => this.fold(), r.linger);   // the strip we opened folds after linger ms (default 900: the band hatches in over 400 ms) unless another ask follows
+    if (r.onCommit) try { r.onCommit({ id: r.id, v, moved: !!r.moved }); } catch (e) { LiveGraph._err(e); }
     this._bump(); this._redraw(true);
   },
   _close(r) { if (!r) return; r.active = false; if (this.cur === r) { this.cur = null; this._unhook(); } if (this._by[r.chart] === r && !r.committed) delete this._by[r.chart]; this._bump(); this._redraw(true); },
@@ -756,7 +784,7 @@ const Predict = {
   _key(e) {   // P focuses the ghost; arrows move it (Shift ×5); Enter or Space commits; Escape leaves
     const r = this.cur; if (!r || !r.active || !wgV2() || (typeof Cards !== 'undefined' && Cards.isOpen())) return false;
     const k = e.key || '';
-    if (k === 'p' || k === 'P') { r.focus = !r.focus; wgLive(r.focus ? 'Prediction ' + this._say(r) + '. Arrows move it, Enter commits.' : 'Prediction left.'); this._bump(); this._redraw(true); return true; }
+    if (k === 'p' || k === 'P') { r.focus = true; wgLive('Prediction ' + this._say(r) + '. Arrows move it, Enter commits.'); this._bump(); this._redraw(true); return true; }   // P focuses (never toggles off: Escape leaves)
     if (!r.focus) return false;
     if (k === 'Enter' || k === ' ') { this._commit(r); return true; }
     if (k === 'Escape') { r.focus = false; this._bump(); this._redraw(true); return true; }
@@ -766,10 +794,10 @@ const Predict = {
     else { const st = (r.ax.hi - r.ax.lo) / 50 * big, s = r.kind === 'y' ? d[1] || d[0] : d[0] || d[1]; this._set(r, r.v + s * st * (r.kind === 'pq' && r.ax.rev ? -1 : 1)); }
     wgLive(this._say(r)); return true;
   },
-  _say(r) { return r.kind === 'tri' ? r.v.map(x => Math.round(x * 100) + '%').join(', ') : wgFmt(null, r.v); },
+  _say(r) { return r.kind === 'tri' ? wgPcts(r.v).map(x => x + '%').join(', ') : wgFmt(null, r.v); },
   _frame(dt) {   // soft timer (real seconds, only while the stage is live) and the band's hatch-in (400 ms)
     const r = this.cur;
-    if (r && r.active && r.left != null && !r.down) { const b = Math.ceil(r.left * 2); r.left -= Math.max(0, dt); if (r.left <= 0) this._commit(r); else if (Math.ceil(r.left * 2) !== b) this._bump(); }
+    if (r && r.active && r.left != null && !r.down) { const b = Math.ceil(r.left * 2); r.left -= Math.max(0, dt); if (r.left <= 0) this._commit(r, 'timer'); else if (Math.ceil(r.left * 2) !== b) this._bump(); }
     let anim = false; for (const k in this._by) { const q = this._by[k]; if (q.band && q.hatch < 1) { q.hatch = Math.min(1, q.hatch + Math.max(0, dt) / 0.4); anim = true; } }
     if (anim) { this._bump(); this._redraw(); }
   },

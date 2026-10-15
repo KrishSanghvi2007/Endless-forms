@@ -13,20 +13,20 @@ const SKEL = {
   content: {
     firstWords: 'You are a gull. Tap a beetle you can see.',
     hud: { eat: 'Eat {n} of {m} beetles before the tide turns.', dusk: 'Dusk. Drag the marker: where will the a share be tomorrow?', wait: 'The survivors breed.' },
-    whispers: { miss: 'Only sand there.', fed: 'The chicks are fed.' },
+    whispers: { miss: 'Only sand there.', fed: 'The chicks are fed.', drag: 'Drag the diamond first.' },
     labels: { you: 'you', dark: 'dark', pale: 'pale' },
-    panels: [{ id: 'hidden', text: 'Dark beetles carry at least one A copy. Pale beetles carry two a copies. Each time you eat the dark ones, the survivors hold a larger share of a copies, and tomorrow’s beetles are drawn from those survivors. Nobody chooses to be pale. The ones you could not see simply left more young.' }],
+    panels: [{ id: 'hidden', text: 'Dark beetles carry at least one A copy. Pale beetles carry two a copies. Each time you eat the dark ones, the survivors hold a larger share of a copies. Tomorrow’s beetles are drawn from those survivors. Nobody chooses to be pale. The ones you could not see simply left more young.' }],
     interesting: { flat: 'The a share barely moved. Did you eat the beetles you could see, or at random?', swamp: 'Migrants keep bringing A copies back. Selection and migration pull in opposite directions.' },
     levers: { novar: 'No variation', noinherit: 'No inheritance' },
     take: 'Predators that eat what they see make the hidden form common.',
-    body: 'Your meals were the selection. The survivors’ copies became the next gene pool, so the a share climbed on pale sand and fell on dark sand.',
+    body: 'Your meals were the selection. The survivors’ copies became the next gene pool. So the a share climbed on pale sand and fell on dark sand.',
     law: { title: 'Seen means eaten' },
     boss: { inverts: 'On dark sand the pale beetles stand out, so the a share falls.' },
-    stars: { discover: 'Feed the chicks and watch the a share climb.', predict: 'Two of three predictions inside the band.', transfer: 'On dark sand, push the a share down.' },
+    stars: { discover: 'Feed the chicks and watch the a share climb.', predict: 'Your first two predictions inside the band.', transfer: 'On dark sand, predict the fall inside the band.' },
     model: [
       { level: 0, simulated: 'One colour gene, two copies per beetle, random mating among survivors.', simplification: 'Visibility depends only on colour.', params: [{ name: 'beetles', value: 40, tag: 'designed' }, { name: 'generations', value: 5, tag: 'xN', real: 'decades' }], cannot: 'Learning by the gull, or other predators.', nature: 'Sand-coloured beetles and mice on pale dunes show the same pattern.', contested: false, refs: ['skel-1'] }
     ],
-    why: { real: ['Pale beach mice on Florida dunes and dark mice on inland soils match their ground; birds of prey take the mismatched ones.'], maths: ['If survivors carry a share q of a copies and mate at random, the expected a share among their young is q.'] }
+    why: { real: ['Pale beach mice on Florida dunes and dark mice on inland soils match their ground. Birds of prey take the mismatched ones.'], maths: ['Say the survivors carry a share q of a copies. If they mate at random, the expected a share among their young is also q.'] }
   }
 };
 
@@ -49,7 +49,8 @@ const CH_SKELETON_V2 = {
   keys: { ArrowLeft: 'previous beetle', ArrowRight: 'next beetle', Space: 'eat beetle', P: 'predict' },
   untimed: true,
   teacher: { prompts: ['What share of a copies do you expect after one day?', 'Why does the a share rise faster when pale is rare?', 'What does this model leave out about real gulls?'], pool: 'trace' },
-  encodings: [{ k: 'A', rgb: [47, 95, 208], channels: ['colour', 'letter'] }, { k: 'a', rgb: [232, 180, 22], channels: ['colour', 'letter'] }],
+  encodings: [{ k: 'A', rgb: [47, 95, 208], channels: ['colour', 'letter'] }, { k: 'a', rgb: [232, 180, 22], channels: ['colour', 'letter'] },
+              { k: 'dark', rgb: [74, 66, 60], channels: ['luminance'] }],   // the scored trait is carried by luminance, never hue alone
   starTraits: ['dark'],
 
   // ---- headless simulation (API_v2 §9.3): R(), Det, Gen, WF only; no DOM ----
@@ -137,8 +138,8 @@ const CH_SKELETON_V2 = {
   // ---- stars against the expectation, never the realised run (API_v2 §9.1) ----
   stars: {   // pure functions of the final sim state; the sim never imports view widgets
     discover: (s, n) => s.fedDays >= s.gens - 1 && (n === 2 ? s.hist[0] - s.hist[s.hist.length - 1] : s.hist[s.hist.length - 1] - s.hist[0]) >= 0.15,
-    predict: (s) => s.asks.filter(id => s.pred[id] != null && Math.abs(s.pred[id] - (s.expect || {})[id]) <= 0.08).length >= 2,
-    transfer: (s, n) => n === 2 && s.asks.length >= 3 && s.pred[s.asks[2]] != null && s.pred[s.asks[2]] < s.hist[0]   // boss: predicted the fall before seeing it
+    predict: (s) => s.asks.length >= 2 && s.asks.slice(0, 2).every(id => s.pred[id] != null && Math.abs(s.pred[id] - (s.expect || {})[id]) <= 0.08),   // the boss ask counts for transfer, not twice
+    transfer: (s, n) => { const id = s.asks[2], e = (s.expect || {})[id]; return n === 2 && id != null && s.pred[id] != null && e != null && e < s.hist[0] && Math.abs(s.pred[id] - e) <= 0.08; }   // boss: predicted the fall, against the expectation
   },
 
   // ---- view: lifecycle, input, juice, words ----
@@ -162,7 +163,10 @@ const CH_SKELETON_V2 = {
     const s = this.sim.s;
     if (s.ask && this._asking !== s.ask.id) {
       this._asking = s.ask.id;
-      Predict.ask({ id: s.ask.id, chart: 0, kind: 'pq', axis: { lo: 0, hi: 1 }, start: this.sim.q(), tol: s.ask.tol, soft: (Save.d.ui && Save.d.ui.unt) ? null : 6 });
+      // the ghost starts off every plausible answer (0% a) and needMove stops an untouched ghost scoring (lessons_batch1 §2);
+      // the sim's own 8 s dusk timeout then breeds with no prediction
+      Predict.ask({ id: s.ask.id, chart: 0, kind: 'pq', axis: { lo: 0, hi: 1, rev: true }, start: 0, needMove: true, tol: s.ask.tol, soft: (Save.d.ui && Save.d.ui.unt) ? null : 6,
+        onStill: () => Whisper.say(this.content.whispers.drag, 'drag') });
     }
     if (ev.length) this.hud();
     const r = this.sim.result();

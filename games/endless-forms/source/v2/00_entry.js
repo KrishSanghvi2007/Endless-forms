@@ -25,7 +25,7 @@ const ACT_PLAN = [
   { act: 4, n: 'Forces', needs: [3], c: [
     ['soot', 'The Black Country', 'A changing world', { spine: 1 }],
     ['casino', 'Drift Casino', 'Genetic drift', { spine: 1 }],
-    ['castaways', 'The Castaways', 'Founders, bottlenecks and rescue', {}],
+    ['castaways', 'The Castaways', 'Bottlenecks and genetic rescue', {}],   // founders now open Drift Casino L4 (Batch 1)
     ['tap', 'The Leaky Tap', 'Mutation–selection balance', { needs: ['soot'] }],
     ['swamp', 'Gene Swamping', 'Migration against selection', { needs: ['soot'] }]] },
   { act: 5, n: 'Adaptation and coevolution', needs: [4], c: [
@@ -120,19 +120,23 @@ const Snap = {
 /* ---------- Sim: the fixed-step driver of every v2 chapter (API_v2 §6.1, §9.3) ----------
    A run is (seed, level, actions). Each action is logged as [tick, a], where tick counts the steps taken so far, and is
    applied before step number tick, as tests/vmgame.js runSim does. A finished sim (result() not null) never steps again,
-   so a live run, its replay and the headless bots stay in step. While a replay queue is pending, live input is dropped. */
+   so a live run, its replay and the headless bots stay in step. While a replay queue is pending, live input is dropped.
+   View events reach the chapter through Sim.run only: a live Sim.act's events are handed out again by the next run, the
+   same place a replayed action's events appear, so juice from Sim.run looks the same live and in a replay. */
 const Sim = {
   _st: new WeakMap(),   // ch → {tick, acc, queue, log, thaw}
-  _get(ch) { let st = this._st.get(ch); if (!st) { st = { tick: 0, acc: 0, queue: [], log: [], thaw: false }; this._st.set(ch, st); } return st; },
+  _get(ch) { let st = this._st.get(ch); if (!st) { st = { tick: 0, acc: 0, queue: [], log: [], thaw: false, pend: [] }; this._st.set(ch, st); } return st; },
   start(ch, n, o) {   // App.seed is already set; sim.reset(level, o) handles o.thaw itself
     o = o || {}; const st = this._get(ch), sim = ch.sim;
-    ch.level = n | 0; st.tick = 0; st.acc = 0; st.log = []; st.thaw = !!o.thaw;
+    ch.level = n | 0; st.tick = 0; st.acc = 0; st.log = []; st.thaw = !!o.thaw; st.pend = [];
     st.queue = Array.isArray(o.replay) ? o.replay.filter(e => Array.isArray(e) && e.length >= 2).map(e => [e[0] | 0, e[1]]) : [];
     if (sim && typeof sim.reset === 'function') { sim.reset(ch.level, o); if (sim.s && !Array.isArray(sim.s.log)) sim.s.log = []; }
     return st;
   },
   run(ch, dt) {   // → view events; ≤ 8 ticks per call, a larger backlog is dropped rather than allowed to spiral
-    const sim = ch.sim, st = this._get(ch), ev = [];
+    // Live actions' events (from Sim.act since the last call) come first, so view code juices from Sim.run alone and a
+    // live run and its replay (where queued actions are applied inside run) produce the same events in the same order.
+    const sim = ch.sim, st = this._get(ch), ev = st.pend.length ? st.pend.splice(0) : [];
     if (!sim || typeof sim.step !== 'function' || !sim.s) return ev;
     const h = sim.dt || 1 / 30; let n = 0;
     st.acc += Math.max(0, +dt || 0);
@@ -145,9 +149,10 @@ const Sim = {
     }
     return ev;
   },
-  act(ch, a) {   // → the sim's view events for this action
+  act(ch, a) {   // → the sim's view events for this action (for inspection); the next Sim.run delivers them again for juice
     const st = this._get(ch);
-    return st.queue.length ? [] : this._apply(ch, st, a);
+    if (st.queue.length) return [];
+    const ev = this._apply(ch, st, a); this._push(st.pend, ev); return ev;
   },
   tick(ch) { return this._get(ch).tick; },
   log(ch) { const s = ch.sim && ch.sim.s; return s && Array.isArray(s.log) ? s.log : this._get(ch).log; },   // a Hunt chapter without a sim logs here
@@ -165,13 +170,14 @@ const Sim = {
 /* ---------- Freezer: session memory of frozen generations, ≤ 8 vials per unit (D1 G9; [B0-simple]) ----------
    Each vial remembers the level and seed it came from. list(id) gives the vials of the unit's current level; a fresh,
    non-thaw start of a level empties that level's vials (the App.playLevel wrap below), so What if? always thaws this run.
-   put() ignores a snapshot taken once the sim has finished: it could only thaw into the same end card. */
+   put() ignores a snapshot taken once the sim has finished (it could only thaw into the same end card) unless o.force is set:
+   a unit whose levers change the ending may freeze its final state (Batch 1). */
 const Freezer = {
   max: 8, _v: {},
   _lv(id, level) { if (level != null) return level | 0; const ch = REG[id]; return ch && ch.level != null ? ch.level | 0 : 0; },
-  put(id, gen, snap) {
+  put(id, gen, snap, o) {
     const L = this._v[id] || (this._v[id] = []), level = this._lv(id), i = L.findIndex(v => v.level === level && v.gen === gen);
-    if (REG[id] && Sim.done(REG[id])) return L.length;
+    if (REG[id] && Sim.done(REG[id]) && !(o && o.force)) return L.length;
     if (i >= 0) L.splice(i, 1);
     L.push({ gen, snap, level, seed: App.seed });
     while (L.length > this.max) L.shift();
@@ -222,6 +228,12 @@ const Entry = {
   STARS: [[1, 'discover', 'Discover'], [2, 'predict', 'Predict'], [4, 'transfer', 'Transfer']],
   STAR_PATH: 'M12 2.6l2.8 6 6.6.7-4.9 4.5 1.4 6.5L12 17l-5.9 3.3 1.4-6.5-4.9-4.5 6.6-.7z',   // the same star as ui.js starSVG
   enter(ch, n, o) { if (typeof Save.migrate === 'function') Save.migrate(ch.id); App.playLevel(ch, n || 0, o); },
+  // where a unit opened from the menu starts: just past the furthest level finished, or L1 once the unit is done (Batch 1)
+  resume(ch) {
+    const n = (ch && ch.levels && ch.levels.length) || 1, d = Save.d || {}, lv = (d.lv && d.lv[ch.id]) || [];
+    if (d.done && d.done[ch.id]) return 0;
+    return Math.max(0, Math.min(n - 1, lv.length));
+  },
   next(ch) { const i = ORDER.indexOf(ch.id); for (let k = i + 1; k < ORDER.length; k++) if (REG[ORDER[k]]) return REG[ORDER[k]]; return null; },
   calm() {
     if (typeof Fx !== 'undefined') return !!Fx.calm;
@@ -229,8 +241,8 @@ const Entry = {
   },
   esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); },
   pop(m) { return (m & 1) + (m >> 1 & 1) + (m >> 2 & 1); },
-  split(text, max) {   // → chunks of ≤ max words, broken at sentence ends where possible
-    const out = [], sents = String(text || '').trim().match(/[^.!?]+(?:[.!?]+["'’”)]*|$)\s*/g) || [];
+  split(text, max) {   // → chunks of ≤ max words, broken at sentence ends where possible; a stop inside a number (11.5) is not an end
+    const t = String(text || '').trim(), out = [], sents = t ? t.split(/(?<=[.!?]["'’”)]*)\s+/) : [];
     let cur = [];
     const flush = () => { if (cur.length) out.push(cur.join(' ')); cur = []; };
     for (const s of sents) {
@@ -271,7 +283,10 @@ const Entry = {
   },
 
   /* End.show(ch, o) for a v2 chapter. o = {level, mask, final, title?, take?, body?, chart?: cv => void | LiveGraph spec,
-     interesting?: key, whatIf?: {gen, levers: [key…]}, why?: {real, maths}}. Records the stars, then opens the card. */
+     interesting?: key, whatIf?: {gen, levers: [key…]}, why?: {real, maths}, stars?: {discover, predict, transfer}, bodyFirst?}.
+     Records the stars, then opens the card. Per-level words (Batch 1): when o.take, o.body or o.why is undefined on a level
+     card of a fresh (not thawed) run, content.levelTake[level], levelBody[level] and levelWhy[level] fill in; the "still to
+     earn" line reads o.stars, else content.levelStars[level], else content.stars, so it names only stars this level can give. */
   show(ch, o) {
     o = o || {};
     const C = ch.content || {}, L = ch.levels || [], level = Math.max(0, o.level != null ? o.level | 0 : ch.level | 0);
@@ -284,30 +299,41 @@ const Entry = {
 
     const E = this.esc.bind(this), lvName = L[level] && L[level].name;
     const ik = o.interesting, itext = ik && C.interesting && C.interesting[ik];
-    const take = o.take != null ? o.take : final ? C.take : null;
-    let body = o.body != null ? o.body : final ? C.body : null;
+    const per = (k, alt) => {   // o.take / o.body / o.why, else content.levelTake / levelBody / levelWhy [level] on a fresh level card
+      if (o[k] !== undefined) return o[k];
+      const list = C['level' + k[0].toUpperCase() + k.slice(1)];
+      return !final && !Sim.thawed(ch) && Array.isArray(list) && list[level] != null ? list[level] : alt;
+    };
+    const take = per('take', null) != null ? per('take', null) : final ? C.take : null;
+    let body = per('body', null) != null ? per('body', null) : final ? C.body : null;
     if (body == null && o.insight) body = String(o.insight).replace(/<[^>]*>/g, '');   // a legacy-shaped call
     const title = o.title || (final ? 'Unit complete' : 'Level ' + (level + 1) + ' done');
     const kick = final ? ch.title : lvName;
-    const miss = this.STARS.find(s => !(now & s[0]) && C.stars && C.stars[s[1]]);
-    const chunks = this.chunks(ch, level, o.why);
+    const SL = o.stars || (Array.isArray(C.levelStars) && C.levelStars[level]) || C.stars;
+    const miss = this.STARS.find(s => !(now & s[0]) && SL && SL[s[1]]);
+    const chunks = this.chunks(ch, level, per('why', undefined));
     const vial = o.whatIf && Array.isArray(o.whatIf.levers) && o.whatIf.levers.length && Freezer.list(ch.id, level).some(v => v.gen === o.whatIf.gen) ? o.whatIf : null;
     const code = typeof ch.resultBits === 'function' && Url.unit === ch.id && Url.seed != null ? this.code(ch, level) : null;
     const uid = 'ef' + (++this._uid);
 
     let h = '<h3 id="' + uid + 'h">' + E(title) + '</h3>' + (kick ? '<p class="kicker">' + E(kick) + '</p>' : '') + this.starsHTML(now, fresh);
-    if (miss) h += '<p class="still"><b>' + E(miss[2]) + ':</b> ' + E(C.stars[miss[1]]) + '</p>';
+    if (miss) h += '<p class="still"><b>' + E(miss[2]) + ':</b> ' + E(SL[miss[1]]) + '</p>';
     if (itext) h += '<p class="interesting" id="' + uid + 'd"><b>Interesting result.</b> ' + E(itext) + '</p>';
     else if (take) h += '<p class="take" id="' + uid + 'd">' + E(take) + '</p>';
+    if (body && o.bodyFirst) h += '<p class="body">' + E(body) + '</p>';   // bodyFirst: the words above the chart, in view on a phone
     if (o.chart) h += '<canvas role="img" aria-label="' + E(o.chartLabel || 'Graph of this level') + '"></canvas>';
-    if (body) h += '<p class="body">' + E(body) + '</p>';
+    if (body && !o.bodyFirst) h += '<p class="body">' + E(body) + '</p>';
     if (chunks.length) h += '<div class="why" id="' + uid + 'w" hidden></div>';
     if (vial) h += '<div class="chips" id="' + uid + 'c" hidden>' + vial.levers.map(k => '<button type="button" class="chip" data-lever="' + E(k) + '">' + E((C.levers && C.levers[k]) || k) + '</button>').join('') + '</div>';
     if (code) h += '<div class="coderow"><span>Result code</span><b class="code">' + E(ResultCode.show(code)) + '</b><button type="button" class="btn" data-copy="' + code + '">Copy</button></div>';
 
     let box = null;
     const btnsOf = () => [...box.querySelector('.card-btns').children];
-    const toggle = (sel, btnText) => { const el = box.querySelector(sel), b = btnsOf().find(x => x.textContent === btnText); if (!el) return; el.hidden = !el.hidden; if (b) b.setAttribute('aria-expanded', String(!el.hidden)); return el; };
+    const toggle = (sel, btnText) => {   // an opened panel scrolls into view: on a phone it opens under the sticky buttons
+      const el = box.querySelector(sel), b = btnsOf().find(x => x.textContent === btnText); if (!el) return; el.hidden = !el.hidden; if (b) b.setAttribute('aria-expanded', String(!el.hidden));
+      if (!el.hidden) setTimeout(() => { try { if (!el.hidden && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'auto' }); } catch (e) { } }, 30);
+      return el;
+    };
     const why = { t: 'Why?', fn: () => { const el = toggle('.why', 'Why?'); if (el && !el.hidden) this.whyPage(el, chunks, 0); } };
     const whatIf = { t: 'What if?', fn: () => toggle('.chips', 'What if?') };
     const nx = final ? this.next(ch) : null, btns = [];
@@ -407,7 +433,7 @@ if (!Url.v1) {
     ORDER.length = 0; PLAN.forEach(p => p.c.forEach(c => ORDER.push(c[0])));
   }
   // App.open, outermost (after ch99's TRANSFER/RECALL wrap): a v2 unit skips the intro and question cards
-  { const prev = App.open; App.open = function (ch) { if (!isV2(ch)) return prev.apply(this, arguments); Entry.enter(ch, 0); }; }
+  { const prev = App.open; App.open = function (ch) { if (!isV2(ch)) return prev.apply(this, arguments); Entry.enter(ch, Entry.resume(ch)); }; }
   // End.show: a v2 chapter gets the level or end card (ch99's TAKE wrap is bypassed, so done is set here)
   { const prev = End.show; End.show = function (ch, o) { if (!isV2(ch)) return prev.apply(this, arguments); return Entry.show(ch, o); }; }
   // App.playLevel: a fresh (non-thaw) start of a v2 level empties that level's freezer vials
@@ -418,7 +444,7 @@ if (!Url.v1) {
     App.go = function (scr) {
       const b = Entry.begin; Entry.begin = false;
       const w = REG.lichen;
-      if (b && scr === 'menu' && isV2(w) && !(Save.d.done && Save.d.done.lichen)) return Entry.enter(w, 0);
+      if (b && scr === 'menu' && isV2(w) && !(Save.d.done && Save.d.done.lichen)) return Entry.enter(w, Entry.resume(w));
       return prev.apply(this, arguments);
     };
     const btn = typeof document !== 'undefined' && document.getElementById ? document.getElementById('btn-begin') : null;
