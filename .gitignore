@@ -6,3 +6,5 @@ games/tangled-bank/source/Tangled_Bank_v1.html
 __pycache__/
 .DS_Store
 __MACOSX/
+games/endless-forms/source/Endless_Forms_v2.html
+games/*/game.js

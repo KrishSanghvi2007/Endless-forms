@@ -11,5 +11,5 @@ if os.environ.get('V2_ONLY'):
 files=['core.js','hunt.js','ui.js']+chs+v2+['boot.js']
 js="(function(){\n'use strict';\n"+"\n".join(open(f).read() for f in files)+"\n})();\n"
 out=shell.replace('/*__JS__*/',js)
-name=sys.argv[1] if len(sys.argv)>1 else 'Endless_Forms_v1.html'
+name=sys.argv[1] if len(sys.argv)>1 else 'Endless_Forms_v2.html'
 open(name,'w').write(out); open(os.path.join(os.path.dirname(os.path.abspath(name)),'game.js') if len(sys.argv)>1 else 'game.js','w').write(js); print(name,len(out))  # game.js beside the output, never over a shared source/game.js

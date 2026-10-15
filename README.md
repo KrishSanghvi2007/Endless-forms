@@ -6,11 +6,12 @@ The repo holds three games and the plan to merge them into one:
 
 | Game | File | What it is |
 |---|---|---|
-| **Endless Forms** | `games/endless-forms/Endless_Forms_v1.html` | 48 short chapter-games in 11 sections, from Mendel to deep time |
+| **Endless Forms** | `games/endless-forms/Endless_Forms_v2.html` (**play this**; add `?v1=1` to the URL for the classic chapters) | The combined game: 48 chapters, five of them rebuilt to the new standard so far (Lichen Wood, Black Country, Hawks and Doves, Equilibrium, which is now the one Hardy–Weinberg chapter, and Drift Casino) |
+| Endless Forms classic | `games/endless-forms/Endless_Forms_v1.html` | The original 48 chapters, with the science corrections |
 | **Equilibrium** | `games/equilibrium-hw/Equilibrium_HW_v2.html` | A 17-level Hardy–Weinberg course plus Case Files |
 | **Tangled Bank** | `games/tangled-bank/Tangled_Bank_v1.html` | The first prototype: hunt mode and Steward mode (you are the environment) |
 
-The goal is one combined, enjoyable, scientifically correct game that teaches every concept through play and visuals, for professors and teachers to use. Expert reviews found most chapters too much like worksheets; a redesign is planned and has not been built yet.
+The goal is one combined, enjoyable, scientifically correct game that teaches every concept through play and visuals, for professors and teachers to use. Expert reviews found most chapters too much like worksheets (`docs/CRITIQUE.md`). The redesign is under way: see `START_HERE.md` for status and next steps, and `GAME_BIBLE.md` for the full reference. Licence: MIT.
 
 ## Play
 
@@ -28,7 +29,7 @@ The shipped files date from 11 October 2026. About 300 science corrections made 
 ## Repo layout
 
 ```
-games/endless-forms/   Endless_Forms_v1.html (shipped) and source/ (core.js, hunt.js, ui.js, ch1–ch29.js, ch99.js, boot.js, shell.html, build.py, tests/, v2/)
+games/endless-forms/   Endless_Forms_v2.html (shipped), Endless_Forms_v1.html (classic) and source/ (core.js, hunt.js, ui.js, ch1–ch29.js, ch99.js, boot.js, shell.html, build.py, tests/, v2/)
 games/equilibrium-hw/  Equilibrium_HW_v2.html and source/ (engine.js, lv_a–lv_d.js, build.py, tests/); v1_archive/
 games/tangled-bank/    Tangled_Bank_v1.html and source/ (core.js, hunt.js, steward.js, app.js, build.py, tests/)
 docs/                  CRITIQUE.md, ORIGINAL_README.md, design/ (D0–D5), reviews/ (R1–R8), changes/ (science sweep logs), design-history/
@@ -40,7 +41,7 @@ archive/               the original upload
 Each game is plain JavaScript drawn on an HTML canvas. `build.py` joins the source files into one HTML file. Run it from the game's `source/` folder:
 
 ```
-cd games/endless-forms/source && python3 build.py ../Endless_Forms_v1.html
+cd games/endless-forms/source && python3 build.py ../Endless_Forms_v2.html
 cd games/equilibrium-hw/source && python3 build.py && cp Equilibrium_HW_v2.html ../
 cd games/tangled-bank/source  && python3 build.py ../Tangled_Bank_v1.html
 ```
@@ -54,7 +55,7 @@ Tests use Python and Playwright (Chromium):
 ```
 pip install playwright pillow && playwright install chromium
 cd games/endless-forms/source
-python3 build.py                              # tests load source/Endless_Forms_v1.html by default
+python3 build.py /tmp/ef.html && export GAME_HTML=/tmp/ef.html   # point tests at a build
 python3 tests/monkey.py lichen,hawks 1,2      # auto-play chapters (ids) with seeds; reports errors, NaN on screen, softlocks
 GAME_HTML=/abs/path/to/build.html python3 tests/monkey.py jaws 1   # test a specific build
 ```

@@ -3,14 +3,17 @@
 Evolution teaching games (Endless Forms, Equilibrium, Tangled Bank) being merged into one game, *Endless Forms*.
 
 ## Read first
-1. `GAME_BIBLE.md`: state, rules, next steps. Start at §10 "NEXT SESSION: start here".
-2. `docs/design/D5_design_decisions.md`: binding build rules; §3 is the acceptance checklist.
+0. `START_HERE.md`: current status, the branch note, and exactly what to do next.
+1. `docs/design/D6_designer_decisions.md`: the designer's binding decisions (override everything else).
+2. `GAME_BIBLE.md`: vision, rules, architecture.
+3. `docs/design/D5_design_decisions.md`: build rules; §3 is the acceptance checklist. Then `docs/changes/wave2/lessons_batch1.md` §0 before writing v2 code.
 3. Open other `docs/` files only when the bible points you there. Precedence: designer > D5 > owning D-doc > CRITIQUE > reviews.
 
 ## Commands (run build.py from the game's source/ folder)
 ```
-cd games/endless-forms/source && python3 build.py                       # -> source/Endless_Forms_v1.html + game.js (gitignored)
-cd games/endless-forms/source && python3 build.py ../Endless_Forms_v1.html  # rebuild the shipped file
+cd games/endless-forms/source && python3 build.py                       # -> source/Endless_Forms_v2.html + game.js (gitignored)
+cd games/endless-forms/source && python3 build.py ../Endless_Forms_v2.html  # rebuild the shipped file
+V2_ONLY='0*,zz_*,jaws.js' python3 build.py /tmp/j.html                   # engine + one unit only (v2_wip/ is never built)
 cd games/equilibrium-hw/source && python3 build.py && cp Equilibrium_HW_v2.html ../
 cd games/tangled-bank/source && python3 build.py ../Tangled_Bank_v1.html
 python3 tests/monkey.py lichen,soot 1,2,3                                 # from source/; ids and seeds

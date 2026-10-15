@@ -1,5 +1,7 @@
 # Endless Forms: the game bible
 
+> **Current status and the next steps live in `START_HERE.md`. Read it first.** As of 15 Oct 2026 the Wave 2 engine and five v2 units (Lichen Wood, Black Country, Hawks and Doves, Equilibrium, Drift Casino) are built and gated; play `games/endless-forms/Endless_Forms_v2.html`. Some sections below (§4, §10) still describe the pre-Wave-2 state; START_HERE's tables win.
+
 *The single reference for anyone, human or agent, working on this repo. Read it instead of the ~200,000 words in `docs/`; open those only when a section here points you there. Last updated 2026-10-14. Keep it under about 6,000 words and update the decisions log (§13) every session.*
 
 **Precedence when sources disagree:** the designer (Krish Sanghvi) > `docs/design/D6_designer_decisions.md` (the designer's binding answers, 14 Oct 2026) > `docs/design/D5_design_decisions.md` > the design document that owns the topic (D1 favourites, D2 structure, D3 other units, D4 look) > `docs/CRITIQUE.md` > reviews. An R7 fact-check beats the review it checks. D0 §3 rules on science.
@@ -320,6 +322,7 @@ Gates, not dates (CRITIQUE §9; D2 §16).
 | 5 Publish | Yearly pinned releases, teacher site, VPAT | Adoption |
 
 ### NEXT SESSION: start here
+**Superseded: use `START_HERE.md` §5.** The list below is the pre-Wave-2 plan, kept for history.
 1. [ ] Read this file, then D5 §3–5. Run `git status`; commit any uncommitted docs.
 2. [ ] Rebuild the shipped Endless Forms and Equilibrium files (§8.2). Confirm "fiddler" is gone from `Endless_Forms_v1.html` and the Black Country intro has no "undefined". Run the monkey on all 48 ids; compare with §13.
 3. [ ] Apply the three small text edits and the G8 Tangled Bank sweep (§6). Log them in `docs/changes/science_sweep_G8.md`; rebuild Tangled Bank.
@@ -386,6 +389,11 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 - **2026-10-14** Monkey baseline on a clean scratch build of today's source (seed 1, 390×780): 43 of 48 chapters reach the end card with no JS error or NaN text. `mendel` and `fancier` time out. `cross` (L2 Sturtevant's map), `landscape` (L1) and `double` (L2) report "stuck": the HUD is unchanged for 600 steps, probably puzzles a random tapper cannot finish (unverified). A random tapper earned three stars in `gametes`, more evidence of RC5.
 - **2026-10-14 — Designer decisions (D6, binding):** (1) the game is just called *Endless Forms*, with no "field station" branding; Hardy–Weinberg is folded in as **one chapter** ("Equilibrium", id `census`, levels of rising conceptual complexity, revised for undergraduates), and the `mixer` id is withdrawn; (2) cuts accepted; (3) platform plan accepted; (4) playtesting by the designer and colleagues, with no student recruitment for now; (5) **no controversial topics**: Malaria Coast, Out of Africa, Human Variation and the Manhattan Hunt are withdrawn, and heterozygote advantage is taught with warfarin-resistant rats; (6) MIT licence for now.
 - **2026-10-14** Shipped `Endless_Forms_v1.html` and `Equilibrium_HW_v2.html` rebuilt from the swept source, so players get the Wave 1 corrections.
+
+- **2026-10-15** Wave 2 engine built and integrated: `v2/0*.js`, `zz_v1switch.js`, and additive `core.js`/`ui.js` changes. Contract in `docs/design/API_v2.md`; golden trajectories in `tests/golden/`. Test tools: text lint, bot sweep, oracle runner.
+- **2026-10-15** Wave 2 Batch 1 built, reviewed (playtest, science, design), fixed and gated: `lichen`, `soot`, `hawks`, `census` (Equilibrium, the one HW chapter, 8 levels, `v2/mixer.js`), `casino`. A coordinator wrote `docs/changes/wave2/lessons_batch1.md`.
+- **2026-10-15** Shipped `games/endless-forms/Endless_Forms_v2.html`: legacy chapters plus the five v2 units. The monkey reached the end card in 7 of 7 smoke runs. `build.py` now defaults to `Endless_Forms_v2.html`.
+- **2026-10-15** Session paused because of the designer's usage limit. Batch 2 drafts `jaws`, `forager` and `bitter` were parked in `source/v2_wip/` (not built). Raffle, Alarm, Clinic, Switch, Scribe, Tap, Royal, Swamp and Dig were not started. Workflow scripts were saved in `tools/workflows/`; `4_continue_wave2.js` resumes the job. See `START_HERE.md`.
 
 ## 14. Open questions for the designer
 
