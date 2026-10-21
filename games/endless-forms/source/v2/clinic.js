@@ -95,7 +95,7 @@ const CL_TEXT = {
   labels: {
     dish: 'lab dish', patient: 'patient', bed: 'bed {n}', mic: 'MIC', mpc: 'MPC', window: 'window', immune: 'immune line', icu: 'ICU line',
     day: 'day {d}/{n}', dayB: 'day {d}', budget: 'budget {n}', tox: 'doses', drugA: 'drug A', drugB: 'drug B', both: 'both', low: 'low', high: 'high',
-    resistant: '{n} resistant', res1: '1 resistant', none: 'none left', noRes: 'no resistant cells', aboveMpc: 'above MPC', immuneS: 'immune', home: 'at home', icuBox: 'ICU', icuN: 'ICU {n}', hands: 'hands {n}%',
+    resistant: '{n} resistant', res1: '1 resistant', none: 'none left', noRes: 'no resistant cells', aboveMpc: 'above MPC', immuneS: 'immune', xnMu: 'mutation ×3', xnGam: 'transfer ×N', xnComp: 'compensation ×N', home: 'at home', icuBox: 'ICU', icuN: 'ICU {n}', hands: 'hands {n}%',
     staff: 'staff {n}', iso: 'isolated', fever: 'fever', kpc: 'KPC {n}%', share: '{n}% resistant', cells: '10^{n} cells', nowL: 'now',
     xMic: '×{n}', lock: 'Lock in', next: 'Next day', lowDose: 'Low dose', highDose: 'High dose', drugA2: 'Drug A', drugB2: 'Drug B', both2: 'Both', rub: 'Hand rub', dose: 'Dose', isolate: 'Isolate',
     restrict: 'restricted', costly: 'costly plasmid', comp: 'compensated', expected: 'expected', call: 'your call', ward: 'ward share',
@@ -674,6 +674,15 @@ const CH_CLINIC_V2 = {
   },
   // the unit's stars across levels (D1 §3.8): Discover in two levels, Predict in two levels, Transfer in one
   unitStars(lv) { const c = m => lv.filter(x => x & m).length; return (c(1) >= 2 ? 1 : 0) | (c(2) >= 2 ? 2 : 0) | (c(4) >= 1 ? 4 : 0); },
+  /* result code for assignment links (30 bits): 0–2 star mask · 3–7 day cleared (31 = not) · 8–14 dose points used (bed 1) ·
+     15–20 your call, 64 steps across its axis (63 = none) · 21–26 ward or bed-2 resistant share × 63 · 27–29 ICU moves (capped 7) */
+  resultBits(s, n) {
+    if (!s) return 0; const L = CL_LV[n], r = this.sim.result(), b = s.beds[0], id = 'a' + n, A = CL_ASK[s.askQ[id]];
+    const call = A && s.pred[id] != null ? Math.min(62, Math.round((s.pred[id] - A.lo) / (A.hi - A.lo) * 62)) : 63;
+    const share = L.kind === 'kpc' ? this.sim.wardShare(s) : this.sim.resShare(s.beds[Math.min(1, s.beds.length - 1)]), icu = L.kind === 'kpc' ? s.ward.icu : s.beds.filter(x => x.icu != null).length;
+    return ((r ? r.mask : 0) & 7) | ((b.cured != null ? Math.min(30, Math.ceil(b.cured)) : 31) << 3) | (Math.min(127, b.used || 0) << 8) | (call << 15) | (Math.round(63 * share) << 21) | (Math.min(7, icu) << 27);
+  },
+  teacherStep() { const s = this.sim.s; if (!s || s.phase !== 'run') return; const d = s.day; for (let k = 0; k < 40 && this.sim.s.day === d && this.sim.s.phase === 'run'; k++) for (const e of Sim.run(this, 8 * this.sim.dt)) this.juice(e); },   // projector: one day at a time
   /* ================= view: lifecycle, input, juice, drawing (juice from Sim.run's events only) ================= */
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
   startLevel(n, o) {
@@ -771,9 +780,9 @@ const CH_CLINIC_V2 = {
     for (const l of v.links) l.t += dt; v.links = v.links.filter(l => l.t < 1.6);
     for (const q of v.tally) q.t += dt;
     if (v.banner) { v.banner.t += dt * 1000; if (v.banner.t > v.banner.ms) v.banner = null; }
-    if (v.press && !v.press.fired && v.press.hold) { const held = v.t - v.press.t0; if (held >= 0.35) { v.press.fired = true; this.doseAt(v.press, true); } }
+    if (v.press && !v.press.fired && v.press.hold) { const held = v.t - v.press.t0, bed = v.press.target === 'bed'; if (held >= (bed ? 0.45 : 0.35)) { v.press.fired = true; if (bed) Sim.act(this, { k: 'iso', bed: v.press.bed }); else this.doseAt(v.press, true); } }   // a hold fires while still pressed
     if (s.ask && this._asking !== s.ask.id) this.openAsk();
-    if (!s.ask && this._asking) { this._asking = null; this._dockSig = ''; }
+    if (!s.ask && this._asking) { if (typeof Predict !== 'undefined') { Predict.cancel(this._asking); Predict.fold(); } this._asking = null; this._dockSig = ''; }   // the sim closed the ask (time-out or a logged void)
     if (v.lastPhase !== s.phase) { v.lastPhase = s.phase; this._dockSig = ''; this.ghosts(); }
     this.dock(); this.hud();
     const r = this.sim.result();
@@ -878,10 +887,9 @@ const CH_CLINIC_V2 = {
     const v = this.v, p = v.press; v.press = null; if (!p || p.fired) return;
     const s = this.sim.s, held = v.t - p.t0;
     if (p.target === 'rub') { Sim.act(this, { k: 'rub' }); return; }
-    if (p.target === 'bed') { if (held >= 0.45) Sim.act(this, { k: 'iso', bed: p.bed }); else if (s.beds[p.bed].fev) Sim.act(this, { k: 'dose', bed: p.bed }); return; }
+    if (p.target === 'bed') { if (s.beds[p.bed].fev) Sim.act(this, { k: 'dose', bed: p.bed }); return; }
     this.doseAt(p, false);
   },
-  bedHoldDone() { },
   onKey(k) {
     const s = this.sim.s, L = CL_LV[s.level], b = s.sel || 0;
     if (k === 'n' || k === 'N') Sim.act(this, { k: 'next' });
@@ -1017,6 +1025,7 @@ const CH_CLINIC_V2 = {
     const Lb = this.content.labels, right = !two || i === 1;
     if (!two || i === 0) Lbl.put('cl-imm' + i, two ? Lb.immune : Lb.immuneS, right ? x + 12 : x - 12, Y(5), { size: 12, align: right ? 'left' : 'right', pill: false, ink: '#E8F6F4' });
     if (L.kind === 'tb3' && i === 1) Lbl.put('cl-icul', Lb.icu, x - 12, Y(CL_l10(CL_M.icu)) - 2, { size: 12, align: 'right', pill: false, ink: '#FF8A7A' });
+    if (!two) Lbl.put('cl-xn', Lb.xnMu, x, y0 + 14, { size: 12, pill: false, ink: '#8FF5EA' });   // the ×N disclosure: mutation rate raised for a ten-day course
     if (!two) Lbl.put('cl-gN', N > 0 ? '10' + this.sup(Math.floor(CL_l10(N))) : '0', x, y1 - 11, { size: 12, pill: false, ink: '#2FD3C3', mono: true });
   },
   drawPumps(c, G) {   // cosmetic: two syringe pumps, A (solid line) and B (dashed line)
@@ -1072,6 +1081,7 @@ const CH_CLINIC_V2 = {
     c.restore();
     Lbl.put('cl-hands', Txt.f(Lb.hands, { n: Math.round(100 * W.hyg) }), R.x + R.r + 10, B.y + B.h * 0.3, { size: 12, align: 'left', pill: false, ink: '#E8F6F4', mono: true });
     Lbl.put('cl-staff', Txt.f(Lb.staff, { n: W.staff }), R.x + R.r + 10 + 6 * 13 + 30, B.y + B.h * 0.7, { size: 12, align: 'left', pill: false, ink: '#8FF5EA', mono: true });
+    Lbl.put('cl-xnw', s.level === 5 ? Lb.xnComp : Lb.xnGam, R.x + R.r + 10 + 6 * 13 + 30, B.y + B.h * 0.3, { size: 12, align: 'left', pill: false, ink: '#8FF5EA' });   // the ×N disclosure for the ward
     Lbl.put('cl-wsh', Txt.f(Lb.kpc, { n: Math.round(100 * this.sim.wardShare(s)) }), B.x + B.w - 8, B.y + B.h * 0.3, { size: 12, align: 'right', bg: '#FF3FB4', ink: '#041416', mono: true });
   },
   drawBed(c, t, b, i) {   // cosmetic: one bed seen from above

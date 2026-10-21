@@ -745,7 +745,7 @@ const CH_ALARM_V2 = {
     const deb = st === 'debrief';
     A.nb.forEach((id, i) => {
       const p = sl[i], m = this.sim.member(s, id), dead = A.victim === id; let x = p[0], y = p[1], al = 1;
-      if ((st === 'strike' || deb) && called && !dead) { const k = Math.min(1, (st === 'strike' ? t : 1.5) / 0.7); x += G.act * 0.55 * k; y += G.act * 0.35 * k; al = deb ? Math.min(1, Math.max(0, (t - 0.5) / 0.4)) : 1 - k; if (deb && al > 0) { x = p[0]; y = p[1]; } }
+      if ((st === 'strike' || deb) && called && !dead) { const k = Math.min(1, (st === 'strike' ? t : 1.5) / 0.7); x += G.act * 0.55 * k; y += G.act * 0.35 * k; al = deb ? Math.min(1, Math.max(0, (t - 0.1) / 0.3)) : 1 - k; if (deb && al > 0) { x = p[0]; y = p[1]; } }
       if (dead && (st === 'strike' || deb)) { if (v.lift && v.lift.id === id && v.lift.t < 1.2) { const k = Math.max(0, v.lift.t - 0.26); if (hawk) { y -= k * 260; al = Math.max(0, 1 - k); } else al = Math.max(0, 1 - k * 3); } else al = 0; }
       if (al > 0.02) Rig.draw(c, 'squirrel', { pose: st === 'decide' || st === 'tell' ? (i % 2 ? 'down' : 'up') : 'up', blaze: null, age: 1 }, x, y, { size: G.act, alpha: al, id: id, state: 'idle', t: v.t, flip: x > G.yx });
       if (al > 0.3 || st === 'decide' || st === 'tell') this.flag(c, 'al-f' + i, s.tags[id], p[0], p[1] - G.act * 0.62, deb ? m : null);

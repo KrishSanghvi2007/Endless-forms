@@ -6,8 +6,8 @@
    pattern. Levels add one variable each: rivals already in her (the fair raffle); the chance of a male after you; last-male
    precedence and mating time (the loaded raffle, a marginal-value tangent); and a boss where her storage sets which tickets
    count (cryptic female choice), which inverts the unit's lesson.
-   Headless sim (R(), Det only), stars against the expectation, juice from Sim.run's events only (API_v2 §6.1).
-   Reuses the legacy ch3.js optimum() (s = √(R/λ) − R by bisection on λ), generalised to risk and to her storage. */
+   Headless sim (R(), Det only); stars read the expectation; juice from Sim.run's events only. Reuses ch3.js optimum(),
+   generalised to risk and to her storage. */
 
 const RF_E = 20, RF_X = 20, RF_B = 100;   // eggs per female, a later male's ejaculate, your supply (all designed)
 // timers (s); rate: units a second while held (rateU in untimed mode); mins: copula minutes a second of holding (×N)
@@ -61,7 +61,7 @@ const RF_TEXT = {
   labels: {
     yours: 'yours {n}', rivals: 'rivals {n}', supply: 'supply', pocket: 'her pocket', reach: 'out of reach', virgin: 'virgin', risk: '{q} after', mins: '{m} min',
     search: 'search {T} min', eggsAx: 'eggs', hidden: '?', morning: 'morning', afternoon: 'afternoon', pour: 'Pour', stop: 'Stop', done: 'Done', mate: 'Mate',
-    leave: 'Leave', faster: 'Faster', rate: '{r} eggs/h', xN: '×600', lock: 'Lock in', jackpot: 'Jackpot!', pm: 'Afternoon', new4: 'New female',
+    leave: 'Leave', faster: 'Faster', rate: '{r} eggs/h', xN: '×600', fitted: '≈ fitted curve', lock: 'Lock in', jackpot: 'Jackpot!', pm: 'Afternoon', new4: 'New female',
     tEggs: 'Eggs won', tUnits: 'Units poured', tShare: 'Your share', tHalf: 'Half her eggs', tLaid: 'Eggs per female',
     female: 'female', units: 'units', minutes: 'minutes', share: 'share', you: 'you', best: 'best plan', planner: 'planner', expected: 'expected', tangent: 'best rate',
     half: 'half', searchM: 'search', sSupply: 'Supply left', sEggs: 'Eggs so far', sExp: 'Expected eggs', sRate: 'Eggs per hour', sMins: 'Last mating', sBest: 'Best plan'
@@ -491,7 +491,7 @@ const CH_RAFFLE_V2 = {
     if (!o.thaw && typeof Freezer !== 'undefined') Freezer.put(this.id, 0, this.sim.snapshot());   // What if? reruns the level from here
     const unt = (typeof Save !== 'undefined' && Save.d && Save.d.ui && Save.d.ui.unt) || (typeof Url !== 'undefined' && Url.untimed);
     if (unt && !o.thaw && !o.replay) Sim.act(this, { k: 'unt', on: true });   // a setting enters the run as a logged action (lessons §1.6)
-    this.v = { t: 0, tk: [], order: [], fly: [], gone: [], spin: 0, spinV: 0, lit: 0, press: null, kPress: false, latch: false, banner: null, sig: '', bgSig: '', eggs: [], eggT: [], pairT: 0, laterT: -1, laterCame: false, lastPour: 0, tube: [], lastIn: 0, flushSaid: false, clock: 0, thaw: !!o.thaw };
+    this.v = { t: 0, tk: [], order: [], fly: [], gone: [], spin: 0, spinV: 0, lit: 0, press: null, kPress: false, latch: false, banner: null, sig: '', bgSig: '', eggs: [], eggT: [], laterT: -1, laterCame: false, lastPour: 0, tube: [], lastIn: 0, flushSaid: false, clock: 0 };
     this.resetEggs(); this.layout(); this.dock(); this.hud();
     if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw();
     const s = this.sim.s, name = o.thaw ? (this.content.levers[s.whatif] || this.levels[n].name) : this.levels[n].name;
@@ -605,7 +605,7 @@ const CH_RAFFLE_V2 = {
   update(dt) {
     const ev = Sim.run(this, dt), v = this.v, s = this.sim.s;
     for (const e of ev) this.juice(e);
-    v.t += dt; v.pairT += dt;
+    v.t += dt;
     const calm = typeof Fx !== 'undefined' && Fx.calm, spinning = !calm && (s.phase === 'draw' || (s.phase === 'later' && v.laterCame && v.laterT > 0.55));
     v.spinV += ((spinning ? 6 : 0) - v.spinV) * Math.min(1, dt * 4); v.spin += v.spinV * dt; v.lit += calm ? 0 : dt * (spinning ? 9 : 1.2);
     if (v.laterT >= 0) v.laterT += dt;
@@ -690,7 +690,7 @@ const CH_RAFFLE_V2 = {
     }
     else if (e.k === 'search') { snd('wing', g.pair.x, g.pair.y); }
     else if (e.k === 'leave') { snd('swish', g.pair.x, g.pair.y); }
-    else if (e.k === 'arrive') { this.resetEggs(); v.pairT = 0; snd('wing', g.W, g.pair.y); }
+    else if (e.k === 'arrive') { this.resetEggs(); snd('wing', g.W, g.pair.y); }
     else if (e.k === 'ready') { if (RF_LV[s.level].her && cur.z < 0.5) this.whisper('favour'); }
     else if (e.k === 'pm') { if (F) F.tier(3, ms => { v.banner = { text: C.labels.pm, t: 0, ms: Math.max(1700, ms + 500) }; }); }
     else if (e.k === 'ff') { if (F) F.ring(g.cx, g.cy, g.Rd * 0.7, { ms: 220 }); }
@@ -969,18 +969,16 @@ const CH_RAFFLE_V2 = {
     const tan = Tq => { const t = RF.tstar(Tq), y = RF.dshare(t), sl = y / (Tq + t); return { pts: [[-Tq, 0], [120, sl * (120 + Tq)]], at: [t, y] }; };
     if (shown) tans.push(tan(RF_D.T)); if (over || card) tans.push(tan(RF_D.Tpm));
     return { type: 'rf_gain', title: lab.tShare, x: { lo: -RF_D.T, hi: 120, label: lab.minutes }, y: { lo: 0, hi: 1, fmt: 'pct' }, pts: L.filter(F => F.t > 0).map(F => [F.t, F.x, F.T < 100 ? 1 : 0]),
-      curve, tans, marks: [{ x: -RF_D.T, label: lab.searchM }].concat(pm || over || card ? [{ x: -RF_D.Tpm, label: '' }] : []), frame: 'designed', curveLabel: lab.expected };
+      curve, tans, marks: [{ x: -RF_D.T, label: lab.searchM }].concat(pm || over || card ? [{ x: -RF_D.Tpm, label: '' }] : []), frame: 'designed', curveLabel: lab.fitted };
   },
   halfSpec() {   // L4's new female: your share against units poured; axes only until your call, then her curve and the half line
     const s = this.sim.s, lab = this.content.labels, over = s.phase === 'over' || s.phase === 'end', shown = s.pred.p4 != null || s.nocall.p4 || over, curve = [];
     if (shown) for (let u = 0; u <= 150; u += 5) curve.push([u, RF.share({ R: RF_P4.R, y: RF_P4.y }, u)]);
     return { type: 'rf_gain', title: lab.tHalf, x: { lo: 0, hi: 150, label: lab.units }, y: { lo: 0, hi: 1, fmt: 'pct' }, pts: [], curve, tans: [], half: true, marks: [], frame: 'designed', fold: false, curveLabel: lab.expected };
   },
-  debrief() {   // the level card's chart: what you did solid, the best plan or the expectation dashed, your call a diamond
-    const s = this.sim.s; if (s.whatif) return this.rowsSpec('units');
-    if (RF_LV[s.level].dung) { const g = this.gainSpec(true); if (s.pred.p3 != null) g.call = s.pred.p3; return g; }
-    if (RF_LV[s.level].her) return this.rowsSpec('units');
-    const sp = this.rowsSpec('units'); return sp;
+  debrief() {   // the level card's chart: what you did solid, the best plan dashed (L3: the curve, both tangents and your call)
+    const s = this.sim.s; if (!s.whatif && RF_LV[s.level].dung) { const g = this.gainSpec(true); if (s.pred.p3 != null) g.call = s.pred.p3; return g; }
+    return this.rowsSpec('units');
   }
 };
 V2.push(CH_RAFFLE_V2);
@@ -1019,6 +1017,7 @@ if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.rf_gain) Liv
     c.restore();
     for (const q of spec.pts || []) { c.fillStyle = q[2] ? I.surface : I.text; c.strokeStyle = I.text; c.lineWidth = 1.5; c.beginPath(); c.arc(G.X(q[0]), G.Y(q[1]), 4.5 * T.k, 0, TAU); c.fill(); c.stroke(); }
     if (!T.compact) { for (const m of spec.marks || []) if (m.label) wgText(c, m.label, G.X(m.x) + 4, p.y + p.h - G.tk / 2 - 3, G.tk, I.text2, { fam: 'b', wt: 600, halo: I.surface }); if (spec.half) wgText(c, '50%', p.x + p.w - 4, G.Y(0.5) - G.tk / 2 - 2, G.tk, I.text2, { align: 'right', halo: I.surface }); }
+    if (!T.compact && spec.curve && spec.curve.length && spec.curveLabel) { const q = spec.curve[spec.curve.length - 1]; wgText(c, spec.curveLabel, G.X(q[0]) - 4, G.Y(q[1]) + G.tk, G.tk, I.text, { align: 'right', fam: 'b', wt: 600, halo: I.surface }); }
     if (wgFin(spec.call)) wgYou(c, G, { x: spec.call, label: 'you' }, T, 'x');
   },
   rows(spec) { return { head: ['minutes or units', 'share'], rows: (spec.pts || []).map(q => [String(Math.round(q[0])), Math.round(q[1] * 100) + '%']).concat((spec.curve || []).filter((q, i) => i % 3 === 0).map(q => [String(q[0]) + ' (curve)', Math.round(q[1] * 100) + '%'])) }; },
