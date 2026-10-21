@@ -93,7 +93,8 @@ Parameters tagged on the MODEL cards: μ 0.02 ×2000 (real 10⁻⁴ to 10⁻⁶ 
 - `python3 tests/bots.py $OUT tap --seeds 1-20 --bots alwaysA,alwaysB,random,greedy,threshold,lensAlways,line,halfNow,expert`: PASS. Best masks: alwaysA/alwaysB/lensAlways nothing in L1–L3; random at most one star per level by luck; greedy and threshold D only (threshold, line and halfNow get D in the boss by shutting the drum after the gulls); line and halfNow earn Predict in L3 on some seeds (the "q ÷ μ" rule of thumb is the lesson); expert DP, DP, DP, DT. `--untimed --seeds 1-10`: PASS.
 - `GAME_HTML=$OUT python3 tests/monkey.py tap 1,2,3 --vp 390x780,1280x720`: **6 of 6 runs reach the end card**, no errors, no NaN text.
 - `python3 tests/tap_paths.py`: 11 ok (opening card; a real canvas tap catches; arrows; L blocks Space; E; D; `?untimed=1` freezes chicks; Calm at 1280×720 to the card; What if? card reports its own numbers; `?v1=1` has no tap).
-- `tests/golden.py check` and `--v1`: see the run note at the end of this file.
+- `python3 tests/golden.py check $OUT`: **48 ok**; `--v1`: **48 ok**.
+- Final build: monkey 6 of 6 again after the last edits; oracle (fast) 53 of 53; lint clean.
 
 ## Screenshots
 
@@ -131,6 +132,11 @@ Parameters tagged on the MODEL cards: μ 0.02 ×2000 (real 10⁻⁴ to 10⁻⁶ 
 6. L4: when the gulls join, predict the load. Did the return to the line surprise you? How long before you looked for another way to lower the load? Was the drum findable without the hint?
 7. Rate enjoyment 1–5 and name the most boring 20 seconds. Did anything look like a beetle chapter?
 
-## Run note
+- Frame cost (headless Chromium, 4× CPU throttle, L2 with the lens on, 48 genotype discs): draw median 9.1 ms (390×780 at DPR 2) and 9.5 ms (1280×720); the static sky, sea, cliff, ledges and cups are baked once per size. A change in the HUD's wrapped height re-bakes the background once (about 100 ms at 4× throttle); quantising that key is a small follow-up.
+- Full build with every v2 file present today: `tap` registers and the monkey reaches the end card (seed 4).
 
-- Golden check (`tests/golden.py check` and `--v1`) on the scratch build: see the results appended below by the builder when the run finished.
+## Still open
+
+- The three-reviewer round and Coordinator A's sign-off of the claims table.
+- A cited source for black-backed gulls taking kittiwake chicks (the world's premise).
+- Designer-and-colleagues playtest (script above).

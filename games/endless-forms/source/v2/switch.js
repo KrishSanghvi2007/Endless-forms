@@ -90,7 +90,7 @@ const SW_C = {
     cr_artemia: 'Order: a brine shrimp with no feeding legs. Drag the magenta edge, then Check.',
     cr_isopod: 'Order: a woodlouse with one pair of feeding legs. Drag the magenta edge.',
     cr_lobster: 'Order: a lobster with three pairs of feeding legs. Drag the magenta edge.',
-    t4: 'A mantis shrimp has five pairs of feeding legs. Drag: where does Ubx/abd-A begin?',
+    t4: 'Mantis shrimp: five pairs of feeding legs. If the rule holds, drag where Ubx/abd-A begins.',
     l5: 'Tap a switch on the Pitx1 gene to test it on an embryo.',
     l5ask: 'Tap each tissue you predict will go dark, then Lock in.',
     l5more: 'Test another switch, or Send the last one to the lake.',
@@ -102,7 +102,7 @@ const SW_C = {
     lakeSet: 'Generation {g} of {n}. The season is set.',
     ask1: 'Drag: what share of copies will carry the deletion at generation {g}?',
     ask2: 'Trout are back. Drag: the deletion share at generation {g}?',
-    hatch: 'Hatching: the larva first, then the adult.', grow: 'Growing the legs from the stain.', okC: 'That is the body plan.', stain: 'Staining the mantis shrimp for Ubx/abd-A.',
+    hatch: 'Hatching: the larva first, then the adult.', grow: 'Growing the legs from the stain.', okC: 'That is the body plan.', stain: 'The rule’s prediction for the mantis shrimp.',
     ok: 'That is the fly.', no: 'Not yet. Compare each segment with the order.',
     shown: 'Three tries used. Here is one way to build it.',
     reveal: 'Hatching the fly you predicted.',
@@ -122,7 +122,7 @@ const SW_C = {
     c0: 'head', c1: 'T1', c2: 'T2', c3: 'T3', c4: 'A1', c5: 'A2–A7', c6: 'A8',
     g0: 'Scr', g1: 'Antp', g2: 'Ubx', g3: 'abd-A', g4: 'Abd-B',
     idH: 'antennae', idT1: 'legs', idT2: 'legs, wings', idT3: 'legs, halteres', idA1: 'bare (A1)', idA: 'bare abdomen', idA8: 'tail end',
-    order: 'Order', yours: 'Your fly', stamp: 'Built!', deleted: 'deleted', off: 'off', antc: 'ANT-C', bxc: 'BX-C', scale: '100 µm',
+    order: 'Order', yours: 'Your fly', stamp: 'Built!', deleted: 'deleted', off: 'off', antc: 'ANT-C', bxc: 'BX-C', bxcG: 'Ubx, abd-A, Abd-B', scale: '100 µm',
     ban0: 'Paint the segments', ban1: 'Abdominal legs?', ban2: 'Colinearity', ban3: 'Body plans', ban4: 'Circuit board', ban5: 'The lake',
     artemia: 'brine shrimp', isopod: 'woodlouse', lobster: 'lobster', mantis: 'mantis shrimp', feed: 'feeding legs', walk: 'walking legs', swim: 'swimming legs',
     pit: 'pituitary', jaw: 'jaw', pel: 'pelvis', mpit: 'pituitary', mjaw: 'jaw', mpel: 'pelvis', mstop: 'stop', mswap: 'swap',
@@ -215,7 +215,7 @@ const SW_C = {
         { name: 'generations', value: '26 to 74 by seed', tag: 'xN', real: 'hundreds to thousands' }],
       cannot: 'Armour plates, calcium, or the left-larger pelvic remnants of wild fish.',
       nature: 'The deletions bear signatures of positive selection (Chan et al. 2010). Fish predators reject spiny prey (Hoogland et al. 1956). Insect predators and low calcium are proposed causes of spine loss (Reimchen 1980; Bell et al. 1993).',
-      contested: true, refs: ['chan2010', 'shapiro2004', 'hoogland1956', 'reimchen1980', 'bell1993', 'marchinko2009', 'haldane1924'] }
+      contested: true, refs: ['chan2010', 'shapiro2004', 'cresko2004', 'hoogland1956', 'reimchen1980', 'bell1993', 'marchinko2009', 'haldane1924'] }
   ],
   why: {
     real: ['Edward Lewis studied bithorax mutants for decades: flies with four wings, or legs on the first abdominal segment. Hox genes sit in the order of the body parts they pattern. In each segment the gene furthest back usually wins.',
@@ -644,7 +644,7 @@ const CH_SWITCH_V2 = {
       if (s.phase === 'judge') return s.shown ? C.shown : J.k === 'askx' ? C.stain : J.k === 'build' || J.k === 'bound' || J.k === 'crust' ? (s.ok ? (J.k === 'crust' ? C.okC : C.ok) : C.no) : C.reveal;
       if (n === 0 && s.job === 0 && !s.started) return this.content.firstWords;
       if (J.k === 'build') return C[J.id];
-      if (J.k === 'vial') { const g = SWK.VIAL[J.v][0][0], del = SWK.VIAL[J.v][0][1] === 0; return this.w('hud', del ? 'del' : 'vial', { gene: J.v === 'bxcDel' ? L.bxc : L['g' + g] }); }
+      if (J.k === 'vial') { const g = SWK.VIAL[J.v][0][0], del = SWK.VIAL[J.v][0][1] === 0; return this.w('hud', del ? 'del' : 'vial', { gene: J.v === 'bxcDel' ? L.bxcG : L['g' + g] }); }
       if (J.k === 'tap') return C[J.id];
       if (J.k === 'bound') return this.w('hud', 'mut', { n: s.job + 1 });
       if (J.k === 'crust') return C['cr_' + J.id];
@@ -1108,7 +1108,7 @@ const CH_SWITCH_V2 = {
     for (let g = 0; g < 5; g++) {   // the tabs you drag
       const t = T[g], rgb = SW_INK[SWK.G[g]], hw = Math.min(11, lh * 0.32); c.beginPath(); c.moveTo(t.x, t.y - hw * 1.3); c.lineTo(t.x + hw, t.y); c.lineTo(t.x, t.y + hw * 1.3); c.lineTo(t.x - hw * 0.5, t.y); c.closePath();
       c.fillStyle = css(rgb, b[g] >= 7 ? 0.35 : 1); c.fill(); c.strokeStyle = '#FFFFFF'; c.lineWidth = key && this.v.cur.r === g ? 2.4 : 1; c.stroke();
-      if (b[g] >= 7) Lbl.put('sw-off' + g, L.off, t.x + 18, t.y, { size: 12, pill: false, align: 'left', ink: 'rgba(200,210,240,.6)' });
+      if (b[g] >= 7) Lbl.put('sw-off' + g, L.off, t.x - 14, t.y, { size: 12, pill: false, align: 'right', ink: 'rgba(200,210,240,.6)' });
     }
   },
   /* ---------- L4: crustaceans ---------- */
