@@ -86,7 +86,7 @@ Still open (ask the designer when they have played the build):
 
 **Integration fix:** `swamp.js` and `switch.js` both declared `SW_C`, which crashed the full build; it is renamed to `SWP_C` in swamp. New guard: `sh tests/dup_globals.sh` fails on any duplicate top-level name. **Run it after every unit.**
 
-**Shipped:** `games/endless-forms/Endless_Forms_v2.html`, rebuilt from all v2 files.
+**Shipped:** `games/endless-forms/Endless_Forms_v2.html`, rebuilt from all v2 files. Monkey, seed 1: 18 of 18 reach the end card (17 v2 units plus Mendel).
 
 ## 4. What is NOT done
 
