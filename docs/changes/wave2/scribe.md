@@ -83,7 +83,7 @@
 - `python3 tests/scribe_paths.py`: 20 checks pass (real taps on sparks, tubes, plates, colonies; a real velvet drag; Space; untimed wait and let-go; What if?; teacher; `?v1=1`; latency 40 ms).
 - Monkey (`GAME_HTML=<build> python3 tests/monkey.py scribe 1,2,3 --vp 390x780,1024x768,1280x720`): **9 of 9 runs reach the end card**, no errors, no NaN/undefined text, no Lbl/Whisper/HUD/Dock warnings (≈ 1,330–1,410 steps a run). Rerun after the untimed fix at 390×780 and 1280×720: 6 of 6.
 - Frame time (`draw` alone, 390×780 at DPR 2, 4× CPU throttle): L1 full dish median 3.9 ms (p90 27 ms, first-frame bakes), L2 grid 4.1 ms, boss 0.3–9 ms. Background, agar, colony texture and each plate's colonies are baked once into `Layer`s.
-- `python3 tests/golden.py check <build>`: see the last line of this section.
+- `python3 tests/golden.py check <build>`: 47 ok, 0 failed, 1 skipped (`scribe`, replaced).
 
 ## Review round (playtester and art director, adversarial scientist, D5 §3)
 

@@ -34,10 +34,10 @@ const SWK = {
   MOD: ['pit', 'jaw', 'pel', 'stop', 'swap'],
   DARK: { pit: [1, 0, 0], jaw: [0, 1, 0], pel: [0, 0, 1], stop: [1, 1, 1], swap: [1, 1, 1] },
   FATE: { pit: 'dies', jaw: 'sick', pel: 'clean', stop: 'dies', swap: 'sick' },
-  LAKE: { N: 200, SHOW: 80, MU: 0.01, K: 0.08, MAX: 4, ASK0: 4, FORCE: 10, GAIN: 0.25, H: [12, 16, 20, 24, 28], BACK: [2, 3, 4], TAIL: [10, 15, 20], XHI: 58 },
+  LAKE: { N: 200, SHOW: 48, MU: 0.01, K: 0.08, MAX: 4, ASK0: 6, FORCE: 10, H: [12, 15, 18], BACK: [2, 3, 4], TAIL: [8, 14, 20], XHI: 60 },
   T: { hatch: 1.9, hatchR: 1.1, judge: 1.4, judgeR: 0.9, askMax: 45, test: 2.4, send: 2.4, gen: 1.25, fast: 0.3 },
-  TRIES: 3, TOL: { v1: 0.4, v2: 0.4, t4: 0.4, p6: 0.08, t6: 0.06 },
-  NYM: [[70, 486], [150, 494], [240, 488], [320, 492]], TRO: [[90, 230], [300, 210], [190, 300], [110, 360]],
+  TRIES: 3, TOL: { v1: 0.4, v2: 0.4, t4: 0.4, p6: 0.07, t6: 0.05 },
+  NYM: [[70, 462], [150, 470], [240, 464], [320, 468]], TRO: [[90, 230], [300, 210], [190, 300], [110, 360]],
   lay: {}
 };
 function swIdent(grid) {   // posterior prevalence: the most posterior gene switched on sets each column's identity
@@ -102,14 +102,14 @@ const SW_C = {
     lakeSet: 'Generation {g} of {n}. The season is set.',
     ask1: 'Drag: what share of copies will carry the deletion at generation {g}?',
     ask2: 'Trout are back. Drag: the deletion share at generation {g}?',
-    hatch: 'Hatching: the larva first, then the adult.',
+    hatch: 'Hatching: the larva first, then the adult.', grow: 'Growing the legs from the stain.', okC: 'That is the body plan.', stain: 'Staining the mantis shrimp for Ubx/abd-A.',
     ok: 'That is the fly.', no: 'Not yet. Compare each segment with the order.',
     shown: 'Three tries used. Here is one way to build it.',
     reveal: 'Hatching the fly you predicted.',
     whatif: 'What if: {lever}? The lake runs on.', wait: 'Done.'
   },
   whispers: {
-    built: 'That is the fly!', wrong: 'Not this one: compare each segment.', shown: 'Here is one way to build it.',
+    built: 'That is the fly!', builtC: 'That is the body plan!', wrong: 'Not this one: compare each segment.', shown: 'Here is one way to build it.',
     drag: 'Drag the marker first.', tapfirst: 'Tap a segment first.', nomark: 'Tap a tissue, or None.',
     trap: 'No new legs: Ubx still stops them.', bxc: 'Every trunk segment builds legs now.', exact: 'Exactly right.',
     cross: 'Lines crossed: the order broke.', snip: 'Snip! One switch cut.', dies: 'Not viable: no pituitary.',
@@ -124,8 +124,8 @@ const SW_C = {
     idH: 'antennae', idT1: 'legs', idT2: 'legs, wings', idT3: 'legs, halteres', idA1: 'bare (A1)', idA: 'bare abdomen', idA8: 'tail end',
     order: 'Order', yours: 'Your fly', stamp: 'Built!', deleted: 'deleted', off: 'off', antc: 'ANT-C', bxc: 'BX-C', scale: '100 µm',
     ban0: 'Paint the segments', ban1: 'Abdominal legs?', ban2: 'Colinearity', ban3: 'Body plans', ban4: 'Circuit board', ban5: 'The lake',
-    artemia: 'brine shrimp', isopod: 'woodlouse', lobster: 'lobster', mantis: 'mantis shrimp', feed: 'feeding legs', walk: 'walking legs',
-    pit: 'pituitary', jaw: 'jaw', pel: 'pelvis', mpit: 'pituitary enhancer', mjaw: 'jaw enhancer', mpel: 'pelvic enhancer', mstop: 'exon: stop', mswap: 'exon: swap',
+    artemia: 'brine shrimp', isopod: 'woodlouse', lobster: 'lobster', mantis: 'mantis shrimp', feed: 'feeding legs', walk: 'walking legs', swim: 'swimming legs',
+    pit: 'pituitary', jaw: 'jaw', pel: 'pelvis', mpit: 'pituitary', mjaw: 'jaw', mpel: 'pelvis', mstop: 'stop', mswap: 'swap',
     pitx1: 'Pitx1', enh: 'enhancers', code: 'coding sequence', dark: 'dark?', dies: 'not viable', sick: 'damaged', clean: 'healthy', embryos: 'embryos',
     trout: 'trout', nymph: 'nymph', weeds: 'weed bed', xn: 'mutation ×N', spiny: 'spiny', spineless: 'spineless',
     hatch: 'Hatch', check: 'Check', reset: 'Reset', lock: 'Lock in', skip: 'Skip', send: 'Send', none: 'None', addT: 'Add trout', addN: 'Add nymph', set: 'Season set',
@@ -208,11 +208,11 @@ const SW_C = {
       cannot: 'Partial deletions, other tissues, or why wild fish keep a slightly larger pelvic remnant on the left.',
       nature: 'Freshwater sticklebacks lost pelvic spines through deletions of the pelvic enhancer, leaving the protein intact (Chan et al. 2010). Mice lacking Pitx1 have hindlimb and pituitary defects (Szeto et al. 1999).',
       contested: false, refs: ['chan2010', 'shapiro2004', 'szeto1999', 'carroll2005', 'stern2008'] },
-    { level: 5, simulated: 'A lake of 200 sticklebacks; you see 80. A recessive pelvic-enhancer deletion arises by recurrent mutation. Survivors pair at random.',
+    { level: 5, simulated: 'A lake of 200 sticklebacks; you see 48. A recessive pelvic-enhancer deletion arises by recurrent mutation. Survivors pair at random.',
       simplification: 'Each nymph lowers a spiny fish’s survival by 8 points; each trout does the same to spineless fish. Why real lakes favour spine loss is debated.',
       params: [{ name: 'intact to deleted', value: '1 copy in 100 a generation', tag: 'xN', real: 'far rarer, though repeat-rich DNA may raise it' },
         { name: 'each predator', value: '8 points of survival', tag: 'xN', real: 'weaker' }, { name: 'fish', value: '200', tag: 'designed' },
-        { name: 'generations', value: '26 to 58 by seed', tag: 'xN', real: 'hundreds to thousands' }],
+        { name: 'generations', value: '26 to 74 by seed', tag: 'xN', real: 'hundreds to thousands' }],
       cannot: 'Armour plates, calcium, or the left-larger pelvic remnants of wild fish.',
       nature: 'The deletions bear signatures of positive selection (Chan et al. 2010). Fish predators reject spiny prey (Hoogland et al. 1956). Insect predators and low calcium are proposed causes of spine loss (Reimchen 1980; Bell et al. 1993).',
       contested: true, refs: ['chan2010', 'shapiro2004', 'hoogland1956', 'reimchen1980', 'bell1993', 'marchinko2009', 'haldane1924'] }
@@ -269,7 +269,7 @@ const CH_SWITCH_V2 = {
       o = o || {};
       if (o.thaw) {   // What if? (L6): restore a frozen generation, apply one lever, run on without asks
         this.restore(o.thaw.snap); const t = this.s; t.log = []; t.thawed = true; t.ask = null; t.locked = true; if (t.phase === 'ask') t.phase = 'lake';
-        t.lever = o.thaw.lever || null; if (t.lever === 'dom') t.dom = true; if (t.lever === 'nomut') t.mu = 0; if (!t.flip) { t.flip = t.gen + t.H; t.end = t.flip + t.tail; } t.th0 = { gen: t.gen, q: this.q() }; return;
+        t.lever = o.thaw.lever || null; if (t.lever === 'dom') t.dom = true; if (t.lever === 'nomut') t.mu = 0; if (!t.flip) t.flip = t.gen + t.H; t.th0 = { gen: t.gen, q: this.q() }; return;
       }
       const K = SWK;
       this.s = { level, phase: 'paint', t: 0, unt: !!(o.untimed != null ? o.untimed : (Save.d && Save.d.ui && Save.d.ui.unt)), log: [], started: 0,
@@ -283,15 +283,16 @@ const CH_SWITCH_V2 = {
       if (level <= 3) { this.startJob(); return; }
       if (level === 4) { Object.assign(s, { phase: 'choose', tests: [], sel: null, tis: [0, 0, 0], none: false, sent: null, left: 4 }); return; }
       const L = K.LAKE, lay = swLay(L.MU), q0 = 0.02 + 0.02 * R();   // L6: a trout lake; the deletion rare
-      Object.assign(s, { phase: 'lake', fish: [], nextId: 1, gen: 1, mu: L.MU, dom: false, locked: false, hunted: 0, asked: {}, H: pick(L.H.slice()), back: pick(L.BACK.slice()), tail: pick(L.TAIL.slice()), flip: 0, end: 0,
+      Object.assign(s, { phase: 'lake', fish: [], nextId: 1, gen: 1, mu: L.MU, dom: false, locked: false, hunted: 0, asked: {}, H: pick(L.H.slice()), back: pick(L.BACK.slice()), tail: pick(L.TAIL.slice()), flip: 0, ret: 0, end: 0,
         preds: [{ type: 't', x: K.TRO[0][0], y: K.TRO[0][1] }, { type: 't', x: K.TRO[1][0], y: K.TRO[1][1] }], hist: [] });
       for (let i = 0; i < L.N; i++) s.fish.push({ g: Gen.genome(lay, { pel: { p: 1 - q0 } }), id: s.nextId++, dead: 0 });
       s.hist.push(this.rec());
     },
     /* ---------- the bench (L1–L4): orders, vials and asks ---------- */
     startJob() {
-      const s = this.s, J = s.jobs[s.job], K = SWK; s.tries = 0; s.edits = 0; s.ids = null; s.ok = false; s.shown = false; s.t = 0; s.mark = [0, 0, 0, 0, 0, 0, 0]; s.ask = null;
+      const s = this.s, J = s.jobs[s.job], K = SWK; s.ask = null; s.t = 0;
       if (!J) { s.phase = 'over'; return; }
+      s.tries = 0; s.edits = 0; s.ids = null; s.ok = false; s.shown = false; s.mark = [0, 0, 0, 0, 0, 0, 0];
       if (J.k === 'build') { s.grid = swCopy(K.WT); s.phase = 'paint'; }
       else if (J.k === 'vial' || J.k === 'tap') { s.grid = swVial(J.v); s.phase = 'ask'; s.ask = J.k === 'vial' ? { id: J.id, kind: 'y', lo: 0, hi: 7, tol: K.TOL[J.id], at: J.x } : { id: J.id, kind: 'set' }; }
       else if (J.k === 'bound') { s.b = K.WB.slice(); s.grid = swGridB(s.b); s.phase = 'paint'; s.cross = 0; }
@@ -403,15 +404,15 @@ const CH_SWITCH_V2 = {
     lakeTurn(ev) {   // asks, the forced weed beds, the trout's return and the end, checked after each breeding
       const s = this.s, L = SWK.LAKE, K = SWK;
       if (s.end && s.gen >= s.end) { s.phase = 'over'; s.t = 0; ev.push({ k: 'over' }); return; }
-      if (s.flip && s.gen === s.flip) {
-        s.preds = K.TRO.slice(0, s.back).map(p => ({ type: 't', x: p[0], y: p[1] })); s.locked = true; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'flip' });
+      if (s.flip && !s.ret && s.gen >= s.flip && (this.q() >= 0.6 || s.gen >= s.flip + 16)) {   // the trout return once the deletion is common (or after 16 more generations)
+        s.ret = s.gen; s.end = s.ret + s.tail; s.preds = K.TRO.slice(0, s.back).map(p => ({ type: 't', x: p[0], y: p[1] })); s.locked = true; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'flip' });
         if (!s.thawed) { s.phase = 'ask'; s.t = 0; s.ask = { id: 't6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.t6, at: s.end }; ev.push({ k: 'ask', id: 't6' }); }
         return;
       }
       if (s.thawed || s.asked.p6 || s.gen < L.ASK0) return;
-      let gain = this.expect('p6') - this.q();
-      if (gain < L.GAIN && s.gen >= L.FORCE) { s.preds = K.NYM.map(p => ({ type: 'n', x: p[0], y: p[1] })); s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'weeds' }); gain = 1; }
-      if (gain >= L.GAIN) { s.asked.p6 = 1; s.askGen = s.gen; s.flip = s.gen + s.H; s.end = s.flip + s.tail; s.phase = 'ask'; s.t = 0; s.ask = { id: 'p6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.p6, at: s.flip }; ev.push({ k: 'ask', id: 'p6' }); }
+      const c = this.counts(); let ready = c[1] - c[0] >= 2;   // the ask opens once nymphs clearly outnumber trout (or the weed beds spread by themselves)
+      if (!ready && s.gen >= L.FORCE) { s.preds = K.NYM.map(p => ({ type: 'n', x: p[0], y: p[1] })); s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'weeds' }); ready = true; }
+      if (ready) { s.asked.p6 = 1; s.askGen = s.gen; s.flip = s.gen + s.H; s.phase = 'ask'; s.t = 0; s.ask = { id: 'p6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.p6, at: s.flip }; ev.push({ k: 'ask', id: 'p6' }); }
     },
     /* ---------- the clock ---------- */
     step(dt) {
@@ -478,7 +479,7 @@ const CH_SWITCH_V2 = {
         if (a.k === 'add') {
           const type = a.type === 'n' ? 'n' : 't', n = s.preds.filter(p => p.type === type).length;
           if (n >= K.LAKE.MAX) { ev.push({ k: 'full' }); return ev; }
-          const x = clamp(+a.x || 195, 24, 366), y = type === 'n' ? clamp(+a.y || 488, 452, 512) : clamp(+a.y || 260, 150, 420);
+          const x = clamp(+a.x || 195, 24, 366), y = type === 'n' ? clamp(+a.y || 466, 448, 486) : clamp(+a.y || 260, 150, 420);
           s.preds.push({ type, x: Math.round(x), y: Math.round(y) }); s.started = 1; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'add', type, x, y });
         } else if (a.k === 'rm') {
           const i = a.i | 0; if (i < 0 || i >= s.preds.length) return ev; const p = s.preds.splice(i, 1)[0]; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'rm', type: p.type, x: p.x, y: p.y });
@@ -620,7 +621,7 @@ const CH_SWITCH_V2 = {
     Sim.start(this, n, o);
     // the untimed setting enters the run as a logged action, so a replay plays the same on any machine (lessons §1.6)
     if (!o.thaw && !o.replay) Sim.act(this, { k: 'unt', on: !!(Save.d && Save.d.ui && Save.d.ui.unt) });
-    this.v = { t: 0, drag: null, cur: { r: 2, c: 3 }, mod: 2, pop: [0, 0, 0, 0, 0, 0, 0], stamp: 0, flash: 0, title: 1.8, strikes: [], swim: 0, snip: null, lastCross: 0 };
+    this.v = { t: 0, drag: null, cur: { r: 2, c: 3 }, mod: 0, pop: [0, 0, 0, 0, 0, 0, 0], stamp: 0, flash: 0, title: 1.8, strikes: [], swim: 0, snip: null, lastCross: 0 };
     this.dock(); this.hud(true);
     const s = this.sim.s, verb = n === 2 || n === 3 ? 'drag' : 'tap';
     if (typeof Ghost !== 'undefined' && !o.thaw) this.ghost = Ghost.show({ verb, at: () => this.ghostAt(), to: verb === 'drag' ? () => this.ghostTo() : undefined,
@@ -639,8 +640,8 @@ const CH_SWITCH_V2 = {
     if (s.thawed && s.lever && s.phase !== 'over') return C.whatif.replace('{lever}', (this.content.levers || {})[s.lever] || s.lever);
     if (n <= 3) {
       if (!J) return C.wait;
-      if (s.phase === 'hatch') return s.shown ? C.shown : J.k === 'vial' || J.k === 'tap' || J.k === 'askx' ? C.reveal : C.hatch;
-      if (s.phase === 'judge') return s.shown ? C.shown : J.k === 'build' || J.k === 'bound' || J.k === 'crust' ? (s.ok ? C.ok : C.no) : C.reveal;
+      if (s.phase === 'hatch') return s.shown ? C.shown : J.k === 'askx' ? C.stain : J.k === 'crust' ? C.grow : J.k === 'vial' || J.k === 'tap' ? C.reveal : C.hatch;
+      if (s.phase === 'judge') return s.shown ? C.shown : J.k === 'askx' ? C.stain : J.k === 'build' || J.k === 'bound' || J.k === 'crust' ? (s.ok ? (J.k === 'crust' ? C.okC : C.ok) : C.no) : C.reveal;
       if (n === 0 && s.job === 0 && !s.started) return this.content.firstWords;
       if (J.k === 'build') return C[J.id];
       if (J.k === 'vial') { const g = SWK.VIAL[J.v][0][0], del = SWK.VIAL[J.v][0][1] === 0; return this.w('hud', del ? 'del' : 'vial', { gene: J.v === 'bxcDel' ? L.bxc : L['g' + g] }); }
@@ -653,7 +654,7 @@ const CH_SWITCH_V2 = {
     if (s.phase === 'ask') return this.w('hud', s.ask && s.ask.id === 't6' ? 'ask2' : 'ask1', { g: s.ask ? s.ask.at : '' });
     if (s.phase === 'over') return C.wait;
     if (s.gen <= 2 && !s.started) return C.lake;
-    return this.w('hud', s.locked ? 'lakeSet' : 'lakeRun', { g: s.gen, n: s.end });
+    return this.w('hud', s.locked && s.end ? 'lakeSet' : 'lakeRun', { g: s.gen, n: s.end });
   },
   hud(force) {
     if (typeof HUD === 'undefined') return;
@@ -680,7 +681,7 @@ const CH_SWITCH_V2 = {
     else if (s.phase === 'choose' || s.phase === 'pick') b.push({ id: 'send', label: L.send, key: 'Enter', primary: true, disabled: s.sel == null || (s.phase === 'choose' && !s.tests.length), why: this.w('whispers', 'sendWhy'), fn: act({ k: 'send' }) });
     else if (s.phase === 'lake') {
       if (s.locked) b.push({ id: 'set', label: L.set, disabled: true, why: this.w('whispers', 'locked'), fn: () => this.whisper('locked') });
-      else { const c = this.sim.counts(); b.push({ id: 'addT', label: L.addT, key: 'T', fn: act({ k: 'add', type: 't', x: SWK.TRO[Math.min(3, c[0])][0], y: SWK.TRO[Math.min(3, c[0])][1] }) }); b.push({ id: 'addN', label: L.addN, key: 'N', fn: act({ k: 'add', type: 'n', x: SWK.NYM[Math.min(3, c[1])][0], y: SWK.NYM[Math.min(3, c[1])][1] }) }); }
+      else { const add = ty => () => { const c = this.sim.counts(), P = ty === 'n' ? SWK.NYM : SWK.TRO, q = P[Math.min(3, c[ty === 'n' ? 1 : 0])]; Sim.act(this, { k: 'add', type: ty, x: q[0], y: q[1] }); }; b.push({ id: 'addT', label: L.addT, key: 'T', fn: add('t') }); b.push({ id: 'addN', label: L.addN, key: 'N', fn: add('n') }); }
     }
     const sig = n + ':' + b.map(x => x.id + (x.pressed ? '+' : '') + (x.disabled ? '-' : '') + (x.label || '')).join(',') + (s.ask ? s.ask.id : '');
     if (sig !== this._dockSig) { this._dockSig = sig; Dock.set(b); }
@@ -691,7 +692,7 @@ const CH_SWITCH_V2 = {
     if (n === 1) return [G.X(4), G.cy];
     if (n === 2) { const t = this.tabs(G)[2]; return [t.x, t.y]; }
     if (n === 3) { const C = this.crGeo(G); return [C.edgeX(this.sim.s.ub), C.ry]; }
-    if (n === 4) { const B = this.board(G); return [B.mx(2), B.my]; }
+    if (n === 4) { const B = this.board(G); return [B.mxm(2), B.my]; }
     const p = this.lakePx(SWK.NYM[0][0], SWK.NYM[0][1]); return p;
   },
   ghostTo() { const n = this.level, G = this.geo(); if (n === 2) { const t = this.tabs(G)[2]; return [t.x + G.cw * 1.4, t.y]; } const C = this.crGeo(G); return [C.edgeX(Math.max(1, this.sim.s.ub - 3)), C.ry]; },
@@ -714,7 +715,7 @@ const CH_SWITCH_V2 = {
     if (A.kind === 'set' || A.kind === 'tis') { if (typeof Live !== 'undefined') Live.say(this._hudT || ''); return; }
     if (typeof Predict === 'undefined') return;
     // the ghost starts off every plausible answer (lessons §1.3); an untouched ghost never commits (needMove)
-    const start = { v1: 7, v2: 7, t4: 1, p6: 0, t6: 1 }[A.id], chart = this.level === 0 ? 1 : 0;
+    const start = { v1: 7, v2: 7, t4: 1, p6: 0, t6: 1 }[A.id], chart = 0;
     Predict.ask({ id: A.id, chart, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start, tol: A.tol, at: A.at, soft: null, needMove: true,
       say: this._hudT || '', onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'void', id: A.id }) });
     if (typeof Snd2 !== 'undefined') Snd2.play('tick', { x: Stage.w / 2, y: Stage.h / 2 });
@@ -736,11 +737,11 @@ const CH_SWITCH_V2 = {
     else if (e.k === 'judge') {
       const J = this.job(), build = J && (J.k === 'build' || J.k === 'bound' || J.k === 'crust'), cx = W / 2, cy = G ? G.cy : H / 3;
       if (!build || e.shown) { if (F) F.burst('spark', cx, cy, 8, { ink: css(SW_INK.white) }); return; }
-      if (e.ok) { v.stamp = 1; if (F) { F.burst('spark', cx, cy, 16, { ink: css(SW_INK.Antp) }); F.tier(3, () => { }); } if (sn && sn.chime) sn.chime(); this.whisper('built'); if (typeof Live !== 'undefined') Live.say(this.content.hud.ok); }
+      if (e.ok) { v.stamp = 1; if (F) { F.burst('spark', cx, cy, 16, { ink: css(SW_INK.Antp) }); F.tier(3, () => { }); } if (sn && sn.chime) sn.chime(); this.whisper(J.k === 'crust' ? 'builtC' : 'built'); if (typeof Live !== 'undefined') Live.say(this.content.hud[J.k === 'crust' ? 'okC' : 'ok']); }
       else { if (F) F.shake(4, 160); if (sn && sn.miss) sn.miss(); this.whisper('wrong'); }
     }
     else if (e.k === 'shown') this.whisper('shown');
-    else if (e.k === 'job') { v.stamp = 0; this._asked = null; v.title = 0; if (typeof Live !== 'undefined') Live.say(this.hudText()); if (typeof Predict !== 'undefined' && this.level === 0) Predict.clear(1); }
+    else if (e.k === 'job') { v.stamp = 0; this._asked = null; v.title = 0; if (typeof Live !== 'undefined') Live.say(this.hudText()); if (typeof Predict !== 'undefined' && this.level === 0) Predict.clear(); }
     else if (e.k === 'mark') { hideGhost(); v.pop[e.j] = 1; const x = G.X(e.j); if (F) F.ring(x, G.cy, G.cw * 0.5, { ms: 260 }); if (S2) S2.play('tick', { x, y: G.cy }); }
     else if (e.k === 'nomark') this.whisper(this.level === 4 ? 'nomark' : 'tapfirst');
     else if (e.k === 'pred') {
@@ -753,7 +754,7 @@ const CH_SWITCH_V2 = {
       if (S2) S2.play(e.hit ? 'count' : 'tock', { x: W / 2, y: H / 2, i: 6 });
       this._asked = null;
     }
-    else if (e.k === 'sel') { hideGhost(); const B = this.board(G); v.snip = { m: e.m, age: 0 }; if (F) F.burst('spark', B.mx(e.m), B.my, 6, { ink: css(SW_INK.gfp) }); if (S2) S2.play('crack', { x: B.mx(e.m), y: B.my }); this.whisper(e.again ? 'retest' : 'snip'); }
+    else if (e.k === 'sel') { hideGhost(); const B = this.board(G); v.snip = { m: e.m, age: 0 }; if (F) F.burst('spark', B.mxm(e.m), B.my, 6, { ink: css(SW_INK.gfp) }); if (S2) S2.play('crack', { x: B.mxm(e.m), y: B.my }); this.whisper(e.again ? 'retest' : 'snip'); }
     else if (e.k === 'tis' || e.k === 'none') { if (S2) S2.play('tick', { x: W / 2, y: H / 3 }); }
     else if (e.k === 'test') { if (F) F.tier(2, () => { }); }
     else if (e.k === 'tested') { const f = SWK.FATE[e.m]; this.whisper(f === 'dies' ? 'dies' : f === 'sick' ? 'sick' : 'clean'); if (f !== 'clean' && F) F.shake(3, 140); else if (F) F.burst('spark', W / 2, G.cy, 10, { ink: css(SW_INK.gfp) }); }
@@ -776,7 +777,7 @@ const CH_SWITCH_V2 = {
     const vials = n === 5 && typeof Freezer !== 'undefined' ? Freezer.list(this.id) : [], first = vials.length ? vials[0] : null;
     const C = this.content, LS = (C.levelStars || [])[n] || {}, stars = {};
     [['discover', 1], ['predict', 2], ['transfer', 4]].forEach(([k, b]) => { stars[k] = r.mask & b ? C.stars[k] : LS[k] || null; });
-    const L = C.labels, lab = [L.chLegs, L.chRow, L.chOrd, L.chCr, L.chTest, L.chLake][n], ci = n === 0 ? 1 : n === 2 ? 1 : 0;
+    const L = C.labels, lab = [L.chLegs, L.chRow, L.chOrd, L.chCr, L.chTest, L.chLake][n], ci = n === 2 ? 1 : 0;
     End.show(this, { level: n, mask: r.mask, final, interesting: r.interesting, whatIf: first ? { gen: first.gen, levers: ['dom', 'nomut'] } : null, stars,
       chart: cv => { if (typeof LiveGraph !== 'undefined') LiveGraph.draw(cv, this.notes(true).charts[ci] || this.notes(true).charts[0], 'paper'); }, chartLabel: lab });
   },
@@ -784,7 +785,7 @@ const CH_SWITCH_V2 = {
 
   /* ---------- geometry (CSS px) ---------- */
   geo() {
-    const W = Stage.w, H = Stage.h, top = this.hudH() + 4, bw = Math.min(W - 12, 660), bx = (W - bw) / 2, labW = clamp(bw * 0.15, 48, 76), cx0 = bx + labW, cw = (bw - labW - 4) / 7;
+    const W = Stage.w, H = Stage.h, top = this.hudH() + 4, bw = Math.min(W - 12, 660), bx = (W - bw) / 2, labW = clamp(bw * 0.15, 48, 76), cx0 = bx + labW, cw = (bw - labW - 4) / (this.level === 2 ? 7.7 : 7);
     const avail = H - top - 6, sh = clamp(avail * 0.4, 120, 300), sy = top, cy = sy + sh * 0.5, iy = sy + sh + 2, ih = 22, by = iy + ih + 6, bh = H - 6 - by;
     return { W, H, top, bx, bw, labW, cx0, cw, X: j => cx0 + (j + 0.5) * cw, sy, sh, cy, iy, ih, by, bh, rh: clamp(bh / 5, 24, 58), u: Math.min(cw, sh / 3.4), avail };
   },
@@ -795,15 +796,16 @@ const CH_SWITCH_V2 = {
   },
   edgeFromX(G, x) { return clamp(Math.round((x - G.cx0) / G.cw), 0, 7); },
   crGeo(G) {   // L4: the crustacean, its thoracic segments and the edge rail
-    const s = this.sim.s, J = this.job(), sp = J ? (J.k === 'askx' ? 'mantis' : J.id) : 'mantis', nT = SWK.CR[sp].nT, len = Math.min(G.W - 36, 620), x0 = (G.W - len) / 2;
-    const head = len * 0.16, thx = x0 + head, thw = len * (sp === 'artemia' ? 0.5 : 0.46), sw = thw / nT, cy = G.top + G.avail * 0.36, ry = cy + clamp(G.avail * 0.24, 70, 150);
-    return { sp, nT, len, x0, head, thx, thw, sw, cy, ry, u: len / 10, edgeX: b => thx + (clamp(b, 1, nT + 1) - 1) * sw, segX: i => thx + (i + 0.5) * sw };
+    const J = this.job(), sp = J ? (J.k === 'askx' ? 'mantis' : J.id) : 'mantis', nT = SWK.CR[sp].nT, len = Math.min(G.W - 48, 620), x0 = (G.W - len) / 2 + len * 0.05, u = len / 8;
+    const head = len * 0.12, thx = x0 + head, thw = len * 0.48, sw = thw / nT, cy = G.top + G.avail * 0.32, ry = Math.min(G.H - 44, cy + u * 3.1);
+    return { sp, nT, len, x0, head, thx, thw, sw, cy, ry, u, bodyH: u * { artemia: 0.3, isopod: 0.6, lobster: 0.5, mantis: 0.42 }[sp], edgeX: b => thx + (clamp(b, 1, nT + 1) - 1) * sw, segX: i => thx + (i + 0.5) * sw };
   },
   board(G) {   // L5: the fry above, the Pitx1 board below
     const W = G.W, bw = Math.min(W - 20, 620), bx = (W - bw) / 2, my = G.H - clamp(G.avail * 0.17, 60, 110), mw = bw / 5;
     const fl = Math.min(W - 40, 560), fx = (W - fl) / 2, fy = G.top + G.avail * 0.3;
-    return { bx, bw, my, mw, mh: clamp(G.avail * 0.09, 34, 52), mx: m => bx + (m + 0.5) * mw, fl, fx, fy,
-      tis: [[fx + fl * 0.2, fy - fl * 0.02], [fx + fl * 0.09, fy + fl * 0.07], [fx + fl * 0.44, fy + fl * 0.1]] };
+    const slot = [1, 0, 2, 3, 4];   // module → board slot: the jaw enhancer sits first, under the jaw
+    return { bx, bw, my, mw, mh: clamp(G.avail * 0.09, 34, 52), mx: m => bx + (m + 0.5) * mw, mxm: m => bx + (slot[m] + 0.5) * mw, slotMod: k => slot.indexOf(k), slotOf: m => slot[m], fl, fx, fy,
+      tis: [[fx + fl * 0.2, fy - fl * 0.02], [fx + fl * 0.08, fy + fl * 0.075], [fx + fl * 0.44, fy + fl * 0.1]] };
   },
   lakePx(x, y) { return [x / 390 * Stage.w, y / 540 * Stage.h]; },
 
@@ -838,7 +840,7 @@ const CH_SWITCH_V2 = {
   downBoard(G, x, y) {
     const s = this.sim.s, B = this.board(G);
     if (s.phase === 'ask' && s.ask && s.ask.kind === 'tis') { const i = Stage.hit ? Stage.hit(x, y, B.tis.map(p => ({ x: p[0], y: p[1], r: 30 })), 30) : -1; if (i >= 0) Sim.act(this, { k: 'tis', t: i }); return; }
-    if ((s.phase === 'choose' || s.phase === 'pick') && Math.abs(y - B.my) < B.mh && x > B.bx && x < B.bx + B.bw) Sim.act(this, { k: 'mod', m: clamp(Math.floor((x - B.bx) / B.mw), 0, 4) });
+    if ((s.phase === 'choose' || s.phase === 'pick') && Math.abs(y - B.my) < B.mh && x > B.bx && x < B.bx + B.bw) Sim.act(this, { k: 'mod', m: B.slotMod(clamp(Math.floor((x - B.bx) / B.mw), 0, 4)) });
   },
   downLake(x, y) {
     const s = this.sim.s; if (s.phase !== 'lake') return;
@@ -858,7 +860,7 @@ const CH_SWITCH_V2 = {
     }
     if (n === 4) {
       if (d && d[1]) { v.mod = clamp(v.mod + d[1], 0, 4); return true; }
-      if ((k === ' ' || k === 'Spacebar') && (s.phase === 'choose' || s.phase === 'pick')) { Sim.act(this, { k: 'mod', m: v.mod }); return true; }
+      if ((k === ' ' || k === 'Spacebar') && (s.phase === 'choose' || s.phase === 'pick')) { Sim.act(this, { k: 'mod', m: this.board(this.geo()).slotMod(v.mod) }); return true; }
       if (s.phase === 'ask' && (k === '1' || k === '2' || k === '3')) { Sim.act(this, { k: 'tis', t: +k - 1 }); return true; }
       if (s.phase === 'ask' && k === '0') { Sim.act(this, { k: 'none' }); return true; }
       return false;
@@ -933,7 +935,7 @@ const CH_SWITCH_V2 = {
     C[k] = cv; return cv;
   },
   drawEmbryo(c, G, grid, a) {   // an embryo stained for five Hox proteins: each glows in its own fluorophore; overlaps add towards white
-    if (a <= 0) return; const x0 = G.cx0, w = 7 * G.cw, cx = x0 + w / 2, cy = G.cy, rx = w * 0.52, ry = Math.min(G.u * 0.95, G.sh * 0.3);
+    if (a <= 0) return; const x0 = G.cx0, w = 7 * G.cw, cx = x0 + w / 2, cy = G.cy, rx = w * 0.52, ry = Math.min(G.u * 0.78, G.sh * 0.28);
     c.save(); c.globalAlpha = a;
     c.drawImage(this.glow([90, 110, 170]), cx - rx * 1.15, cy - ry * 1.9, rx * 2.3, ry * 3.8);
     c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, TAU); c.fillStyle = 'rgba(8,10,18,.92)'; c.fill();
@@ -950,7 +952,7 @@ const CH_SWITCH_V2 = {
     c.restore();
   },
   drawMarks(c, G) {   // L2: the segments you marked as legged (a leg glyph above and below)
-    const s = this.sim.s, cy = G.cy, ry = Math.min(G.u * 0.95, G.sh * 0.3);
+    const s = this.sim.s, cy = G.cy, ry = Math.min(G.u * 0.78, G.sh * 0.28);
     for (let j = 0; j < 7; j++) {
       const x = G.X(j), on = s.mark[j];
       c.fillStyle = on ? 'rgba(166,245,60,.10)' : 'rgba(255,255,255,.025)'; c.fillRect(x - G.cw / 2 + 2, G.sy + 4, G.cw - 4, G.sh - 8);
@@ -1053,7 +1055,7 @@ const CH_SWITCH_V2 = {
   },
   drawOrder(c, G) {   // the order as a dashed ghost fly behind the embryo: its wings, legs and antennae show what to build
     const s = this.sim.s, J = this.job(); if (!J || s.phase !== 'paint') return; const tgt = this.sim.target(J); if (!Array.isArray(tgt)) return;
-    this.drawFly(c, tgt, G.cx0, G.cw, G.cy, G.u, { ghost: true, alpha: 0.55 + 0.15 * Det.sin(this.v.t * 2.4) });
+    this.drawFly(c, tgt, G.cx0, G.cw, G.cy, G.u, { ghost: true, alpha: 0.75 + 0.2 * Det.sin(this.v.t * 2.4) });
     Lbl.put('sw-order', this.content.labels.order, G.bx + 4, G.sy + 12, { size: 12, pill: false, align: 'left', ink: 'rgba(255,160,240,.95)' });
   },
   drawGrid(c, G) {   // the paint board: rows are genes (chromosome order), columns are segments
@@ -1111,59 +1113,63 @@ const CH_SWITCH_V2 = {
   },
   /* ---------- L4: crustaceans ---------- */
   drawCrustLevel(c, G) {
-    const s = this.sim.s, J = this.job(), C = this.crGeo(G), L = this.content.labels, ask = J && J.k === 'askx';
-    const ph = s.phase, f = ph === 'hatch' ? clamp(s.t / (s.hatchN <= 1 ? SWK.T.hatch : SWK.T.hatchR), 0, 1) : 1;
-    const ub = ask ? (ph === 'ask' ? 0 : s.ub) : s.ub, stainB = ask && ph === 'ask' ? null : ub;
-    const appB = ask ? SWK.CR.mantis.maxi + 1 : s.ub;   // the mantis shrimp is drawn as it really is; you predict its stain
-    this.drawCrust(c, C, C.sp, appB, stainB, ph === 'hatch' ? 0.6 + 0.4 * f : 1);
+    const s = this.sim.s, J = this.job(), C = this.crGeo(G), L = this.content.labels, ask = J && J.k === 'askx', ph = s.phase;
+    const f = ph === 'hatch' ? clamp(s.t / (s.hatchN <= 1 ? SWK.T.hatch : SWK.T.hatchR), 0, 1) : 1;
+    const stainB = ask && ph === 'ask' ? null : s.ub, appB = ask ? SWK.CR.mantis.maxi + 1 : s.ub;   // the mantis shrimp is drawn as it really is; you predict its stain
+    const ghostB = J && J.k === 'crust' && ph === 'paint' ? SWK.CR[J.id].maxi + 1 : null;      // the order: its feeding legs as a dashed ghost
+    Lbl.put('sw-sp', L[C.sp], C.x0 + C.len / 2, C.cy - C.u * 1.55, { size: 15, pill: false, ink: css(SW_INK.white), weight: 700 });
+    if (ghostB != null) Lbl.put('sw-order', L.order, G.bx + 4, G.sy + 12, { size: 12, pill: false, align: 'left', ink: 'rgba(255,160,240,.95)' });
+    this.drawCrust(c, C, C.sp, appB, stainB, ph === 'hatch' ? 0.55 + 0.45 * f : 1, ghostB, ph === 'hatch' ? f : 1);
     // the rail: the Ubx/abd-A front edge you drag
-    c.strokeStyle = 'rgba(150,170,230,.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(C.thx, C.ry); c.lineTo(C.thx + C.thw, C.ry); c.stroke();
-    for (let i = 0; i <= C.nT; i++) { const x = C.thx + i * C.sw; c.beginPath(); c.moveTo(x, C.ry - 5); c.lineTo(x, C.ry + 5); c.stroke(); }
-    if (!ask || ph !== 'ask') { const x = C.edgeX(s.ub); c.beginPath(); c.moveTo(x, C.ry - 16); c.lineTo(x + 11, C.ry); c.lineTo(x, C.ry + 16); c.lineTo(x - 6, C.ry); c.closePath(); c.fillStyle = css(SW_INK.Ubx); c.fill(); c.strokeStyle = '#FFFFFF'; c.lineWidth = 1.2; c.stroke(); c.setLineDash([3, 4]); c.strokeStyle = css(SW_INK.Ubx, 0.6); c.beginPath(); c.moveTo(x, C.ry - 16); c.lineTo(x, C.cy - C.u * 0.2); c.stroke(); c.setLineDash([]); }
-    Lbl.put('sw-t1', 'T1', C.segX(0), C.ry + 22, { size: 12, pill: false, ink: 'rgba(214,224,250,.8)' });
-    Lbl.put('sw-tn', 'T' + C.nT, C.segX(C.nT - 1), C.ry + 22, { size: 12, pill: false, ink: 'rgba(214,224,250,.8)' });
-    Lbl.put('sw-sp', L[C.sp], C.x0 + C.len / 2, G.top + 18, { size: 14, pill: false, ink: css(SW_INK.white), weight: 700 });
-    Lbl.put('sw-feed', L.feed, C.thx, C.cy + C.u * 1.35, { size: 12, pill: false, align: 'left', ink: 'rgba(255,170,235,.9)' });
-    if (J && J.k === 'crust' && ph === 'paint') {   // the order: the target animal, small, top right
-      const tw = Math.min(G.W * 0.3, 170), tC = Object.assign({}, C, { len: tw, x0: G.W - tw - 10, u: tw / 10 }); tC.head = tw * 0.16; tC.thx = tC.x0 + tC.head; tC.thw = tw * (C.sp === 'artemia' ? 0.5 : 0.46); tC.sw = tC.thw / C.nT; tC.cy = G.top + 40; tC.segX = i => tC.thx + (i + 0.5) * tC.sw;
-      c.save(); rrect(c, tC.x0 - 6, tC.cy - tw * 0.2, tw + 12, tw * 0.42, 8); c.fillStyle = 'rgba(14,16,28,.88)'; c.fill(); c.strokeStyle = 'rgba(214,60,196,.6)'; c.lineWidth = 1.4; c.stroke(); c.restore();
-      this.drawCrust(c, tC, C.sp, SWK.CR[C.sp].maxi + 1, null, 0.95);
-      Lbl.put('sw-order', L.order, tC.x0, tC.cy - tw * 0.2 + 10, { size: 12, pill: false, align: 'left', ink: 'rgba(255,160,240,.95)' });
+    c.strokeStyle = 'rgba(150,170,230,.3)'; c.lineWidth = 2; c.beginPath(); c.moveTo(C.thx, C.ry); c.lineTo(C.thx + C.thw, C.ry); c.stroke();
+    for (let i = 0; i <= C.nT; i++) { const x = C.thx + i * C.sw; c.beginPath(); c.moveTo(x, C.ry - 6); c.lineTo(x, C.ry + 6); c.stroke(); }
+    if (!ask || ph !== 'ask') {
+      const x = C.edgeX(s.ub); c.setLineDash([3, 4]); c.strokeStyle = css(SW_INK.Ubx, 0.6); c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, C.ry - 18); c.lineTo(x, C.cy + C.bodyH); c.stroke(); c.setLineDash([]);
+      c.beginPath(); c.moveTo(x, C.ry - 18); c.lineTo(x + 12, C.ry); c.lineTo(x, C.ry + 18); c.lineTo(x - 7, C.ry); c.closePath(); c.fillStyle = css(SW_INK.Ubx); c.fill(); c.strokeStyle = '#FFFFFF'; c.lineWidth = 1.2; c.stroke();
     }
-    if (ph === 'judge' && J && J.k === 'crust' && s.ok) { c.save(); c.globalAlpha = clamp(this.v.stamp * 2, 0, 1); Lbl.put('sw-stamp', this.content.labels.stamp, G.W / 2, C.cy - C.u * 1.6, { size: 16, ink: '#07080C', bg: css(SW_INK.Antp), weight: 700 }); c.restore(); }
+    Lbl.put('sw-t1', 'T1', C.segX(0), C.ry + 26, { size: 12, pill: false, ink: 'rgba(214,224,250,.8)' });
+    Lbl.put('sw-tn', 'T' + C.nT, C.segX(C.nT - 1), C.ry + 26, { size: 12, pill: false, ink: 'rgba(214,224,250,.8)' });
+    const nf = clamp(appB - 1, 0, C.nT);
+    if (nf > 0) Lbl.put('sw-feed', L.feed, (C.thx + C.edgeX(appB)) / 2, C.cy + C.bodyH + C.u * 0.95, { size: 12, pill: false, ink: 'rgba(255,170,235,.95)' });
+    if (nf < C.nT) Lbl.put('sw-walk', C.sp === 'artemia' ? L.swim : L.walk, (C.edgeX(appB) + C.thx + C.thw) / 2, C.cy + C.bodyH + C.u * 1.45, { size: 12, pill: false, ink: 'rgba(214,236,255,.9)' });
+    if (ph === 'judge' && J && J.k === 'crust' && s.ok && this.v.stamp > 0) { c.save(); c.globalAlpha = clamp(this.v.stamp * 2, 0, 1); Lbl.put('sw-stamp', L.stamp, G.W / 2, C.cy - C.u * 2.1, { size: 16, ink: '#07080C', bg: css(SW_INK.Antp), weight: 700 }); c.restore(); }
   },
-  drawCrust(c, C, sp, appB, stainB, a) {   // side view, head left: thoracic legs in front of the edge are short feeding legs that fold to the mouth
-    const u = C.u, cy = C.cy, nT = C.nT, bodyH = u * (sp === 'isopod' ? 0.55 : sp === 'artemia' ? 0.32 : 0.45), abdL = C.len - C.head - C.thw, ab0 = C.thx + C.thw;
+  drawCrust(c, C, sp, appB, stainB, a, ghostB, grow) {   // side view, head left: thoracic legs in front of the edge are feeding legs that curl to the mouth
+    const u = C.u, cy = C.cy, nT = C.nT, bodyH = C.bodyH, ab0 = C.thx + C.thw, abdL = C.len - C.head - C.thw, g = grow == null ? 1 : grow;
     c.save(); c.globalAlpha = a; c.lineCap = 'round'; c.lineJoin = 'round';
-    const W = 'rgba(226,236,255,.9)', ln = (pts, col, lw) => { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke(); };
-    for (let i = 0; i < nT; i++) {   // limbs
-      const x = C.segX(i), y0 = cy + bodyH * 0.8, feed = i + 1 < appB;
+    const W = 'rgba(226,236,255,.92)', FEED = 'rgba(255,170,235,.95)', ln = (pts, col, lw) => { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke(); };
+    const limb = (i, feed, ghost) => {
+      const x = C.segX(i), y0 = cy + bodyH * 0.85, k = (ghost ? 1 : g) * 1.3, col = ghost ? 'rgba(255,170,235,.55)' : null;
       if (feed) {
-        if (sp === 'mantis' && i === 1) { ln([[x, y0], [x + u * 0.25, y0 + u * 0.45], [x - u * 0.35, y0 + u * 0.55], [x - u * 0.25, y0 + u * 0.3]], css(SW_INK.Ubx, 0.95), 3); continue; }   // the raptorial claw is a feeding leg
-        ln([[x, y0], [x - u * 0.12, y0 + u * 0.32], [x - u * 0.34, y0 + u * 0.36]], 'rgba(255,170,235,.95)', 2.2);
-        for (let k = 0; k < 3; k++) ln([[x - u * (0.12 + 0.07 * k), y0 + u * (0.33 + 0.01 * k)], [x - u * (0.14 + 0.07 * k), y0 + u * 0.44]], 'rgba(255,170,235,.5)', 1);
-      } else if (sp === 'artemia') { c.beginPath(); c.ellipse(x, y0 + u * 0.35, u * 0.09, u * 0.32, 0.2, 0, TAU); c.fillStyle = 'rgba(64,226,245,.12)'; c.fill(); c.strokeStyle = 'rgba(64,226,245,.8)'; c.lineWidth = 1.2; c.stroke(); }
-      else if (sp === 'lobster' && i === appB - 1) { ln([[x, y0], [x + u * 0.2, y0 + u * 0.4], [x + u * 0.7, y0 + u * 0.45]], W, 2.6); c.beginPath(); c.ellipse(x + u * 1.0, y0 + u * 0.42, u * 0.32, u * 0.14, -0.1, 0, TAU); c.strokeStyle = W; c.lineWidth = 2; c.stroke(); }
-      else ln([[x, y0], [x + u * 0.08, y0 + u * 0.42], [x - u * 0.06, y0 + u * 0.8], [x - u * 0.16, y0 + u * 0.95]], W, 1.8);
-    }
-    if (stainB != null) {   // the Ubx/abd-A stain glows over the thorax behind the edge, and the abdomen
-      c.save(); c.globalCompositeOperation = 'lighter'; const xa = C.edgeX(stainB), gr = c.createLinearGradient(xa - C.sw * 0.4, 0, xa + C.sw * 0.6, 0);
-      gr.addColorStop(0, css(SW_INK.Ubx, 0)); gr.addColorStop(1, css(SW_INK.Ubx, 0.42)); c.fillStyle = gr; c.fillRect(xa - C.sw * 0.4, cy - bodyH * 1.3, ab0 + abdL - xa + C.sw * 0.4, bodyH * 2.6); c.restore();
-    }
+        if (sp === 'mantis' && i === 1) { ln([[x, y0], [x + u * 0.3 * k, y0 + u * 0.55 * k], [x - u * 0.45 * k, y0 + u * 0.62 * k], [x - u * 0.3 * k, y0 + u * 0.32 * k]], col || css(SW_INK.Ubx, 0.95), ghost ? 1.6 : 3.4); return; }   // the raptorial claw is a feeding leg
+        ln([[x, y0], [x - u * 0.12 * k, y0 + u * 0.36 * k], [x - u * 0.42 * k, y0 + u * 0.42 * k], [x - u * 0.55 * k, y0 + u * 0.3 * k]], col || FEED, ghost ? 1.4 : 2.4);
+        if (!ghost) for (let q = 0; q < 3; q++) ln([[x - u * (0.16 + 0.12 * q) * k, y0 + u * 0.4 * k], [x - u * (0.18 + 0.12 * q) * k, y0 + u * 0.55 * k]], 'rgba(255,170,235,.5)', 1);   // setae
+      } else if (sp === 'artemia') { c.beginPath(); c.ellipse(x, y0 + u * 0.32 * k, Math.min(C.sw * 0.42, u * 0.12), u * 0.32 * k, 0.25, 0, TAU); if (!ghost) { c.fillStyle = 'rgba(64,226,245,.14)'; c.fill(); } c.strokeStyle = col || 'rgba(64,226,245,.85)'; c.lineWidth = 1.2; c.stroke(); }
+      else if (sp === 'lobster' && i === appB - 1 && !ghost) { ln([[x, y0], [x + u * 0.3 * k, y0 + u * 0.55 * k], [x + u * 0.85 * k, y0 + u * 0.6 * k]], W, 3); c.beginPath(); c.ellipse(x + u * 1.25 * k, y0 + u * 0.58 * k, u * 0.42 * k, u * 0.18 * k, -0.1, 0, TAU); c.strokeStyle = W; c.lineWidth = 2.2; c.stroke(); ln([[x + u * 1.25 * k, y0 + u * 0.58 * k], [x + u * 1.7 * k, y0 + u * 0.5 * k]], W, 2); }   // the big claw
+      else ln([[x, y0], [x + u * 0.12 * k, y0 + u * 0.5 * k], [x - u * 0.05 * k, y0 + u * 0.95 * k], [x - u * 0.2 * k, y0 + u * 1.08 * k]], col || W, ghost ? 1.2 : 2);
+    };
+    if (ghostB != null) { c.save(); c.setLineDash([3, 3]); for (let i = 0; i < nT; i++) { const fg = i + 1 < ghostB; if (fg !== i + 1 < appB) limb(i, fg, true); } c.restore(); }
+    for (let i = 0; i < nT; i++) limb(i, i + 1 < appB, false);
     // body: head with eye and antennae, thoracic segments, abdomen to the tail fan
-    c.beginPath(); c.moveTo(C.x0 + u * 0.2, cy); c.quadraticCurveTo(C.x0 + u * 0.4, cy - bodyH * 1.2, C.thx, cy - bodyH); c.lineTo(ab0, cy - bodyH * (sp === 'isopod' ? 1 : 0.95));
-    c.quadraticCurveTo(ab0 + abdL * 0.6, cy - bodyH * 0.7, ab0 + abdL * 0.92, cy - bodyH * 0.25); c.lineTo(ab0 + abdL * 0.92, cy + bodyH * 0.25); c.quadraticCurveTo(ab0 + abdL * 0.6, cy + bodyH * 0.75, ab0, cy + bodyH);
-    c.lineTo(C.thx, cy + bodyH); c.quadraticCurveTo(C.x0 + u * 0.4, cy + bodyH * 1.1, C.x0 + u * 0.2, cy); c.closePath();
-    c.fillStyle = 'rgba(10,12,22,.75)'; c.fill(); c.strokeStyle = W; c.lineWidth = 1.5; c.stroke();
-    c.strokeStyle = 'rgba(226,236,255,.3)'; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(C.x0, cy); c.quadraticCurveTo(C.x0 + u * 0.15, cy - bodyH * 1.15, C.thx, cy - bodyH); c.lineTo(ab0, cy - bodyH * 0.95);
+    c.quadraticCurveTo(ab0 + abdL * 0.6, cy - bodyH * 0.75, ab0 + abdL * 0.9, cy - bodyH * 0.28); c.lineTo(ab0 + abdL * 0.9, cy + bodyH * 0.28); c.quadraticCurveTo(ab0 + abdL * 0.6, cy + bodyH * 0.8, ab0, cy + bodyH);
+    c.lineTo(C.thx, cy + bodyH); c.quadraticCurveTo(C.x0 + u * 0.15, cy + bodyH * 1.05, C.x0, cy); c.closePath();
+    const gr = c.createLinearGradient(0, cy - bodyH, 0, cy + bodyH); gr.addColorStop(0, 'rgba(40,46,70,.95)'); gr.addColorStop(1, 'rgba(12,14,24,.95)'); c.fillStyle = gr; c.fill();
+    if (stainB != null) {   // the Ubx/abd-A stain glows over the thorax behind the edge, and the abdomen
+      c.save(); c.clip(); c.globalCompositeOperation = 'lighter'; const xa = C.edgeX(stainB), sg = c.createLinearGradient(xa - C.sw * 0.5, 0, xa + C.sw * 0.5, 0);
+      sg.addColorStop(0, css(SW_INK.Ubx, 0)); sg.addColorStop(1, css(SW_INK.Ubx, 0.5 * g)); c.fillStyle = sg; c.fillRect(xa - C.sw * 0.5, cy - bodyH * 1.3, ab0 + abdL - xa + C.sw * 0.5, bodyH * 2.6); c.restore();
+    }
+    c.strokeStyle = W; c.lineWidth = 1.6; c.stroke();
+    c.strokeStyle = 'rgba(226,236,255,.28)'; c.lineWidth = 1;
     for (let i = 1; i <= nT; i++) { const x = C.thx + i * C.sw; c.beginPath(); c.moveTo(x, cy - bodyH * 0.92); c.lineTo(x, cy + bodyH * 0.92); c.stroke(); }
-    for (let k = 1; k < 6; k++) { const x = ab0 + abdL * 0.92 * k / 6; c.beginPath(); c.moveTo(x, cy - bodyH * 0.7); c.lineTo(x, cy + bodyH * 0.7); c.stroke(); }
-    if (sp === 'lobster' || sp === 'mantis') { c.beginPath(); c.moveTo(C.x0 + u * 0.4, cy - bodyH * 1.05); c.lineTo(C.thx + C.thw * (sp === 'lobster' ? 1 : 0.35), cy - bodyH * 1.1); c.strokeStyle = 'rgba(226,236,255,.6)'; c.lineWidth = 1.4; c.stroke(); }   // the carapace
-    const tx = ab0 + abdL * 0.92; ln([[tx, cy], [tx + u * 0.35, cy - u * 0.22]], W, 1.6); ln([[tx, cy], [tx + u * 0.38, cy]], W, 1.6); ln([[tx, cy], [tx + u * 0.35, cy + u * 0.22]], W, 1.6);
-    const ex = C.x0 + u * 0.55, ey = cy - bodyH * (sp === 'artemia' ? 1.1 : 0.6);
-    if (sp === 'artemia') ln([[C.x0 + u * 0.5, cy - bodyH * 0.5], [ex, ey]], W, 1.2);
-    c.beginPath(); c.arc(ex, ey, u * 0.08, 0, TAU); c.fillStyle = css(SW_INK.Scr, 0.9); c.fill();
-    ln([[C.x0 + u * 0.25, cy - bodyH * 0.3], [C.x0 - u * 0.25, cy - u * 0.75], [C.x0 - u * 0.6, cy - u * 0.85]], W, 1.2); ln([[C.x0 + u * 0.25, cy - bodyH * 0.1], [C.x0 - u * 0.4, cy - u * 0.35]], W, 1.2);
+    for (let k = 1; k < 6; k++) { const x = ab0 + abdL * 0.9 * k / 6; c.beginPath(); c.moveTo(x, cy - bodyH * 0.75); c.lineTo(x, cy + bodyH * 0.75); c.stroke(); }
+    if (sp === 'lobster' || sp === 'mantis') ln([[C.x0 + u * 0.2, cy - bodyH * 1.02], [C.thx + C.thw * (sp === 'lobster' ? 1 : 0.35), cy - bodyH * 1.12]], 'rgba(226,236,255,.6)', 1.6);   // the carapace
+    if (sp !== 'artemia') for (let k = 0; k < 5; k++) { const x = ab0 + abdL * 0.9 * (k + 0.5) / 6; ln([[x, cy + bodyH * 0.7], [x - u * 0.08, cy + bodyH * 0.7 + u * 0.22]], 'rgba(226,236,255,.5)', 1.2); }   // swimmerets
+    const tx = ab0 + abdL * 0.9; for (const d of [-0.32, 0, 0.32]) ln([[tx, cy], [tx + u * 0.45, cy + d * u]], W, 1.8);
+    const ex = C.x0 + u * 0.35, ey = cy - bodyH * (sp === 'artemia' ? 1.5 : 0.75);
+    if (sp === 'artemia') ln([[C.x0 + u * 0.3, cy - bodyH * 0.5], [ex, ey]], W, 1.4);
+    c.beginPath(); c.arc(ex, ey, u * 0.1, 0, TAU); c.fillStyle = css(SW_INK.Scr, 0.95); c.fill();
+    ln([[C.x0 + u * 0.1, cy - bodyH * 0.3], [C.x0 - u * 0.25, cy - u * 0.85], [C.x0 - u * 0.15, cy - u * 1.35]], W, 1.4); ln([[C.x0 + u * 0.1, cy - bodyH * 0.05], [C.x0 - u * 0.35, cy - u * 0.4]], W, 1.3);
     c.restore();
   },
   /* ---------- L5: the Pitx1 circuit board ---------- */
@@ -1176,7 +1182,7 @@ const CH_SWITCH_V2 = {
     c.save(); c.globalAlpha = dead ? 0.45 : 1; c.lineJoin = 'round';
     c.beginPath(); c.moveTo(fx, fy); c.quadraticCurveTo(fx + fl * 0.05, fy - fl * 0.11, fx + fl * 0.3, fy - fl * 0.1); c.quadraticCurveTo(fx + fl * 0.7, fy - fl * 0.07, fx + fl * 0.86, fy - fl * 0.02);
     c.lineTo(fx + fl, fy - fl * 0.08); c.lineTo(fx + fl * 0.97, fy); c.lineTo(fx + fl, fy + fl * 0.08); c.lineTo(fx + fl * 0.86, fy + fl * 0.02); c.quadraticCurveTo(fx + fl * 0.6, fy + fl * 0.1, fx + fl * 0.3, fy + fl * 0.11);
-    c.quadraticCurveTo(fx + fl * 0.06, fy + fl * 0.1, fx, fy); c.closePath(); c.fillStyle = 'rgba(14,20,30,.9)'; c.fill(); c.strokeStyle = 'rgba(220,235,255,.6)'; c.lineWidth = 1.5; c.stroke();
+    c.quadraticCurveTo(fx + fl * 0.06, fy + fl * 0.1, fx, fy); c.closePath(); const fg = c.createLinearGradient(0, fy - fl * 0.1, 0, fy + fl * 0.11); fg.addColorStop(0, 'rgba(34,46,66,.95)'); fg.addColorStop(1, 'rgba(10,14,22,.95)'); c.fillStyle = fg; c.fill(); c.strokeStyle = 'rgba(220,235,255,.6)'; c.lineWidth = 1.5; c.stroke();
     c.beginPath(); c.arc(fx + fl * 0.1, fy - fl * 0.025, fl * 0.028, 0, TAU); c.fillStyle = 'rgba(220,235,255,.85)'; c.fill();
     for (let k = 0; k < 3; k++) { const x = fx + fl * (0.36 + 0.12 * k); c.strokeStyle = 'rgba(220,235,255,.7)'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x, fy - fl * 0.09); c.lineTo(x + fl * 0.02, fy - fl * (0.17 - 0.03 * k)); c.stroke(); }   // three dorsal spines
     const jawBad = dark[1] && grow >= 1, pelOn = !dark[2] || grow < 1;
@@ -1186,7 +1192,7 @@ const CH_SWITCH_V2 = {
     c.save(); c.globalCompositeOperation = 'lighter';
     B.tis.forEach((p, t) => { const on = !dark[t] || !showM, weak = showM === 'swap' && grow >= 1, a = (on ? 1 : 1 - grow) * (weak ? 0.35 : 1) * (dead ? 0.4 : 1); if (a > 0.02) { c.globalAlpha = a; c.drawImage(this.glow(SW_INK.gfp), p[0] - fl * 0.07, p[1] - fl * 0.07, fl * 0.14, fl * 0.14); } });
     c.restore();
-    B.tis.forEach((p, t) => { Lbl.put('sw-tis' + t, L[SWK.MOD[t]], p[0], p[1] - fl * 0.075, { size: 12, pill: false, ink: 'rgba(214,224,250,.85)' }); });
+    B.tis.forEach((p, t) => { Lbl.put('sw-tis' + t, L[SWK.MOD[t]], p[0], p[1] + (t === 1 ? fl * 0.075 : -fl * 0.075), { size: 12, pill: false, ink: 'rgba(214,224,250,.85)' }); });
     if (ph === 'ask') B.tis.forEach((p, t) => { if (!s.tis[t]) { c.strokeStyle = 'rgba(214,224,250,.35)'; c.setLineDash([3, 4]); c.lineWidth = 1.4; c.beginPath(); c.arc(p[0], p[1], 22, 0, TAU); c.stroke(); c.setLineDash([]); return; } c.strokeStyle = css(SW_INK.Ubx); c.lineWidth = 2.6; c.beginPath(); c.arc(p[0], p[1], 22, 0, TAU); c.stroke(); Lbl.put('sw-dk' + t, L.dark, p[0], p[1] + 32, { size: 12, ink: '#07080C', bg: css(SW_INK.Ubx) }); });
     if (showM && grow >= 1 && (ph === 'test' || ph === 'send' || ph === 'choose' || ph === 'pick')) Lbl.put('sw-fate', L[fate], fx + fl * 0.5, fy + fl * 0.17, { size: 14, ink: '#07080C', bg: fate === 'clean' ? css(SW_INK.gfp) : css(SW_INK.AbdB), weight: 700 });
     // the dish of test embryos
@@ -1196,19 +1202,22 @@ const CH_SWITCH_V2 = {
     const by = B.my, mh = B.mh, key = typeof Fx !== 'undefined' && Fx.lastInput === 'key';
     c.strokeStyle = 'rgba(180,200,240,.3)'; c.lineWidth = 3; c.beginPath(); c.moveTo(B.bx, by); c.lineTo(B.bx + B.bw, by); c.stroke();
     c.save(); c.globalCompositeOperation = 'lighter';
-    for (let m = 0; m < 3; m++) { const x = B.mx(m), p = B.tis[m], cut = showM === SWK.MOD[m]; c.strokeStyle = css(SW_INK.gfp, cut ? 0.12 : 0.5); c.lineWidth = 2; c.beginPath(); c.moveTo(x, by - mh / 2); c.lineTo(x, by - mh / 2 - (by - p[1]) * 0.35); c.lineTo(p[0], p[1] + 24); c.stroke(); }
+    const busY = by - mh / 2 - Math.min(26, (by - B.fy) * 0.12), coded = showM === 'stop' || showM === 'swap';   // the protein is one product for all three tissues: a bus from the exons
+    c.strokeStyle = css(SW_INK.Scr, coded ? 0.15 : 0.45); c.lineWidth = 2; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(B.mx(4), by - mh / 2); c.lineTo(B.mx(4), busY); c.lineTo(B.mx(0), busY); c.moveTo(B.mx(3), by - mh / 2); c.lineTo(B.mx(3), busY); c.stroke(); c.setLineDash([]);
+    for (let m = 0; m < 3; m++) { c.fillStyle = css(SW_INK.Scr, coded ? 0.2 : 0.6); c.beginPath(); c.arc(B.mx(m), busY, 3, 0, TAU); c.fill(); }
+    for (let m = 0; m < 3; m++) { const x = B.mxm(m), p = B.tis[m], cut = showM === SWK.MOD[m]; c.strokeStyle = css(SW_INK.gfp, cut ? 0.12 : 0.5); c.lineWidth = 2; c.beginPath(); c.moveTo(x, by - mh / 2); c.lineTo(x, by - mh / 2 - (by - p[1]) * 0.35); c.lineTo(p[0], p[1] + 24); c.stroke(); }
     c.restore();
     for (let m = 0; m < 5; m++) {
-      const x = B.mx(m), w = B.mw * 0.86, code = m >= 3, cut = showM === SWK.MOD[m], sel = s.sel === m && (ph === 'ask' || ph === 'pick' || ph === 'test');
+      const x = B.mxm(m), w = B.mw * 0.86, code = m >= 3, cut = showM === SWK.MOD[m], sel = s.sel === m && (ph === 'ask' || ph === 'pick' || ph === 'test');
       rrect(c, x - w / 2, by - mh / 2, w, mh, 6); c.fillStyle = code ? 'rgba(64,226,245,.18)' : 'rgba(120,255,120,.16)'; c.fill();
       c.strokeStyle = sel ? '#FFFFFF' : code ? 'rgba(64,226,245,.7)' : 'rgba(120,255,120,.7)'; c.lineWidth = sel ? 2.4 : 1.2; c.stroke();
       if (cut) { c.strokeStyle = css(SW_INK.AbdB); c.lineWidth = 2.4; c.beginPath(); c.moveTo(x - 6, by - mh / 2 - 4); c.lineTo(x + 6, by + mh / 2 + 4); c.stroke(); }
-      Lbl.put('sw-m' + m, L['m' + SWK.MOD[m]], x, by + mh / 2 + 12, { size: 12, pill: false, ink: 'rgba(214,224,250,.85)' });
-      if (key && this.v.mod === m) { c.strokeStyle = css(SW_INK.white); c.lineWidth = 2; rrect(c, x - w / 2 - 3, by - mh / 2 - 3, w + 6, mh + 6, 8); c.stroke(); }
+      Lbl.put('sw-m' + m, L['m' + SWK.MOD[m]], x, by, { size: 12, pill: false, ink: code ? 'rgba(170,240,255,.95)' : 'rgba(190,255,190,.95)', weight: 700 });
+      if (key && this.v.mod === B.slotOf(m)) { c.strokeStyle = css(SW_INK.white); c.lineWidth = 2; rrect(c, x - w / 2 - 3, by - mh / 2 - 3, w + 6, mh + 6, 8); c.stroke(); }
     }
-    Lbl.put('sw-enh', L.enh, (B.mx(0) + B.mx(2)) / 2, by - mh / 2 - 12, { size: 12, pill: false, ink: 'rgba(160,255,160,.75)' });
-    Lbl.put('sw-code', L.code, (B.mx(3) + B.mx(4)) / 2, by - mh / 2 - 12, { size: 12, pill: false, ink: 'rgba(120,230,250,.75)' });
-    if (this.v.snip) { const k = this.v.snip.age, x = B.mx(this.v.snip.m); c.strokeStyle = 'rgba(255,255,255,' + (1 - k).toFixed(2) + ')'; c.lineWidth = 2; for (const sg of [-1, 1]) { c.beginPath(); c.moveTo(x - 10, by - 14 * sg); c.lineTo(x + 8 - k * 6, by + 2 * sg); c.stroke(); } }
+    Lbl.put('sw-enh', L.enh, (B.mx(0) + B.mx(2)) / 2, by + mh / 2 + 13, { size: 12, pill: false, ink: 'rgba(160,255,160,.75)' });
+    Lbl.put('sw-code', L.code, (B.mx(3) + B.mx(4)) / 2, by + mh / 2 + 13, { size: 12, pill: false, ink: 'rgba(120,230,250,.75)' });
+    if (this.v.snip) { const k = this.v.snip.age, x = B.mxm(this.v.snip.m); c.strokeStyle = 'rgba(255,255,255,' + (1 - k).toFixed(2) + ')'; c.lineWidth = 2; for (const sg of [-1, 1]) { c.beginPath(); c.moveTo(x - 10, by - 14 * sg); c.lineTo(x + 8 - k * 6, by + 2 * sg); c.stroke(); } }
   },
   /* ---------- L6: the lake ---------- */
   lake(w, h) {   // cold, clear water baked once per size: a surface line, light shafts, a weed bed along the bottom
@@ -1223,30 +1232,33 @@ const CH_SWITCH_V2 = {
     g.strokeStyle = 'rgba(200,240,250,.25)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 6); for (let x = 0; x <= w; x += 20) g.lineTo(x, 6 + 2 * Det.sin(x * 0.07)); g.stroke();
     this._lk = { key, cv }; return cv;
   },
-  fishSprite(spiny, S) {   // a stickleback, side view, faces right; the pelvic spine is the trait you can see
+  fishSprite(spiny, S) {   // a three-spined stickleback, side view, faces right; the pelvic spine (under the belly) is the trait you can see
     const C = this._fs || (this._fs = {}), k = (spiny ? 's' : 'n') + Math.round(S); if (C[k]) return C[k];
-    const d = Math.min(2, Stage.dpr || 1), cv = mkCanvas(S * 1.3 * d, S * 0.8 * d), g = cv.getContext('2d'); g.scale(d, d); g.translate(S * 0.62, S * 0.36);
-    g.fillStyle = '#9DB5A6'; g.beginPath(); g.moveTo(S * 0.5, 0); g.quadraticCurveTo(S * 0.2, -S * 0.2, -S * 0.3, -S * 0.08); g.lineTo(-S * 0.5, -S * 0.17); g.lineTo(-S * 0.46, 0); g.lineTo(-S * 0.5, S * 0.17); g.lineTo(-S * 0.3, S * 0.08); g.quadraticCurveTo(S * 0.2, S * 0.2, S * 0.5, 0); g.fill();
-    g.fillStyle = 'rgba(230,240,235,.6)'; g.beginPath(); g.ellipse(S * 0.05, S * 0.06, S * 0.3, S * 0.06, 0, 0, TAU); g.fill();
-    g.strokeStyle = '#DDE8E2'; g.lineWidth = Math.max(1, S * 0.05); g.lineCap = 'round';
-    for (const x of [0.22, 0.08, -0.06]) { g.beginPath(); g.moveTo(S * x, -S * 0.14); g.lineTo(S * (x + 0.04), -S * 0.3); g.stroke(); }
-    if (spiny) { g.lineWidth = Math.max(1.2, S * 0.07); g.beginPath(); g.moveTo(S * 0.12, S * 0.13); g.lineTo(-S * 0.08, S * 0.36); g.stroke(); }
-    g.fillStyle = '#0B1A1E'; g.beginPath(); g.arc(S * 0.36, -S * 0.03, S * 0.045, 0, TAU); g.fill();
-    cv.cw = S * 1.3; cv.ch = S * 0.8; C[k] = cv; return cv;
+    const d = Math.min(2, Stage.dpr || 1), cv = mkCanvas(S * 1.3 * d, S * 0.9 * d), g = cv.getContext('2d'); g.scale(d, d); g.translate(S * 0.64, S * 0.4); g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = 'rgba(214,226,216,.85)'; g.lineWidth = Math.max(1, S * 0.035);
+    for (const [x, hh] of [[0.2, 0.13], [0.06, 0.12], [-0.1, 0.07]]) { g.beginPath(); g.moveTo(S * (x - 0.03), -S * 0.11); g.lineTo(S * (x + 0.03), -S * (0.11 + hh)); g.stroke(); }   // three dorsal spines
+    if (spiny) { g.lineWidth = Math.max(1.5, S * 0.055); g.strokeStyle = '#F2F6F0'; g.beginPath(); g.moveTo(S * 0.12, S * 0.1); g.lineTo(-S * 0.1, S * 0.24); g.stroke(); }
+    const gr = g.createLinearGradient(0, -S * 0.16, 0, S * 0.16); gr.addColorStop(0, '#6F8A62'); gr.addColorStop(0.55, '#AFC2A8'); gr.addColorStop(1, '#E2EADF');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(S * 0.5, 0); g.quadraticCurveTo(S * 0.3, -S * 0.17, -S * 0.12, -S * 0.11); g.quadraticCurveTo(-S * 0.3, -S * 0.06, -S * 0.36, -S * 0.02); g.lineTo(-S * 0.52, -S * 0.15); g.lineTo(-S * 0.47, 0); g.lineTo(-S * 0.52, S * 0.15); g.lineTo(-S * 0.36, S * 0.02); g.quadraticCurveTo(-S * 0.3, S * 0.07, -S * 0.12, S * 0.11); g.quadraticCurveTo(S * 0.3, S * 0.17, S * 0.5, 0); g.fill();
+    g.strokeStyle = 'rgba(20,40,30,.5)'; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 5; i++) { const x = S * (0.18 - 0.07 * i); g.beginPath(); g.moveTo(x, -S * 0.07); g.lineTo(x - S * 0.02, S * 0.06); g.stroke(); }   // lateral plates
+    g.fillStyle = 'rgba(140,170,140,.8)'; g.beginPath(); g.moveTo(S * 0.18, S * 0.02); g.quadraticCurveTo(S * 0.06, S * 0.12, S * 0.02, S * 0.04); g.closePath(); g.fill();   // pectoral fin
+    g.fillStyle = '#0B1A1E'; g.beginPath(); g.arc(S * 0.37, -S * 0.035, S * 0.045, 0, TAU); g.fill(); g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(S * 0.385, -S * 0.05, S * 0.015, 0, TAU); g.fill();
+    cv.cw = S * 1.3; cv.ch = S * 0.9; C[k] = cv; return cv;
   },
   drawLake(c, w, h) {
-    const s = this.sim.s, v = this.v, L = this.content.labels, sim = this.sim, calm = this.calm(), S = clamp(Math.min(w, 1.2 * h) * 0.06, 16, 34);
+    const s = this.sim.s, v = this.v, L = this.content.labels, sim = this.sim, calm = this.calm(), S = clamp(Math.min(w, 1.2 * h) * 0.085, 24, 46);
     c.drawImage(this.lake(w, h), 0, 0, w, h);
     if (v.flash > 0) { c.fillStyle = 'rgba(200,240,255,' + (v.flash * 0.15).toFixed(3) + ')'; c.fillRect(0, 0, w, h); }
     const top = this.hudH() + 6, by = 430 / 540 * h, n = Math.min(SWK.LAKE.SHOW, s.fish.length), t = v.swim;
     const dying = {}; for (const k of v.strikes) dying[k.i] = k;
     for (let i = 0; i < n; i++) {   // the visible fish: a deterministic swim path per id (view only)
       const f = s.fish[i], k = dying[i]; if (f.dead && !k) continue;
-      const h1 = ((f.id * 2654435761) >>> 0) / 4294967296, h2 = ((f.id * 40503 + 7) % 1000) / 1000, sp = 0.03 + 0.04 * h2, dir = h1 < 0.5 ? 1 : -1;
+      const h1 = ((f.id * 2654435761) >>> 0) / 4294967296, h2 = ((Math.imul(f.id ^ 0x5bd1e995, 0x27d4eb2d) ^ (f.id << 13)) >>> 0) / 4294967296, sp = 0.03 + 0.04 * h2, dir = h1 < 0.5 ? 1 : -1;
       let x = (h1 * 7.3 + dir * t * sp) % 1; if (x < 0) x += 1; x = 12 + x * (w - 24);
       const y = top + 20 + h2 * (by - top - 40) + (calm ? 0 : 6 * Det.sin(t * 1.3 + h1 * 9));
       const spr = this.fishSprite(sim.spiny(f.g), S);
-      c.save(); c.translate(x, y); if (dir < 0) c.scale(-1, 1); if (k) { const a = clamp(k.age / 0.8, 0, 1); c.globalAlpha = 1 - a; c.rotate(0.4 * a); } c.drawImage(spr, -spr.cw * 0.62, -spr.ch * 0.45, spr.cw, spr.ch); c.restore();
+      c.save(); c.translate(x, y); if (dir < 0) c.scale(-1, 1); if (k) { const a = clamp(k.age / 0.8, 0, 1); c.globalAlpha = 1 - a; c.rotate(0.4 * a); } c.drawImage(spr, -spr.cw * 0.64, -spr.ch * 0.44, spr.cw, spr.ch); c.restore();
       if (k && k.age > 0 && k.age < 0.5) { c.strokeStyle = k.by === 't' ? 'rgba(255,190,150,.9)' : 'rgba(190,255,150,.9)'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, S * (0.4 + k.age), 0, TAU); c.stroke(); }
     }
     s.preds.forEach((p, i) => {   // predators: trout patrol open water; nymphs lurk in the weeds
@@ -1263,10 +1275,10 @@ const CH_SWITCH_V2 = {
       }
     });
     const c2 = sim.counts();
-    Lbl.put('sw-lt', L.trout + ' ' + c2[0], 12, h - 50, { size: 13, align: 'left', ink: '#0B1A1E', bg: 'rgba(225,235,230,.9)' });
-    Lbl.put('sw-ln', L.nymph + ' ' + c2[1], 12, h - 24, { size: 13, align: 'left', ink: '#0B1A1E', bg: 'rgba(205,235,180,.9)' });
-    Lbl.put('sw-xn', L.xn, w - 12, h - 24, { size: 12, align: 'right', ink: '#0B1A1E', bg: 'rgba(225,235,230,.85)' });
-    if (v.title > 0 && !calm) { c.save(); c.globalAlpha = clamp(v.title / 0.6, 0, 1); Lbl.put('sw-ban', L.ban5, w / 2, top + 26, { size: 18, pill: false, ink: css(SW_INK.white), weight: 700 }); c.restore(); }
+    Lbl.put('sw-lt', L.trout + ' ' + c2[0], 10, top + 14, { size: 13, align: 'left', ink: '#0B1A1E', bg: 'rgba(225,235,230,.9)' });
+    Lbl.put('sw-ln', L.nymph + ' ' + c2[1], 90, top + 14, { size: 13, align: 'left', ink: '#0B1A1E', bg: 'rgba(205,235,180,.9)' });
+    Lbl.put('sw-xn', L.xn, w - 10, top + 14, { size: 12, align: 'right', ink: '#0B1A1E', bg: 'rgba(225,235,230,.85)' });
+    if (v.title > 0 && !calm) { c.save(); c.globalAlpha = clamp(v.title / 0.6, 0, 1); Lbl.put('sw-ban', L.ban5, w / 2, top + 44, { size: 18, pill: false, ink: css(SW_INK.white), weight: 700 }); c.restore(); }
   },
 
   /* ---------- the live graph (notes() feeds the strip; never pauses) ---------- */
@@ -1277,10 +1289,10 @@ const CH_SWITCH_V2 = {
       const J = this.job() || s.jobs[s.jobs.length - 1], tgt = this.sim.target(J), see = s.phase === 'judge' || s.phase === 'over' || card;
       const row = { type: 'sw_row', title: L.chRow, cols, target: Array.isArray(tgt) ? tgt : null, yours: see && s.ids ? s.ids : null, names: ['H', 'T1', 'T2', 'T3', 'A1', 'A', 'A8'].map(idName), tl: L.order, yl: L.yours, frame: 'designed' };
       stats.push([L.order, (s.job + 1) + ' of ' + s.jobs.length, ''], ['Built', String(s.solvedN), 'Orders matched within three tries.']);
-      const charts = [row];
-      if (n === 0) charts.push({ type: 'scatter', title: L.chLegs, x: { lo: 0.5, hi: 5.5, label: L.fly }, y: { lo: 0, hi: 7, label: L.legPairs }, frame: 'designed', series: [{ pts: s.pts.slice(), shape: 'disc', ink: 'ink', label: L.flies }], fold: false });
+      const legs = n === 0 && J && J.k === 'vial', charts = legs ? [] : [row];
+      if (n === 0) charts.push({ type: 'scatter', title: L.chLegs, x: { lo: 0.5, hi: 5.5, label: L.fly }, y: { lo: 0, hi: 7, label: L.legPairs }, frame: 'designed', series: [{ pts: s.pts.slice(), shape: 'disc', ink: 'ink', label: L.flies }], fold: !legs ? false : undefined });
       if (n === 2) { const b = s.b || SWK.WB, mine = [], wt = []; for (let g = 0; g < 5; g++) { wt.push([g + 1, SWK.WB[g]]); if (b[g] < 7) mine.push([g + 1, b[g]]); }
-        charts.push({ type: 'scatter', title: L.chOrd, x: { lo: 0.5, hi: 5.5, label: L.geneOrd }, y: { lo: 0, hi: 7, label: L.edge }, frame: 'designed', series: [{ pts: mine, shape: 'disc', ink: 'ink', label: L.mine }, { pts: wt, shape: 'square', ink: 'text2', label: L.wt }], fold: false }); }
+        charts.push({ type: 'scatter', title: L.chOrd, x: { lo: 0.5, hi: 5.5, label: L.geneOrd }, y: { lo: 0, hi: 7, label: L.edge }, frame: 'designed', series: [{ pts: wt, shape: 'square', ink: 'text2', label: L.wt }, { pts: mine, shape: 'disc', ink: 'ink', label: L.mine }], fold: false }); }
       return { stats, charts };
     }
     if (n === 3) {
@@ -1297,13 +1309,13 @@ const CH_SWITCH_V2 = {
     const H = s.hist, ghost = [], Lk = SWK.LAKE;
     const curve = (g0, g1, q0, T, M, dom) => { const out = [[g0, q0]]; let q = q0; for (let g = g0; g < g1; g++) { q = swLakeRec(q, T, M, 1, s.mu, dom); out.push([g + 1, Math.round(q * 1000) / 1000]); } return out; };
     for (const id of ['p6', 't6']) {
-      if (s.exp[id] == null || s.pred[id] === undefined) continue; const g0 = id === 'p6' ? s.askGen : s.flip, r = H[g0 - 1]; if (!r) continue;
+      if (s.exp[id] == null || s.pred[id] === undefined) continue; const g0 = id === 'p6' ? s.askGen : s.ret, r = H[g0 - 1]; if (!r) continue;
       ghost.push({ d: curve(g0, id === 'p6' ? s.flip : s.end, r.q, r.T, r.M, false), label: L.expected });
       if (id === 'p6') ghost.push({ d: curve(g0, s.flip, r.q, r.T, r.M, true), label: L.dominant });
     }
     stats.push(['Generation', String(s.gen), ''], ['Deletion share', Math.round(this.sim.q() * 100) + '%', 'Share of copies with the enhancer deleted.'], ['Spineless', Math.round(H[H.length - 1].dd * 100) + '%', 'Fish with two deleted copies.']);
     return { stats, charts: [{ type: 'trace', title: L.chLake, x: { lo: 1, hi: s.end || Lk.XHI, label: L.gen }, y: { lo: 0, hi: 1, label: L.share, fmt: 'pct' }, frame: 'designed',
-      series: [{ d: H.map(r => r.q), ink: 'a', label: L.del }, { d: H.map(r => r.dd), ink: 'text2', label: L.ss }], ghost, marks: s.flip ? [s.flip] : [] }] };
+      series: [{ d: H.map(r => r.q), ink: 'a', label: L.del }, { d: H.map(r => r.dd), ink: 'text2', label: L.ss }], ghost, marks: [s.flip, s.ret].filter(Boolean) }] };
   }
 };
 V2.push(CH_SWITCH_V2);

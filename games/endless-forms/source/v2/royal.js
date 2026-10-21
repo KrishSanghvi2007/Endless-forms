@@ -66,7 +66,7 @@ const RY_TEXT = {
     fr: '♀ red', fw: '♀ white', mr: '♂ red', mw: '♂ white', vials: 'Vials',
     g1: 'F1 hatched', g2: 'F2 hatched', g3: 'White daughter', g4: 'Reverse cross',
     goal1: 'the F1', goal2: 'the F2', goal3: 'a white-eyed daughter', goal4: 'the reverse cross',
-    lock: 'Lock in', breed: 'Breed now', seal: 'Seal', faster: 'Faster', crossN: 'Cross {n}', battery: 'Battery', gen: 'Generation {n}',
+    nextF: 'Next ♀', xRed: 'Red ♂', xWhite: 'White ♂', lock: 'Lock in', breed: 'Breed now', seal: 'Seal', faster: 'Faster', crossN: 'Cross {n}', battery: 'Battery', gen: 'Generation {n}',
     ctl: 'Autosome cage', xcage: 'X cage', fem: '♀ X copies', male: '♂ X copies', carrier: 'carrier', notc: 'not carrier',
     aff: 'haemophilia', none: 'no children', chance: 'Carrier chance', clear: 'assumed clear', xN: 'Mutation ×1000', exact: 'exact {p}%', youP: 'you {p}%',
     obligate: 'father affected', newcage: 'New cage', dish: 'Courtship dish', wm: 'white-eyed ♂ {n}%', wfem: 'white-eyed ♀ {n}%',
@@ -377,11 +377,12 @@ const CH_ROYAL_V2 = {
       const sel = s.nw > 0 ? s.cg / s.nw : 0; s.caught += s.cg; s.shown += s.nw; s.rounds.push({ nw: s.nw, cg: s.cg, sel: this.r6(sel) });
       s.beam.on = false; this.xGen(s.cage, s.N, sel, s.mu); s.g++; s.hist.push(this.cageStat(s)); s.phase = 'bred'; s.t = 0; ev.push({ k: 'bred', g: s.g, sel: this.r6(sel) });
     },
-    lampEq(qf, qm, sel, mu) { const mut = q => q + mu * (1 - q); for (let g = 0; g < 3000; g++) { const fa = qm * (1 - sel) / (1 - sel * qm), a = mut(qf), b = mut(fa); qf = (a + b) / 2; qm = a; } return qm; },   // deterministic recursion to its balance
+    xRec(qf, qm, sel, mu) { sel = sel || 0; mu = mu || 0; const mut = q => q + mu * (1 - q), fa = sel > 0 ? qm * (1 - sel) / (1 - sel * qm) : qm, a = mut(qf), b = mut(fa); return [(a + b) / 2, a]; },   // the expected next [q_f, q_m]: what xGen samples around
+    lampEq(qf, qm, sel, mu) { for (let g = 0; g < 3000; g++) [qf, qm] = this.xRec(qf, qm, sel, mu); return qm; },   // deterministic recursion to its balance
     balAsk(s, ev) {
       // the lamp's share from now: half, unless "no change" would already sit inside the band; then a quarter, else all (lessons rule 4)
       const h = s.hist[s.hist.length - 1], cur = h.qm; let sel = 0.5, e = 0;
-      for (const c of [0.5, 0.25, 1]) { e = this.r6(this.lampEq(h.qf, h.qm, c, s.mu)); sel = c; if (!(cur >= e / 1.5 && cur <= e * 1.5)) break; }
+      for (const c of [0.5, 0.25, 1]) { e = this.r6(this.lampEq(h.qf, h.qm, c, s.mu)); sel = c; if (!(cur >= e / 1.8 && cur <= e * 1.8)) break; }   // a margin beyond the band, so a nudge from "no change" is not a hit
       s.sAuto = sel; s.atAsk = { F: s.cage.F.slice(), M: s.cage.M.slice(), g: s.g, hl: s.hist.length };
       this.openAsk(s, ev, 'bal', 'y', 0, 0.4, this.r6(e * 0.45), cur, e, 'auto', 65);
     },
@@ -640,11 +641,15 @@ const CH_ROYAL_V2 = {
     if (sig === this._dockSig) return; this._dockSig = sig;
     if (s.ask) { Dock.set([{ id: 'ry-lock', label: L.lock, key: 'Enter', primary: true, fn: () => this.lockIn() }]); return; }
     if (s.auto || s.phase === 'over') { Dock.set([]); return; }
+    if (s.kind === 'cross' && s.phase === 'pick') {   // the non-drag path (keys and dock): pick a female, then cross her with a red or a white male
+      const go = m => { const f = this.v.sel || 'wf'; Sim.act(this, { k: 'cross', f, m }); this.v.sel = null; };
+      Dock.set([{ id: 'ry-fsel', label: L.nextF, key: 'f', fn: () => this.nextFemale() }, { id: 'ry-xr', label: L.xRed, key: 'r', fn: () => go('wm') }, { id: 'ry-xw', label: L.xWhite, key: 'w', fn: () => go('mm') }]); return; }
     if (s.kind === 'lamp' && s.phase === 'court') { Dock.set([{ id: 'ry-breed', label: L.breed, key: 'Enter', fn: () => Sim.act(this, { k: 'breed' }) }]); return; }
     if (s.kind === 'gallery' && (s.phase === 'prior' || s.phase === 'post')) { Dock.set([{ id: 'ry-seal', label: L.seal, key: 'Enter', primary: true, disabled: this.v.slider == null, why: this.content.whispers.setFirst, fn: () => this.sealIt() }]); return; }
     if (/hatch|gen|tgen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Dock.set([{ id: 'ry-ff', label: L.faster, key: ' ', fn: () => Sim.act(this, { k: 'ff', on: true }) }]); return; }
     Dock.set([]);
   },
+  nextFemale() { const s = this.sim.s, F = s.stocks.filter(x => x.sex === 'f'), i = F.findIndex(x => x.id === this.v.sel); this.v.sel = F[(i + 1) % F.length].id; if (typeof Live !== 'undefined') Live.say(this.stockLabel(F[(i + 1) % F.length])); },
   sealIt() { const v = this.v; if (v.slider == null) { this.whisper('setFirst'); return; } Sim.act(this, { k: 'judge', v: Math.round(v.slider * 100) / 100 }); },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
@@ -746,7 +751,7 @@ const CH_ROYAL_V2 = {
       if (s.unt) { Sim.act(this, { k: 'flash', x: Math.round(nx * 1000) / 1000, y: Math.round(ny * 1000) / 1000 }); return; }
       v.beamOn = true; v.last = v.t; Sim.act(this, { k: 'beam', x: Math.round(nx * 1000) / 1000, y: Math.round(ny * 1000) / 1000 }); return;
     }
-    if (s.kind === 'gallery' && (s.phase === 'prior' || s.phase === 'post')) { const S = P.sl; if (y > S.y - 40 && y < S.y + 40) { v.sliding = true; v.slider = Math.max(0, Math.min(1, (x - S.x) / S.w)); this._dockSig = ''; } }
+    if (s.kind === 'gallery' && (s.phase === 'prior' || s.phase === 'post')) { const S = P.sl; if (y > S.y - 40 && y < S.y + 40) { v.sliding = true; v.slider = Math.max(0, Math.min(1, (x - S.x) / S.w)); this._dockSig = ''; this.dock(); } }
   },
   move(x, y) {
     const s = this.sim.s, v = this.v, P = this.pos(); v.px = x; v.py = y;
@@ -771,7 +776,7 @@ const CH_ROYAL_V2 = {
       if (k === ' ') { if (s.unt) Sim.act(this, { k: 'flash', x: v.kb[0], y: v.kb[1] }); else Sim.act(this, s.beam.on ? { k: 'off' } : { k: 'beam', x: v.kb[0], y: v.kb[1] }); }
       return;
     }
-    if (s.kind === 'gallery' && (s.phase === 'prior' || s.phase === 'post')) { if (k === 'ArrowLeft' || k === 'ArrowRight') { v.slider = Math.max(0, Math.min(1, (v.slider == null ? 0.5 : v.slider) + (k === 'ArrowRight' ? 0.05 : -0.05))); v.slider = Math.round(v.slider * 100) / 100; this._dockSig = ''; } }
+    if (s.kind === 'gallery' && (s.phase === 'prior' || s.phase === 'post')) { if (k === 'ArrowLeft' || k === 'ArrowRight') { v.slider = Math.max(0, Math.min(1, (v.slider == null ? 0.5 : v.slider) + (k === 'ArrowRight' ? 0.05 : -0.05))); v.slider = Math.round(v.slider * 100) / 100; this._dockSig = ''; this.dock(); } }
   },
   teacherStep() { Sim.act(this, { k: 'ff', on: true }); },
 
@@ -801,8 +806,8 @@ const CH_ROYAL_V2 = {
     const fr = Math.max(46, Math.min(100, (bot - top - 190) / 4.1, W * 0.2)), pr = fr * 0.42, sr = Math.max(22, fr * 0.42);   // stacked top-down: parents, her portrait and plate, her sons, the slider
     P.par = { y: top + pr * 1.05 + 4, r: pr };
     P.frame = { x: W / 2, y: P.par.y + pr + 46 + fr, r: fr };
-    P.sonR = sr; P.sonY = P.frame.y + fr * 1.12 + 62 + sr;
-    P.sl = { x: W * (ph ? 0.12 : 0.3), w: W * (ph ? 0.76 : 0.4), y: Math.max(P.sonY + sr * 1.2 + 64, bot - 34) };
+    P.sonR = sr; P.sonY = P.frame.y + fr * 1.12 + 58 + sr;
+    P.sl = { x: W * (ph ? 0.12 : 0.3), w: W * (ph ? 0.76 : 0.4), y: Math.max(P.sonY + sr * 1.15 + 74, bot - 34) };
     if (P.sl.y > bot - 22) P.sl.y = bot - 22;
     return P;
   },
@@ -827,7 +832,7 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s; if (!s) return;
     if (s.kind === 'cross') this.drawCross(c, w, h); else if (s.kind === 'cage') this.drawCage(c, w, h); else if (s.kind === 'lamp') this.drawLamp(c, w, h); else this.drawGallery(c, w, h);
     const v = this.v; if (typeof Lbl === 'undefined') return;
-    if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('ry-banner', b.text, w / 2, this.hudH() + 34, { size: 22, c, weight: 700 }); c.restore(); }
+    if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; const P = this.pos(), by = s.kind === 'cross' ? P.benchY - 26 : s.kind === 'gallery' ? P.frame.y : this.hudH() + 34; c.save(); c.globalAlpha = a; Lbl.put('ry-banner', b.text, w / 2, by, { size: 22, c, weight: 700 }); c.restore(); }
   },
   bake(key, w, h, fn) {   // static layers, baked once per size and key (never in the frame loop)
     const v = this.v, sz = Math.round(w) + 'x' + Math.round(h) + ':' + Math.round(this.hudH()); if (v.bgk !== sz) { v.bgk = sz; v.bgs = {}; } if (v.bgs[key]) return v.bgs[key];
@@ -891,6 +896,7 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels;
     c.drawImage(this.bake('room', w, h, (cc, W, H) => this.roomBg(cc, W, H, P, false)), 0, 0, w, h);
     this.lampLight(c, P, P.cross.x, P.benchY, Math.max(w, h) * 0.55, 1);
+    if (!P.ph) { this.lampDraw(c, w * 0.9, P.top + 40, Math.max(20, P.u * 0.045)); this.lampLight(c, P, w * 0.86, P.benchY, h * 0.5, 0.7); }
     c.fillStyle = '#4A3322'; c.fillRect(0, P.shelfY + P.bh * 0.5, w, 8); c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(0, P.shelfY + P.bh * 0.5 + 8, w, 5);   // the shelf plank
     // the stock bottles
     const B = this.shelf();
@@ -1065,25 +1071,26 @@ const CH_ROYAL_V2 = {
     // the sons, stepping forward one at a time (squares; filled when affected)
     const rev = s.phase === 'prior' ? 0 : s.phase === 'sons' ? s.son : ca.sons.length;
     if (s.phase !== 'prior' && !ca.sons.length) Lbl.put('ry-none', L.none, fr.x, P.sonY, { size: 13, c });
-    for (let i = 0; i < rev; i++) { const so = ca.sons[i], q = this.sonXY(i), sv = v.sons.find(z => z.i === i), k = sv ? Math.min(1, sv.t / 0.35) : 1; if (sv) sv.t += 1 / 60; this.drawPortrait(c, ca.id + 's' + i, 20 + i + ca.look, q[0], q[1] + (1 - k) * 20, P.sonR, true, !!so[1], k); Lbl.put('ry-son' + i, so[0], q[0], q[1] + P.sonR * 1.15 + 12, { size: 12, c }); if (so[1]) Lbl.put('ry-sa' + i, L.aff, q[0], q[1] - P.sonR * 1.1 - 10, { size: 12, c }); }
+    for (let i = 0; i < rev; i++) { const so = ca.sons[i], q = this.sonXY(i), sv = v.sons.find(z => z.i === i), k = sv ? Math.min(1, sv.t / 0.35) : 1; if (sv) sv.t += 1 / 60; this.drawPortrait(c, ca.id + 's' + i, 20 + i + ca.look, q[0], q[1] + (1 - k) * 20, P.sonR, true, !!so[1], k); Lbl.put('ry-son' + i, so[0], q[0], q[1] + P.sonR * 1.15 + 12, { size: 12, c }); if (so[1]) Lbl.put('ry-sa' + i, L.aff, q[0], q[1] + P.sonR * 1.15 + 30, { size: 12, c }); }
     if (rev > 0 || s.phase !== 'prior') { c.strokeStyle = RY_C.gold; c.lineWidth = 1.5; if (ca.sons.length) { const a = this.sonXY(0), b = this.sonXY(ca.sons.length - 1), yy = P.sonY - P.sonR * 1.4; c.beginPath(); c.moveTo(fr.x, Math.min(yy, fr.y + fr.r * 1.12 + 46)); c.lineTo(fr.x, yy); c.moveTo(a[0], yy); c.lineTo(b[0], yy); for (let i = 0; i < Math.min(rev, ca.sons.length); i++) { const q = this.sonXY(i); c.moveTo(q[0], yy); c.lineTo(q[0], q[1] - P.sonR * 1.05); } c.stroke(); } }
     // the brass slider (your estimate) and, after sealing, the exact plaque and the two-worlds bar (Bayes as areas)
-    const S = P.sl, J = s.judg.filter(x => x.id === ca.id), jp = J.find(x => x.st === 'prior'), jq = J.find(x => x.st === 'post');
-    c.fillStyle = '#2A1A12'; c.fillRect(S.x - 10, S.y - 9, S.w + 20, 18); c.fillStyle = RY_C.goldD; c.fillRect(S.x, S.y - 3, S.w, 6);
-    for (let k = 0; k <= 10; k++) { c.fillStyle = RY_C.gold; c.fillRect(S.x + S.w * k / 10 - 0.5, S.y + 5, 1, k % 5 ? 4 : 8); }
-    Lbl.put('ry-s0', '0%', S.x, S.y + 22, { size: 12, c }); Lbl.put('ry-s1', '100%', S.x + S.w, S.y + 22, { size: 12, c }); Lbl.put('ry-sl', L.chance, S.x + S.w / 2, S.y - 22, { size: 12, c });
+    const S = P.sl, J = s.judg.filter(x => x.id === ca.id), jp = J.find(x => x.st === 'prior'), jq = J.find(x => x.st === 'post'), rv = s.phase === 'reveal' && jq;
     const knob = (val, ghost) => { const x = S.x + S.w * val; c.save(); if (ghost) c.globalAlpha = 0.45; c.fillStyle = RY_C.gold; c.beginPath(); c.moveTo(x, S.y - 12); c.lineTo(x + 9, S.y); c.lineTo(x, S.y + 12); c.lineTo(x - 9, S.y); c.closePath(); c.fill(); c.strokeStyle = RY_C.ink; c.lineWidth = 1.5; c.stroke(); c.restore(); };
-    if (jp && s.phase !== 'prior') knob(jp.v, true);
-    if ((s.phase === 'prior' || s.phase === 'post') && v.slider != null) { knob(v.slider, false); Lbl.put('ry-sv', Txt.f(L.youP, { p: Math.round(100 * v.slider) }), S.x + S.w * v.slider, S.y - 40, { size: 14, c, weight: 700 }); }
-    if (s.phase === 'reveal' && jq) {
-      knob(jq.v, false); const ex = jq.e, x = S.x + S.w * ex; c.strokeStyle = RY_C.paper; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x, S.y - 16); c.lineTo(x, S.y + 16); c.stroke();
-      Lbl.put('ry-ex', Txt.f(L.exact, { p: Math.round(100 * ex) }), x, S.y - 40, { size: 14, c, weight: 700 });
-      const bw = Math.min(260, w * 0.62), bx = w / 2 - bw / 2, byy = S.y - 78, pr0 = s.cur.prior, nU = ca.sons.filter(z => !z[1]).length, aff = ca.sons.some(z => z[1]);
-      let cs = pr0; for (let k = 0; k < nU; k++) cs *= 0.5; if (aff) cs = pr0 * 0.5; const ns = aff ? 0 : 1 - pr0, tot = cs + ns || 1;   // carrier world shrinks by ½ per unaffected son; an affected son rules out the other world
-      c.fillStyle = RY_C.paper; c.fillRect(bx, byy, bw * cs / tot, 14); c.fillStyle = 'rgba(239,230,210,0.25)'; c.fillRect(bx + bw * cs / tot, byy, bw * ns / tot, 14); c.strokeStyle = RY_C.gold; c.lineWidth = 1; c.strokeRect(bx, byy, bw, 14);
-      Lbl.put('ry-wc', L.carrier, bx + 2, byy - 10, { size: 12, c, align: 'left' }); Lbl.put('ry-wn', L.notc, bx + bw - 2, byy - 10, { size: 12, c, align: 'right' });
+    c.fillStyle = '#2A1A12'; c.fillRect(S.x - 10, S.y - 10, S.w + 20, 20);
+    if (!rv) {   // the brass slider: your estimate
+      c.fillStyle = RY_C.goldD; c.fillRect(S.x, S.y - 3, S.w, 6);
+      for (let k = 0; k <= 10; k++) { c.fillStyle = RY_C.gold; c.fillRect(S.x + S.w * k / 10 - 0.5, S.y + 5, 1, k % 5 ? 4 : 8); }
+      Lbl.put('ry-s0', '0%', S.x, S.y + 22, { size: 12, c }); Lbl.put('ry-s1', '100%', S.x + S.w, S.y + 22, { size: 12, c }); Lbl.put('ry-sl', L.chance, S.x + S.w / 2, S.y + 22, { size: 12, c });
+      if (jp && s.phase !== 'prior') knob(jp.v, true);
+      if ((s.phase === 'prior' || s.phase === 'post') && v.slider != null) { knob(v.slider, false); Lbl.put('ry-sv', Txt.f(L.youP, { p: Math.round(100 * v.slider) }), S.x + S.w * v.slider, S.y - 26, { size: 14, c, weight: 700 }); }
+    } else {   // sealed: the slider becomes the two-worlds bar (Bayes as areas): each unaffected son halves the carrier world; an affected son rules out the other
+      const pr0 = s.cur.prior, nU = ca.sons.filter(z => !z[1]).length, aff = ca.sons.some(z => z[1]); let cs = pr0; for (let k = 0; k < nU; k++) cs *= 0.5; if (aff) cs = pr0 * 0.5;
+      const ns = aff ? 0 : 1 - pr0, tot = cs + ns || 1, ex = jq.e, xe = S.x + S.w * ex;
+      c.fillStyle = RY_C.paper; c.fillRect(S.x, S.y - 7, S.w * cs / tot, 14); c.fillStyle = 'rgba(239,230,210,0.22)'; c.fillRect(S.x + S.w * cs / tot, S.y - 7, S.w * ns / tot, 14); c.strokeStyle = RY_C.gold; c.lineWidth = 1; c.strokeRect(S.x, S.y - 7, S.w, 14);
+      knob(jq.v, true); c.strokeStyle = RY_C.gold; c.lineWidth = 3; c.beginPath(); c.moveTo(xe, S.y - 14); c.lineTo(xe, S.y + 14); c.stroke();
+      Lbl.put('ry-ex', Txt.f(L.exact, { p: Math.round(100 * ex) }), xe, S.y - 26, { size: 14, c, weight: 700 });
+      Lbl.put('ry-wc', L.carrier, S.x, S.y + 22, { size: 12, c, align: 'left' }); Lbl.put('ry-wn', L.notc, S.x + S.w, S.y + 22, { size: 12, c, align: 'right' });
     }
-    // the rail: completed women as small plaques along the top edge
     if (s.phase === 'ask' || s.phase === 'end') { c.fillStyle = 'rgba(10,6,6,0.3)'; c.fillRect(0, 0, w, h); }
   },
 

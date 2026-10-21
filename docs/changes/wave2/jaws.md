@@ -252,14 +252,16 @@ New references for Coordinator A: Kusche H, Lee HJ, Meyer A (2012) Mouth asymmet
 | 10 | Teacher hook | Unchanged; teacher step passes (after the opening card) |
 | 11 | Accessibility | Unchanged keyboard map; untimed paths pass; `?cvd=deut` and `?cvd=mono` shots readable (no hue carries a score) |
 | 12 | Learning layer | Unchanged |
-| 13 | Monkey | See tests |
+| 13 | Monkey | 6 of 6 at 390 × 780 and 1280 × 720; golden 47 + 1 skipped, `--v1` 48 |
 
 ### Tests (build `V2_ONLY='0*,zz_*,jaws.js'`, scratch `jaws/jaws.html`)
 - `node --check` clean; `tests/lint_text.js … jaws`: **0 errors, 0 warnings**.
 - `node tests/oracle.js … jaws` (full): **29 passed, 0 failed**. New check 14: every level card's take matches its own run, recomputed from the raw records (192 runs: 112 lesson shown, 75 not, 5 chance-large), and the L1 body's rarer/commoner bite rates match an independent tally. Science numbers unchanged: commoner-side bot opposes p − ½ in 439/439 seasons; h² in force 0.916 and 0.250; L3 R/S 0.230, R/Σh²S 1.049; lizard period 5.08 ± 0.09; a morph lost in every run without the floor (median season 3).
 - `tests/bots.py … --seeds 1-40 --bots alwaysA,alwaysB,random,greedy,threshold,lazy,mirror`: **PASS**, same masks as session 1 (mirror DP on 2 of 40 L2 seeds).
 - `tests/jaws_paths.py`: **30 ok, 0 failed** (new: the opening card's three parts, Play closes it, "?" reopens it; deep-link and teacher paths now pass the card first).
-- Monkey: see the summary line below.
+- `GAME_HTML=… tests/monkey.py jaws 1,2,3 --vp 390x780,1280x720`: **6 of 6 reach the end card**, no errors, no bad text, ≤ 21 words in the HUD. Full build (every v2 file, 21 Oct): builds, lint clean, monkey seed 1 at 390 × 780 reaches the end.
+- `tests/golden.py check`: **47 ok, 1 skipped** (jaws); `--v1`: **48 ok**.
+- `tests/jaws_shots.py`: 102 screenshots, 0 errors or Lbl/Whisper/HUD/Dock warnings.
 - Size: `v2/jaws.js` 105 KB raw, 33.6 KB gzip (session 1: 90.6 / 28.8). **Over the ≤ 90 KB raw guide** by the world art (lake bake, caustics, rocks, boss hillside ≈ 9 KB) and the run-chosen words; flagged for the coordinator.
 
 ### Screenshots
@@ -268,3 +270,9 @@ New references for Coordinator A: Kusche H, Lee HJ, Meyer A (2012) Mouth asymmet
 ### Engine requests (new)
 1. The opening card ignores taps for its first moments; scripted tests must advance ~800 ms before clicking Play (documented in `jaws_paths.py`).
 2. `Rig` quantisation clamps non-integer traits to 0–1 silently; a signed trait (−1…1) drew straight. A warning in `Rig.def` for out-of-range values would have caught it.
+
+### Playtest script additions (D6 decision 4)
+0. Before L1: read the opening card. Did "The game / The biology / How to play" tell you enough to make the first tap without the ghost hand?
+9. Did the lake feel like a place of its own (water, light, rocks, shells)? Did you notice the scales tearing off and the "…-strikers lead" moment?
+
+Not done here (coordinator's steps): the bible's §13 decisions log and checklists (only unit files were to be edited), Coordinator A's sign-off, the designer-and-colleagues playtest.

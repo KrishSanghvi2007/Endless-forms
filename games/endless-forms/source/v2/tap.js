@@ -25,7 +25,7 @@ const TP_TEXT = {
     biology: 'Mutation drips harmful copies into every gene pool, and selection drains them. The harm settles where drip meets drain, and it hides best in carriers.',
     how: 'Tap an unsteady chick while it totters at the ledge edge to dive. Drag on the graph to predict, then Lock in.'
   },
-  firstWords: 'Unsteady chicks totter to the ledge edge. Tap one while it is out to dive. Tucked chicks are safe.',
+  firstWords: 'Tap a chick while it totters at the ledge edge. Tucked chicks are safe.',
   hud: {
     dusk: 'Dive on chicks tottering at the edge. Tucked chicks are safe.',
     duskU: 'Untimed: the chicks hold still. Spend your dives, or tap End dusk.',
@@ -60,7 +60,7 @@ const TP_TEXT = {
     drip: 'drip', leak: 'leak', pool: 'a copies', hidden: 'in carriers', net: 'warden’s net', drum: 'rusty drum', gen: 'Generation {n}',
     lensOn: 'Lens on', ff: 'Tap: faster', xn: 'Drip ×2000', lock: 'Lock in', lensB: 'Lens', end: 'End dusk', fast: 'Faster',
     half: 'half load', line: 'drip line', bal: 'balance', fedN: 'fed {m}/{need}', divesN: '{d} dives', catchN: 'catch {s}%', loadN: '{l} per 1000',
-    dusk: 'Dusk {n}', season: 'Season {n}', unsteady: 'unsteady', shutDrum: 'Shut drum', gulls: '+2 gulls'
+    dusk: 'Dusk {n}', season: 'Season {n}', lifted: 'The net lifts', unsteady: 'unsteady', shutDrum: 'Shut drum', gulls: '+2 gulls'
   },
   interesting: {
     hungry: 'Your chicks went short. A dive on a tucked chick is wasted; wait until one totters at the edge.',
@@ -326,7 +326,7 @@ const CH_TAP_V2 = {
     /* ---------- predictions: the sim opens the ask; the expectation is the model's ---------- */
     openAsk(s, ev, id) {
       const h = s.h, mu = this.muNow(s); let A, e, now = null, tol;
-      if (id === 'a1' || id === 'b1') { e = this.qhat(s.sCol, h, mu); now = s.qE; tol = Math.max(0.006, 0.3 * e); A = { kind: 'y', chart: 0, lo: 0, hi: id === 'a1' ? 0.25 : 0.5 }; A.start = A.hi; }
+      if (id === 'a1' || id === 'b1') { e = this.qhat(s.sCol, h, mu); now = s.qE; tol = Math.max(0.006, 0.3 * e); A = { kind: 'y', chart: 0, lo: 0, hi: id === 'a1' ? 0.25 : 0.6 }; A.start = A.hi; }
       else if (id === 'c1') { e = this.doubling(s.qE, h, mu); tol = 0.3 * e; A = { kind: 'x', chart: 0, lo: 0, hi: 60, start: 60 }; }
       else { e = 1000 * this.eqLoad(s.sCol, h, mu); now = 1000 * this.load(s.qE, s.sCol, h); tol = 0.2 * e; A = { kind: 'y', chart: 0, lo: 0, hi: 60, start: 60 }; }
       A.id = id; s.ask = A; s.exp[id] = e; s.tol[id] = tol; if (now != null) s.now[id] = now; s.cnt = s.cnt || {}; s.cnt[id] = now == null || Math.abs(e - now) >= tol;   // an ask counts only when "no change" would miss s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
@@ -444,7 +444,7 @@ const CH_TAP_V2 = {
   /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 catch rate %, 14–20 prediction ×100 of its axis span (127 none), 21–27 the a share ×200 at the end */
   resultBits(s, level) {
     if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
-    const id = ['a1', 'b1', 'c1', 't1'][n], span = { a1: 0.25, b1: 0.5, c1: 60, t1: 60 }[id], pv = s.pred[id] == null ? 127 : c(100 * s.pred[id] / span, 126);
+    const id = ['a1', 'b1', 'c1', 't1'][n], span = { a1: 0.25, b1: 0.6, c1: 60, t1: 60 }[id], pv = s.pred[id] == null ? 127 : c(100 * s.pred[id] / span, 126);
     return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(100 * s.sYou, 255) << 6 | pv << 14 | c(200 * s.q, 127) << 21) >>> 0;
   },
 
@@ -512,7 +512,7 @@ const CH_TAP_V2 = {
     else if (s.phase === 'dusk') t = s.lens ? C.lens : st.bal ? C.bal : st.feast ? C.feast : st.boss ? (s.gen === 0 ? C.boss : s.plugGen == null && s.gen >= 15 ? C.hint : s.gen === 5 ? C.twist : C.bossDusk) : this.level === 0 && s.caught === 0 && s.dusk === 1 ? this.content.firstWords : s.unt ? C.duskU : C.dusk;
     else t = C.over;
     if (s.phase === 'over' && !s.auto) t = C.over;
-    if (s.phase === 'dusk' && !st.boss) num = st.bal ? Txt.f(L.divesN, { d: s.dives }) : Txt.f(L.fedN, { m: s.meals, need: s.quota }) + ' · ' + Txt.f(L.divesN, { d: s.dives });
+    if (s.phase === 'dusk' && !st.boss) num = s.quota > 0 ? Txt.f(L.fedN, { m: s.meals, need: s.quota }) + ' · ' + Txt.f(L.divesN, { d: s.dives }) : Txt.f(L.divesN, { d: s.dives });
     else if (s.level === 3) num = Txt.f(L.loadN, { l: (this.loadNow()).toFixed(0) });
     else num = 'q ' + s.q.toFixed(3);
     const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
@@ -600,7 +600,7 @@ const CH_TAP_V2 = {
         if (typeof Live !== 'undefined' && e.g % 10 === 0) Live.say(Txt.f(this.content.live.gen, { n: e.g, q: e.q.toFixed(3) }));
         if (e.g % 2 === 0) snd('tick', P.poolX, P.poolY); if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); return;
       }
-      case 'note': { const L = this.content.labels, lab = { net: L.net, lift: L.net, twist: L.gulls }[e.note]; if (lab) this.banner(lab, 1500); if (F) F.tier(2, ms => F.ring(P.cx, P.ledgeY[2], 60, { ms })); snd(e.note === 'twist' ? 'wing' : 'swish', P.cx, P.ledgeY[2]); if (e.note === 'twist') v.extra = { t: 0 }; return; }
+      case 'note': { const L = this.content.labels, lab = { net: L.net, lift: L.lifted, twist: L.gulls }[e.note]; if (lab) this.banner(lab, 1500); if (F) F.tier(2, ms => F.ring(P.cx, P.ledgeY[2], 60, { ms })); snd(e.note === 'twist' ? 'wing' : 'swish', P.cx, P.ledgeY[2]); if (e.note === 'twist') v.extra = { t: 0 }; return; }
       case 'ask': return;
       case 'commit': if (this.phoneStrip()) v.hold = 0; this.reveal(e.id); return;
       case 'plug': { if (F) { F.shake(5, 180); F.burst('spark', P.drumX, P.drumY, 10, { ink: '#E9B08A' }); F.tier(3, ms => F.ring(P.drumX, P.drumY, 40, { ms })); } snd('crack', P.drumX, P.drumY); this.whisper('drum'); if (typeof Live !== 'undefined') Live.say(this.content.live.plug); return; }
@@ -672,9 +672,8 @@ const CH_TAP_V2 = {
     for (const g of v.ghostR) { c.save(); c.globalAlpha = 1 - g.t / 2; c.setLineDash([4, 3]); c.lineWidth = 1.5; c.strokeStyle = '#F4EEE6'; c.beginPath(); c.arc(g.x, g.y, P.cr * 1.4, 0, TAU); c.stroke(); c.restore(); }
     if (s.phase === 'dusk' && (typeof Fx === 'undefined' || Fx.lastInput === 'key')) { const p = this.nestXY(v.cur); c.save(); c.lineWidth = 2; c.strokeStyle = '#FBE3C8'; c.setLineDash([3, 3]); c.beginPath(); c.arc(p[0], p[1], P.cr * 1.7, 0, TAU); c.stroke(); c.restore(); }
     if (typeof Lbl === 'undefined') return;
-    if (s.phase !== 'dusk' && s.phase !== 'dawn') Lbl.put('tp-gen', Txt.f(L.gen, { n: s.gen }), 12, P.top + 16, { align: 'left', size: 14, c, mono: true });
     if (s.lens) Lbl.put('tp-lens', L.lensOn, P.cx, P.y0 + 2, { size: 13, c });
-    if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('tp-banner', b.text, w / 2, P.top + 40, { size: 22, c, weight: 700 }); c.restore(); }
+    if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('tp-banner', b.text, P.cx, P.y0 + (P.foot - P.y0) * 0.3, { size: 22, c, weight: 700 }); c.restore(); }
     if (/lapse|pause|dawn/.test(s.phase) && !v.ff && !s.auto) Lbl.put('tp-ff', L.ff, w - 12, P.top + 16, { align: 'right', size: 12, c });
     if (s.phase === 'ask') { c.fillStyle = 'rgba(30,20,44,0.2)'; c.fillRect(0, 0, w, h); }
   },
@@ -814,7 +813,7 @@ const CH_TAP_V2 = {
     const scale = [0.1, 0.5, 0.8, 0.4][this.level], f = Math.max(0.04, Math.min(1, (v.pool || 0) / scale));   // each level's scale puts its balance mid-pool; L1 opens brimming
     c.save(); c.fillStyle = '#4A4058'; c.beginPath(); c.ellipse(x, y, w / 2, h / 2, 0, 0, TAU); c.fill(); c.lineWidth = 2; c.strokeStyle = 'rgba(242,160,120,0.5)'; c.stroke();   // the basin, its rim lit by the low sun
     c.beginPath(); c.ellipse(x, y, w / 2 - 3, h / 2 - 3, 0, 0, TAU); c.clip();
-    const wy = top + h * (1 - f), wg = c.createLinearGradient(0, wy, 0, y + h / 2); wg.addColorStop(0, '#7E8FA8'); wg.addColorStop(1, '#3E4D66'); c.fillStyle = wg; c.fillRect(x - w / 2, wy, w, h);
+    const wy = top + h * (1 - f), wg = c.createLinearGradient(0, wy, 0, y + h / 2); wg.addColorStop(0, '#A9BCD4'); wg.addColorStop(1, '#5A7394'); c.fillStyle = wg; c.fillRect(x - w / 2, wy, w, h);
     c.strokeStyle = 'rgba(255,214,170,0.75)'; c.lineWidth = 1.5; c.beginPath(); for (let k = 0; k <= 20; k++) { const xx = x - w / 2 + w * k / 20, yy = wy + Det.sin(k * 1.3 + t * 3) * 1.2; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); } c.stroke();
     if (s.h === 0 && s.lensLv) {   // the carrier pocket under the overhang: copies hidden in carriers, shown only under the lens (an allele read-out)
       const hq = s.q > 0 ? (2 * s.q * (1 - s.q)) / (2 * s.q * (1 - s.q) + 2 * s.q * s.q) : 0, pw = w * 0.42 * Math.min(1, hq + 0.05);
@@ -863,7 +862,7 @@ const CH_TAP_V2 = {
   gens() { return this.level === 0 ? 30 : this.level === 1 ? 40 : this.level === 2 ? 60 : 30; },
   qSpec(second) {   // the a share against generation: realised solid; the expected path dashed only after the ask is answered
     const s = this.sim.s, D = this.content.data, id = ['a1', 'b1', 'c1', 't1'][this.level], shown = s.hits[id] !== undefined || s.whatif;
-    const hi = this.level === 0 ? 0.25 : this.level === 1 ? 0.5 : this.level === 2 ? 0.8 : 0.4;
+    const hi = this.level === 0 ? 0.25 : this.level === 1 ? 0.6 : this.level === 2 ? 0.8 : 0.4;
     const sp = { type: 'trace', title: D.titles.q, x: { lo: 0, hi: Math.max(this.gens(), s.gen), label: D.ax.gen }, y: { lo: 0, hi, label: D.ax.q }, frame: 'designed',
       series: [{ d: s.hist.map(r => [r.g, r.q]), ink: 'a', label: D.lines.real }], ghost: shown ? [{ d: s.hist.map(r => [r.g, r.qE]), label: D.lines.exp }] : [] };
     if (second) sp.fold = false;
