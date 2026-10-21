@@ -68,7 +68,7 @@ Model numbers checked in the oracle: share(36 min) = 0.800; eggs per minute peak
 - `tests/raffle_paths.py`: 27 ok (tap = one unit, hold pours more, grace resumes, dock latch, ArrowUp, Space hold, Enter, latency 40 ms, needMove, What if? text, dung-pat hold = minutes, untimed logged and slower with asks that wait a minute, Calm stops the spin, deep link, teacher mode, `?v1=1` legacy, 4 v2 levels).
 - Frame time (Chromium, 4× CPU throttle, DPR 2, 390 × 780): draw median 3.2 ms, p95 6.8 ms with 160 tickets; L4 with a full pocket 2.2 / 5.9 ms. The background is one cached `Layer`, tickets are three baked sprites.
 - Size: 98 KB raw, 30.9 KB gzip (lessons §4 aims for ≈ 90 KB raw / 30 KB gzip; the words are 14 KB).
-- `python3 tests/golden.py check <full build>`: see the result line below.
+- `python3 tests/golden.py check <full build>`: 37 ok, 0 failed, 11 skipped (the ids replaced by v2 units in that build, `raffle` among them).
 
 ## Screenshots
 
