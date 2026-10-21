@@ -9,6 +9,7 @@ const CH_INTEGTEST_V2 = {
   intro: { goal: 'Eat beetles, then predict the gene pool.' },
   content: {
     firstWords: 'Tap a beetle to eat it.',
+    intro: { game: 'A throwaway test unit: beetles on sand.', biology: 'It tests the engine, not the biology.', how: 'Tap beetles to eat them, then predict at dusk.' },
     hud: { eat: 'Eat {n} more beetles.', dusk: 'Dusk. Mark tomorrow’s A share.', wait: 'The survivors breed.' },
     whispers: { miss: 'Only sand there.' },
     labels: { you: 'you' },

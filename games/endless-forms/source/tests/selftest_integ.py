@@ -68,7 +68,9 @@ with sync_playwright() as p:
             # with v2/lichen.js in the build, Begin drops straight into the live Wood (D2 §9); the back button reaches the menu
             wood = not q and pg.evaluate("() => !!(TB.REG.lichen && TB.REG.lichen.v2 === true)")
             if wood:
-                ok(pg.evaluate("() => TB.App.scr === 'play' && TB.App.ch.id === 'lichen' && !document.querySelector('#cards.on .card')"), 'Begin goes straight into the live Wood')
+                ok(pg.evaluate("() => TB.App.scr === 'play' && TB.App.ch.id === 'lichen' && !!document.querySelector('#cards.on .card.ef-intro')"), 'Begin goes straight into the live Wood, behind its description card (D6 decision 8)')
+                pg.click('#cards .card.ef-intro [data-play]'); pg.evaluate("() => window.__advance(400)")
+                ok(pg.evaluate("() => !document.querySelector('#cards.on .card')"), 'Play starts the Wood')
                 pg.evaluate("() => { document.getElementById('bar-back').click(); window.__advance(400); }")
             scr = pg.evaluate("() => TB.App.scr")
             heads = pg.evaluate("() => [...document.querySelectorAll('#menu-body .part h3')].map(h => h.textContent).slice(0, 2)")
@@ -90,8 +92,10 @@ with sync_playwright() as p:
         to_menu(pg)
         ok(pg.evaluate("() => !!document.querySelector('#menu-body .chap[data-id=\"integtest\"]') && TB.REG.integtest && TB.REG.integtest.title === 'Integration test'"), 'V2.push + PLAN_ADD register the unit and its menu row')
         pg.click('#menu-body .chap[data-id="integtest"]'); pg.evaluate("() => window.__advance(400)")
+        ok(pg.evaluate("() => !!document.querySelector('#cards.on .card.ef-intro')"), 'a v2 unit opens on its description card (D6 decision 8)')
+        pg.click('#cards .card.ef-intro [data-play]'); pg.evaluate("() => window.__advance(400)")
         st = pg.evaluate("() => ({ scr: TB.App.scr, ch: TB.App.ch && TB.App.ch.id, level: TB.App.ch && TB.App.ch.level, card: !!document.querySelector('#cards.on .card'), v2cls: document.getElementById('scr-play').classList.contains('v2'), layout: document.body.dataset.layout, seed: TB.App.seed })")
-        ok(st['scr'] == 'play' and st['ch'] == 'integtest' and not st['card'] and st['v2cls'], 'menu row plays level 0 at once, v2 layout %s (%s)' % (st['layout'], st))
+        ok(st['scr'] == 'play' and st['ch'] == 'integtest' and not st['card'] and st['v2cls'], 'Play starts level 0, v2 layout %s (%s)' % (st['layout'], st))
         hud = pg.evaluate("() => document.getElementById('hud').textContent")
         ok('Tap a beetle' in hud, 'HUD.say shows firstWords (%r)' % hud[:60])
         for lvl in (0, 1):

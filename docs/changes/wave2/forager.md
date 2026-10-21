@@ -209,3 +209,79 @@ I looked at them and fixed what looked wrong:
 8. Settings → Untimed: replay L1 and L2. Do they still feel like decisions?
 
 Feedback form (1–5 unless stated): fun; clarity of the verb; did the switch point and the tangent feel discovered or told?; the boss's link to the day (words); any moment you were bored or wondered how long was left (where?); any science you doubt (where?).
+
+---
+
+## Session 2 (21 October 2026): finishing the draft after D6's addendum
+
+Unit agent, second pass. The draft moved with `git mv games/endless-forms/source/v2_wip/forager.js games/endless-forms/source/v2/forager.js` and was finished rather than rewritten: the sim, stars, bots and charts are unchanged. Every change below is in `v2/forager.js`, `tests/oracle_forager.js`, `tests/forager_shots.py` or `tests/forager_paths.py`. No engine, legacy or other unit's file was edited, and nothing was committed.
+
+### D6 addendum (21 Oct): the opening card and the chapter's own world
+- **`content.intro = {game, biology, how}`** (24, 25 and 27 words; two sentences each, none over 18 words). `00_entry.js`'s new card shows it, and the oracle now checks the three parts, the word limits and that the card never says a bird "evolves", "chooses" or "needs". `intro.goal` stays as the map caption.
+- **`accent: '#A8505E'`** (rose-hip) on the chapter object, which is what `Intro.tint` and the play chrome read. It gives white 5.3:1 and cream 4.6:1 on the Play band. The oracle checks it is not the shell carmine.
+- **The world: an English hedgerow and orchard in May, through one day.** Sage, gold and rose dusk; the allele inks appear nowhere in this unit.
+  - *One day clock* (`hour()`, view only) drives the light across L1–L4: hedgerow 05:10–08:50, orchard 11:00–14:00, hawk 14:35–17:10, the evening run 17:35–19:25, then the flock's years into dusk. The sky's top and horizon colours, the sun's colour, its arc and its glow are interpolated from `FG_SKY` keyframes each frame. A multiply cast laid over the land turns cool at dawn, gold late in the afternoon and rose at dusk. Dawn mist lies in drifting bands along the far field and the hedge foot, and it has burnt off by about 08:30.
+  - *Hedgerow:* a hawthorn hedge in May, with shadowed depths, a sunlit sage crown, cream may blossom, dog roses and leafy bramble shoots. Behind it are hedgerow oaks in blue haze on the far downs; in front, a baked verge of long grass and cow parsley. The hay meadow in L3 has drifts of buttercups and ox-eye daisies.
+  - *Ambient life* (none under Calm): a midge swarm in the light, and a male orange-tip butterfly crossing the hedge by day.
+  - *Orchard:* apple trees after blossom (gnarled trunk, shadowed and sunlit canopy, green fruitlets). Each tree has two baked versions, fresh and picked over, crossfaded as the tree is picked; that replaced eight bakes per tree, which had caused frame hitches. **The tree's caterpillars hang on silk threads under the canopy.** Slot *k* is visible while the expected catch still to come, 6e^(−t/4), exceeds *k*, so the tree visibly empties at exactly the model's rate. The next tree hangs full and the one behind you hangs thin, which is the marginal value theorem drawn in the scene. Each catch takes the caterpillar that is fading, and the tit hops to it. Winter moth caterpillars do let themselves down on silk; the scene uses that as an image, not as a claim.
+  - *Sparrowhawk:* a new silhouette from below, with short, broad, rounded wings and a long, square-tipped, barred tail (an accipiter, not a falcon), with a wing flap. Its ground shadow (the same silhouette, squashed) sweeps the meadow while it hunts, and a rare far pass crosses in round 1. The stoop tucks the wings and dives from where the hawk actually is.
+  - *Flock (L4):* golden-to-rose dusk. On a tall phone the five trees stand in two rows, three behind and two in front, so the crowd fills the scene instead of a thin strip under an empty sky. Your lineage now wears a small cream diamond over the head, not a heavy halo, so the year-20 crowd is no longer a cloud of rings. The dot histogram's baseline was lifted so its tick labels are not cut off at 1280×720.
+  - *Winter night:* a rose winter dusk (`sky` k 4) with a bare hedge on the skyline.
+  - Backdrops are baked per size and key (`bake` now caches several layers: backdrop, verge, flock). Sky, cast and mist are painted live, about four gradient fills a frame.
+
+### Science review (adversarial behavioural ecologist): what changed
+| Where | Before | After | Why |
+|---|---|---|---|
+| L3 `levelTake` | "safe food beats rich food" | "scarce safe food beats plentiful risky food" | Field and hedge caterpillars are worth the same (1 food). Field ones are only twice as common, so "rich" was wrong. |
+| L3 HUD and MODEL | "Field caterpillars are out in the open" | "…plentiful but out in the open"; the simplification now says they are twice as common and worth the same; "future broods" moved to *cannot show* | It states what the trade actually is. |
+| L4 HUD | "Your leaving habit is now a gene" | "Suppose your leaving time were inherited. It founds one lineage among 200 tits." | A habit is not a gene. The level is a thought experiment, and the MODEL card already says that real tits learn leaving times. |
+| L4 `levelTake` | "…and the flock found it" | "…so the flock moved to it" | No teleology: a flock does not search. |
+| L1 MODEL *In nature* | "Birds became choosy" | "Birds mostly ignored small ones when large ones were common" | CLAUDE.md: never say individuals "choose". |
+| Boss MODEL and Why? | juncos "chose" a steady or variable tray | juncos "mostly fed at" a steady or a variable tray | Same rule. Caraco et al. 1980 measured preferences, and the wording now describes what was observed. |
+| `stars.transfer` | "choose feeders well" | "pick feeders well" | Same rule. |
+| L1 trip home | tag `designed` | tag ×N, real: "far longer for real tits" | A 2-second provisioning round trip is time-compressed. |
+| L3 stoop success | real: "often under 10% for sparrowhawks" | real: "most sparrowhawk attacks fail" | The exact figure was flagged "to check" and is now dropped. The claim that most attacks fail is safe (Newton 1986). |
+
+Rechecked and left as they were: the diet rule bE ÷ (1 + bt) with its switch at 15 big caterpillars a minute, independent of the small-prey rate (Charnov 1976; Krebs et al. 1977); the partial preferences note; the tangent stays (3.431 s and 6.545 s); Cowie 1977 (lids made travel longer, birds stayed longer, a little longer than the simple model predicts, a gap usually put down to the energy cost of travel); Lima & Dill 1990; the energy-budget rule marked contested (Caraco et al. 1980; Stephens 1981; Kacelnik & Bateson 1996). Nothing on screen says a bird computes: TAKE keeps "act as if". The oracle's model numbers are unchanged. **Coordinator A's sign-off is still pending.**
+
+### Playtester and art-director notes, fixed
+- *The hedge was a flat green wall* at 1280×720. It now has a lit crown, shadowed depths, blossom, a verge in front and haze behind.
+- *The orchard bird caught invisible food.* It now takes visible caterpillars, and the tree empties in front of you.
+- *The hawk read as a pterodactyl, then as a moth* (first redraw). It now reads as an accipiter.
+- *Bramble arcs read as croquet hoops* over the hedge (first pass). They are now short, leafy shoots.
+- *Midges read as stars or snow in the open sky* (first pass). They are now one small swarm by the foliage.
+- *Orchard flowers looked like confetti.* They are now drifts.
+- *The phone flock was a thin strip under an empty sky.* It now uses two rows.
+- *A strip label was cut off at 390 px* ("passing small ea…"). It now reads "big only, now".
+- *The HUD's first words repeated the card.* They are cut from 23 to 17 words: "Four hungry chicks. Tap a caterpillar to carry it home, or tap the hedge to let it pass."
+
+### D5 §3 (as amended by D6), changes since session 1
+- **2:** the D6 card now comes first. After Play, the ghost hand demonstrates on the first caterpillar, which waits for you, and a real tap takes it (`entry_*` shots, a scripted click).
+- **7:** the new ambient layers have no sound, and all of them are still under Calm. Draw time at 4× CPU throttle, 390×780 at DPR 2, headless: median 1.3–2.0 ms, p95 5–9 ms (noisy). The worst single frames, 40–80 ms throttled, are one-off bakes: a new tree, the night backdrop.
+- **9:** the corrections above.
+- **13:** see Tests.
+- Everything else is as in session 1.
+
+### Tests (build `V2_ONLY='0*,zz_*,forager.js' python3 build.py <scratch>/forager.html`)
+- `node tests/oracle.js … forager`: **45 passed, 0 failed** (full seeds; 3 new intro and accent checks).
+- `node tests/lint_text.js … forager`: **0 errors, 0 warnings.** One 21-word sentence I introduced was split.
+- `tests/bots.py … --seeds 1-40`, 7 bots: **PASS**, timed and `--untimed`. The masks are unchanged from session 1.
+- `tests/monkey.py forager 1,2,3 --vp 390x780,1280x720`: **6 of 6 reach "Unit complete"**, with no errors and at most 24 words visible. The monkey opens and closes the D6 card 14–29 times a run. The full build (every unit now in `v2/`) loads, lints clean for forager, and the monkey reaches the end.
+- `tests/forager_paths.py`: **18 ok, 0 failed.** It now loads with `intro=0`, because its paths start in play and the engine owns the card. `tests/forager_shots.py` does the same.
+- No console errors in any run.
+- Size: 140 KB raw, 44 KB gzip (it was 124 KB and 38 KB). The art is all procedural, with no images. This is still above the lessons' ≈ 30 KB gzip aim; flagged for review.
+
+### Screenshots
+`/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/forager/`
+- `final/`: every level and phase at 390×780 and 1280×720, plus `L3_stoop_*` and `L3_caught_*`;
+- `cvd/`: mono and deuteranopia, L1 and L3;
+- `calm/`: L1 and L5;
+- `entry_{card,ghost,tap}_*`;
+- `s0/`: the session-1 baseline, for comparison.
+
+### Still open
+- Coordinator A's sign-off on the science claims.
+- The designer-and-colleagues playtest.
+- axe-core (offline).
+- The engine requests from session 1 (a flying-tit pose and a sparrowhawk rig in `01_rig.js`; the HUD's real height).
+- The boss card's y-axis title overlaps the "100%" tick (engine `wgXY`).

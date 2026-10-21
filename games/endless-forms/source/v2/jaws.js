@@ -860,18 +860,32 @@ const CH_JAWS_V2 = {
     }
     c.putImageData(img, 0, 0); CH_JAWS_V2._caus = cv; return cv;
   },
-  drawCaustics(c, w, G, k) {   // cosmetic: frozen under Calm; fades at dusk (k)
-    const v = this.v, calm = typeof Fx !== 'undefined' && Fx.calm, t = calm ? 0 : v.t; if (k <= 0.02) return;
-    if (!v.cpat) { const cv = this.caustics(); try { v.cpat = c.createPattern(cv, 'repeat'); } catch (e) { v.cpat = null; } } if (!v.cpat) return;
-    const band = (y0, y1, a) => { c.save(); c.beginPath(); c.rect(0, y0, w, y1 - y0); c.clip(); c.globalAlpha = a * k; c.fillStyle = v.cpat;
-      for (const L of [[1.7, 7, 4], [2.3, -5, 6]]) { c.save(); c.scale(L[0], L[0]); const ox = (t * L[1]) % 160, oy = (t * L[2]) % 160; c.translate(ox, oy); c.fillRect(-ox - 160, y0 / L[0] - oy - 160, w / L[0] + 320, (y1 - y0) / L[0] + 320); c.restore(); }
-      c.restore(); };
-    band(0, G.top + (G.fy - G.top) * 0.35, 0.13); band(G.top + (G.fy - G.top) * 0.35, G.fy, 0.07); band(G.fy + 6, G.H, 0.2);
+  drawCaustics(c, w, G, k) {   // cosmetic: composed at half resolution about 15 times a second, then one blit per frame; frozen under Calm; fades at dusk (k)
+    const v = this.v, calm = typeof Fx !== 'undefined' && Fx.calm; if (k <= 0.02) return;
+    const sw = Math.ceil(w / 2), sh = Math.ceil(G.H / 2); let L = v.caus;
+    if (!L || L.w !== sw || L.h !== sh) { const cv = mkCanvas(sw, sh), cc = cv.getContext('2d'); let pat = null; try { pat = cc.createPattern(this.caustics(), 'repeat'); } catch (e) { } L = v.caus = { cv, cc, pat, w: sw, h: sh, t: -1 }; }
+    if (!L.pat) return;
+    if (L.t < 0 || (!calm && v.t - L.t >= 0.1)) {
+      const t = calm ? 0 : v.t, cc = L.cc; L.t = v.t; cc.setTransform(1, 0, 0, 1, 0, 0); cc.clearRect(0, 0, sw, sh); cc.scale(0.5, 0.5); cc.fillStyle = L.pat;
+      const band = (y0, y1, a) => { cc.save(); cc.beginPath(); cc.rect(0, y0, w, y1 - y0); cc.clip(); cc.globalAlpha = a;
+        for (const q of [[1.7, 7, 4], [2.3, -5, 6]]) { cc.save(); cc.scale(q[0], q[0]); const ox = (t * q[1]) % 160, oy = (t * q[2]) % 160; cc.translate(ox, oy); cc.fillRect(-ox - 160, y0 / q[0] - oy - 160, w / q[0] + 320, (y1 - y0) / q[0] + 320); cc.restore(); }
+        cc.restore(); };
+      const mid = G.top + (G.fy - G.top) * 0.35; band(0, mid, 0.13); band(mid, G.fy, 0.07); band(G.fy + 6, G.H, 0.2);
+    }
+    c.save(); c.globalAlpha = k; c.drawImage(L.cv, 0, 0, w, G.H); c.restore();
+  },
+  drawWater(c, w, h, G, k) {   // the baked lake plus its caustics, recomposed into one full-size layer ten times a second (one blit per frame)
+    const v = this.v, bg = this.bake(w, h), d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, calm = typeof Fx !== 'undefined' && Fx.calm;
+    let W = v.water; if (!W || W.bg !== bg || W.cv.width !== bg.width || W.cv.height !== bg.height) { const cv = mkCanvas(bg.width, bg.height); W = v.water = { cv, cc: cv.getContext('2d'), bg, t: -1, k: -1 }; }
+    if (W.t < 0 || Math.abs(k - W.k) > 0.04 || (!calm && v.t - W.t >= 0.1)) {
+      W.t = v.t; W.k = k; const cc = W.cc; cc.setTransform(1, 0, 0, 1, 0, 0); cc.drawImage(bg, 0, 0); cc.setTransform(d, 0, 0, d, 0, 0); this.drawCaustics(cc, w, G, k);
+    }
+    c.drawImage(W.cv, 0, 0, w, h);
   },
   drawLake(c, w, h) {
-    const s = this.sim.s, v = this.v, G = this.geo(), bg = this.bake(w, h); c.drawImage(bg, 0, 0, w, h);
+    const s = this.sim.s, v = this.v, G = this.geo();
     const calm = typeof Fx !== 'undefined' && Fx.calm, dim = /dusk|ask|breed/.test(s.phase) ? (s.phase === 'dusk' ? Math.min(1, s.t / 0.4) : s.phase === 'breed' ? Math.max(0, 1 - s.t / JW_T.breed) : 1) : 0;
-    this.drawCaustics(c, w, G, 1 - 0.8 * dim);
+    this.drawWater(c, w, h, G, 1 - 0.8 * dim);
     c.save(); c.fillStyle = '#0D4A57';   // a distant school drifting in the haze, and bubbles (cosmetic)
     for (let i = 0; i < 7; i++) { const dir = i % 2 ? 1 : -1, sp = calm ? 0 : 10 + 5 * (i % 3), span = w + 120, x = (((v.t * sp * dir + i * 173) % span) + span) % span - 60, y = G.top + 30 + (i * 67) % Math.max(40, G.fy - G.top - 90), r0 = 9 + (i % 3) * 3;
       c.globalAlpha = 0.22; c.beginPath(); c.ellipse(x, y, r0, r0 * 0.38, 0, 0, TAU); c.moveTo(x - dir * r0 * 0.9, y); c.lineTo(x - dir * r0 * 1.5, y - r0 * 0.35); c.lineTo(x - dir * r0 * 1.5, y + r0 * 0.35); c.closePath(); c.fill(); }

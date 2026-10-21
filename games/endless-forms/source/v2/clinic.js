@@ -66,21 +66,21 @@ const CL_TEXT = {
   firstWords: 'A lab dish of TB cells, a few already resistant. Drag the diamond: where will the resistant share be?',
   hud: {
     dish: 'A lab dish holds a low dose in the window. Drag the diamond.',
-    dishRun: 'Three days in the window. Watch the resistant cells.',
-    run0: 'Tap the dish: low dose. Hold: high dose. Get under the immune line.',
-    run1: 'This patient goes home at weekends and takes no pills there.',
+    dishRun: 'Three days in the window. Watch the magenta cells.',
+    run0: 'Tap the dish: low dose. Hold it: high dose.',
+    run1: 'At weekends this patient is home and takes no pills.',
     weekend: 'Weekend at home: no doses today.',
     wk: 'No pills this weekend. Drag: resistant cells on Monday?',
-    run2: 'Two drugs now. Tap a pump for that drug, or the dish for both.',
+    run2: 'Two drugs. Tap a pump for one, the dish for both.',
     ab: 'About {a} cells resist A and {b} resist B. Drag: how many resist both?',
-    run3: 'Two patients. Bed 2 arrived with resistant TB. Keep both out of intensive care.',
-    rel: 'Practice: if bed 2 got a high dose daily, its resistant share on day 3?',
-    run4: 'Fevers need the drug. Hands carry plasmids. Rub hands, isolate, treat.',
-    sl: 'Bed {b}: {p} percent carry the plasmid. With no more drug, where in five days?',
-    run5: 'Autumn on a busy ward. Treat fevers; the drug selects the plasmid.',
-    ward: 'The drug is restricted now. With nothing else done, the ward share on day 90?',
-    winter: 'Winter: fevers get an older drug. Can the plasmid be pushed out?',
-    wait: 'Paused at dawn. Dose now, or press Next day.',
+    run3: 'Bed 2 came in with resistant TB. Keep both out of intensive care.',
+    rel: 'Practice: bed 2 gets a high dose daily. Resistant share on day 3?',
+    run4: 'Tap a fever to treat it. Hold a bed to isolate it.',
+    sl: 'Bed {b}: {p}% carry the plasmid. No more drug: where in five days?',
+    run5: 'Treat fevers, rub hands, isolate carriers.',
+    ward: 'Drug restricted. If nothing else changes, the ward share on day 90?',
+    winter: 'Fevers now get an older drug. Push the plasmid out.',
+    wait: 'Paused at dawn. Act, then press Next day.',
     auto: 'What if? The ward runs on with one thing changed.',
     over: 'The level is done.'
   },
@@ -97,7 +97,7 @@ const CL_TEXT = {
     day: 'day {d}/{n}', dayB: 'day {d}', budget: 'budget {n}', tox: 'doses', drugA: 'drug A', drugB: 'drug B', both: 'both', low: 'low', high: 'high',
     resistant: '{n} resistant', res1: '1 resistant', none: 'none left', noRes: 'no resistant cells', aboveMpc: 'above MPC', immuneS: 'immune', home: 'at home', icuBox: 'ICU', icuN: 'ICU {n}', hands: 'hands {n}%',
     staff: 'staff {n}', iso: 'isolated', fever: 'fever', kpc: 'KPC {n}%', share: '{n}% resistant', cells: '10^{n} cells', nowL: 'now',
-    xMic: '×{n}', lock: 'Lock in', next: 'Next day', lowDose: 'Low dose', highDose: 'High dose', rub: 'Hand rub', dose: 'Dose', isolate: 'Isolate',
+    xMic: '×{n}', lock: 'Lock in', next: 'Next day', lowDose: 'Low dose', highDose: 'High dose', drugA2: 'Drug A', drugB2: 'Drug B', rub: 'Hand rub', dose: 'Dose', isolate: 'Isolate',
     restrict: 'restricted', costly: 'costly plasmid', comp: 'compensated', expected: 'expected', call: 'your call', ward: 'ward share',
     tConc: 'Drug level', tLoad: 'Cells', tShare: 'Resistant share', tBed: 'Bed carriers', tWard: 'Ward plasmid', tRes: 'Bed 2 resistant',
     sDay: 'Day', sLoad: 'Cells', sRes: 'Resistant', sBudget: 'Dose budget', sWin: 'Days in window', sIcu: 'Intensive care', sWard: 'Ward share',
@@ -135,7 +135,8 @@ const CL_TEXT = {
   },
   levers: { lowOnly: 'Low doses only', stop: 'Stop all drug', noWeekend: 'Weekend doses', onlyA: 'Drug A only', swap: 'Swap strategies', noRub: 'No hand rubs', noIso: 'No isolation', costly: 'Costly plasmid' },
   take: 'Drugs mostly select resistance that already exists. Doses inside the window enrich it; transfer spreads it.',
-  body: 'Restriction alone barely moved the ward: a compensated plasmid costs its host little, so nothing pushes it out. What lowered it was stopping transfer, by hands and isolation, while turnover replaced carriers. The ward share went from {a} to {b} percent.',
+  body: 'Restriction alone (the upper dashed line) fell far less than a costly plasmid would have (the lower line): compensation left little to push it out. Stopping transfer with hands and isolation let turnover replace carriers. The ward went from {a} to {b} percent.',
+  whatifBody: { alone: 'Restriction alone fell far less than a costly plasmid would have: compensation left little to push it out. Without more control of transfer the ward went from {a} to {b} percent.' },
   law: { title: 'The mutant selection window' },
   boss: { inverts: 'Stopping the drug no longer removes resistance: its cost has been compensated.' },
   stars: {
@@ -155,9 +156,9 @@ const CL_TEXT = {
     { discover: 'Clear the infection within the dose budget.', predict: 'Call the dish’s resistant share inside the band.' },
     { discover: 'Clear the infection despite the weekends.', predict: 'Call Monday’s resistant cells inside the band.' },
     { discover: 'Clear the infection with two drugs.', predict: 'Call the number of cells resisting both.' },
-    { discover: 'Clear bed 1 within its budget.', transfer: 'Keep bed 2 out of intensive care for a week.' },
+    { discover: 'Clear bed 1 within its budget.', transfer: 'Keep bed 2 out of intensive care for six days.' },
     { discover: 'Keep the plasmid to two beds or fewer, with one ICU move at most.', predict: 'Call the index bed’s plasmid share in five days.' },
-    { predict: 'Call the ward share under restriction alone.', transfer: 'Push the ward share under 12 percent by day 90, two ICU moves at most.' }
+    { predict: 'Call the ward share under restriction alone.', transfer: 'Push the ward share under 8 percent by day 90, two ICU moves at most.' }
   ],
   captions: {
     practice: 'Practice call: off by {d}. No star rides on this one.',
@@ -271,7 +272,7 @@ const CH_CLINIC_V2 = {
       if (L.kind === 'kpc') {
         const W = { hyg: CL_W.base, staff: CL_W.staff, icu: 0, restricted: false, seen: 0, max: 0, adm: 0 };
         for (let i = 0; i < L.beds; i++) s.beds.push(this.kpcBed(0, CL_W.c0));
-        if (level === 4) { s.beds[0].p = 0.7; s.beds[0].seeded = true; }
+        if (level === 4) { s.beds[0].p = 0.7; s.beds[0].seeded = true; s.beds[0].calm = 6; }
         else { for (const i of [0, 2, 3, 5, 8, 10]) { s.beds[i].p = 0.6; s.beds[i].seeded = true; } }
         s.ward = W; W.seen = s.beds.filter(b => b.seeded).length; W.max = W.seen;
         if (L.restrict) {   // the boss opens on day 30: an autumn of colleagues treating every fever with the drug, pre-run from the seed
@@ -423,7 +424,7 @@ const CH_CLINIC_V2 = {
         if (L.restrict && s.day === L.restrict && !W.restricted && !s.whatif) { W.restricted = true; ev.push({ k: 'restrict' }); s.tpdSwitch = true; this.openAsk(s, ev, 'ward'); return; }
         if (L.restrict && s.whatif && s.day >= L.restrict) W.restricted = true;
         const fr = W.restricted && L.fev2 ? L.fev2 : L.fev;
-        for (let i = 0; i < s.beds.length; i++) { const b = s.beds[i]; if (!b.fev && R() < fr) { b.fev = { t: 0, prog: 0, res: R() < b.p }; ev.push({ k: 'fever', bed: i }); } }
+        for (let i = 0; i < s.beds.length; i++) { const b = s.beds[i]; if (!b.fev && R() < fr && !(b.calm > s.day)) { b.fev = { t: 0, prog: 0, res: R() < b.p }; ev.push({ k: 'fever', bed: i }); } }
         for (let i = 0; i < s.beds.length; i++) { const b = s.beds[i]; if (!b.fev && R() < L.dis) { const imp = this.admit(s, i); ev.push({ k: 'admit', bed: i, imp }); } }
         if (s.level === 4 && s.day === 1 && !s.whatif && !s.asks.length) this.openAsk(s, ev, 'sl');
         return;
@@ -553,7 +554,7 @@ const CH_CLINIC_V2 = {
       }
       if (a.k !== 'dose' || b.cured != null) return ev;
       const d = L.kind === 'tb2' ? (a.d === 1 ? 1 : a.d === 2 ? 2 : 0) : 0, drugs = d === 2 ? [0, 1] : [d], hi = !!a.hi && L.kind !== 'tb2', D = hi ? CL_M.hi : CL_M.lo, cost = hi ? 12 : 1;
-      if (this.home(s)) { b.doses.push([s.day + s.tick / L.tpdNow(s), d, hi ? 1 : 0, 1]); ev.push({ k: 'missed', bed: i }); return ev; }
+      if (this.home(s)) { const t = s.day + s.tick / L.tpdNow(s), last = b.doses[b.doses.length - 1]; if (!last || !last[3] || t - last[0] > 0.12) { b.doses.push([t, d, hi ? 1 : 0, 1]); ev.push({ k: 'missed', bed: i }); } return ev; }
       if (!auto && b.used + cost * drugs.length > L.budget + 1e-9) { ev.push({ k: 'budget', bed: i }); return ev; }
       for (const g of drugs) if (b.C[g] + D > CL_M.cap + 1e-9) { ev.push({ k: 'cap', bed: i }); return ev; }
       for (const g of drugs) { b.C[g] += D; b.used += cost; b.doses.push([s.day + s.tick / L.tpdNow(s), g, hi ? 1 : 0, 0]); }
@@ -666,8 +667,8 @@ const CH_CLINIC_V2 = {
       return hit && real;
     },
     transfer: (s, n) => {
-      if (n === 3) { const b = s.beds[1]; return b.icu == null || b.icu >= 7; }
-      if (n === 5) return CH_CLINIC_V2.sim.wardShare(s) <= 0.12 + 1e-9 && s.ward.icu - (s.ward.icu0 || 0) <= 2;
+      if (n === 3) { const b = s.beds[1]; return b.icu == null || b.icu >= 6; }
+      if (n === 5) return CH_CLINIC_V2.sim.wardShare(s) <= 0.08 + 1e-9 && s.ward.icu - (s.ward.icu0 || 0) <= 2;
       return false;
     }
   },
@@ -717,14 +718,14 @@ const CH_CLINIC_V2 = {
     }
     const two = L.beds === 2, room = H - top;
     if (wide) {
-      const R = two ? Math.min(W * 0.13, room * 0.24) : Math.min(W * 0.2, room * 0.36);
-      G.dish = two ? [{ x: W * 0.17, y: top + R + 26, r: R }, { x: W * 0.17, y: top + 3 * R + 66, r: R }] : [{ x: W * 0.29, y: top + room * 0.46, r: R }];
+      const R = two ? Math.min(W * 0.13, room * 0.2) : Math.min(W * 0.2, room * 0.36);
+      G.dish = two ? [{ x: W * 0.17, y: top + R + 26, r: R }, { x: W * 0.17, y: top + 3 * R + 100, r: R }] : [{ x: W * 0.29, y: top + room * 0.46, r: R }];
       const mx = two ? W * 0.36 : W * 0.56;
       G.mon = two ? [{ x: mx, y: G.dish[0].y - R, w: W - mx - 14, h: 2 * R }, { x: mx, y: G.dish[1].y - R, w: W - mx - 14, h: 2 * R }] : [{ x: mx, y: top + room * 0.14, w: W - mx - 14, h: room * 0.64 }];
     } else if (two) {
-      const R = Math.min(W * 0.2, room * 0.17);
-      G.dish = [{ x: W * 0.27, y: top + R + 30, r: R }, { x: W * 0.73, y: top + R + 30, r: R }];
-      const my = top + 2 * R + 66, mh = Math.max(90, H - my - 8);
+      const R = Math.min(W * 0.2, room * 0.16);
+      G.dish = [{ x: W * 0.26, y: top + R + 28, r: R }, { x: W * 0.74, y: top + R + 28, r: R }];
+      const my = top + 2 * R + 92, mh = Math.max(90, H - my - 8);
       G.mon = [{ x: 8, y: my, w: W / 2 - 12, h: mh }, { x: W / 2 + 4, y: my, w: W / 2 - 12, h: mh }];
     } else {
       const R = Math.min(W * 0.32, room * 0.27);
@@ -796,7 +797,7 @@ const CH_CLINIC_V2 = {
     if (!s.whatif) for (const id of s.asks) if (s.exp[id] != null && typeof Predict !== 'undefined') Predict.reveal(id, s.exp[id], CL_ASK[s.askQ[id]].tol);
     if (!s.whatif) {
       const b = s.beds[0];
-      if (final) o.body = Txt.f(C.body, { a: Math.round(100 * (s.w30 || 0)), b: Math.round(100 * this.sim.wardShare(s)) });
+      if (final) { const w = this.sim.wardShare(s), al = s.expTr.a5 ? s.expTr.a5[s.expTr.a5.length - 1] : 1; o.body = Txt.f(w <= al - 0.08 ? C.body : C.whatifBody.alone, { a: Math.round(100 * (s.w30 || 0)), b: Math.round(100 * w) }); }
       else if (L.practice && s.pred.a3 != null && s.exp.a3 != null) o.body = Txt.f(cap.practice, { d: Math.abs(s.pred.a3 - s.exp.a3).toFixed(2) }) + ' ' + Txt.f(cap.bBeds, { a: b.cured != null ? cap.wCleared : cap.wNot, i: s.beds[1].icu == null ? L.days : Math.floor(s.beds[1].icu) });
       else if (L.kind === 'kpc') o.body = Txt.f(cap.bWard, { n: s.ward.seen, i: s.ward.icu });
       else if (L.kind !== 'kpc') o.body = b.cured != null ? Txt.f(cap.bCured, { d: Math.max(1, Math.ceil(b.cured)), u: b.used, b: L.budget }) : Txt.f(cap.bNot, { d: s.day, r: Math.round(100 * this.sim.resShare(b)) });
@@ -816,9 +817,9 @@ const CH_CLINIC_V2 = {
     if (e.k === 'dose') {
       if (L.kind === 'kpc') { const p = tile(e.bed); v.rip.push({ x: p[0], y: p[1], t: 0, r: 40, col: '#8FF5EA' }); if (F) F.ring(p[0], p[1], 30, { ms: 200 }); snd('pour', p[0], p[1]); if (e.fail && this.once('failed')) this.whisper('failed'); return; }
       const d = dish(e.bed); v.rip.push({ x: d.x, y: d.y, t: 0, r: d.r, col: e.hi ? '#FFFFFF' : '#8FF5EA', hi: e.hi });
-      if (F) { F.ring(d.x, d.y, d.r * 0.5, { ms: 180 }); F.pop(e.hi ? '+24×' : '+2×', d.x, d.y - d.r - 4, 1); if (e.hi) F.burst('droplet', d.x, d.y, 10, { ink: '#8FF5EA' }); }
+      if (F) { F.ring(d.x, d.y, d.r * 0.5, { ms: 180 }); F.pop(e.hi ? '+24×' : '+2×', d.x, d.y - d.r - 4, 1); if (e.hi) F.burst('spark', d.x, d.y, 12, { ink: '#8FF5EA' }); }
       snd('pour', d.x, d.y);
-      if (!e.auto) { const c = s.beds[e.bed].C, z = Math.max(...c); this.whisper(z >= CL_M.mpc ? 'high' : 'low'); if (typeof Live !== 'undefined') Live.say(Txt.f(C.captions.liveDose, { k: e.hi ? C.labels.high : C.labels.low, c: Math.round(z) })); }
+      if (!e.auto) { const c = s.beds[e.bed].C, z = Math.max(...c); v.nd = (v.nd || 0) + 1; if (v.nd <= 3) this.whisper(z >= CL_M.mpc ? 'high' : 'low'); if (typeof Live !== 'undefined') Live.say(Txt.f(C.captions.liveDose, { k: e.hi ? C.labels.high : C.labels.low, c: Math.round(z) })); }
     }
     else if (e.k === 'missed') { const d = dish(e.bed); if (F) F.pop('0×', d.x, d.y - d.r - 4, -1); snd('tock', d.x, d.y); this.whisper('missed'); }
     else if (e.k === 'cap' || e.k === 'budget') { const d = dish(e.bed); if (F) F.ring(d.x, d.y, d.r, { ms: 300, dashed: true }); snd('tock', d.x, d.y); this.whisper(e.k); }
@@ -835,11 +836,11 @@ const CH_CLINIC_V2 = {
       if (L.kind !== 'kpc') snd('tick', G.W - 30, G.top);
     }
     else if (e.k === 'weekend') { if (F) F.tier(2, ms => { v.banner = { text: C.labels.home, t: 0, ms: Math.max(800, ms + 200) }; }); }
-    else if (e.k === 'fever') { const p = tile(e.bed); if (F) F.pop('!', p[0], p[1] - 20, -1); snd('peep', p[0], p[1]); if (this.once('fever')) this.whisper('fever'); this.ghosts(); }
+    else if (e.k === 'fever') { const p = tile(e.bed); if (F) F.ring(p[0], p[1], 40, { ms: 300, ink: '#FF8A7A' }); snd('peep', p[0], p[1]); if (this.once('fever')) this.whisper('fever'); this.ghosts(); }
     else if (e.k === 'healed') { const p = tile(e.bed); if (F) F.burst('spark', p[0], p[1], 6, { ink: '#8FF5EA' }); this.whisper('healed'); }
     else if (e.k === 'seeded') { let j = -1, m = 0; for (let i = 0; i < s.beds.length; i++) if (i !== e.bed && !s.beds[i].iso && s.beds[i].p > m) { m = s.beds[i].p; j = i; } if (j >= 0) v.links.push({ a: j, b: e.bed, t: 0 }); snd('swish', tile(e.bed)[0], tile(e.bed)[1]); this.whisper('seeded'); }
     else if (e.k === 'admit') { const p = tile(e.bed); if (F) F.ring(p[0], p[1], 34, { ms: 300 }); if (this.once('admit')) this.whisper('admit'); }
-    else if (e.k === 'rub') { if (F) { F.burst('droplet', G.rub.x, G.rub.y, 12, { ink: '#8FF5EA' }); F.ring(G.rub.x, G.rub.y, G.rub.r + 8, { ms: 300 }); } snd('swish', G.rub.x, G.rub.y); this.whisper('rub'); }
+    else if (e.k === 'rub') { if (F) { F.burst('spark', G.rub.x, G.rub.y, 12, { ink: '#8FF5EA' }); F.ring(G.rub.x, G.rub.y, G.rub.r + 8, { ms: 300 }); } snd('swish', G.rub.x, G.rub.y); this.whisper('rub'); }
     else if (e.k === 'iso') { const p = tile(e.bed); if (F) F.ring(p[0], p[1], 46, { ms: 260 }); snd('tock', p[0], p[1]); this.whisper(e.on ? 'iso' : 'unIso'); }
     else if (e.k === 'full' || e.k === 'staff') { if (F) F.ring(G.W / 2, G.bar ? G.bar.y + 30 : G.H / 2, 30, { ms: 300, dashed: true }); this.whisper(e.k); }
     else if (e.k === 'nofever') { const p = tile(e.bed); if (F) F.ring(p[0], p[1], 30, { ms: 240, dashed: true }); if (this.once('nofever')) this.whisper('noFever'); }
@@ -905,7 +906,7 @@ const CH_CLINIC_V2 = {
     if (ask || s.phase === 'dish') { Dock.set([{ id: 'lock', label: Lb.lock, key: 'Enter', primary: true, fn: () => { if (typeof Predict !== 'undefined') Predict.commit(); } }]); return; }
     const b = () => this.sim.s.sel || 0, act = a => () => Sim.act(this, a()), B = [];
     if (L.kind === 'kpc') B.push({ id: 'cl-rub', label: Lb.rub, key: 'R', fn: act(() => ({ k: 'rub' })) }, { id: 'cl-dose', label: Lb.dose, key: 'D', fn: act(() => ({ k: 'dose', bed: b() })) }, { id: 'cl-iso', label: Lb.isolate, key: 'I', fn: act(() => ({ k: 'iso', bed: b() })) });
-    else if (L.kind === 'tb2') B.push({ id: 'cl-a', label: Lb.drugA, key: 'A', fn: act(() => ({ k: 'dose', bed: 0, d: 0 })) }, { id: 'cl-b', label: Lb.drugB, key: 'B', fn: act(() => ({ k: 'dose', bed: 0, d: 1 })) }, { id: 'cl-ab', label: 'A + B', key: 'L', fn: act(() => ({ k: 'dose', bed: 0, d: 2 })) });
+    else if (L.kind === 'tb2') B.push({ id: 'cl-a', label: Lb.drugA2, key: 'A', fn: act(() => ({ k: 'dose', bed: 0, d: 0 })) }, { id: 'cl-b', label: Lb.drugB2, key: 'B', fn: act(() => ({ k: 'dose', bed: 0, d: 1 })) }, { id: 'cl-ab', label: 'A + B', key: 'L', fn: act(() => ({ k: 'dose', bed: 0, d: 2 })) });
     else B.push({ id: 'cl-lo', label: Lb.lowDose, key: 'L', fn: act(() => ({ k: 'dose', bed: b(), d: 0, hi: false })) }, { id: 'cl-hi', label: Lb.highDose, key: 'H', fn: act(() => ({ k: 'dose', bed: b(), d: 0, hi: true })) });
     if (s.unt) B.push({ id: 'cl-next', label: Lb.next, key: 'N', primary: s.phase === 'wait', fn: act(() => ({ k: 'next' })) });
     Dock.set(B);
@@ -995,7 +996,18 @@ const CH_CLINIC_V2 = {
     this.drawGauge(c, d, n, i);
   },
   drawGauge(c, d, n, i) {   // the load on a log scale beside the dish: the immune line (and in L4 the intensive-care line)
-    const s = this.sim.s, L = CL_LV[s.level], two = s.beds.length > 1, x = d.x + d.r + (two ? 12 : 18), y0 = d.y + d.r, y1 = d.y - d.r, h = y0 - y1, Y = l => y0 - h * clamp(l / 10, 0, 1), N = CL_sum(n);
+    const s = this.sim.s, L = CL_LV[s.level], two = s.beds.length > 1;
+    if (two) {   // two beds: a horizontal bar under each dish, so neither gauge crowds the other dish
+      const x0 = d.x - d.r, w = 2 * d.r, y = d.y + d.r + 36, X = l => x0 + w * clamp(l / 10, 0, 1), N = CL_sum(n), R = N - n[0], Lb = this.content.labels;
+      c.save(); rrect(c, x0, y - 5, w, 10, 5); c.fillStyle = '#0B2224'; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(47,211,195,0.5)'; c.stroke();
+      if (N > 0) { rrect(c, x0 + 1, y - 3, Math.max(4, X(CL_l10(N)) - x0 - 2), 6, 3); c.fillStyle = '#2FD3C3'; c.fill(); }
+      if (R >= 1) { const x = X(CL_l10(R)); c.fillStyle = '#FF3FB4'; c.beginPath(); c.moveTo(x, y - 6); c.lineTo(x - 5, y - 12); c.lineTo(x + 5, y - 12); c.closePath(); c.fill(); }
+      c.setLineDash([3, 2]); c.lineWidth = 2; for (const [l, col] of [[5, '#E8F6F4'], [CL_l10(CL_M.icu), '#FF8A7A']]) { c.strokeStyle = col; c.beginPath(); c.moveTo(X(l), y - 8); c.lineTo(X(l), y + 8); c.stroke(); } c.setLineDash([]); c.restore();
+      Lbl.put('cl-imm' + i, Lb.immuneS, X(5), y + 16, { size: 12, pill: false, ink: '#E8F6F4' });
+      Lbl.put('cl-icu' + i, Lb.icuBox, X(CL_l10(CL_M.icu)) - 2, y + 16, { size: 12, align: 'right', pill: false, ink: '#FF8A7A' });
+      return;
+    }
+    const x = d.x + d.r + (two ? 12 : 18), y0 = d.y + d.r, y1 = d.y - d.r, h = y0 - y1, Y = l => y0 - h * clamp(l / 10, 0, 1), N = CL_sum(n);
     c.save(); rrect(c, x - 6, y1, 12, h, 6); c.fillStyle = '#0B2224'; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(47,211,195,0.5)'; c.stroke();
     if (N > 0) { const t = Y(CL_l10(N)); rrect(c, x - 4, t, 8, Math.max(2, y0 - t), 4); c.fillStyle = '#2FD3C3'; c.fill(); }
     const R = N - n[0]; if (R >= 1) { const t = Y(CL_l10(R)); c.fillStyle = '#FF3FB4'; c.beginPath(); c.moveTo(x - 10, t); c.lineTo(x - 4, t - 5); c.lineTo(x - 4, t + 5); c.closePath(); c.fill(); }
@@ -1005,7 +1017,7 @@ const CH_CLINIC_V2 = {
     const Lb = this.content.labels, right = !two || i === 1;
     if (!two || i === 0) Lbl.put('cl-imm' + i, two ? Lb.immune : Lb.immuneS, right ? x + 12 : x - 12, Y(5), { size: 12, align: right ? 'left' : 'right', pill: false, ink: '#E8F6F4' });
     if (L.kind === 'tb3' && i === 1) Lbl.put('cl-icul', Lb.icu, x - 12, Y(CL_l10(CL_M.icu)) - 2, { size: 12, align: 'right', pill: false, ink: '#FF8A7A' });
-    if (!two) Lbl.put('cl-gN', N > 0 ? '10' + this.sup(Math.floor(CL_l10(N))) : '0', x + 12, Math.min(y0 - 8, Y(CL_l10(Math.max(1, N)))), { size: 12, align: 'left', pill: false, ink: '#2FD3C3', mono: true });
+    if (!two) Lbl.put('cl-gN', N > 0 ? '10' + this.sup(Math.floor(CL_l10(N))) : '0', x, y1 - 11, { size: 12, pill: false, ink: '#2FD3C3', mono: true });
   },
   drawPumps(c, G) {   // cosmetic: two syringe pumps, A (solid line) and B (dashed line)
     const s = this.sim.s, b = s.beds[0];

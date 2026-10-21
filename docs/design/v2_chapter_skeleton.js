@@ -12,6 +12,11 @@ const SKEL = {
   // ---- all words (API_v2 §9.2); lint_text.js checks every budget ----
   content: {
     firstWords: 'You are a gull. Tap a beetle you can see.',
+    intro: {   // the opening description card (D6 decision 8, API_v2 §15): 1–2 sentences, ≤ 35 words each
+      game: 'You are a gull on a beach, feeding chicks on beetles. The beetles you miss breed at dusk.',
+      biology: 'Natural selection: you eat the beetles you can see. The hidden colour leaves more young, so its copies spread.',
+      how: 'Tap a beetle you can see to eat it. At dusk, drag the diamond to predict tomorrow’s share, then lock it in.'
+    },
     hud: { eat: 'Eat {n} of {m} beetles before the tide turns.', dusk: 'Dusk. Drag the marker: where will the a share be tomorrow?', wait: 'The survivors breed.' },
     whispers: { miss: 'Only sand there.', fed: 'The chicks are fed.', drag: 'Drag the diamond first.' },
     labels: { you: 'you', dark: 'dark', pale: 'pale' },
@@ -31,7 +36,7 @@ const SKEL = {
 };
 
 const CH_SKELETON_V2 = {
-  id: 'skeleton', v2: true, role: 'environment', place: 'beetle',
+  id: 'skeleton', v2: true, role: 'environment', place: 'beetle', accent: '#7A6A52',   // the chapter's chrome tint (D6 decision 7, API_v2 §15); ≥ ΔE 8 from every data ink
   intro: { goal: 'Feed your chicks; watch the hidden colour spread.' },
   content: SKEL.content,
   P: {

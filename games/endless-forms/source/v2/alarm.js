@@ -538,7 +538,7 @@ const CH_ALARM_V2 = {
     return { W, H, top, room, surf, kin, oth };
   },
   geo5() {
-    const W = Stage.w, H = Stage.h, top = this.hudH() + 4, room = Math.max(240, H - top), sea = H - Math.round(room * 0.16), ty = top + room * 0.5;
+    const W = Stage.w, H = Stage.h, top = this.hudH() + 4, room = Math.max(240, H - top), sea = H - Math.round(room * 0.16), ty = top + room * 0.47;
     return { W, H, top, room, sea, ty, hx: W * 0.22, vx: W * 0.78, yx: W * 0.5, yy: top + room * 0.3, jar: { x: W - 64, y: top + 10, w: 50, h: Math.round(room * 0.22) } };
   },
   nodeAt(id) { const v = this.v; for (const pv of [v.pv, v.pvO]) if (pv && pv.pos[id]) return [pv.pos[id].x, pv.pos[id].y]; const G = this.geoPeace(); return [G.W / 2, G.kin.y + G.kin.h * 0.8]; },
@@ -584,7 +584,7 @@ const CH_ALARM_V2 = {
     } else if (e.k === 'decide') { v.sq = 1; }
     else if (e.k === 'call') {
       const G = this.geo(), p = this.youAt();
-      if (e.a) { v.rings.push({ x: p[0], y: p[1] - G.hero * 0.35, t: 0, ms: 0.6, wavy: e.pred !== 'hawk' }, { x: p[0], y: p[1] - G.hero * 0.35, t: -0.12, ms: 0.72, wavy: e.pred !== 'hawk' }, { x: p[0], y: p[1] - G.hero * 0.35, t: -0.24, ms: 0.84, wavy: e.pred !== 'hawk' }); snd('peep', p[0], p[1]); this.whisper(e.pred === 'hawk' ? 'whistled' : 'called'); }
+      if (e.a) { if (F) F.ring(p[0], p[1] - G.hero * 0.35, 16, { ms: 180 }); v.rings.push({ x: p[0], y: p[1] - G.hero * 0.35, t: 0, ms: 0.6, wavy: e.pred !== 'hawk' }, { x: p[0], y: p[1] - G.hero * 0.35, t: -0.12, ms: 0.72, wavy: e.pred !== 'hawk' }, { x: p[0], y: p[1] - G.hero * 0.35, t: -0.24, ms: 0.84, wavy: e.pred !== 'hawk' }); snd('peep', p[0], p[1]); this.whisper(e.pred === 'hawk' ? 'whistled' : 'called'); }
       else { if (F) F.ring(p[0], G.by, 18, { ms: 200 }); snd('tock', p[0], p[1]); this.whisper(e.slow ? 'slow' : 'silent'); }
       if (typeof Live !== 'undefined') { const A = s.atk; Live.say(Txt.f(C.captions.liveAtk, { i: A.i + 1, a: e.a ? C.labels.called : C.labels.silent, r: A.srt.toFixed(2) })); }
     } else if (e.k === 'strike') {
@@ -607,7 +607,7 @@ const CH_ALARM_V2 = {
       if (typeof Live !== 'undefined' && s.c4) { const p = e.k === 'swtick' ? s.c4.sw : s.c4.p; Live.say(Txt.f(C.captions.liveSeason, { t: e.t, f: Math.round(100 * p[0]), m: Math.round(100 * p[1]) })); }
     } else if (e.k === 'swap') { if (F) F.tier(3, ms => { v.banner = { text: C.labels.tSwap, t: 0, ms: Math.max(900, ms + 300) }; }); }
     else if (e.k === 'chose') {
-      const G = this.geo5(); v.fly = { a: e.a, t: 0 }; snd('wing', e.a === 'help' ? G.hx : G.vx, G.ty);
+      const G = this.geo5(); v.fly = { a: e.a, t: 0 }; snd('wing', e.a === 'help' ? G.hx : G.vx, G.ty); if (F) F.ring(G.yx, G.yy, 30, { ms: 200 });
       if (e.a === 'help') { setTimeout(() => this.whisper(e.coop ? 'coop' : 'nocoop'), 900); } else this.whisper(e.vac ? 'bred' : 'floated');
     } else if (e.k === 'tally') {
       const G = this.geo5(), sp = s.sp[e.i], dir = sp.a === 'help' ? sp.own : sp.vB, ind = sp.a === 'help' ? sp.kin : 0, x0 = sp.a === 'help' ? G.hx : G.vx;
@@ -867,11 +867,11 @@ const CH_ALARM_V2 = {
       const x = p.x - 13, y = p.y - h - 26; c.save(); rrect(c, x, y, 26, 22, 5); c.fillStyle = '#F4EEDD'; c.fill(); c.clip(); c.strokeStyle = 'rgba(27,22,18,.35)'; c.lineWidth = 1; for (let k2 = -22; k2 < 26; k2 += 4) { c.beginPath(); c.moveTo(x + k2, y + 22); c.lineTo(x + k2 + 22, y); c.stroke(); } c.restore();
       c.save(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; rrect(c, x, y, 26, 22, 5); c.stroke(); c.restore(); Lbl.put('al-q' + nd.id, '?', p.x, y + 11, { size: 15, pill: false, mono: true, ink: '#1B1612' });
     }
+    const mp = v.pv.pos[s.me]; if (mp) { c.save(); c.lineWidth = 3; c.strokeStyle = '#F4EEDD'; c.beginPath(); c.arc(mp.x, mp.y, v.pv.s / 2 + 6, 0, TAU); c.stroke(); c.restore(); Lbl.put('al-pvme', L.you, mp.x, mp.y + v.pv.s / 2 + 14, { size: 12 }); }
     for (const pv of [v.pv, v.pvO]) if (pv.menu != null && pv.pos[pv.menu]) {   // the radial tag menu: ½ ¼ ⅛ 0 round the chosen squirrel
       const p = pv.pos[pv.menu];
       for (let k = 0; k < 4; k++) { const x = p.x + PedigreeView.OX[k], y = p.y + PedigreeView.OY[k]; c.save(); c.beginPath(); c.arc(x, y, 22, 0, TAU); c.fillStyle = '#F4EEDD'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#1B1612'; c.setLineDash(k === 1 ? [4, 2] : k === 2 ? [1.5, 2] : []); if (k === 3) c.lineWidth = 0.8; c.stroke(); c.restore(); Lbl.put('al-mn' + k, PedigreeView.GLYPH[AL_TAGS[k]], x, y, { size: 16, pill: false, mono: true, ink: '#1B1612' }); }
     }
-    const mp = v.pv.pos[s.me]; if (mp) { c.save(); c.lineWidth = 3; c.strokeStyle = '#F4EEDD'; c.beginPath(); c.arc(mp.x, mp.y, v.pv.s / 2 + 6, 0, TAU); c.stroke(); c.restore(); Lbl.put('al-pvme', L.you, mp.x, mp.y + v.pv.s / 2 + 14, { size: 12 }); }
   },
   /* L4: the colony map, seen from above: six burrow clusters; each squirrel a genotype disc at the locus its sex expresses */
   drawMap(c) {
@@ -908,7 +908,7 @@ const CH_ALARM_V2 = {
     c.fillStyle = '#B7A496'; c.strokeStyle = '#1B1612'; c.lineWidth = 1.5; for (let i = 0; i < 4; i++) { const x = (0.1 + 0.28 * i) * G.W, y = G.sea - 4, r = 16 + 10 * this.hrand(i, 51); c.beginPath(); c.ellipse(x, y, r * 1.6, r, 0, Math.PI, TAU); c.fill(); c.stroke(); }
     c.fillStyle = '#4E7A3E'; c.fillRect(0, G.sea - 30, G.W, 26);
     Lbl.put('al-isl', L.island, 10, G.top + 12, { size: 12, align: 'left' });
-    const K = clamp(Math.min(G.W / 390, G.room / 480), 1, 1.9);
+    const K = clamp(Math.min(G.W / 390, G.room / 400), 1, 1.9);
     const tree = (x, q, lab, empty) => {   // a scrub tree; insects (quality) dance round its crown
       c.fillStyle = '#6B4F34'; c.strokeStyle = '#1B1612'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - 7 * K, G.sea - 30); c.lineTo(x - 4 * K, G.ty); c.lineTo(x + 4 * K, G.ty); c.lineTo(x + 7 * K, G.sea - 30); c.closePath(); c.fill(); c.stroke();
       c.fillStyle = empty ? '#6E9356' : '#4F7E3F';

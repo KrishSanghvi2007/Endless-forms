@@ -61,7 +61,7 @@ const RF_TEXT = {
   labels: {
     yours: 'yours {n}', rivals: 'rivals {n}', supply: 'supply', pocket: 'her pocket', reach: 'out of reach', virgin: 'virgin', risk: '{q} after', mins: '{m} min',
     search: 'search {T} min', eggsAx: 'eggs', hidden: '?', morning: 'morning', afternoon: 'afternoon', pour: 'Pour', stop: 'Stop', done: 'Done', mate: 'Mate',
-    leave: 'Leave', faster: 'Faster', lock: 'Lock in', jackpot: 'Jackpot!', pm: 'Afternoon', new4: 'New female',
+    leave: 'Leave', faster: 'Faster', rate: '{r} eggs/h', lock: 'Lock in', jackpot: 'Jackpot!', pm: 'Afternoon', new4: 'New female',
     tEggs: 'Eggs won', tUnits: 'Units poured', tShare: 'Your share', tHalf: 'Half her eggs', tLaid: 'Eggs per female',
     female: 'female', units: 'units', minutes: 'minutes', share: 'share', you: 'you', best: 'best plan', planner: 'planner', expected: 'expected', tangent: 'best rate',
     half: 'half', searchM: 'search', sSupply: 'Supply left', sEggs: 'Eggs so far', sExp: 'Expected eggs', sRate: 'Eggs per hour', sMins: 'Last mating', sBest: 'Best plan'
@@ -736,7 +736,7 @@ const CH_RAFFLE_V2 = {
     else if (L.her) t = C.pour4;
     else if (s.level === 1) t = Txt.f(C.pour2, { r: F.R, q: F.q > 0.5 ? '9 in 10' : '1 in 10' });
     else t = F.R ? Txt.f(C.pourR, { r: F.R }) : C.pourV;
-    const num = L.dung ? this.sim.rate(s).toFixed(1) + ' eggs/h' : lab.supply + ' ' + Math.round(s.left);
+    const rt = this.sim.rate(s), num = L.dung ? (rt > 0 ? Txt.f(lab.rate, { r: rt.toFixed(1) }) : '') : lab.supply + ' ' + Math.round(s.left);
     const sig = t + '|' + num; if (sig === this.v.sig) return; this.v.sig = sig; HUD.say(t, num);
   },
 
@@ -855,9 +855,9 @@ const CH_RAFFLE_V2 = {
     // counts under the drum: the raffle's two numbers (in L4 only the tickets she kept in the drum count)
     if (s.phase !== 'arrive' && s.phase !== 'leave' && s.phase !== 'end' && s.phase !== 'over' && !(s.ask && (s.ask.id === 'p3' || s.ask.id === 'p4'))) {
       let me = 0, them = 0; for (const t of v.tk) if (t.w === 'dr') { if (t.o === 0) me++; else them++; }
-      const lab = this.content.labels, y = g.cy + R0 + Math.max(16, R0 * 0.14);
-      Lbl.put('rf-yours', Txt.f(lab.yours, { n: me }), g.cx - R0 * 0.55, y, { size: 13 });
-      Lbl.put('rf-rivals', Txt.f(lab.rivals, { n: them }), g.cx + R0 * 0.55, y, { size: 13 });
+      const lab = this.content.labels, y = g.cy - R0 * 0.6;   // a scoreboard in the empty top of the drum
+      Lbl.put('rf-yours', Txt.f(lab.yours, { n: me }), g.cx - R0 * 0.36, y, { size: 13 });
+      Lbl.put('rf-rivals', Txt.f(lab.rivals, { n: them }), g.cx + R0 * 0.36, y, { size: 13 });
     }
   },
   drawGauge(c, g) {   // the season's supply: a brass-capped glass tube that drains as you pour (L1, L2, L4)
@@ -897,7 +897,7 @@ const CH_RAFFLE_V2 = {
       Rig.draw(c, 'dungfly', { sex: 'f', size: 0.5 }, fx, fy, { size: S, rot: TAU / 4, alpha: fa });
       const on = ph === 'pour' || ph === 'close' || ph === 'ask' || (ph === 'later' && v.laterT < 0.5), bob = s.hold && !calm ? 2 * Det.sin(v.t * 22) : 0;
       if (on) Rig.draw(c, 'dungfly', { sex: 'm', size: 0.75 }, fx - S * 0.18, fy - S * 0.12 + bob, { size: S * 1.08, rot: TAU / 4 });
-      else if (ph === 'draw' || ph === 'search' || ph === 'later') Rig.draw(c, 'dungfly', { sex: 'm', size: 0.75 }, fx - S * 0.85, fy + S * 0.1, { size: S * 1.08, rot: TAU / 4 + 0.3 });   // guarding beside her
+      else if (ph === 'draw' || ph === 'search' || ph === 'later') Rig.draw(c, 'dungfly', { sex: 'm', size: 0.75 }, fx + S * 0.15, fy - S * 0.8, { size: S * 1.08, rot: TAU / 4 + 0.25 });   // guarding beside her
     }
     if (ph === 'later' && v.laterT >= 0) {   // a later male: he lands on her and adds his tickets, or flies on past
       const u = Math.min(1, v.laterT / 0.55), x = v.laterCame ? g.W + S - (g.W + S - (g.pair.x + S * 0.1)) * u : g.W + S - (g.W + 2 * S) * Math.min(1, v.laterT / RF_T.later), y = v.laterCame ? g.pair.y - S * 0.15 - S * (1 - u) : g.patY - S * 0.35;

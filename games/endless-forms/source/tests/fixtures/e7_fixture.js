@@ -9,6 +9,7 @@ const CH_E7FIX_V2 = {
   intro: { goal: 'Tap the pale dots; press the dock button now and then.' },
   content: {
     firstWords: 'Tap a pale dot. Press the dock button now and then.',
+    intro: { game: 'A test unit: pale dots on bark.', biology: 'Nothing is taught here; it tests the harness.', how: 'Tap the pale dots and press the dock button.' },
     hud: { tap: 'Tap {n} more dots.', done: 'Level done.' },
     whispers: { miss: 'Only bark there.' },
     labels: { you: 'you' },
