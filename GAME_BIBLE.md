@@ -1,6 +1,6 @@
 # Endless Forms: the game bible
 
-> **Current status and the next steps live in `START_HERE.md`. Read it first.** As of 15 Oct 2026 the Wave 2 engine and five v2 units (Lichen Wood, Black Country, Hawks and Doves, Equilibrium, Drift Casino) are built and gated; play `games/endless-forms/Endless_Forms_v2.html`. Some sections below (§4, §10) still describe the pre-Wave-2 state; START_HERE's tables win.
+> **Current status and the next steps live in `START_HERE.md`. Read it first.** As of 21 Oct 2026 the v2 engine and 17 v2 units (all 9 favourites, Equilibrium, Drift Casino, The Scribe and four new games) are built; play `games/endless-forms/Endless_Forms_v2.html`. Some sections below (§4, §10) still describe the pre-Wave-2 state; START_HERE's tables win.
 
 *The single reference for anyone, human or agent, working on this repo. Read it instead of the ~200,000 words in `docs/`; open those only when a section here points you there. Last updated 2026-10-14. Keep it under about 6,000 words and update the decisions log (§13) every session.*
 
@@ -394,6 +394,10 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 - **2026-10-15** Wave 2 Batch 1 built, reviewed (playtest, science, design), fixed and gated: `lichen`, `soot`, `hawks`, `census` (Equilibrium, the one HW chapter, 8 levels, `v2/mixer.js`), `casino`. A coordinator wrote `docs/changes/wave2/lessons_batch1.md`.
 - **2026-10-15** Shipped `games/endless-forms/Endless_Forms_v2.html`: legacy chapters plus the five v2 units. The monkey reached the end card in 7 of 7 smoke runs. `build.py` now defaults to `Endless_Forms_v2.html`.
 - **2026-10-15** Session paused because of the designer's usage limit. Batch 2 drafts `jaws`, `forager` and `bitter` were parked in `source/v2_wip/` (not built). Raffle, Alarm, Clinic, Switch, Scribe, Tap, Royal, Swamp and Dig were not started. Workflow scripts were saved in `tools/workflows/`; `4_continue_wave2.js` resumes the job. See `START_HERE.md`.
+
+- **2026-10-21** Designer feedback, recorded as the D6 addendum: (7) each chapter gets its own world, organism and palette, with blue and amber only in genotype read-outs and beetles only in Equilibrium; (8) every chapter opens with a description card (game, biology, how to play) and has a "?" button to reopen it.
+- **2026-10-21** Opening card built (`00_entry.js`, API_v2 §15). Batch 1 retrofitted; Drift Casino reskinned as a riverboat saloon with anoles.
+- **2026-10-21** Built as v2 units, each in its own world: bitter, forager, jaws, raffle, alarm, clinic, switch, scribe (self-reviewed and tested), plus the new games royal, tap, swamp and dig (built; external reviews partial; see `START_HERE.md` §4). All 9 designer favourites are now rebuilt. Full-build `SW_C` clash fixed; `tests/dup_globals.sh` added.
 
 ## 14. Open questions for the designer
 

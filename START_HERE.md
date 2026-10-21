@@ -1,6 +1,6 @@
 # START HERE: handoff for the next session
 
-*Written 15 October 2026 at the end of session 1, when the designer's usage ran low and work was paused deliberately. Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
+*Updated 21 October 2026 at the end of session 2 (first written 15 October at the end of session 1). Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
 
 ---
 
@@ -53,74 +53,68 @@ Still open (ask the designer when they have played the build):
 
 ---
 
-## 3. What has been done (session 1)
+## 3. What has been done
 
-| Stage | Result | Where |
+### Session 1 (14–15 Oct)
+- **Setup and docs:** repo organised; expert reviews R1–R8 and fact-checks; Wave 1 science sweep (about 300 corrections); design documents D0–D5; `docs/CRITIQUE.md`.
+- **Engine:** the Wave 2 v2 engine (`source/v2/0*.js`; contract in `docs/design/API_v2.md`).
+- **Batch 1:** five units built, reviewed, fixed and gated: Lichen Wood, Black Country, Hawks and Doves, Equilibrium (the one Hardy–Weinberg chapter, `v2/mixer.js`, id `census`) and Drift Casino.
+
+### Session 2 (21 Oct): designer feedback, then the remaining units
+**Designer feedback (D6 addendum, decisions 7–8):**
+- **7. Each chapter has its own world:** its own organism, place, palette and accent colour. Blue and amber are used only inside genotype read-outs, and beetles appear only in Equilibrium.
+- **8. Every chapter opens with a description card** (`content.intro = {game, biology, how}`), with a "?" button in the dock to reopen it.
+
+**Engine:** the card is built in `00_entry.js` (API_v2 §15; log `docs/changes/wave2/intro_card.md`). The five Batch 1 units gained card text and accents. Drift Casino was reskinned as a riverboat saloon with anoles in place of beetles; Hawks and Black Country lost their blue and amber.
+
+**Units in session 2** (all in `source/v2/`, logs in `docs/changes/wave2/<id>.md`):
+
+| Unit (id) | World | Status |
 |---|---|---|
-| Repo organised | `games/`, `docs/`, `archive/` (the original zip), `tools/workflows/`; test scripts portable | — |
-| Expert reviews | R1–R8: four section critiques, two visual reviews (≈300 screenshots), technology, curriculum (101-concept coverage matrix), and four adversarial science fact-checks | `docs/reviews/` |
-| Wave 1: science sweep | About 300 logged corrections across all 48 chapters and the Equilibrium game. Each set of corrections was reviewed by a second agent; all 48 chapters still behave as before | `docs/changes/science_sweep_G1–G7.md` |
-| Design | D0 brief → D1–D4 (two rounds with an integrator) → D5 decisions → D6 designer decisions | `docs/design/` |
-| Master critique | 16k words: verdict, 7 root causes, chapter verdicts, corrections table, roadmap | `docs/CRITIQUE.md` |
-| Wave 2: engine | v2 plug-in engine (details below the table) | `source/v2/0*.js`, `zz_v1switch.js`, `core.js`/`ui.js` additions; contract in `docs/design/API_v2.md`; logs in `docs/changes/wave2/engine_*.md` |
-| Wave 2, Batch 1 (gated) | **The Lichen Wood, The Black Country, Hawks and Doves, Equilibrium (HW, 8 levels), Drift Casino.** Each was built, reviewed (playtest/art, science, design), fixed and passed the release gate (node check, text lint, oracle, bots, monkey at 3 seeds and 2 sizes, console check, legacy goldens) | `source/v2/lichen.js`, `soot.js`, `hawks.js`, `mixer.js`, `casino.js`; logs `docs/changes/wave2/<id>.md` |
-| Lessons | A coordinator fixed shared engine bugs and wrote rules for the next builders | `docs/changes/wave2/lessons_batch1.md` |
-| Shipped files | `games/endless-forms/Endless_Forms_v2.html` (**play this**: legacy chapters plus the five v2 units); `Endless_Forms_v1.html` (classic, science-fixed); `games/equilibrium-hw/Equilibrium_HW_v2.html` (classic, science-fixed) | — |
+| Bitter Wings (`bitter`) | Neotropical forest edge, jacamar, Heliconius-style models | Built; self-reviewed (playtest, science, D5 §3); all tests pass |
+| The Forager (`forager`) | English hedgerow and orchard through one May day | Same as Bitter Wings |
+| Left Jaw, Right Jaw (`jaws`) | Lake Tanganyika shallows, scale-eating cichlids | Same as Bitter Wings |
+| The Raffle (`raffle`) | Cow pasture, dung flies, brass raffle drums | Same as Bitter Wings |
+| Alarm Call (`alarm`) | Sierra meadow at Tioga Pass, Belding's ground squirrels; Seychelles warbler boss | Same as Bitter Wings |
+| The Clinic (`clinic`) | Night ward and glowing microscope views; plasmid bay | Same as Bitter Wings |
+| Switches (`switch`) | Dark-field fluorescence "monster workshop"; stickleback lake boss | Same as Bitter Wings |
+| The Scribe (`scribe`) | Night microbiology bench; DFE, Luria–Delbrück, replica plating | Same as Bitter Wings |
+| The Royal Line (`royal`, new) | Sepia portrait gallery and Morgan's fly room | Built by its builder; external playtest and science reviews done, **but their 19 findings are NOT yet applied**: `docs/changes/wave2/royal_review_pending.md` |
+| The Leaky Tap (`tap`, new) | Seabird cliff at sunset | Built and self-tested; **external review interrupted** |
+| Gene Swamping (`swamp`, new) | Lava and sand, pocket mice, owl | Built and self-tested; **no external review yet** |
+| The Dig (`dig`, new) | Cliff strata, fossils, zircon clock | Built and self-tested; **no external review yet** |
 
-The Wave 2 engine adds:
-- `Det` bit-exact maths
-- Save v2 with an adapter chain
-- `Events` with CSV export
-- `Fx` juice, `Ghost` hand, `Lbl`, `Live` region and `Pal` colour-blind-safe tokens
-- `LiveGraph`, `Predict` and other widgets
-- the entry and onboarding flow, and the act plan rewrite
-- hunt extensions, creature rigs and scenes
-- golden trajectories, text lint, bot sweep and oracle runner
+**Integration fix:** `swamp.js` and `switch.js` both declared `SW_C`, which crashed the full build; it is renamed to `SWP_C` in swamp. New guard: `sh tests/dup_globals.sh` fails on any duplicate top-level name. **Run it after every unit.**
 
-**`?v1=1`** in the URL plays the untouched classic chapters.
+**Shipped:** `games/endless-forms/Endless_Forms_v2.html`, rebuilt from all v2 files.
 
-## 4. What is NOT done: exact status of Batch 2+3
+## 4. What is NOT done
 
-| Unit (id) | File | Status |
-|---|---|---|
-| Left Jaw, Right Jaw (`jaws`) | `source/v2_wip/jaws.js` | **Draft complete with its own tests; not reviewed or gated.** Kept out of the build in `v2_wip/` |
-| The Forager (`forager`) | `source/v2_wip/forager.js` | Same as jaws |
-| Bitter Wings (`bitter`) | `source/v2_wip/bitter.js` | Draft: sim and view written; tests and screenshots were mid-way |
-| The Raffle (`raffle`) | — | Not started (spec D1 §3.5) |
-| Alarm Call (`alarm`) | — | Not started (D1 §3.6) |
-| The Clinic (`clinic`) | — | Not started (D1 §3.8) |
-| Switches (`switch`) | — | Not started (D1 §3.9) |
-| The Scribe (`scribe`) | — | Not started (D3 "Scribe") |
-| The Leaky Tap (`tap`, new) | — | Not started (D3 "Leaky Tap") |
-| The Royal Line (`royal`, new) | — | Not started (D3 "Royal Line") |
-| Gene Swamping (`swamp`, new) | — | Not started (D3 "Gene Swamping") |
-| The Dig (`dig`, new) | — | Not started (D3 "The Dig") |
-| `docs/PLAYTEST_GUIDE.md` | — | Not written (D6 decision 4; the final-integration step writes it) |
-| Tangled Bank science sweep (G8) | — | Not started; needed before Tangled Bank material is reused |
+1. **Reviews for the four new games.** Apply `royal_review_pending.md`. Then run the playtest and science review and a fix round for `tap`, `swamp` and `dig`; `tools/workflows/5_units_tap_royal_swamp_dig.js` has the review and fix prompts. All four still need the D5 §3 release gate on the full build.
+2. **Science sign-off items flagged by builders** (see each log's "needs sign-off"):
+   - Alarm: the numbers in Sherman 1985 and Hanken & Sherman's 78%.
+   - Scribe: the Sanjuán 2004 DFE split and the Jónsson 2017 figures.
+   - Jaws: Kusche 2012, Boileau 2015 and the Lee 2015 diet wording.
+   - Switches: the Averof & Patel 1997 species.
+   - Casino: Kolbe 2012 and Censky 1998.
+3. **`docs/PLAYTEST_GUIDE.md`** for the designer and colleagues (D6 decision 4). Each unit log already ends with a playtest script, so collate them.
+4. **Engine requests** collected in unit logs:
+   - Predict "set" kind
+   - the phone strip left open when a sim closes its own prediction
+   - the card's "still to earn" naming a star already earned
+   - a Petri palette option
+   - a forest place in `00_tokens.js`
+   - the boss card's y-axis title overlapping a tick
+5. **File size.** Most units are 100–130 KB raw against a ~90 KB guide, and the full build is about 3.5 MB. Consider compressing art or fonts before hosting.
+6. **Next content (Wave A, D2 §4 triage):** rebuild the remaining legacy chapters in tiers, each in its own world with an intro card. Next in line are the spine units: Tree Thinking, Mendel, Crossing Over, Why Sex?, The Commons, The Coalescent, The River, The Archipelago, then the rest. The Tangled Bank G8 science sweep is also still due.
+7. **Ask the designer** after they play: do the favourites keep what they loved? Are the ghost jays honest? Should the guessable prediction questions be replaced (Bitter Wings island C, Switches L6)? Where should it be hosted?
 
 ## 5. How to continue (recommended)
 
-**Option A, one command (needs multi-agent orchestration enabled, e.g. the user says "ultracode"):**
-run the saved workflow `tools/workflows/4_continue_wave2.js` with the Workflow tool (`scriptPath`). First edit its `ROOT` constant if the repo path differs (check with `pwd`; it may be `/home/user/endless-forms`). It:
-1. builds the 12 remaining units. The three drafts are moved from `v2_wip/` into `v2/` and finished, not rewritten.
-2. runs each through playtest, science and design reviews, then a fix round and a release gate.
-3. ships `Endless_Forms_v2.html`, writes `docs/PLAYTEST_GUIDE.md`, updates this file and the bible, then commits and pushes.
-
-To do a subset, pass `args: {only: ['jaws','forager','bitter']}`. It is long, roughly 50 agents, so check usage first. Doing the three drafts first is the cheapest high-value step.
-
-**Option B, by hand, one unit at a time:**
-1. `git mv source/v2_wip/jaws.js source/v2/jaws.js`
-2. Read `docs/changes/wave2/jaws.md` and `lessons_batch1.md`.
-3. Build: `V2_ONLY='0*,zz_*,jaws.js' python3 build.py /tmp/j.html`.
-4. Run `node tests/oracle.js /tmp/j.html jaws` (see `docs/design/API_v2.md` §11 for the exact runner and lint commands), the monkey at 3 seeds, and look at screenshots.
-5. Review the unit against D5 §3 (the 14-item checklist) and D6.
-6. Commit.
-
-**After Wave 2:**
-- the designer and colleagues playtest (with `PLAYTEST_GUIDE.md`);
-- act on their feedback;
-- then Wave A: the remaining spine rebuilds (D2 §4 triage table, D3 specs), in tiers, gated by playtests;
-- later: the TypeScript/Pixi spike, the teacher layer (LTI/SCORM, dashboard), and hosting.
+1. **Bring the branch in** (§0). Build, then run `sh tests/dup_globals.sh` and the monkey on the 17 v2 ids.
+2. **Finish item 1 of §4.** It is cheapest per unit; use parallel agents, one per unit, each with a playtest/art reviewer, a science reviewer and a fix round.
+3. **Write `PLAYTEST_GUIDE.md`.** Ship `Endless_Forms_v2.html` and send it to the designer.
+4. **Start Wave A** with a creative brief per unit: a distinct world, intro card text, D1 template, and the lessons file. The session-2 prompts (in this handoff's git history, and in `tools/workflows/`) are good templates: give each builder a WORLD line and SCIENCE guard-rails.
 
 ## 6. Key facts and gotchas
 
@@ -146,9 +140,12 @@ To do a subset, pass `args: {only: ['jaws','forager','bitter']}`. It is long, ro
   - every science claim has a ref
 - **Science:** check `docs/changes/` before "fixing" anything; an R7 fact-check overrides its review. Never say individuals "evolve", "choose" or "need".
 - **Precedence:** designer > D6 > D5 > D1–D4 > API_v2 > CRITIQUE > reviews.
-- **Workflow scripts** from this session are in `tools/workflows/`:
+- **Duplicate globals:** every v2 file shares one IIFE. Prefix your top-level names with the unit id, and run `sh tests/dup_globals.sh`.
+- **Opening card:** scripted tests must click `[data-play]`, or load with `?intro=0`. The card ignores taps for about 800 ms. The dock's first child is now "?", so select buttons with `[data-id]`.
+- **Workflow scripts** from the sessions are in `tools/workflows/`:
   1. `1_critique_and_design.js`
   2. `2_science_sweep_wave1.js`
   3. `3_redesign_wave2.js` (the full original Wave 2)
-  4. `4_continue_wave2.js` (the trimmed continuation)
+  4. `4_continue_wave2.js` (session-1 continuation; now superseded: those units are built)
+  5. `5_units_tap_royal_swamp_dig.js` (session 2: build, review and fix the four new games; reuse its review and fix stages)
 - **Every session:** add a dated entry to `GAME_BIBLE.md` §13, update this file's §3–4 tables, and commit and push often. The stop hook demands a clean tree.
