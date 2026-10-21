@@ -828,7 +828,7 @@ const CH_CLINIC_V2 = {
   /* ---------- juice: every Sim.run event gets a visual within a frame; every sound has a visual twin ---------- */
   juice(e) {
     const s = this.sim.s, v = this.v, F = typeof Fx !== 'undefined' ? Fx : null, C = this.content, L = CL_LV[s.level], G = this.geo();
-    const snd = (name, x, y) => { if (typeof Snd2 !== 'undefined') Snd2.play(name, { x, y }); };
+    const snd = (name, x, y) => { if (typeof Snd2 !== 'undefined') Snd2.play(name, { x, y, twin: name !== 'pour' && name !== 'scale' }); };   // pour and scale are twinned by this unit's own ripple and ring
     const dish = i => G.dish ? G.dish[Math.min(i, G.dish.length - 1)] : null, tile = i => this.tileAt(i);
     if (e.k === 'dose') {
       if (L.kind === 'kpc') { const p = tile(e.bed); v.rip.push({ x: p[0], y: p[1], t: 0, r: 40, col: '#8FF5EA' }); if (F) F.ring(p[0], p[1], 30, { ms: 200 }); snd('pour', p[0], p[1]); if (e.fail && this.once('failed')) this.whisper('failed'); return; }
@@ -1027,11 +1027,12 @@ const CH_CLINIC_V2 = {
     c.save(); rrect(c, x - 6, y1, 12, h, 6); c.fillStyle = '#0B2224'; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(47,211,195,0.5)'; c.stroke();
     if (N > 0) { const t = Y(CL_l10(N)); rrect(c, x - 4, t, 8, Math.max(2, y0 - t), 4); c.fillStyle = '#2FD3C3'; c.fill(); }
     const R = N - n[0]; if (R >= 1) { const t = Y(CL_l10(R)); c.fillStyle = '#FF3FB4'; c.beginPath(); c.moveTo(x - 10, t); c.lineTo(x - 4, t - 5); c.lineTo(x - 4, t + 5); c.closePath(); c.fill(); }
-    c.setLineDash([4, 3]); c.lineWidth = 2; c.strokeStyle = '#E8F6F4'; c.beginPath(); c.moveTo(x - 10, Y(5)); c.lineTo(x + 10, Y(5)); c.stroke();
+    const dishPhase = s.phase === 'dish' || s.phase === 'dishRun' || s.phase === 'dishEnd';   // a lab dish has no immune system
+    if (!dishPhase) { c.setLineDash([4, 3]); c.lineWidth = 2; c.strokeStyle = '#E8F6F4'; c.beginPath(); c.moveTo(x - 10, Y(5)); c.lineTo(x + 10, Y(5)); c.stroke(); }
     if (L.kind === 'tb3') { c.strokeStyle = '#FF8A7A'; c.beginPath(); c.moveTo(x - 10, Y(CL_l10(CL_M.icu))); c.lineTo(x + 10, Y(CL_l10(CL_M.icu))); c.stroke(); }
     c.setLineDash([]); c.restore();
     const Lb = this.content.labels, right = !two || i === 1;
-    if (!two || i === 0) Lbl.put('cl-imm' + i, two ? Lb.immune : Lb.immuneS, right ? x + 12 : x - 12, Y(5), { size: 12, align: right ? 'left' : 'right', pill: false, ink: '#E8F6F4' });
+    if (!dishPhase && (!two || i === 0)) Lbl.put('cl-imm' + i, two ? Lb.immune : Lb.immuneS, right ? x + 12 : x - 12, Y(5), { size: 12, align: right ? 'left' : 'right', pill: false, ink: '#E8F6F4' });
     if (L.kind === 'tb3' && i === 1) Lbl.put('cl-icul', Lb.icu, x - 12, Y(CL_l10(CL_M.icu)) - 2, { size: 12, align: 'right', pill: false, ink: '#FF8A7A' });
     if (!two) Lbl.put('cl-xn', Lb.xnMu, x, y0 + 14, { size: 12, pill: false, ink: '#8FF5EA' });   // the ×N disclosure: mutation rate raised for a ten-day course
     if (!two) Lbl.put('cl-gN', N > 0 ? '10' + this.sup(Math.floor(CL_l10(N))) : '0', x, y1 - 11, { size: 12, pill: false, ink: '#2FD3C3', mono: true });

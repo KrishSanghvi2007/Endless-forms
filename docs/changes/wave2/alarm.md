@@ -160,3 +160,8 @@ Guard-rails kept:
 ## Size
 
 `v2/alarm.js` is 101 KB raw and 31 KB gzip, against the lessons' target of ≤ 90 KB raw (≈ 30 KB gzip): within the gzip target, 11 KB over raw. Most of it is `content` (five MODEL cards, why panels, per-level stars) and five distinct scenes.
+
+## Addendum: legacy goldens
+
+- `python3 tests/golden.py check scratchpad/alarm/alarm.html`: **47 ok, 0 failed, 1 skipped** (alarm, which this unit replaces).
+- `python3 tests/golden.py check scratchpad/alarm/alarm.html --v1`: **48 ok, 0 failed**. `?v1=1` still plays the legacy Alarm Call.

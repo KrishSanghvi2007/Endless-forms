@@ -1,0 +1,1031 @@
+/* ================= v2/scribe.js: The Scribe (Act 2; D3 §5.1, D5 §4 item 13) =================
+   A night bench under a lamp: the player is an experimenter who never places a mutation (D1 role 4).
+     L0 Sparks      a colony grows across a dish; a division at its edge now and then sparks (a mutation). Tag sparks: each tagged
+                    lineage grows as a wedge that widens, keeps pace, pinches off or stops dead. Sparks look the same whatever their
+                    effect; the DFE builds from your tags (Eyre-Walker & Keightley 2007; Sanjuán et al. 2004).
+     L1 Jackpots    twenty tubes grown from 100 cells without phage, then plated on phage. Most plates are empty, a few are jackpots:
+                    the mutants were there before the phage (Luria & Delbrück 1943). μ from the share of empty plates, m = −ln p₀.
+     L2 Velvet      a master plate never exposed to the drug is stamped onto drug plates with velvet: the same spots grow on each.
+                    Pick the master colony at a spot; its offspring, which never met the drug, are resistant (Lederberg & Lederberg 1952).
+     L3 New sugar   (boss) tag on glucose, then move the lineages to a new sugar: some that did nothing now win, and sparks come no
+                    faster. Then ten patients: most already carry a resistant cell before the first dose (the Luria–Delbrück transfer).
+   Code shape (API_v2 §9): a headless sim (plain JSON; R(), Det, WF only; a run is (seed, level, actions)); all words in SC_TEXT;
+   juice from Sim.run's events only. Every count is drawn when it happens (a spark when it flashes, a plate when it is poured),
+   so nothing in the state foretells an outcome. Load rule: top-level code touches only legacy objects and lower-numbered v2 files;
+   engine calls at run time sit behind typeof guards. ?v1=1 skips the learning-layer rewrite at the foot and plays the legacy Scribe.
+   Palette (D6 addendum 7): ink-black bench, lamp gold, amber-cream agar, coral colonies, violet tagged lineages. Allele inks are
+   not used: this chapter has no genotype read-out. */
+
+const SC_TEXT = {
+  intro: {
+    game: 'Night in a microbiology lab. Under the lamp, bacteria copy their DNA and divide, and now and then a mutation sparks.',
+    biology: 'Mutations arise from copying errors, DNA damage and faulty repair, whether or not they would help. Most do nothing or harm; selection sorts the rest.',
+    how: 'Tap sparks to tag them, pour tubes onto plates, and stamp velvet from plate to plate. Drag on the graph to predict, then Lock in.'
+  },
+  firstWords: 'A mutation just sparked at the colony’s edge. Tap the spark to tag that lineage.',
+  hud: {
+    tag: 'Tag sparks as they flash. Each tagged lineage shows its fate.',
+    tagU: 'Each spark waits. Tap it to tag, or tap the agar to let it go.',
+    askD: 'Of all new mutations, what share harm, do nothing, or help? Drag the diamond.',
+    full: 'The dish is full. The last fates are coming in.',
+    grow: 'Twenty tubes, each started from 100 cells, grow overnight without phage.',
+    askZ: 'Tubes average about 11 resistant colonies. How many plates will stay empty?',
+    plate: 'Tap a tube to pour it onto a phage plate.',
+    flag: 'Flag every plate the phage-caused idea could not produce. Then Done.',
+    askU: '{z} of 20 empty: about {m} mutations per tube of 13 million cells. Drag μ.',
+    stamp: 'Press the velvet on the master plate, then onto a drug plate.',
+    stamp2: 'Stamp the velvet onto the second drug plate. Where will colonies grow?',
+    pick: 'Pick the master colony that sits where drug colonies grew.',
+    m2: 'Your pick, spread on a fresh plate. None of these cells has met the drug.',
+    askC: 'What share of these colonies will grow on the drug? Drag, then Lock in.',
+    stampC: 'Stamp the new plate onto the drug and see.',
+    test: 'The drug plate, read next morning.',
+    boss: 'Glucose dish. Tag at least 16 sparks before the colony moves on.',
+    askB: 'Moved to a new sugar. What share of your living lineages will now win?',
+    patch: 'The new sugar: same lineages, same spark rate, different food.',
+    askP: 'Ten patients each carry 100 million bacteria. How many already hold a resistant cell?',
+    pat: 'The patients’ samples, read before the first dose.',
+    auto: 'What if? The rest runs by itself.',
+    over: 'Done.'
+  },
+  whispers: {
+    drag: 'Drag the diamond first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
+    miss: 'Tap right on the spark.', gone: 'That spark faded untagged.', win: 'A lineage raced ahead!', jack: 'A jackpot plate!',
+    empty: 'Empty: that tube had no mutant.', flag: 'Flag the empty plates and the jackpots.', same: 'The same spots on both plates.',
+    nopick: 'Stamp both drug plates first.', grew: 'It grew: resistant all along.', died: 'Nothing grew: that colony was sensitive.',
+    rate: 'Same spark rate on the new sugar.', full: 'The dish is full.', moved: 'Lineages moved to the new sugar.', plated: 'Plated already.'
+  },
+  labels: {
+    harm: 'do harm', none: 'no effect', help: 'help', lethal: 'lethal', harmful: 'harmful', neutral: 'neutral', helps: 'helps',
+    f0: 'stopped', f1: 'slowed', f2: 'kept pace', f3: 'raced ahead', s0: 'copying slip', s1: 'DNA damage', s2: 'faulty repair', s3: 'jumping gene',
+    fork: 'copying fork', lock: 'Lock in', tag: 'Tag', letgo: 'Let go', plate: 'Plate', done: 'Done', stamp: 'Stamp', next: 'Next', pick: 'Pick',
+    A: 'Drug A', B: 'Drug B', C: 'Drug C', master: 'Master', m2: 'Your pick', velvet: 'velvet', sugar: 'new sugar', glucose: 'glucose',
+    p0: 'share empty', m: 'mutations a tube', yourP: 'your plates', ff: 'Tap: faster', xn: '×N', drug: 'streptomycin', phage: 'phage',
+    nFates: '{n} fates', nPlated: '{n} of 20', nFlag: '{n} flagged', nTag: '{n} tagged', nStamp: '{n} stamps', nWin: '{n} won', nPat: '{n} of 10',
+    resYes: 'grew', resNo: 'did not grow', jackpot: 'jackpot', patients: 'patients', win: 'won'
+  },
+  interesting: {
+    few: 'Fewer than 30 fates. Sparks came faster as the colony grew, so most flashed near the edge late on.',
+    winner: 'One of your sparks helped. In this model about 1 in 100 does; in real genomes, usually fewer.',
+    nojack: 'No giant plate this time. Yet the empty plates alone rule out the idea that the phage caused resistance.',
+    misflag: 'Some flags missed. Under the phage-caused idea almost no plate is empty, and none holds a huge count.',
+    wrong: 'Your pick sat away from the drug colonies, so its offspring were sensitive. Resistance was already in particular cells.',
+    nowin: 'None of your lineages won on the new sugar this time. In this model a sizeable minority usually do.'
+  },
+  live: { spark: 'A spark at the colony edge.', ask: 'Prediction open. Press P, then the arrows.', plate: 'Plate {i}: {n} colonies.', fate: 'A tagged lineage {f}.' },
+  data: {
+    fates: ['Fates seen', '{n}', 'Tagged lineages followed to the end.'], shares: ['Harm, none, help', '{h}%, {z}%, {b}%', 'From your tagged sparks.'],
+    miss: ['Sparks missed', '{n}', 'Faded before a tag.'], plated: ['Plates', '{n} of 20', 'Poured onto phage.'], empty: ['Empty plates', '{n}', 'No resistant colony.'],
+    big: ['Biggest plate', '{n}', 'Colonies.'], spread: ['Spread', '{v}× the mean', 'Variance ÷ mean of the counts; chance alone gives about 1.'],
+    stamps: ['Stamps', '{n}', 'Velvet prints made.'], spots: ['Drug spots', '{n}', 'Colonies on drug plate A.'],
+    tags: ['Tagged', '{n}', 'Sparks followed.'], wins: ['New-sugar winners', '{w} of {n}', 'Living tagged lineages.'],
+    titles: { tri: 'Mutation effects', dfe: 'Fates so far', counts: 'Colonies per plate', mu: 'Mutation rate', share: 'Growing on drug', win: 'Winners, new sugar', pat: 'Patients carrying' },
+    ax: { fate: 'share', bin: 'colonies on a plate', plates: 'plates', mu: 'per division', share: 'share', pats: 'patients' },
+    lines: { model: 'model', virus: 'a virus', yours: 'your sparks', phage: 'if phage caused it', you: 'your plates', truth: 'model μ', exp: 'expected', yourLin: 'your lineages', real: 'real genomes: under 1%' }
+  },
+  levers: { bigU: 'Triple the rate', induced: 'Phage causes it', inducedD: 'Drug causes it', fixed: 'Effects fixed' },
+  take: 'Mutations arise at random with respect to need; selection decides which ones spread.',
+  body: 'On glucose most of your lineages were harmed or unchanged. On the new sugar {w} of {n} living ones won, {wn} of them once neutral. Sparks came at the same rate.',
+  whatifBody: {
+    bigU: 'Three times the spark rate gave {n} fates: {h}% harm, {z}% no effect, {b}% help. More sparks, the same shape.',
+    induced: 'If the phage caused resistance, the plates would look like this: {z} empty, the biggest {mx}. Your real plates had {z0} empty, the biggest {mx0}.',
+    inducedD: 'If the drug caused resistance, each plate would get its own random spots. Only {k} of plate B’s {n} colonies sat at plate A’s spots.',
+    fixed: 'If effects did not depend on food, only lineages that already helped could win. This time {w} of {n} won.'
+  },
+  law: { title: 'Blind to need' },
+  boss: { inverts: 'Same sparks, new food: some that did nothing now win, and none came faster.' },
+  stars: {
+    discover: 'Follow 30 fates, flag the plates, and build a resistant line.',
+    predict: 'Land the effects, plates and velvet predictions in two of three levels.',
+    transfer: 'Predict the new-sugar winners and the patients already carrying resistance.'
+  },
+  levelStars: [
+    { discover: 'Follow at least 30 tagged sparks to their fates.', predict: 'Land the harm, no effect and help prediction in the band.' },
+    { discover: 'Plate all 20 tubes and flag every plate the phage idea cannot explain.', predict: 'Land both the empty-plate and the mutation-rate predictions.' },
+    { discover: 'Build a resistant line from a colony that never met the drug.', predict: 'Predict what share of your pick’s offspring grow on the drug.' },
+    { discover: 'Tag at least 16 sparks and move their lineages to the new sugar.', transfer: 'Land both the new-sugar and the patient predictions.' }
+  ],
+  levelTake: [
+    'Most new mutations harm or do nothing. Helpful ones are rare, and sparks look the same whatever their effect.',
+    'Resistant mutants arose before the phage came. Early ones made jackpots; many tubes had none.',
+    'The same spots grew on every drug plate. Resistance was selected from cells that never met the drug.'
+  ],
+  levelBody: [
+    'Your {n} fates: {h}% harm, {z}% no effect, {b}% help. The model’s mix is 65%, 34% and 1%. A virus measured one change at a time came close.',
+    '{z} of 20 plates stayed empty and the biggest held {mx}. The counts spread {vm} times the mean; a phage-caused process gives about 1. Your plates give μ ≈ {mu} × 10⁻⁷.',
+    'Plates A and B grew the same {k} spots. Your pick’s offspring {res} on the drug, though none of them had met it.'
+  ],
+  model: [
+    { level: 0, simulated: 'A colony of haploid bacteria grows outward across a dish. A division at the edge sometimes makes a mutation, and its lineage forms a wedge.',
+      simplification: 'Each mutation’s effect is drawn from a designed mix: 35% lethal, 30% harmful, 34% neutral, 1% helpful. The effect never depends on its source.',
+      params: [{ name: 'sparks shown', value: 'about 1 a second', tag: 'designed' }, { name: 'genome mutation rate U', value: '0.01 per division', tag: 'xN', real: 'about 0.003 in DNA microbes' }, { name: 'helpful share', value: '1%', tag: 'xN', real: '0.001% to 1%' }],
+      cannot: 'Repair, mutation hot spots, or effects that differ by kind of change. Real insertions and frameshifts break genes more often than single-base changes.',
+      nature: 'Measured mixes agree. In a virus, about 40% of single changes were lethal and a few per cent helped. Genome-wide, helpful mutations are rarer still.',
+      contested: false, refs: ['drake1991', 'eyrewalker2007', 'sanjuan2004', 'hallatschek2007'] },
+    { level: 1, simulated: 'Twenty tubes each grow from 100 cells to about 13 million. Any division can make a phage-resistant mutant, and its offspring stay resistant.',
+      simplification: 'Growth runs in step, 17 doublings. Every resistant cell on a plate makes a colony. The phage kills every other cell.',
+      params: [{ name: 'resistance mutation rate', value: '1 in 10 million divisions', tag: 'realistic' }, { name: 'cells a tube', value: '13 million', tag: 'designed' }, { name: 'tubes', value: 20, tag: 'designed' }],
+      cannot: 'Unequal division times, cells dying, or mutants growing at a different rate from the rest.',
+      nature: 'Luria and Delbrück found exactly this. Counts were far more spread than chance alone gives, so the mutants arose before the phage.',
+      contested: false, refs: ['luria1943', 'rosche2000'] },
+    { level: 2, simulated: 'A master plate grown without the drug is copied by velvet onto drug plates. A few master colonies carry resistance from before.',
+      simplification: 'Each master colony comes from one cell, so a resistant colony is pure. Picking it gives an all-resistant line at once.',
+      params: [{ name: 'resistant colonies', value: 'about 2 in 26', tag: 'xN', real: 'far rarer; real plates held millions of cells' }, { name: 'new resistance on a plate', value: 'none', tag: 'designed' }],
+      cannot: 'Mixed colonies, so the slow enrichment the Lederbergs did over several rounds is skipped.',
+      nature: 'The Lederbergs stamped plates with velvet and found resistant colonies at matching spots. Repeated picking gave resistant lines whose ancestors never met the drug.',
+      contested: false, refs: ['lederberg1952'] },
+    { level: 3, simulated: 'Tagged lineages move from glucose to a new sugar. Each keeps its mutation, and its effect is redrawn for the new food.',
+      simplification: 'A lineage wins on the new sugar by chance. The odds are 35% if it was neutral, 10% if harmful, 50% if helpful. Sparks keep their rate.',
+      params: [{ name: 'neutral turned winner', value: '35%', tag: 'xN', real: 'much rarer' }, { name: 'bacteria a patient', value: '100 million', tag: 'designed' }, { name: 'resistance mutations a patient', value: '1.5 on average', tag: 'designed' }],
+      cannot: 'Stress raising mutation rates. Stressed bacteria can make more mutations, but they are not aimed at what would help.',
+      nature: 'Gene effects change with conditions. In yeast, nearly every deletion slows growth in some condition. Mutations that help on one sugar often cost on another.',
+      contested: false, refs: ['hillenmeyer2008', 'ostrowski2005', 'foster2007'] }
+  ],
+  why: {
+    real: ['Mutations helpful on one food can be useless or costly on another. Which mutations win depends on the world they land in, not on how they arose.'],
+    maths: ['With m resistance mutations expected per patient, the chance a patient carries none is e^(−m). With m = 1.5, about 78% already carry one before the first dose.']
+  },
+  levelWhy: [
+    { real: ['In people, each child carries about 60 to 70 new mutations, most from the father. The number rises with his age, by about 1.5 a year.',
+      'Why is debated. Sperm-making cells keep dividing, but damage that builds up with age may matter as much.'],
+      maths: ['A spark at the edge founds a wedge. With an advantage the wedge widens; with a cost it narrows and pinches off. A lethal spark never divides.'] },
+    { real: ['Luria and Delbrück grew many small cultures and plated each on phage T1. A few plates held hundreds of colonies, and many held none.'],
+      maths: ['If m mutations happen per tube on average, the chance of none is e^(−m). So m = −ln p₀, with p₀ the share of empty plates. Divide m by the cells per tube to get μ.'] },
+    { real: ['Joshua and Esther Lederberg pressed velvet on a plate and stamped it onto plates with streptomycin or phage. Colonies grew at the same spots each time.'],
+      maths: ['If the drug made cells resistant, each drug plate would get its own random spots. Matching spots on every plate mean the resistance was there first.'] }
+  ]
+};
+
+/* ---------- model constants (P holds the tagged tunables; these are the designed shapes) ---------- */
+const SC_DFE = [0.35, 0.30, 0.34, 0.01];   // lethal, harmful, neutral, helpful: designed (D3 §5.1); 1% is the top of the 10⁻⁵–10⁻² range
+const SC_VSV = [0.40, 0.29, 0.27, 0.04];   // single-nucleotide mutants of VSV, one at a time (Sanjuán, Moya & Elena 2004; approximate)
+const SC_SRC = [0.55, 0.25, 0.10, 0.10];   // copying slip, DNA damage, faulty repair, jumping gene (designed; effect never depends on it)
+const SC_GXE = [0, 0.10, 0.35, 0.5];       // chance a living lineage of each glucose class wins on the new sugar (designed, ×N)
+const SC_LD = { N0: 100, G: 17, mu: 1e-7, tubes: 20 };   // 100 × 2^17 ≈ 13.1 million cells a tube; m = μ(N_t − N0) ≈ 1.31
+const SC_PAT = { n: 10, m: 1.5 };          // patients; resistance mutations expected per patient before the first dose (designed)
+const SC_T = { dt: 1 / 30, vis: 1.2, fate: 2.5, askMax: 40, grow: 2.4, end: 2.2, m2: 1.6, patch: 6, pat: 3.6 };
+const SC_LV = [
+  { kind: 'dish', r0: 0.18, r1: 0.92, T: 70, a: 0.3, b: 0.9 },
+  { kind: 'tubes' },
+  { kind: 'velvet', n1: 26, n2: 22 },
+  { kind: 'dish', boss: true, r0: 0.45, r1: 0.92, T: 34, a: 0.6, b: 1.4, need: 16 }
+];
+const SC_BINS = [[0, 0], [1, 1], [2, 2], [3, 4], [5, 8], [9, 16], [17, 32], [33, 64], [65, 128], [129, 1e9]];
+const SC_BINL = ['0', '1', '2', '3–4', '5–8', '9–16', '17–32', '33–64', '65–128', '129+'];
+const SC_INK = { bench: '#140E0A', wood: '#22170F', grain: '#2F2116', lamp: '255,198,112', agar: '#F3E5C2', agar2: '#D6BE8A', col: '#F0B79C', col2: '#DD8468',
+  tag: '#8F5CC2', tagL: '#CDB0EE', grey: '#8B8279', spark: '#FFF3D2', sugar: '#E7DAF0', sugar2: '#BFA9D6', ink: '#1B1612', glass: 'rgba(255,248,232,.5)' };
+
+const CH_SCRIBE_V2 = {
+  id: 'scribe', v2: true, role: 'experimenter', place: 'lab',
+  accent: '#8F5CC2',   // colony violet: the chapter's chrome tint (D6 addendum 7); never a data ink
+  intro: { goal: 'Tag mutations, plate tubes and stamp velvet: is mutation blind to need?' },
+  content: SC_TEXT,
+  P: {
+    U: { v: 0.01, tag: 'xN', min: 0.001, max: 0.05, real: 'about 0.003 per genome per division (Drake 1991)', label: 'genome mutation rate' },
+    mu: { v: 1e-7, tag: 'realistic', min: 1e-9, max: 1e-6, label: 'resistance mutation rate' },
+    ben: { v: 0.01, tag: 'xN', min: 0, max: 0.05, real: '0.001% to 1% of new mutations', label: 'helpful share' },
+    gxe: { v: 0.35, tag: 'xN', min: 0, max: 1, real: 'much rarer', label: 'neutral turned winner' },
+    res: { v: 0.04, tag: 'xN', min: 0, max: 0.2, real: 'far rarer per colony', label: 'resistant colony chance' }
+  },
+  levels: [
+    { name: 'Sparks', adds: 'mutation effects', codes: ['M1'], minutes: 3 },
+    { name: 'Jackpots', adds: 'when mutations arise', codes: ['M2'], minutes: 4 },
+    { name: 'Velvet', adds: 'replica plating', codes: ['M3'], minutes: 3 },
+    { name: 'New sugar', adds: 'a new environment', codes: ['M4'], minutes: 4 }
+  ],
+  keys: { Space: 'tag, plate or stamp', ArrowRight: 'next plate or colony', Enter: 'done or pick', P: 'predict' },
+  untimed: true,
+  teacher: { prompts: ['What does the mix of fates tell you about how mutations arise?', 'If bacteria became resistant because they met the phage, what would the 20 counts look like?', 'This model gives every neutral mutation the same chance on a new sugar. What would make that unrealistic?'], pool: 'dots' },
+  starTraits: ['fate'],
+  encodings: [   // fates by glyph shape and wedge geometry; tagged lineages by outline and luminance; no hue carries a score
+    { k: 'tagged', rgb: [143, 92, 194], channels: ['shape', 'pattern', 'luminance'] },
+    { k: 'colony', rgb: [240, 183, 156], channels: ['luminance', 'shape'] },
+    { k: 'jackpot', rgb: [255, 198, 112], channels: ['pattern', 'marker', 'shape'] },
+    { k: 'fate', rgb: [27, 22, 18], channels: ['shape', 'marker'] }
+  ],
+
+  /* ================= headless simulation (API_v2 §9.3): R(), Det, WF only ================= */
+  sim: {
+    dt: SC_T.dt, s: null,
+    cfg(n) { return SC_LV[Math.max(0, Math.min(3, n | 0))]; },
+    P() { return CH_SCRIBE_V2.P; },
+    reset(level, o) {
+      o = o || {};
+      if (o.thaw) { this.restore(o.thaw.snap); this.s.log = []; this.lever(o.thaw.lever); return; }
+      const c = this.cfg(level);
+      this.s = { level: level | 0, kind: c.kind, phase: 'run', t: 0, unt: false, whatif: null, auto: false,
+        asks: [], pred: {}, exp: {}, tol: {}, hits: {}, ask: null, resume: null, log: [] };
+      const s = this.s;
+      if (c.kind === 'dish') this.dishInit(s);
+      else if (c.kind === 'tubes') { s.phase = 'grow'; s.n = new Array(20).fill(-1); s.flag = new Array(20).fill(0); s.plated = 0; }
+      else { s.phase = 'stamp'; s.m1 = this.colonies(c.n1, this.P().res.v); s.st = 0; s.pick = -1; s.m2 = null; s.m2res = 0; s.cdone = false; s.sel = 0; }
+    },
+    dishInit(s) { const c = this.cfg(s.level); s.phase = 'run'; s.t = 0; s.rho = c.r0; s.sp = []; s.pid = 0; s.seen = 0; s.miss = 0; s.tags = 0; s.fates = 0; s.cnt = [0, 0, 0, 0]; s.trail = []; s.full = false; },
+    /* colonies at random spots (plate units, |x| ≤ 0.8, at least 0.2 apart); a few resistant, chosen with R() */
+    colonies(n, pres) {
+      const out = []; let tries = 0;
+      while (out.length < n && tries < 600) {
+        tries++; const x = R() * 1.6 - 0.8, y = R() * 1.6 - 0.8; if (x * x + y * y > 0.64) continue;
+        if (out.some(q => (q.x - x) * (q.x - x) + (q.y - y) * (q.y - y) < 0.04)) continue;
+        out.push({ x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000, res: 0 });
+      }
+      if (pres > 0) { const k = 1 + WF.binom(out.length - 1, pres), idx = WF.sample(out.map((q, i) => i), Math.min(out.length, k)); for (const i of idx) out[i].res = 1; }
+      return out;
+    },
+    step(dt) {
+      const s = this.s, ev = []; if (!s || s.phase === 'over') return ev;
+      s.t += dt;
+      if (s.phase === 'ask') { if (!s.unt && !s.auto && s.t >= SC_T.askMax) this.commit(s, ev, s.ask.id, null); return ev; }
+      if (s.auto) this.autoAct(s, ev);
+      if (s.kind === 'dish') this.dishStep(s, ev); else if (s.kind === 'tubes') this.tubesStep(s, ev); else this.velvetStep(s, ev);
+      return ev;
+    },
+
+    /* ---------- L0 and the boss: a colony grows; edge divisions spark; tagged lineages show their fates ---------- */
+    rate(s) { const c = this.cfg(s.level); return (c.a + c.b * s.rho) * (s.whatif === 'bigU' ? 3 : 1); },   // sparks a second grow with the colony's edge
+    dishStep(s, ev) {
+      if (s.phase === 'move') { this.move(s, ev); return; }
+      if (s.phase === 'patch') { if (s.t >= SC_T.patch) { if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); } else this.openAsk(s, ev, 'b2', 'x', 0, SC_PAT.n, 1.2, 0, this.patExp(), 'pat'); } return; }
+      if (s.phase === 'pat') { if (s.t >= SC_T.pat) { s.phase = 'over'; ev.push({ k: 'over' }); } return; }
+      if (s.phase !== 'run') return;
+      const c = this.cfg(s.level);
+      for (const p of s.sp) {
+        if (p.tag && !p.fate && s.t - p.tt >= SC_T.fate) { p.fate = true; s.fates++; s.cnt[p.cls]++; if (s.fates >= 3) s.trail.push(this.shares(s)); ev.push({ k: 'fate', id: p.id, cls: p.cls }); }
+        if (!p.tag && !p.gone && !p.wait && !s.unt && s.t - p.t0 >= SC_T.vis) { p.gone = true; s.miss++; ev.push({ k: 'gone', id: p.id }); }
+      }
+      s.sp = s.sp.filter(p => p.tag || !p.gone);
+      if (s.trail.length > 60) s.trail.splice(0, s.trail.length - 60);
+      if (s.level === 0 && !s.auto && s.tags >= 2 && s.asks.indexOf('d1') < 0) { this.letGo(s, ev); this.openAsk(s, ev, 'd1', 'tri', 0, 1, 0.12, [0.02, 0.02, 0.96], [SC_DFE[0] + SC_DFE[1], SC_DFE[2], SC_DFE[3]], 'run'); return; }
+      if (s.unt && s.sp.some(p => !p.tag && !p.gone)) return;   // untimed: the colony waits on a lit spark
+      if (s.rho < c.r1 - 1e-9) {
+        s.rho = Math.min(c.r1, s.rho + (c.r1 - c.r0) / c.T * this.dt);
+        if (s.seen === 0 && s.t >= 0.5) this.spark(s, ev, true);   // the first spark waits for you: the first action cannot fail
+        else if (s.seen > 0 && R() < this.rate(s) * this.dt) this.spark(s, ev, false);
+        return;
+      }
+      if (!s.full) { s.full = true; this.letGo(s, ev); ev.push({ k: 'full' }); }
+      if (s.sp.every(p => !p.tag || p.fate)) this.endGrow(s, ev);
+    },
+    spark(s, ev, wait) {
+      const D = s.whatif === 'vsv' ? SC_VSV : SC_DFE, u = R(), v = R(), w = R(), th = Math.round(R() * 6283) / 1000;
+      const cls = u < D[0] ? 0 : u < D[0] + D[1] ? 1 : u < 1 - D[3] ? 2 : 3;
+      const sv = cls === 0 ? -1 : cls === 1 ? -Math.round((0.03 + 0.3 * v) * 1000) / 1000 : cls === 2 ? 0 : Math.round((0.04 + 0.12 * v) * 1000) / 1000;
+      const src = w < SC_SRC[0] ? 0 : w < SC_SRC[0] + SC_SRC[1] ? 1 : w < 1 - SC_SRC[3] ? 2 : 3;
+      const p = { id: ++s.pid, th, r0: Math.round(s.rho * 1000) / 1000, cls, sv, src, t0: Math.round(s.t * 1000) / 1000, tag: false, gone: false, fate: false, wait: !!wait };
+      s.seen++; s.sp.push(p); ev.push({ k: 'spark', id: p.id });
+    },
+    letGo(s, ev) { for (const p of s.sp) if (!p.tag && !p.gone) { p.gone = true; ev.push({ k: 'gone', id: p.id, quiet: true }); } s.sp = s.sp.filter(p => p.tag || !p.gone); },
+    tag(s, ev, id) {
+      const lit = s.sp.filter(p => !p.tag && !p.gone); if (!lit.length) return;
+      const p = id == null ? lit[lit.length - 1] : lit.find(q => q.id === id); if (!p) return;
+      p.tag = true; p.tt = Math.round(s.t * 1000) / 1000; s.tags++; ev.push({ k: 'tag', id: p.id, src: p.src });
+    },
+    shares(s) { const n = Math.max(1, s.fates), c = s.cnt; return [(c[0] + c[1]) / n, c[2] / n, c[3] / n].map(x => Math.round(x * 1000) / 1000); },
+    living(s) { return s.sp.filter(p => p.tag && p.fate && p.cls > 0); },
+    endGrow(s, ev) {
+      if (!this.cfg(s.level).boss || s.auto && s.whatif !== 'fixed') { s.phase = 'over'; ev.push({ k: 'over' }); return; }
+      const L = this.living(s);
+      if (!s.auto && L.length) { this.openAsk(s, ev, 'b1', 'x', 0, 1, 0.08, 1, this.winExp(s), 'move'); return; }
+      s.phase = 'move';
+    },
+    winExp(s) { const L = this.living(s), g = this.gxe(); return L.length ? Math.round(L.reduce((a, p) => a + g[p.cls], 0) / L.length * 1e4) / 1e4 : 0; },   // the model's expected share: no luck in it
+    gxe() { const v = this.P().gxe.v; return [0, SC_GXE[1], v, SC_GXE[3]]; },
+    move(s, ev) {   // living tagged lineages are patched onto the new sugar; each one's effect there is drawn now
+      const g = this.gxe(); s.pa = this.living(s).map(p => { const win = s.whatif === 'fixed' ? p.cls === 3 : R() < g[p.cls]; return { id: p.id, cls: p.cls, win: win ? 1 : 0 }; });
+      s.phase = 'patch'; s.t = 0; ev.push({ k: 'move', n: s.pa.length, w: s.pa.filter(q => q.win).length });
+    },
+    patExp() { return Math.round(SC_PAT.n * (1 - Det.exp(-SC_PAT.m)) * 1e4) / 1e4; },   // 10(1 − e^(−m)): patients expected to carry a resistant cell
+
+    /* ---------- L1: the fluctuation test ---------- */
+    pw2(k) { let x = 1; for (let i = 0; i < k; i++) x *= 2; return x; },
+    ldCount() {   // one tube: new mutants each generation by binomial, each founding a clone of 2^(G−1−g) resistant cells at the end
+      const L = SC_LD, mu = this.P().mu.v; let n = 0;
+      for (let g = 0; g < L.G; g++) { const m = WF.binom(L.N0 * this.pw2(g), mu); if (m) n += m * this.pw2(L.G - 1 - g); }
+      return n;
+    },
+    ldMean() { const L = SC_LD; return L.G * this.P().mu.v * L.N0 * this.pw2(L.G - 1); },        // G·μ·N0·2^(G−1) ≈ 11.1
+    ldM() { const L = SC_LD; return this.P().mu.v * L.N0 * (this.pw2(L.G) - 1); },                // expected mutations a tube, m ≈ 1.31
+    pois(l, k) { let p = Det.exp(-l); for (let i = 1; i <= k; i++) p *= l / i; return p; },
+    kHi() { const l = this.ldMean(); if (this._kh && this._kh[0] === l) return this._kh[1]; let F = 0, k = 0; while (1 - F >= 0.001 && k < 400) { F += this.pois(l, k); k++; } this._kh = [l, k]; return k; },   // P(X ≥ kHi) < 0.001 under a phage-caused (Poisson) process
+    central() { const l = this.ldMean(); let F = 0, k = 0, lo = 0; while (F < 0.005) { F += this.pois(l, k); k++; } lo = k; while (F < 0.995) { F += this.pois(l, k); k++; } return [Math.max(1, lo), k - 1]; },
+    zExp() { return Math.round(SC_LD.tubes * Det.exp(-this.ldM()) * 1e4) / 1e4; },               // 20·e^(−m) empty plates
+    tubesStep(s, ev) {
+      if (s.phase === 'grow' && s.t >= SC_T.grow) { if (s.auto) { s.phase = 'plate'; s.t = 0; } else this.openAsk(s, ev, 'z1', 'y', 0, 20, 2.5, 20, this.zExp(), 'plate'); }
+      if (s.phase === 'end' && s.t >= SC_T.end) { s.phase = 'over'; ev.push({ k: 'over' }); }
+    },
+    plate(s, ev, i) {
+      if (s.phase !== 'plate') return; if (i == null) i = s.n.indexOf(-1); if (i < 0 || i > 19) return;
+      if (s.n[i] >= 0) { ev.push({ k: 'plated', i }); return; }
+      const n = s.whatif === 'induced' ? WF.binom(SC_LD.N0 * this.pw2(SC_LD.G), this.ldMean() / (SC_LD.N0 * this.pw2(SC_LD.G))) : this.ldCount();
+      s.n[i] = n; s.plated++; ev.push({ k: 'plate', i, n, jack: n >= this.kHi() });
+      if (s.plated >= 20) { s.phase = s.auto ? 'end' : 'flag'; s.t = 0; ev.push({ k: 'flagstart' }); }
+    },
+    flagOK(s) {   // every empty plate and every plate beyond the Poisson 99.9% range flagged; no flag on a plainly ordinary plate (central 99%)
+      if (!s.n || s.plated < 20) return false; const kh = this.kHi(), [lo, hi] = this.central(); let miss = 0, wrong = 0;
+      s.n.forEach((n, i) => { const must = n === 0 || n >= kh, fine = n >= lo && n <= hi; if (must && !s.flag[i]) miss++; if (fine && s.flag[i]) wrong++; });
+      return miss === 0 && wrong === 0;
+    },
+    zeros(s) { return s.n ? s.n.filter(n => n === 0).length : 0; },
+    muHat(s) { const z = this.zeros(s), L = SC_LD; return z > 0 ? -Det.log(z / L.tubes) / (L.N0 * (this.pw2(L.G) - 1)) : null; },   // the p₀ estimator
+    vmr(n) { const a = n.filter(x => x >= 0); if (a.length < 2) return 0; const m = a.reduce((x, y) => x + y, 0) / a.length; if (!m) return 0; const v = a.reduce((x, y) => x + (y - m) * (y - m), 0) / (a.length - 1); return v / m; },
+
+    /* ---------- L2: velvet ---------- */
+    velvetStep(s, ev) {
+      if (s.phase === 'm2' && s.t >= SC_T.m2) { if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); } else this.openAsk(s, ev, 'c1', 'y', 0, 1, 0.15, 0.5, s.m2res, 'stamp2'); }
+      if (s.phase === 'test' && s.t >= SC_T.end) { s.phase = 'over'; ev.push({ k: 'over' }); }
+    },
+    stamp(s, ev) {
+      if (s.phase === 'stamp' && s.st < 2) {
+        const p = s.st === 0 ? 'A' : 'B';
+        if (s.whatif === 'inducedD') { const k = s.m1.filter(q => q.res).length; s['ind' + p] = this.colonies(k, 0).map(q => [q.x, q.y]); }   // induced: random spots of its own on each plate
+        s.st++; ev.push({ k: 'stamp', p, n: s.m1.filter(q => q.res).length });
+        if (s.st === 2) { s.phase = s.auto ? 'over' : 'pick'; if (s.auto) ev.push({ k: 'over' }); }
+        return;
+      }
+      if (s.phase === 'stamp2') { s.cdone = true; s.phase = 'test'; s.t = 0; ev.push({ k: 'stamp', p: 'C', n: s.m2res ? s.m2.length : 0, res: s.m2res }); return; }
+      if (s.phase === 'pick') ev.push({ k: 'nopick' });
+    },
+    pick(s, ev, i) {
+      if (s.phase !== 'pick' || i == null || i < 0 || i >= s.m1.length) { if (s.phase === 'stamp') ev.push({ k: 'nopick' }); return; }
+      s.pick = i; s.m2res = s.m1[i].res; s.m2 = this.colonies(this.cfg(2).n2, 0).map(q => [q.x, q.y]); s.phase = 'm2'; s.t = 0; ev.push({ k: 'pick', i });
+    },
+
+    /* ---------- predictions: the sim opens the ask; the expectation is the model's, never the realised run ---------- */
+    openAsk(s, ev, id, kind, lo, hi, tol, start, expect, resume) {
+      s.ask = { id, kind, lo, hi, tol, start }; s.exp[id] = expect; s.tol[id] = tol; s.asks.push(id); s.resume = resume; s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
+    },
+    err(kind, v, e) { if (kind === 'tri') { const n = q => { const a = q.map(x => Math.max(0, +x || 0)), t = a[0] + a[1] + a[2] || 1; return a.map(x => x / t); }, a = n(v), b = n(e), d = [0, 1, 2].map(i => a[i] - b[i]); return Math.sqrt((d[0] * d[0] + d[1] * d[1] + d[2] * d[2]) / 2); } return Math.abs(v - e); },
+    commit(s, ev, id, v) {
+      if (!s.ask || s.ask.id !== id) return; const A = s.ask; let hit = false;
+      if (v != null && (A.kind === 'tri' ? Array.isArray(v) && v.length === 3 && v.every(x => isFinite(+x)) : isFinite(+v))) {
+        if (A.kind !== 'tri') v = Math.max(A.lo, Math.min(A.hi, +v)); else v = v.map(x => +x);
+        hit = this.err(A.kind, v, s.exp[id]) <= A.tol + 1e-9;
+      } else v = null;
+      s.pred[id] = v; s.hits[id] = hit; s.ask = null; s.phase = s.resume || 'run'; s.t = 0; ev.push({ k: 'commit', id });
+      if (id === 'b2') { s.pt = []; const q = 1 - Det.exp(-SC_PAT.m); for (let i = 0; i < SC_PAT.n; i++) s.pt.push(R() < q ? 1 : 0); ev.push({ k: 'patients', n: s.pt.filter(x => x).length }); }
+      if (id === 'u1') ev.push({ k: 'ruler' });
+    },
+    /* ---------- What if? (D1 G9): the finished level is frozen; one lever reruns it by itself ---------- */
+    lever(k) {
+      const s = this.s; s.whatif = k; s.auto = true; s.ask = null; s.t = 0;
+      if (k === 'bigU') { this.dishInit(s); }
+      else if (k === 'induced') { s.z0 = this.zeros(s); s.mx0 = Math.max.apply(null, s.n); s.n = new Array(20).fill(-1); s.flag = new Array(20).fill(0); s.plated = 0; s.phase = 'plate'; }
+      else if (k === 'inducedD') { s.st = 0; s.pick = -1; s.m2 = null; s.cdone = false; s.phase = 'stamp'; }
+      else if (k === 'fixed') { s.phase = 'move'; s.pt = null; }
+    },
+    autoAct(s, ev) {
+      if (s.kind === 'dish' && s.phase === 'run') { for (const p of s.sp.filter(q => !q.tag && !q.gone)) this.tag(s, ev, p.id); }
+      else if (s.kind === 'tubes' && s.phase === 'plate' && Math.round(s.t / this.dt) % 5 === 0) this.plate(s, ev);
+      else if (s.kind === 'velvet' && s.phase === 'stamp' && s.t >= 0.8 * (s.st + 1)) this.stamp(s, ev);
+    },
+    act(a) {
+      const s = this.s, ev = []; if (!s || !a) return ev;
+      if (a.k === 'unt') { s.unt = !!a.on; ev.push({ k: 'unt', on: s.unt }); return ev; }
+      if (a.k === 'predict') { if (s.ask && a.id === s.ask.id) this.commit(s, ev, a.id, a.moved === false ? null : a.v); return ev; }
+      if (s.auto || s.phase === 'ask') return ev;
+      if (a.k === 'tag' && s.kind === 'dish' && s.phase === 'run') this.tag(s, ev, a.id);
+      else if (a.k === 'skip' && s.kind === 'dish' && s.phase === 'run') { if (s.sp.some(p => !p.tag && !p.gone && p.wait)) ev.push({ k: 'wait' }); else this.letGo(s, ev); }
+      else if (a.k === 'plate') this.plate(s, ev, a.i);
+      else if (a.k === 'flag' && s.phase === 'flag' && a.i >= 0 && a.i < 20) { s.flag[a.i] = s.flag[a.i] ? 0 : 1; ev.push({ k: 'flag', i: a.i, on: s.flag[a.i] }); }
+      else if (a.k === 'done' && s.phase === 'flag') { const z = this.zeros(s); this.openAsk(s, ev, 'u1', 'x', -10, -5, 0.301, -5, Math.round(Det.log(this.P().mu.v) / Det.log(10) * 1e4) / 1e4, 'end'); s.zAt = z; }
+      else if (a.k === 'stamp') this.stamp(s, ev);
+      else if (a.k === 'pick') this.pick(s, ev, a.i);
+      return ev;
+    },
+    result() {
+      const s = this.s; if (!s || s.phase !== 'over') return null;
+      const st = CH_SCRIBE_V2.stars, n = s.level, mask = s.whatif ? 0 : (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
+      return { mask, interesting: this.interesting(s) };
+    },
+    interesting(s) {   // chosen from what happened (lessons §1.5)
+      if (s.whatif) return null; const n = s.level;
+      if (n === 0) return s.fates < 30 ? 'few' : s.cnt[3] > 0 ? 'winner' : null;
+      if (n === 1) { if (s.plated < 20) return null; if (Math.max.apply(null, s.n) < this.kHi()) return 'nojack'; return this.flagOK(s) ? null : 'misflag'; }
+      if (n === 2) return s.pick >= 0 && !s.m2res ? 'wrong' : null;
+      return s.pa && s.pa.length && !s.pa.some(q => q.win) ? 'nowin' : null;
+    },
+    snapshot() { return Snap.enc({ s: this.s, rs: R.state() }); },
+    restore(str) { const o = Snap.dec(str); this.s = o.s; R.restore(o.rs); },
+    actions() {
+      const s = this.s, out = []; if (!s) return out;
+      if (s.ask) {
+        const A = s.ask;
+        if (A.kind === 'tri') { for (let i = 0; i <= 10; i++) for (let j = 0; i + j <= 10; j++) out.push({ k: 'predict', id: A.id, v: [i / 10, j / 10, Math.round((10 - i - j)) / 10] }); return out; }
+        for (let k = 0; k <= 50; k++) out.push({ k: 'predict', id: A.id, v: Math.round((A.lo + (A.hi - A.lo) * k / 50) * 1e4) / 1e4 });
+        return out;
+      }
+      if (s.auto) return out;
+      if (s.kind === 'dish' && s.phase === 'run') { for (const p of s.sp) if (!p.tag && !p.gone) out.push({ k: 'tag', id: p.id }); }
+      else if (s.phase === 'plate') s.n.forEach((n, i) => { if (n < 0) out.push({ k: 'plate', i }); });
+      else if (s.phase === 'flag') { s.n.forEach((n, i) => out.push({ k: 'flag', i })); out.push({ k: 'done' }); }
+      else if (s.phase === 'stamp' || s.phase === 'stamp2') out.push({ k: 'stamp' });
+      else if (s.phase === 'pick') s.m1.forEach((q, i) => out.push({ k: 'pick', i }));
+      return out;
+    },
+    /* bots (tests/bots.js): (s, acts, rnd) → action | null; 'random' is generic. No bot may earn three stars in a level, nor across the unit. */
+    bots: {
+      alwaysA(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'lo', flag: 'none', pick: 'first' }); },
+      alwaysB(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'none', pred: 'hi', flag: 'all', pick: 'last' }); },
+      greedy(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'mid', flag: 'zero', pick: 'match' }); },
+      threshold(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'induced', flag: 'exact', pick: 'match' }); },   // skilled hands, the "need causes it" model in every prediction
+      lazy(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'still', flag: 'exact', pick: 'match' }); },
+      allIn(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'mid', flag: 'all', pick: 'random' }); },
+      expert(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'exact', flag: 'exact', pick: 'match' }); }   // test policy: reads s.exp (never in a sweep)
+    },
+    bot(s, acts, rnd, o) {
+      if (typeof Save !== 'undefined' && Save.d && Save.d.ui && Save.d.ui.unt && !s.unt) return { k: 'unt', on: true };
+      if (s.ask) {
+        const A = s.ask, id = A.id;
+        if (o.pred === 'still') return { k: 'predict', id, v: A.start, moved: false };
+        if (o.pred === 'exact') return { k: 'predict', id, v: s.exp[id] };
+        if (A.kind === 'tri') return { k: 'predict', id, v: o.pred === 'lo' ? [1, 0, 0] : o.pred === 'hi' ? [0, 0, 1] : o.pred === 'induced' ? [0.2, 0.2, 0.6] : [1 / 3, 1 / 3, 1 / 3] };
+        if (o.pred === 'induced') { const ind = { z1: 0, u1: -5, c1: 0, b1: 0, b2: 0 }; return { k: 'predict', id, v: ind[id] }; }   // need-driven: no plate empty, rate high, no resistance without the drug
+        return { k: 'predict', id, v: o.pred === 'lo' ? A.lo : o.pred === 'hi' ? A.hi : (A.lo + A.hi) / 2 };
+      }
+      if (s.kind === 'dish' && s.phase === 'run') { if (o.tag === 'none') return null; const a = acts.find(x => x.k === 'tag'); return a || null; }
+      if (s.phase === 'plate') return acts[0] || null;
+      if (s.phase === 'flag') {
+        if (o.flag === 'none') return { k: 'done' };
+        const kh = this.kHi(), want = i => o.flag === 'all' ? 1 : o.flag === 'zero' ? (s.n[i] === 0 ? 1 : 0) : (s.n[i] === 0 || s.n[i] >= kh ? 1 : 0);
+        for (let i = 0; i < 20; i++) if (s.flag[i] !== want(i)) return { k: 'flag', i };
+        return { k: 'done' };
+      }
+      if (s.phase === 'stamp' || s.phase === 'stamp2') return { k: 'stamp' };
+      if (s.phase === 'pick') { const n = s.m1.length, m = s.m1.findIndex(q => q.res); return { k: 'pick', i: o.pick === 'first' ? 0 : o.pick === 'last' ? n - 1 : o.pick === 'match' ? m : Math.floor(rnd() * n) }; }
+      return null;
+    }
+  },
+
+  /* ---------- stars: pure functions of the final state, read against the model's expectations ---------- */
+  stars: {
+    discover: (s, n) => {
+      if (s.whatif) return false; const sim = CH_SCRIBE_V2.sim;
+      if (n === 0) return s.fates >= 30;
+      if (n === 1) return s.plated >= 20 && sim.flagOK(s);
+      if (n === 2) return s.pick >= 0 && !!s.m2res && s.cdone;
+      return s.fates >= 16 && !!s.pa;
+    },
+    predict: (s, n) => { if (s.whatif || n > 2) return false; return n === 0 ? !!s.hits.d1 : n === 1 ? !!(s.hits.z1 && s.hits.u1) : !!s.hits.c1; },
+    transfer: (s, n) => !s.whatif && n === 3 && !!(s.hits.b1 && s.hits.b2)
+  },
+  unitStars(lv) {   // Discover in three of four levels; Predict in two of L0–L2 (D5: two of three); Transfer = the boss
+    const m = i => lv[i] | 0; let d = 0, p = 0; for (let i = 0; i < 4; i++) if (m(i) & 1) d++; for (let i = 0; i < 3; i++) if (m(i) & 2) p++;
+    return (d >= 3 ? 1 : 0) | (p >= 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
+  },
+  /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 a level number (L0 fates, L1 empty plates ×10, L2 1 if the pick was resistant,
+     L3 winners), 14–20 first prediction as % of its axis, 21–27 second */
+  resultBits(s, level) {
+    if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v))), sim = this.sim;
+    const x = n === 0 ? s.fates : n === 1 ? 10 * sim.zeros(s) : n === 2 ? (s.m2res ? 1 : 0) : (s.pa ? s.pa.filter(q => q.win).length : 0);
+    const pv = id => { const v = s.pred[id], A = { z1: [0, 20], u1: [-10, -5], c1: [0, 1], b1: [0, 1], b2: [0, 10] }[id]; if (id === 'd1') return v ? c(100 * v[0], 126) : 127; return v == null || !A ? 127 : c(100 * (v - A[0]) / (A[1] - A[0]), 126); };
+    return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv(s.asks[0]) << 14 | pv(s.asks[1]) << 21) >>> 0;
+  },
+
+  /* ================= view ================= */
+  start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
+  startLevel(n, o) {
+    o = o || {}; this.level = n; this._ended = false; this._pend = false; this._asking = null; this._hudSig = ''; this._dockSig = '';
+    this.v = { t: 0, ff: false, hold: -1, fold: 0, said: {}, bk: {}, bkSize: '', banner: null, fx: {}, beads: [], zflash: 0, links: [], bloom: {}, pour: {}, flags: {},
+      vel: null, drag: null, sel: 0, cell: 0, prints: {}, moveT: -1, patT: -1, ruler: 0, thaw: !!o.thaw, pops: [] };
+    Sim.start(this, n, o);
+    const ui = Save.d && Save.d.ui;
+    if (!o.thaw && !o.replay && ui && ui.unt) Sim.act(this, { k: 'unt', on: true });   // a setting enters the run as a logged action (lessons §1.6)
+    const s = this.sim.s;
+    if (o.thaw && s.kind === 'tubes') this.v.pour = {};
+    this.dock(); this.hud();
+    if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw();
+    const name = this.levels[n] && this.levels[n].name;
+    if (typeof Fx !== 'undefined') Fx.tier(3, ms => this.banner(o.thaw ? this.content.levers[s.whatif] || name : name, Math.max(1000, ms + 400)));
+    this.v.ghost0 = !o.thaw;
+  },
+  banner(text, ms) { this.v.banner = { text, t: 0, ms: ms || 1100 }; },
+  phoneStrip() { return typeof Strip !== 'undefined' && !!Strip.isOpen && typeof Strip.phone === 'function' && Strip.phone(); },
+  hudH() {
+    const z = (typeof Stage !== 'undefined' && Stage.zones && Stage.zones.hud && Stage.zones.hud.h) || 56, v = this.v || {}, now = v.t || 0;
+    if (v.hh != null && now - (v.hhT || 0) < 0.5) return v.hh;
+    let h = z; try { const el = document.getElementById('hud'), cv = Stage.cv; if (el && cv && el.getBoundingClientRect) { const a = el.getBoundingClientRect(), b = cv.getBoundingClientRect(); if (a.height > 0) h = Math.max(z, Math.min(Stage.h * 0.3, a.bottom - b.top)); } } catch (e) { }
+    if (this.v) { this.v.hh = h; this.v.hhT = now; } return h;
+  },
+  whisper(k) { const t = this.content.whispers[k]; if (t && typeof Whisper !== 'undefined') Whisper.say(t, 'sc-' + k); },
+  redraw() { if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); },
+
+  update(dt) {
+    const v = this.v;
+    for (const e of Sim.run(this, 0)) this.juice(e);
+    if (v.hold >= 0) { v.hold += dt; if (!this.phoneStrip() || v.hold > 1.2) v.hold = -1; }
+    const s0 = this.sim.s, slow = /grow|m2|test|patch|pat|end/.test(s0.phase), ff = s0.auto ? 4 : v.ff && slow ? 3 : 1;
+    const ev = Sim.run(this, v.hold >= 0 ? 0 : dt * ff), s = this.sim.s;
+    for (const e of ev) this.juice(e);
+    v.t += dt; v.zflash = Math.max(0, v.zflash - dt);
+    if (v.banner) { v.banner.t += dt * 1000; if (v.banner.t > v.banner.ms) v.banner = null; }
+    for (const k in v.bloom) v.bloom[k] = Math.min(1, v.bloom[k] + dt / 0.8);
+    for (const k in v.pour) v.pour[k] = Math.min(1, v.pour[k] + dt / 0.35);
+    v.links = v.links.filter(l => (l.t += dt) < 2.6);
+    v.pops = v.pops.filter(p => (p.t += dt) < 1.6);
+    if (v.vel) { v.vel.t += dt / (s.auto ? 0.4 : 1); if (v.vel.t > 0.9) v.vel = null; }
+    if (v.moveT >= 0) v.moveT += dt * ff;
+    if (v.patT >= 0) v.patT += dt * ff;
+    if (v.ruler > 0) v.ruler = Math.min(1, v.ruler + dt / 0.6);
+    if (v.ghost0 && !v.banner) { v.ghost0 = false; this.teach(); }
+    if (s.ask && this._asking !== s.ask.id) this.openAsk();
+    if (!s.ask && this._asking) { this._asking = null; v.fold = 1; }
+    if (v.fold && v.hold < 0) { v.fold = 0; if (typeof Predict !== 'undefined' && Predict.fold) Predict.fold(); }
+    if (v.lastPhase !== s.phase) { v.lastPhase = s.phase; v.ff = false; this._dockSig = ''; }
+    this.dock(); this.hud();
+    const r = this.sim.result();
+    if (r && !this._ended) { if (!this._pend) { this._pend = true; v.endT = 0; return; } v.endT += dt; if (v.endT < 1.0 && !s.auto) return; this._ended = true; this.finish(r); }
+  },
+  teach() {   // the ghost hand demonstrates the verb this level adds, within 3 s (a known verb is skipped by Ghost itself)
+    if (typeof Ghost === 'undefined') return; const n = this.level, s = this.sim.s;
+    if (s.kind === 'dish') Ghost.show({ verb: 'tap', key: ' ', at: () => { const p = this.sparkXY(); return p || [Stage.w / 2, Stage.h / 2]; }, until: () => this.sim.s.tags > 0 });
+    else if (n === 1) Ghost.show({ verb: 'tap', key: ' ', at: () => { const P = this.pos(), c = P.cells[Math.max(0, this.sim.s.n.indexOf(-1))]; return c ? [c.x + c.r * 0.6, c.y - c.r * 0.4] : [Stage.w / 2, Stage.h / 2]; }, until: () => this.sim.s.plated > 0 });
+    else Ghost.show({ verb: 'drag', key: ' ', at: () => { const P = this.pos(); return [P.mx, P.my]; }, to: () => { const P = this.pos(); return [P.ax, P.ay]; }, until: () => this.sim.s.st > 0 });
+  },
+  hud() {
+    const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
+    let t = C.over, num = '';
+    if (s.auto) t = C.auto;
+    else if (s.phase === 'ask') {
+      if (s.ask.id === 'u1') { const z = s.zAt != null ? s.zAt : this.sim.zeros(s), m = z > 0 ? (-Det.log(z / 20)).toFixed(1) : '3+'; t = Txt.f(C.askU, { z, m }); }
+      else t = { d1: C.askD, z1: C.askZ, c1: C.askC, b1: C.askB, b2: C.askP }[s.ask.id] || C.askD;
+    }
+    else if (s.kind === 'dish') t = s.phase === 'patch' ? C.patch : s.phase === 'pat' ? C.pat : s.full ? C.full : this.level === 3 ? C.boss : s.tags === 0 && this.level === 0 ? this.content.firstWords : s.unt ? C.tagU : C.tag;
+    else if (s.kind === 'tubes') t = s.phase === 'grow' ? C.grow : s.phase === 'plate' ? C.plate : s.phase === 'flag' ? C.flag : C.over;
+    else t = s.phase === 'stamp' ? (s.st === 0 ? C.stamp : C.stamp2) : s.phase === 'pick' ? C.pick : s.phase === 'm2' ? C.m2 : s.phase === 'stamp2' ? C.stampC : C.test;
+    if (s.phase === 'over' && !s.auto) t = C.over;
+    if (s.kind === 'dish') num = s.pa ? Txt.f(L.nWin, { n: s.pa.filter(q => q.win).length }) : Txt.f(this.level === 3 ? L.nTag : L.nFates, { n: this.level === 3 ? s.tags : s.fates });
+    else if (s.kind === 'tubes') num = s.phase === 'flag' ? Txt.f(L.nFlag, { n: s.flag.filter(x => x).length }) : Txt.f(L.nPlated, { n: s.plated });
+    else num = Txt.f(L.nStamp, { n: s.st + (s.cdone ? 1 : 0) });
+    const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
+    const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
+    const lab = (this.levels[this.level] || {}).name || ''; if (bar && bar.textContent !== lab) bar.textContent = lab;
+  },
+  dock() {
+    if (typeof Dock === 'undefined') return; const s = this.sim.s, L = this.content.labels;
+    const sig = s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '');
+    if (sig === this._dockSig) return; this._dockSig = sig;
+    if (s.ask) { Dock.set([{ id: 'sc-lock', label: L.lock, key: 'Enter', primary: true, fn: () => this.lockIn() }]); return; }
+    if (s.auto || s.phase === 'over') { Dock.set([]); return; }
+    const A = a => () => Sim.act(this, a);
+    if (s.kind === 'dish' && s.phase === 'run') { const b = [{ id: 'sc-tag', label: L.tag, key: ' ', fn: A({ k: 'tag' }) }]; if (s.unt) b.push({ id: 'sc-go', label: L.letgo, key: 'ArrowRight', fn: A({ k: 'skip' }) }); Dock.set(b); return; }
+    if (s.phase === 'plate') { Dock.set([{ id: 'sc-plate', label: L.plate, key: ' ', fn: A({ k: 'plate' }) }]); return; }
+    if (s.phase === 'flag') { Dock.set([{ id: 'sc-done', label: L.done, key: 'Enter', primary: true, fn: A({ k: 'done' }) }]); return; }
+    if (s.phase === 'stamp' || s.phase === 'stamp2') { Dock.set([{ id: 'sc-stamp', label: L.stamp, key: ' ', fn: A({ k: 'stamp' }) }]); return; }
+    if (s.phase === 'pick') { Dock.set([{ id: 'sc-next', label: L.next, key: 'ArrowRight', fn: () => { this.v.sel = (this.v.sel + 1) % s.m1.length; } }, { id: 'sc-pick', label: L.pick, key: 'Enter', primary: true, fn: () => Sim.act(this, { k: 'pick', i: this.v.sel }) }]); return; }
+    Dock.set([]);
+  },
+  openAsk() {
+    const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
+    const chart = { d1: 0, z1: 0, u1: 1, c1: 0, b1: 0, b2: 1 }[A.id] || 0, at = A.id === 'z1' ? 0 : A.id === 'c1' ? 2 : undefined;
+    if (A.id === 'u1') this.v.ruler = 0.01;
+    Predict.ask({ id: A.id, chart, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, at, soft: s.unt ? null : 24, needMove: true, linger: 900,
+      onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'predict', id: A.id, v: null, moved: false }), say: this.content.live.ask });
+    if (typeof Live !== 'undefined') Live.say(this.content.live.ask);
+    this._dockSig = ''; this.dock();
+  },
+  lockIn() { const s = this.sim.s; if (!s.ask || typeof Predict === 'undefined') return; const ov = Predict.cur; if (ov && ov.id === s.ask.id && !ov.moved) { this.whisper('drag'); return; } Predict.commit(s.ask.id); },
+  reveal(id) {
+    const s = this.sim.s; if (typeof Predict === 'undefined' || s.exp[id] == null) return;
+    Predict.reveal(id, s.exp[id], s.tol[id]); this.whisper(s.pred[id] == null ? 'none' : s.hits[id] ? 'hit' : 'out'); this.redraw();
+  },
+
+  finish(r) {
+    const s = this.sim.s, n = this.level, C = this.content, V = this.bodyVars(), o = { level: n, mask: r.mask, final: n === 3, interesting: r.interesting };
+    if (s.whatif) { o.body = Txt.f(C.whatifBody[s.whatif], V); o.take = null; o.interesting = null; }
+    else if (n < 3) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
+    else { o.take = C.take; o.body = Txt.f(C.body, V); o.bodyFirst = true; }
+    if (!s.whatif && typeof Freezer !== 'undefined') { Freezer.put(this.id, 1, this.sim.snapshot(), { force: true }); o.whatIf = { gen: 1, levers: [['bigU'], ['induced'], ['inducedD'], ['fixed']][n] }; }
+    o.why = n < 3 ? C.levelWhy[n] : C.why;
+    const spec = this.cardSpec(); if (spec && typeof LiveGraph !== 'undefined') { o.chart = cv => LiveGraph.draw(cv, spec, 'paper'); o.chartLabel = spec.title; }
+    End.show(this, o);
+  },
+  bodyVars() {
+    const s = this.sim.s, sim = this.sim, n = this.level, pc = x => Math.round(100 * x);
+    if (s.kind === 'dish') { const sh = sim.shares(s), pa = s.pa || []; return { n: s.whatif === 'fixed' ? pa.length : s.fates, h: pc(sh[0]), z: pc(sh[1]), b: pc(sh[2]), w: pa.filter(q => q.win).length, wn: pa.filter(q => q.win && q.cls === 2).length }; }
+    if (s.kind === 'tubes') { const mh = sim.muHat(s), a = s.n.filter(x => x >= 0); return { z: sim.zeros(s), mx: a.length ? Math.max.apply(null, a) : 0, vm: (Math.round(sim.vmr(s.n) * 10) / 10).toFixed(1), mu: mh ? (Math.round(mh / 1e-8) / 10).toFixed(1) : 'over 3', z0: s.z0 != null ? s.z0 : 0, mx0: s.mx0 != null ? s.mx0 : 0 }; }
+    const k = s.m1.filter(q => q.res).length, L = this.content.labels;
+    if (s.whatif === 'inducedD') { const A = s.indA || [], B = s.indB || []; let m = 0; for (const b of B) if (A.some(a => (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) < 0.01)) m++; return { k: m, n: B.length }; }
+    return { k, res: s.m2res ? L.resYes : L.resNo };
+  },
+
+  /* ---------- juice: every Sim.run event gets a visual within a frame; every sound has a visual twin ---------- */
+  juice(e) {
+    const s = this.sim.s, v = this.v, F = typeof Fx !== 'undefined' ? Fx : null, S2 = typeof Snd2 !== 'undefined' ? Snd2 : null, L = this.content.labels, P = this.pos();
+    const snd = (k, x, y) => { if (S2) S2.play(k, { x, y }); };
+    switch (e.k) {
+      case 'spark': { const p = this.sparkXY(e.id); v.zflash = 0.35; if (p) { if (F) F.ring(p[0], p[1], 14, { ms: 160 }); snd('tick', p[0], p[1]); v.links.push({ k: 'zip', id: e.id, x: p[0], y: p[1], t: 0 }); } if (!v.said.live) { v.said.live = 1; if (typeof Live !== 'undefined') Live.say(this.content.live.spark); } return; }
+      case 'tag': { const p = this.sparkXY(e.id, true); if (p && F) { F.tier(1); F.ring(p[0], p[1], 20, { ms: 180 }); F.burst('spark', p[0], p[1], 6, { ink: SC_INK.tagL }); } if (p) snd('tock', p[0], p[1]); v.beads.push({ id: e.id, src: e.src, t: v.t }); if (v.beads.length > 9) v.beads.shift(); return; }
+      case 'gone': { if (!e.quiet && !v.said.gone && s.tags > 0) { v.said.gone = 1; this.whisper('gone'); } return; }
+      case 'wait': this.whisper('miss'); return;
+      case 'fate': {
+        const p = this.tipXY(e.id); if (!p) return; v.pops.push({ x: p[0], y: p[1], text: L['f' + e.cls], t: 0 });
+        if (e.cls === 3) { if (F) F.tier(3, () => { F.burst('spark', p[0], p[1], 14, { ink: SC_INK.tagL }); F.ring(p[0], p[1], 40, { ms: 800 }); }); snd('interesting', p[0], p[1]); this.whisper('win'); }
+        else if (e.cls === 0) { if (F) F.burst('dust', p[0], p[1], 4, { ink: SC_INK.grey }); snd('crack', p[0], p[1]); }
+        else if (F) F.ring(p[0], p[1], 12, { ms: 300, dashed: e.cls === 1 });
+        if (typeof Live !== 'undefined') Live.say(Txt.f(this.content.live.fate, { f: L['f' + e.cls] }));
+        this.redraw(); return;
+      }
+      case 'full': this.whisper('full'); if (F) F.tier(2, () => F.ring(P.cx, P.cy, P.R * 0.94, { ms: 600 })); return;
+      case 'commit': if (this.phoneStrip()) v.hold = 0; this.reveal(e.id); return;
+      case 'ruler': v.ruler = Math.max(v.ruler, 0.01); return;
+      case 'plate': {
+        const c = P.cells[e.i]; v.pour[e.i] = 0; v.bloom[e.i] = 0;
+        if (c) { snd('pour', c.x, c.y); if (F) F.burst('droplet', c.x, c.y, 5, { ink: SC_INK.agar2 }); }
+        if (e.jack && c) { if (F) F.tier(3, () => { F.shake(5, 180); F.burst('spark', c.x, c.y, 16, { ink: 'rgb(' + SC_INK.lamp + ')' }); F.ring(c.x, c.y, c.r * 1.8, { ms: 900 }); }); snd('interesting', c.x, c.y); this.whisper('jack'); }
+        else if (e.n === 0 && c) { if (F) F.ring(c.x, c.y, c.r * 1.2, { dashed: true, ms: 700 }); if (!v.said.empty) { v.said.empty = 1; this.whisper('empty'); } }
+        else if (c && F) F.pop(String(e.n), c.x, c.y - c.r - 8, 0);
+        if (typeof Live !== 'undefined') Live.say(Txt.f(this.content.live.plate, { i: e.i + 1, n: e.n }));
+        this.redraw(); return;
+      }
+      case 'plated': this.whisper('plated'); return;
+      case 'flagstart': if (!s.auto) this.whisper('flag'); this.redraw(); return;
+      case 'flag': { const c = P.cells[e.i]; if (c) { v.flags[e.i] = 0; snd('tick', c.x, c.y); if (F) F.ring(c.x, c.y, c.r * 1.15, { ms: 160 }); } return; }
+      case 'stamp': {
+        const to = e.p === 'A' ? [P.ax, P.ay] : e.p === 'B' ? [P.bx, P.by] : [P.cxp, P.cyp]; v.vel = { from: e.p === 'C' ? [P.mx, P.my] : [P.mx, P.my], to, t: 0, p: e.p }; v.prints[e.p] = 0;
+        snd('swish', to[0], to[1]); if (F) F.after(450, () => { F.burst('dust', to[0], to[1], 6, { ink: SC_INK.tagL }); v.prints[e.p] = 1; if (e.p === 'C') { if (e.res) { F.tier(3, () => F.ring(to[0], to[1], P.rd * 1.4, { ms: 900 })); snd('interesting', to[0], to[1]); this.whisper('grew'); } else { F.ring(to[0], to[1], P.rd * 1.1, { dashed: true, ms: 2000 }); this.whisper('died'); } } if (e.p === 'B') { this.whisper('same'); for (const q of s.m1.filter(q => q.res)) v.links.push({ k: 'ab', q, t: 0 }); F.tier(2); } });
+        else { v.prints[e.p] = 1; }
+        this.redraw(); return;
+      }
+      case 'nopick': this.whisper('nopick'); return;
+      case 'pick': { const q = s.m1[e.i], x = P.mx + q.x * P.mr * 0.92, y = P.my + q.y * P.mr * 0.92; if (F) { F.tier(1); F.ring(x, y, 16, { ms: 180 }); } snd('tock', x, y); v.m2T = 0; return; }
+      case 'move': v.moveT = 0; this.whisper('moved'); if (F) F.tier(2, () => F.ring(P.cx, P.cy, P.R, { ms: 600 })); snd('pour', P.cx, P.cy); if (F) F.after(3200, () => { const w = (this.sim.s.pa || []).filter(q => q.win).length; if (w) F.tier(3, () => F.burst('spark', P.cx, P.cy, 12, { ink: SC_INK.tagL })); this.whisper('rate'); }); this.redraw(); return;
+      case 'patients': v.patT = 0; snd('count', Stage.w / 2, Stage.h - 40); this.redraw(); return;
+      case 'unt': this._dockSig = ''; return;
+      case 'over': this.redraw(); return;
+    }
+  },
+
+  /* ---------- input ---------- */
+  down(x, y) {
+    const s = this.sim.s, v = this.v, P = this.pos();
+    if (s.auto || s.phase === 'ask' || s.phase === 'over') { if (s.auto) v.ff = true; return; }
+    if (/grow|m2|test|patch|pat|end/.test(s.phase)) { v.ff = true; return; }
+    if (s.kind === 'dish' && s.phase === 'run') {
+      let best = null, bd = 1e9; for (const p of s.sp) if (!p.tag && !p.gone) { const q = this.sparkXY(p.id); if (!q) continue; const d = (q[0] - x) * (q[0] - x) + (q[1] - y) * (q[1] - y); if (d < bd) { bd = d; best = p; } }
+      const rr = Math.max(34, P.R * 0.14);
+      if (best && bd <= rr * rr) Sim.act(this, { k: 'tag', id: best.id });
+      else if (s.unt) Sim.act(this, { k: 'skip' });
+      else if (best && !v.said.miss) { v.said.miss = 1; this.whisper('miss'); }
+      return;
+    }
+    if (s.kind === 'tubes') { const i = P.cells.findIndex(c => Math.abs(x - c.x) <= c.w / 2 && Math.abs(y - c.y) <= c.w / 2); if (i < 0) return; v.cell = i; if (s.phase === 'plate') Sim.act(this, { k: 'plate', i }); else if (s.phase === 'flag') Sim.act(this, { k: 'flag', i }); return; }
+    if (s.kind === 'velvet') {
+      if (s.phase === 'stamp' || s.phase === 'stamp2') { const dm = Math.sqrt((x - P.mx) * (x - P.mx) + (y - P.my) * (y - P.my)), dv = Math.sqrt((x - P.vx) * (x - P.vx) + (y - P.vy) * (y - P.vy)); v.drag = { x, y, x0: x, y0: y, on: dm <= P.mr * 1.05 || dv <= 40 }; return; }
+      if (s.phase === 'pick') { const i = this.colonyAt(x, y); if (i >= 0) { v.sel = i; Sim.act(this, { k: 'pick', i }); } }
+    }
+  },
+  move(x, y) { const d = this.v && this.v.drag; if (d) { d.x = x; d.y = y; } },
+  up(x, y) {
+    const s = this.sim.s, v = this.v, d = v.drag, P = this.pos(); v.drag = null; if (!d || s.kind !== 'velvet') return;
+    const tgt = s.phase === 'stamp2' ? [[P.cxp, P.cyp]] : [[s.st === 0 ? P.ax : P.bx, s.st === 0 ? P.ay : P.by]], moved = Math.abs(x - d.x0) + Math.abs(y - d.y0) > 12;
+    const onT = tgt.some(t => (x - t[0]) * (x - t[0]) + (y - t[1]) * (y - t[1]) <= P.rd * P.rd * 1.44);
+    if ((moved && d.on && onT) || (!moved && (onT || d.on))) Sim.act(this, { k: 'stamp' });   // drag the velvet onto the plate, or tap master, velvet or plate
+  },
+  onKey(k) {
+    const s = this.sim.s, v = this.v;
+    if (k === ' ' && /grow|m2|test|patch|pat|end/.test(s.phase)) { v.ff = true; return; }
+    if (s.phase === 'flag') { if (k === 'ArrowRight' || k === 'ArrowDown') v.cell = (v.cell + (k === 'ArrowDown' ? 5 : 1)) % 20; else if (k === 'ArrowLeft' || k === 'ArrowUp') v.cell = (v.cell + (k === 'ArrowUp' ? 15 : 19)) % 20; else if (k === ' ') Sim.act(this, { k: 'flag', i: v.cell }); return; }
+    if (s.phase === 'pick') { if (k === 'ArrowRight') v.sel = (v.sel + 1) % s.m1.length; else if (k === 'ArrowLeft') v.sel = (v.sel + s.m1.length - 1) % s.m1.length; return; }
+    if (k === ' ') { if (s.kind === 'dish') Sim.act(this, { k: 'tag' }); else if (s.phase === 'plate') Sim.act(this, { k: 'plate' }); else if (/stamp/.test(s.phase)) Sim.act(this, { k: 'stamp' }); }
+    else if (k === 'ArrowRight' && s.kind === 'dish' && s.unt) Sim.act(this, { k: 'skip' });
+  },
+  teacherStep() { this.v.ff = true; },
+  freezeAsk() { },
+
+  /* ---------- geometry (canvas px) ---------- */
+  pos() {
+    const W = Stage.w, H = Stage.h, top = this.hudH() + 4, s = this.sim.s, P = { W, H, top };
+    if (!s) return P;
+    if (s.kind === 'dish') {
+      const zipH = Math.max(46, Math.min(64, H * 0.09)), lower = s.pa ? Math.min(84, H * 0.13) : 0;
+      P.zy = top + 8 + zipH / 2; P.zx0 = 18; P.zx1 = W - 18; P.zh = zipH;
+      const t2 = top + zipH + 18, avail = H - t2 - 12 - lower;
+      P.R = Math.max(70, Math.min(W * 0.44, avail * 0.5)); P.cx = W / 2; P.cy = t2 + avail / 2; P.vy = H - lower / 2 - 6;
+    } else if (s.kind === 'tubes') {
+      const rul = s.phase === 'end' || s.phase === 'over' || (s.ask && s.ask.id === 'u1') ? Math.min(78, H * 0.13) : 0, t2 = top + 6, avail = H - t2 - 8 - rul;
+      const cw = Math.max(48, Math.min(W / 5, avail / 4, 128)), x0 = W / 2 - cw * 2.5, y0 = t2 + (avail - cw * 4) / 2;
+      P.cells = []; for (let i = 0; i < 20; i++) P.cells.push({ x: x0 + (i % 5 + 0.5) * cw, y: y0 + (Math.floor(i / 5) + 0.5) * cw, w: cw, r: cw * 0.34 });
+      P.ry = H - rul / 2 - 4; P.rh = rul; P.rx0 = Math.max(24, W * 0.08); P.rx1 = W - Math.max(24, W * 0.08);
+    } else {
+      const land = W > H * 1.05, avail = H - top - 8;
+      if (land) { P.mr = Math.min(avail * 0.34, W * 0.2); P.mx = W * 0.3; P.my = top + avail * 0.5; P.rd = Math.min(avail * 0.2, W * 0.12); P.ax = W * 0.72; P.ay = top + avail * 0.26; P.bx = W * 0.72; P.by = top + avail * 0.74; P.vx = W * 0.52; P.vy = H - 46; }
+      else { P.mr = Math.min(W * 0.34, avail * 0.24); P.mx = W / 2; P.my = top + avail * 0.29; P.rd = Math.min(W * 0.21, avail * 0.15); P.ax = W * 0.27; P.ay = top + avail * 0.76; P.bx = W * 0.73; P.by = P.ay; P.vx = W - 34; P.vy = P.my + P.mr * 0.9; }
+      P.cxp = (P.ax + P.bx) / 2; P.cyp = (P.ay + P.by) / 2; if (!land) { P.cxp = W / 2; P.cyp = P.ay; }
+    }
+    return P;
+  },
+  sparkXY(id, any) {
+    const s = this.sim.s; if (!s || s.kind !== 'dish' || !s.sp) return null; const P = this.pos();
+    const p = id == null ? s.sp.filter(q => !q.tag && !q.gone).pop() : s.sp.find(q => q.id === id); if (!p) return null;
+    const r = P.R * 0.94 * p.r0; return [P.cx + r * Det.cos(p.th), P.cy + r * Det.sin(p.th)];
+  },
+  tipXY(id) { const s = this.sim.s, P = this.pos(), p = s.sp.find(q => q.id === id); if (!p) return null; const r = P.R * 0.94 * Math.min(s.rho, p.r0 + 0.06); return [P.cx + r * Det.cos(p.th), P.cy + r * Det.sin(p.th)]; },
+  colonyAt(x, y) { const s = this.sim.s, P = this.pos(); let b = -1, bd = 1e9; s.m1.forEach((q, i) => { const cx = P.mx + q.x * P.mr * 0.92, cy = P.my + q.y * P.mr * 0.92, d = (cx - x) * (cx - x) + (cy - y) * (cy - y); if (d < bd) { bd = d; b = i; } }); return bd <= 22 * 22 ? b : -1; },
+
+  /* ---------- drawing ---------- */
+  bake(key, w, h, fn) {
+    const v = this.v, sz = Stage.w + 'x' + Stage.h; if (v.bkSize !== sz) { v.bk = {}; v.bkSize = sz; }
+    if (!v.bk[key] && typeof Layer === 'function') v.bk[key] = Layer(Math.max(2, Math.ceil(w)), Math.max(2, Math.ceil(h))).redraw(fn);
+    return v.bk[key];
+  },
+  hrnd(seed) { let h = (seed >>> 0) || 1; return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return (h >>> 0) / 4294967296; }; },
+  draw(c, w, h) {
+    const s = this.sim.s; if (!s) return; const P = this.pos();
+    const bg = this.bake('bg', w, h, (cc, W, H) => this.bench(cc, W, H)); if (bg) bg.blit(c, 0, 0); else this.bench(c, w, h);
+    if (s.kind === 'dish') this.drawDishLevel(c, P); else if (s.kind === 'tubes') this.drawTubes(c, P); else this.drawVelvet(c, P);
+    for (const p of this.v.pops) { const k = p.t / 1.6; c.save(); c.globalAlpha = 1 - k * k; Lbl.put('sc-pop', p.text, p.x, p.y - 18 - 16 * k, { c, size: 13 }); c.restore(); }
+    if (this.v.banner) { const b = this.v.banner, k = b.t / b.ms, a = k < 0.15 ? k / 0.15 : k > 0.8 ? (1 - k) / 0.2 : 1; c.save(); c.globalAlpha = Math.max(0, a); Lbl.put('sc-banner', b.text, w / 2, P.top + 30, { c, size: 20, weight: 700 }); c.restore(); }
+  },
+  bench(c, W, H) {   // baked: dark wood planks with grain, a warm lamp pool, a brass lamp rim at the top, a vignette
+    c.fillStyle = SC_INK.bench; c.fillRect(0, 0, W, H);
+    const r = this.hrnd(7), pk = Math.max(70, W / 6);
+    for (let x = -pk; x < W + pk; x += pk) { c.fillStyle = r() < 0.5 ? SC_INK.wood : '#1D140D'; c.fillRect(x + 1, 0, pk - 2, H); c.strokeStyle = SC_INK.grain; c.lineWidth = 1; for (let j = 0; j < 7; j++) { const gx = x + 6 + r() * (pk - 12); c.beginPath(); c.moveTo(gx, 0); for (let y = 0; y <= H; y += 40) c.lineTo(gx + Det.sin(y * 0.01 + j) * 3, y); c.stroke(); } }
+    const lx = W * 0.5, ly = H * 0.45, g = c.createRadialGradient(lx, ly, 10, lx, ly, Math.max(W, H) * 0.62);
+    g.addColorStop(0, 'rgba(' + SC_INK.lamp + ',.34)'); g.addColorStop(0.45, 'rgba(' + SC_INK.lamp + ',.12)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    const v = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); c.fillStyle = v; c.fillRect(0, 0, W, H);
+    c.fillStyle = 'rgba(' + SC_INK.lamp + ',.5)'; c.beginPath(); c.ellipse(W * 0.5, -8, Math.min(W * 0.22, 140), 18, 0, 0, TAU); c.fill();
+    c.strokeStyle = '#B0884A'; c.lineWidth = 3; c.beginPath(); c.ellipse(W * 0.5, -8, Math.min(W * 0.22, 140), 18, 0, 0, Math.PI); c.stroke();
+  },
+  dish(c, x, y, R, o) {   // glass dish, agar (amber-cream, or violet for the new sugar), a lamp highlight; o.drug hatches the rim
+    o = o || {}; const key = 'dish' + Math.round(R) + (o.sugar ? 's' : '') + (o.drug ? 'd' : '') + (o.dim ? 'm' : '');
+    const L = this.bake(key, 2 * R + 16, 2 * R + 16, (cc) => {
+      const cx = R + 8, cy = R + 8;
+      cc.fillStyle = 'rgba(0,0,0,.35)'; cc.beginPath(); cc.ellipse(cx + 3, cy + 6, R + 5, R + 4, 0, 0, TAU); cc.fill();
+      cc.beginPath(); cc.arc(cx, cy, R + 4, 0, TAU); cc.fillStyle = SC_INK.glass; cc.fill(); cc.lineWidth = 1.5; cc.strokeStyle = 'rgba(255,240,210,.8)'; cc.stroke();
+      const g = cc.createRadialGradient(cx - R * 0.25, cy - R * 0.25, R * 0.1, cx, cy, R); g.addColorStop(0, o.sugar ? SC_INK.sugar : SC_INK.agar); g.addColorStop(1, o.sugar ? SC_INK.sugar2 : SC_INK.agar2);
+      cc.beginPath(); cc.arc(cx, cy, R, 0, TAU); cc.fillStyle = g; cc.fill();
+      if (o.drug) { cc.save(); cc.beginPath(); cc.arc(cx, cy, R, 0, TAU); cc.arc(cx, cy, R * 0.86, 0, TAU, true); cc.clip(); cc.strokeStyle = 'rgba(27,22,18,.4)'; cc.lineWidth = 1; for (let k = -2 * R; k < 2 * R; k += 5) { cc.beginPath(); cc.moveTo(cx - R + k, cy + R); cc.lineTo(cx - R + k + 2 * R, cy - R); cc.stroke(); } cc.restore(); }
+      cc.strokeStyle = 'rgba(255,255,255,.55)'; cc.lineWidth = Math.max(2, R * 0.04); cc.beginPath(); cc.arc(cx, cy, R * 0.9, -2.5, -1.7); cc.stroke();
+      if (o.dim) { cc.fillStyle = 'rgba(20,14,10,.45)'; cc.beginPath(); cc.arc(cx, cy, R + 4, 0, TAU); cc.fill(); }
+    });
+    if (L) L.blit(c, x - R - 8, y - R - 8);
+  },
+  colonyTex(R) {   // the colony's surface baked once per size: growth rings, radial striations, speckle; clipped to the radius each frame
+    return this.bake('col' + Math.round(R), 2 * R, 2 * R, (cc) => {
+      const g = cc.createRadialGradient(R, R, 0, R, R, R); g.addColorStop(0, SC_INK.col); g.addColorStop(1, SC_INK.col2); cc.fillStyle = g; cc.fillRect(0, 0, 2 * R, 2 * R);
+      const r = this.hrnd(31); cc.strokeStyle = 'rgba(255,236,220,.22)'; for (let k = 1; k < 9; k++) { cc.lineWidth = 1 + r() * 1.5; cc.beginPath(); cc.arc(R, R, R * k / 9, 0, TAU); cc.stroke(); }
+      cc.strokeStyle = 'rgba(160,70,50,.12)'; cc.lineWidth = 1; for (let k = 0; k < 90; k++) { const a = r() * TAU; cc.beginPath(); cc.moveTo(R + Det.cos(a) * R * 0.2, R + Det.sin(a) * R * 0.2); cc.lineTo(R + Det.cos(a) * R, R + Det.sin(a) * R); cc.stroke(); }
+      cc.fillStyle = 'rgba(255,245,235,.35)'; for (let k = 0; k < 220; k++) { const a = r() * TAU, d = Math.sqrt(r()) * R; cc.fillRect(R + Det.cos(a) * d, R + Det.sin(a) * d, 1.5, 1.5); }
+    });
+  },
+  wedge(p, rho) {   // a tagged lineage's wedge: half-width grows (or shrinks) with the log of radius, as sectors do in expanding colonies
+    if (p.cls === 0) return null; const k = 2 * Math.sqrt(2 * Math.abs(p.sv)), w0 = 0.09, r1 = Math.max(p.r0, rho), pts = [];
+    let rEnd = r1; if (p.cls === 1) { const pin = p.r0 * Det.exp(w0 / Math.max(1e-6, k)); rEnd = Math.min(r1, pin); }
+    for (let j = 0; j <= 10; j++) { const r = p.r0 + (rEnd - p.r0) * j / 10, l = Det.log(r / p.r0), w = Math.min(1.4, Math.max(0, p.cls === 2 ? w0 : p.cls === 3 ? w0 + k * l : w0 - k * l)); pts.push([r, w]); }
+    return pts;
+  },
+  drawDishLevel(c, P) {
+    const s = this.sim.s, v = this.v, R = P.R, rr = R * 0.94, moved = !!s.pa, mk = moved ? Math.min(1, v.moveT / 0.8) : 0;
+    this.drawZipper(c, P);
+    this.dish(c, P.cx, P.cy, R, {});
+    if (mk > 0) { c.save(); c.globalAlpha = mk; this.dish(c, P.cx, P.cy, R, { sugar: true }); c.restore(); }
+    if (mk < 1) {
+      c.save(); c.globalAlpha = 1 - mk;
+      const tex = this.colonyTex(rr), cr = rr * s.rho;
+      c.save(); c.beginPath(); c.arc(P.cx, P.cy, cr, 0, TAU); c.clip(); if (tex) tex.blit(c, P.cx - rr, P.cy - rr); c.restore();
+      c.strokeStyle = 'rgba(255,230,205,.8)'; c.lineWidth = 2; c.beginPath(); c.arc(P.cx, P.cy, cr, 0, TAU); c.stroke();
+      for (const p of s.sp) if (p.tag) this.drawLineage(c, P, p, s.rho);
+      for (const p of s.sp) if (!p.tag && !p.gone) this.drawSpark(c, P, p);
+      c.restore();
+    }
+    if (moved) this.drawPatches(c, P, mk);
+    for (const l of v.links) if (l.k === 'zip' && l.t < 0.35) { const fx = this.forkX(P); c.save(); c.globalAlpha = 1 - l.t / 0.35; c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.8)'; c.lineWidth = 1.5; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(fx, P.zy + 6); c.lineTo(l.x, l.y); c.stroke(); c.restore(); }
+    if (s.pt) this.drawPatients(c, P);
+  },
+  drawLineage(c, P, p, rho) {
+    const rr = P.R * 0.94, at = (r, a) => [P.cx + rr * r * Det.cos(a), P.cy + rr * r * Det.sin(a)];
+    if (p.cls === 0) {
+      const q = at(p.r0, p.th); c.fillStyle = p.fate ? SC_INK.grey : SC_INK.tag; c.beginPath(); c.arc(q[0], q[1], 4.5, 0, TAU); c.fill(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 1.5; c.stroke();
+      if (p.fate) this.glyph(c, q[0], q[1] - 12, 0); return;
+    }
+    const pts = this.wedge(p, rho); if (!pts) return;
+    c.beginPath(); pts.forEach((q, j) => { const xy = at(q[0], p.th - q[1] / 2); if (j) c.lineTo(xy[0], xy[1]); else c.moveTo(xy[0], xy[1]); });
+    for (let j = pts.length - 1; j >= 0; j--) { const xy = at(pts[j][0], p.th + pts[j][1] / 2); c.lineTo(xy[0], xy[1]); }
+    c.closePath(); c.fillStyle = 'rgba(143,92,194,.62)'; c.fill(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 1.5; c.stroke();
+    if (p.fate) { const e = pts[pts.length - 1], q = at(Math.min(rho, e[0]) + 0.05, p.th); this.glyph(c, q[0], q[1], p.cls); }
+  },
+  glyph(c, x, y, cls) {   // fate by shape (mono-safe): × stopped, ▼ slowed, = kept pace, ▲ raced ahead, on a paper disc
+    c.save(); c.fillStyle = 'rgba(244,238,221,.92)'; c.beginPath(); c.arc(x, y, 8, 0, TAU); c.fill(); c.strokeStyle = SC_INK.ink; c.fillStyle = SC_INK.ink; c.lineWidth = 2; c.beginPath();
+    if (cls === 0) { c.moveTo(x - 4, y - 4); c.lineTo(x + 4, y + 4); c.moveTo(x + 4, y - 4); c.lineTo(x - 4, y + 4); c.stroke(); }
+    else if (cls === 1) { c.moveTo(x - 5, y - 3); c.lineTo(x + 5, y - 3); c.lineTo(x, y + 5); c.closePath(); c.fill(); }
+    else if (cls === 2) { c.moveTo(x - 5, y - 2.5); c.lineTo(x + 5, y - 2.5); c.moveTo(x - 5, y + 2.5); c.lineTo(x + 5, y + 2.5); c.stroke(); }
+    else { c.moveTo(x - 5, y + 3.5); c.lineTo(x + 5, y + 3.5); c.lineTo(x, y - 5); c.closePath(); c.fill(); }
+    c.restore();
+  },
+  drawSpark(c, P, p) {
+    const s = this.sim.s, xy = this.sparkXY(p.id); if (!xy) return; const age = s.t - p.t0, k = (age * 6) % 1, life = s.unt || p.wait ? 1 : Math.max(0, 1 - age / SC_T.vis);
+    c.save(); const g = c.createRadialGradient(xy[0], xy[1], 1, xy[0], xy[1], 22); g.addColorStop(0, 'rgba(255,246,214,.95)'); g.addColorStop(1, 'rgba(' + SC_INK.lamp + ',0)'); c.fillStyle = g; c.beginPath(); c.arc(xy[0], xy[1], 22, 0, TAU); c.fill();
+    c.strokeStyle = SC_INK.spark; c.lineWidth = 2; c.beginPath(); for (let j = 0; j < 4; j++) { const a = j * Math.PI / 4 + age * 3, l = 9 + 4 * k; c.moveTo(xy[0] - Det.cos(a) * l, xy[1] - Det.sin(a) * l); c.lineTo(xy[0] + Det.cos(a) * l, xy[1] + Det.sin(a) * l); } c.stroke();
+    c.strokeStyle = 'rgba(255,243,210,.9)'; c.lineWidth = 2.5; c.beginPath(); c.arc(xy[0], xy[1], 16, -Math.PI / 2, -Math.PI / 2 + TAU * life); c.stroke(); c.restore();
+  },
+  forkX(P) { return P.zx0 + 40 + ((this.v.t * 0.22) % 1) * (P.zx1 - P.zx0 - 80); },
+  drawZipper(c, P) {   // the replication fork as a glowing zipper: parent duplex to the right of the fork, two daughter duplexes behind it
+    const v = this.v, y = P.zy, fx = this.forkX(P), x0 = P.zx0, x1 = P.zx1, h = Math.min(14, P.zh * 0.26);
+    c.save(); c.fillStyle = 'rgba(20,14,10,.55)'; rrect(c, x0 - 8, y - P.zh / 2, x1 - x0 + 16, P.zh, 10); c.fill();
+    c.strokeStyle = 'rgba(255,226,180,.85)'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(fx, y - 2.5); c.lineTo(x1, y - 2.5); c.moveTo(fx, y + 2.5); c.lineTo(x1, y + 2.5); c.stroke();
+    c.lineWidth = 1; for (let x = fx + 6; x < x1; x += 7) { c.beginPath(); c.moveTo(x, y - 2.5); c.lineTo(x, y + 2.5); c.stroke(); }
+    c.lineWidth = 2; c.beginPath(); for (const sg of [-1, 1]) { c.moveTo(fx, y + sg * 2.5); c.lineTo(fx - 16, y + sg * h); c.lineTo(x0, y + sg * h); c.moveTo(fx - 16, y + sg * (h - 5)); c.lineTo(x0, y + sg * (h - 5)); } c.stroke();
+    c.strokeStyle = 'rgba(205,176,238,.7)'; c.lineWidth = 1; for (const sg of [-1, 1]) for (let x = fx - 20; x > x0; x -= 7) { c.beginPath(); c.moveTo(x, y + sg * h); c.lineTo(x, y + sg * (h - 5)); c.stroke(); }
+    const fl = v.zflash > 0 ? v.zflash / 0.35 : 0, g = c.createRadialGradient(fx, y, 1, fx, y, 16 + 10 * fl); g.addColorStop(0, 'rgba(255,246,214,' + (0.9) + ')'); g.addColorStop(1, 'rgba(' + SC_INK.lamp + ',0)');
+    c.fillStyle = g; c.beginPath(); c.arc(fx, y, 16 + 10 * fl, 0, TAU); c.fill(); c.fillStyle = '#E8B85A'; c.beginPath(); c.arc(fx, y, 5, 0, TAU); c.fill();
+    const L = this.content.labels; v.beads.forEach((b, j) => { const bx = x0 + 10 + j * 15, by = y; this.bead(c, bx, by, b.src); });
+    const last = v.beads[v.beads.length - 1]; if (last && v.t - last.t < 2.2) Lbl.put('sc-src', L['s' + last.src], Math.min(x1 - 60, x0 + 22 + (v.beads.length - 1) * 15 + 48), y + P.zh / 2 + 4, { c, size: 12 });
+    else Lbl.put('sc-fork', L.fork, fx, y - P.zh / 2 + 2, { c, size: 12, pill: false, ink: 'rgba(255,226,180,.9)' });
+    c.restore();
+  },
+  bead(c, x, y, src) {   // the source of a tagged mutation by pattern, never by effect: solid, hatched, ring-and-dot, barred insert
+    c.save(); c.fillStyle = SC_INK.tagL; c.strokeStyle = SC_INK.ink; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, 5.5, 0, TAU);
+    if (src === 0) { c.fill(); c.stroke(); }
+    else if (src === 1) { c.fillStyle = 'rgba(244,238,221,.95)'; c.fill(); c.stroke(); c.beginPath(); c.moveTo(x - 4, y + 2); c.lineTo(x + 2, y - 4); c.moveTo(x - 2, y + 4); c.lineTo(x + 4, y - 2); c.stroke(); }
+    else if (src === 2) { c.fillStyle = 'rgba(244,238,221,.95)'; c.fill(); c.stroke(); c.beginPath(); c.arc(x, y, 2, 0, TAU); c.fillStyle = SC_INK.ink; c.fill(); }
+    else { c.stroke(); c.fillStyle = SC_INK.tagL; c.fillRect(x - 6, y - 2.5, 12, 5); c.strokeRect(x - 6, y - 2.5, 12, 5); }
+    c.restore();
+  },
+  drawPatches(c, P, mk) {   // the living tagged lineages patched onto the new sugar; winners bloom, harmed ones stay small
+    const s = this.sim.s, v = this.v, n = s.pa.length; if (!n) return; const g = Math.min(1, Math.max(0, (v.moveT - 0.6) / SC_T.patch * 1.6));
+    s.pa.forEach((q, i) => {
+      const ring = n > 14 && i % 2, a = i / n * TAU - Math.PI / 2, d = P.R * (n > 14 ? (ring ? 0.42 : 0.72) : 0.6), x = P.cx + d * Det.cos(a), y = P.cy + d * Det.sin(a);
+      const base = Math.max(5, Math.min(14, P.R * 0.07)), f = q.win ? 2.1 : q.cls === 1 ? 0.65 : 1, r = base * (0.5 + 0.5 * g * f) * (0.6 + 0.4 * mk);
+      c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = q.win && g > 0.5 ? 'rgba(143,92,194,.9)' : 'rgba(143,92,194,.55)'; c.fill(); c.strokeStyle = SC_INK.tagL; c.lineWidth = q.win && g > 0.5 ? 3 : 1.5; c.stroke();
+      if (g > 0.3) this.glyph(c, x + r + 6, y - r - 2, q.cls);
+      if (q.win && g > 0.6) { c.save(); c.globalAlpha = 0.5 + 0.5 * Det.sin(v.t * 5); c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.9)'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, r + 5, 0, TAU); c.stroke(); c.restore(); }
+    });
+    Lbl.put('sc-sugar', this.content.labels.sugar, P.cx, P.cy + P.R + 14, { c, size: 12 });
+  },
+  drawPatients(c, P) {   // ten vials in a rack, read one by one; a resistant cell shows as a violet ring and dot
+    const s = this.sim.s, v = this.v, n = SC_PAT.n, sp = Math.min(34, (P.W - 40) / n), y = P.vy, shown = Math.floor(Math.max(0, v.patT) / 0.25);
+    c.save(); c.fillStyle = 'rgba(20,14,10,.6)'; rrect(c, P.W / 2 - sp * n / 2 - 10, y - 26, sp * n + 20, 50, 10); c.fill();
+    for (let i = 0; i < n; i++) {
+      const x = P.W / 2 + (i - (n - 1) / 2) * sp; c.fillStyle = 'rgba(255,248,232,.35)'; rrect(c, x - 7, y - 20, 14, 36, 5); c.fill(); c.strokeStyle = 'rgba(255,240,210,.8)'; c.lineWidth = 1.2; c.stroke();
+      c.fillStyle = 'rgba(214,190,138,.8)'; c.fillRect(x - 6, y - 2, 12, 17);
+      if (i < shown && s.pt[i]) { c.beginPath(); c.arc(x, y + 6, 4, 0, TAU); c.fillStyle = SC_INK.tag; c.fill(); c.beginPath(); c.arc(x, y + 6, 8, 0, TAU); c.strokeStyle = SC_INK.tagL; c.lineWidth = 2; c.stroke(); }
+    }
+    c.restore();
+  },
+  drawTubes(c, P) {
+    const s = this.sim.s, v = this.v, grow = s.phase === 'grow' ? Math.min(1, s.t / SC_T.grow) : 1, kh = this.sim.kHi();
+    P.cells.forEach((cl, i) => {
+      const n = s.n[i], pl = n >= 0;
+      this.dish(c, cl.x, cl.y, cl.r, { drug: true });
+      if (pl) this.plateCols(c, cl, n, i, v.bloom[i] == null ? 1 : v.bloom[i]);
+      if (!pl || (v.pour[i] != null && v.pour[i] < 1)) this.tube(c, cl, pl ? v.pour[i] : 0, grow);
+      if (pl && (v.bloom[i] == null || v.bloom[i] > 0.6)) Lbl.put('sc-n', String(n), cl.x + cl.r * 0.75, cl.y - cl.r * 0.8, { c, size: n >= kh ? 14 : 12, weight: n >= kh ? 800 : 600, mono: true });
+      if (pl && n >= kh) { c.save(); c.setLineDash([5, 4]); c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.95)'; c.lineWidth = 2; c.beginPath(); c.arc(cl.x, cl.y, cl.r + 6, 0, TAU); c.stroke(); c.restore(); }
+      if (s.flag[i]) { c.save(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 3; c.beginPath(); c.arc(cl.x, cl.y, cl.r + 3, 0, TAU); c.stroke(); c.beginPath(); c.moveTo(cl.x - cl.r * 0.5, cl.y + cl.r + 6); c.lineTo(cl.x + cl.r * 0.5, cl.y + cl.r + 6); c.lineWidth = 4; c.stroke(); c.restore(); }
+      if (s.phase === 'flag' && v.cell === i && typeof Fx !== 'undefined' && Fx.lastInput === 'key') { c.save(); c.setLineDash([4, 3]); c.strokeStyle = '#F4EEDD'; c.lineWidth = 2; c.strokeRect(cl.x - cl.w / 2 + 3, cl.y - cl.w / 2 + 3, cl.w - 6, cl.w - 6); c.restore(); }
+    });
+    if (P.rh > 0) this.drawRuler(c, P);
+  },
+  tube(c, cl, pour, grow) {   // a culture tube standing on its plate; it tips and pours when plated; cloud rises overnight
+    const h = cl.r * 1.7, w = Math.max(9, cl.r * 0.38), x = cl.x + cl.r * 0.62, y = cl.y - cl.r * 0.35, rot = pour * 1.9;
+    c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = 1 - Math.max(0, pour - 0.7) / 0.3;
+    c.fillStyle = 'rgba(255,248,232,.35)'; rrect(c, -w / 2, -h / 2, w, h, w / 2); c.fill();
+    c.fillStyle = 'rgba(232,214,170,' + (0.25 + 0.6 * grow) + ')'; rrect(c, -w / 2 + 1.5, -h * 0.05, w - 3, h * 0.52, w / 2 - 1); c.fill();
+    c.strokeStyle = 'rgba(255,240,210,.85)'; c.lineWidth = 1.3; rrect(c, -w / 2, -h / 2, w, h, w / 2); c.stroke();
+    c.fillStyle = '#7A5634'; c.fillRect(-w / 2 - 1, -h / 2 - 4, w + 2, 6); c.restore();
+  },
+  plateCols(c, cl, n, i, k) {   // resistant colonies on a phage plate, from a hash so a plate is a pure function of its count
+    const L = this.bake('pl' + i + '_' + n + '_' + Math.round(cl.r), 2 * cl.r, 2 * cl.r, (cc) => {
+      const r = this.hrnd(9973 * (i + 1) + n), m = Math.min(n, 180), R = cl.r, cs = Math.max(1.8, Math.min(4, R * 0.09 * (n > 60 ? 0.6 : 1)));
+      if (n > 180) { cc.fillStyle = 'rgba(221,132,104,.35)'; cc.beginPath(); cc.arc(R, R, R * 0.8, 0, TAU); cc.fill(); }
+      for (let j = 0; j < m; j++) { const a = r() * TAU, d = Math.sqrt(r()) * R * 0.82, x = R + Det.cos(a) * d, y = R + Det.sin(a) * d; cc.beginPath(); cc.arc(x, y, cs, 0, TAU); cc.fillStyle = SC_INK.col2; cc.fill(); cc.lineWidth = 0.8; cc.strokeStyle = '#7A3A2A'; cc.stroke(); }
+    });
+    if (!L) return; c.save(); c.globalAlpha = Math.min(1, k * 1.4); const sc = 0.4 + 0.6 * k; c.translate(cl.x, cl.y); c.scale(sc, sc); L.blit(c, -cl.r, -cl.r); c.restore();
+  },
+  drawRuler(c, P) {   // the p₀ ruler: share of empty plates above, mutations a tube (m = −ln p₀) below; your plates marked
+    const s = this.sim.s, k = this.v.ruler || 1, y = P.ry, x0 = P.rx0, x1 = P.rx1, X = m => x0 + (x1 - x0) * m / 3, L = this.content.labels;
+    c.save(); c.globalAlpha = Math.min(1, k * 1.5); c.fillStyle = 'rgba(232,210,160,.92)'; rrect(c, x0 - 12, y - 24, x1 - x0 + 24, 48, 6); c.fill(); c.strokeStyle = SC_INK.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
+    for (const m of [0, 0.5, 1, 1.5, 2, 2.5, 3]) { c.beginPath(); c.moveTo(X(m), y); c.lineTo(X(m), y + 6); c.stroke(); Lbl.put('sc-rm', String(m), X(m), y + 14, { c, size: 12, pill: false, ink: SC_INK.ink, mono: true }); }
+    for (const p of [0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1]) { const x = X(-Det.log(p)); c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - 6); c.stroke(); Lbl.put('sc-rp', String(p), x, y - 14, { c, size: 12, pill: false, ink: SC_INK.ink, mono: true }); }
+    const z = this.sim.zeros(s); if (z > 0) { const x = X(Math.min(3, -Det.log(z / 20))); c.strokeStyle = SC_INK.tag; c.lineWidth = 3; c.beginPath(); c.moveTo(x, y - 22); c.lineTo(x, y + 22); c.stroke(); }
+    c.restore();
+    Lbl.put('sc-rl1', L.p0, x0 - 6, y - 30, { c, size: 12, align: 'left' }); Lbl.put('sc-rl2', L.m, x1 + 6, y - 30, { c, size: 12, align: 'right' });
+  },
+  drawVelvet(c, P) {
+    const s = this.sim.s, v = this.v, L = this.content.labels, r2 = s.phase === 'm2' || s.phase === 'stamp2' || s.phase === 'test' || (s.ask && s.ask.id === 'c1') || (s.phase === 'over' && s.m2);
+    const mc = (q, cx, cy, R) => [cx + q[0] * R * 0.92, cy + q[1] * R * 0.92], cs = R => Math.max(4.5, R * 0.06);
+    const col = (x, y, r, fill) => { c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = fill; c.fill(); c.lineWidth = 1; c.strokeStyle = '#7A3A2A'; c.stroke(); };
+    // the master plate (round 1) or your pick's plate (round 2)
+    this.dish(c, P.mx, P.my, P.mr, {});
+    if (!r2) { s.m1.forEach((q, i) => { const xy = mc([q.x, q.y], P.mx, P.my, P.mr); col(xy[0], xy[1], cs(P.mr), SC_INK.col); }); }
+    else { const k = Math.min(1, (s.phase === 'm2' ? s.t / SC_T.m2 : 1)); for (const q of s.m2) { const xy = mc(q, P.mx, P.my, P.mr); col(xy[0], xy[1], cs(P.mr) * (0.3 + 0.7 * k), SC_INK.col); } }
+    Lbl.put('sc-mlab', r2 ? L.m2 : L.master, P.mx, P.my + P.mr + 16, { c, size: 12 });
+    // drug plates
+    const plates = r2 ? [['C', P.cxp, P.cyp]] : [['A', P.ax, P.ay], ['B', P.bx, P.by]];
+    for (const [k, x, y] of plates) {
+      this.dish(c, x, y, P.rd, { drug: true });
+      const stamped = (k === 'C' ? s.cdone : (k === 'A' ? s.st >= 1 : s.st >= 2)) && (v.prints[k] == null || v.prints[k] >= 1);
+      if (stamped) {
+        if (k === 'C') { if (s.m2res) for (const q of s.m2) { const xy = mc(q, x, y, P.rd); col(xy[0], xy[1], cs(P.rd), SC_INK.tag); } }
+        else if (s.whatif === 'inducedD') for (const q of s['ind' + k] || []) { const xy = mc(q, x, y, P.rd); col(xy[0], xy[1], cs(P.rd), SC_INK.tag); }
+        else for (const q of s.m1) if (q.res) { const xy = mc([q.x, q.y], x, y, P.rd); col(xy[0], xy[1], cs(P.rd), SC_INK.tag); }
+      }
+      Lbl.put('sc-dlab', L[k], x, y + P.rd + 16, { c, size: 12 });
+    }
+    // links between matching spots after plate B, then the picking cursor
+    for (const l of v.links) if (l.k === 'ab') { const a = mc([l.q.x, l.q.y], P.ax, P.ay, P.rd), b = mc([l.q.x, l.q.y], P.bx, P.by, P.rd), m = mc([l.q.x, l.q.y], P.mx, P.my, P.mr); c.save(); c.globalAlpha = Math.max(0, 1 - l.t / 2.6); c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.9)'; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); c.restore(); }
+    if (s.phase === 'pick' || (s.pick >= 0 && !r2)) { const q = s.m1[s.phase === 'pick' ? v.sel : s.pick], xy = mc([q.x, q.y], P.mx, P.my, P.mr); c.save(); c.strokeStyle = '#F4EEDD'; c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); c.arc(xy[0], xy[1], cs(P.mr) + 6, 0, TAU); c.stroke(); c.restore(); }
+    // the velvet: resting, dragged, or stamping (press the master, then the target)
+    let vx = P.vx, vy = P.vy, press = 0;
+    if (v.vel) { const t = v.vel.t, a = v.vel.from, b = v.vel.to; if (t < 0.25) { vx = P.vx + (a[0] - P.vx) * t / 0.25; vy = P.vy + (a[1] - P.vy) * t / 0.25; } else if (t < 0.4) { vx = a[0]; vy = a[1]; press = 1; } else if (t < 0.6) { const f = (t - 0.4) / 0.2; vx = a[0] + (b[0] - a[0]) * f; vy = a[1] + (b[1] - a[1]) * f - 20 * Det.sin(Math.PI * f); } else if (t < 0.75) { vx = b[0]; vy = b[1]; press = 1; } else { const f = (t - 0.75) / 0.15; vx = b[0] + (P.vx - b[0]) * Math.min(1, f); vy = b[1] + (P.vy - b[1]) * Math.min(1, f); } }
+    else if (v.drag && v.drag.on) { vx = v.drag.x; vy = v.drag.y; }
+    this.velvetBlock(c, vx, vy, Math.max(22, P.rd * 0.55), press);
+    if (!v.vel && !v.drag && (s.phase === 'stamp' || s.phase === 'stamp2')) Lbl.put('sc-vlab', L.velvet, P.vx, P.vy + Math.max(22, P.rd * 0.55) + 14, { c, size: 12 });
+  },
+  velvetBlock(c, x, y, r, press) {   // a wooden block faced with deep violet velvet; the pile is a fine stipple
+    c.save(); c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x + 3, y + (press ? 3 : 9), r, r * 0.5, 0, 0, TAU); c.fill();
+    const yy = y - (press ? 0 : 6); c.fillStyle = '#6B4A2E'; c.beginPath(); c.ellipse(x, yy - 8, r, r * 0.45, 0, 0, TAU); c.fill(); c.fillRect(x - r, yy - 8, 2 * r, 8);
+    c.fillStyle = '#4A2A5E'; c.beginPath(); c.ellipse(x, yy, r, r * 0.45, 0, 0, TAU); c.fill(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 1.2; c.stroke();
+    c.fillStyle = 'rgba(205,176,238,.35)'; const rn = this.hrnd(5); for (let k = 0; k < 40; k++) { const a = rn() * TAU, d = Math.sqrt(rn()); c.fillRect(x + Det.cos(a) * d * r * 0.9, yy + Det.sin(a) * d * r * 0.4, 1.2, 1.2); }
+    c.restore();
+  },
+
+  /* ---------- the strip: LiveGraph specs (realised solid, expected dashed, you a diamond; the reveal ladder in order) ---------- */
+  notes() {
+    const s = this.sim.s; if (!s) return { stats: [], charts: [] };
+    const D = this.content.data, sim = this.sim, stats = [], row = (d, vars) => stats.push([d[0], Txt.f(d[1], vars), d[2] ? Txt.f(d[2], vars) : '']), pc = x => Math.round(100 * x);
+    if (s.kind === 'dish' && this.level === 0) { const sh = sim.shares(s); row(D.fates, { n: s.fates }); row(D.shares, { h: pc(sh[0]), z: pc(sh[1]), b: pc(sh[2]) }); row(D.miss, { n: s.miss }); return { stats, charts: [this.triSpec(), this.dfeSpec()] }; }
+    if (s.kind === 'dish') { row(D.tags, { n: s.tags }); if (s.pa) row(D.wins, { w: s.pa.filter(q => q.win).length, n: s.pa.length }); return { stats, charts: [this.winSpec(), this.patSpec()] }; }
+    if (s.kind === 'tubes') { const a = s.n.filter(x => x >= 0); row(D.plated, { n: s.plated }); row(D.empty, { n: sim.zeros(s) }); if (a.length) { row(D.big, { n: Math.max.apply(null, a) }); row(D.spread, { v: (Math.round(sim.vmr(s.n) * 10) / 10).toFixed(1) }); } return { stats, charts: [this.countSpec(), this.muSpec()] }; }
+    row(D.stamps, { n: s.st + (s.cdone ? 1 : 0) }); row(D.spots, { n: s.st ? s.m1.filter(q => q.res).length : 0 });
+    return { stats, charts: [this.shareSpec()] };
+  },
+  triSpec() {
+    const s = this.sim.s, D = this.content.data, L = this.content.labels, pts = [], done = s.hits.d1 !== undefined;
+    if (done && s.fates >= 3) pts.push({ f: this.sim.shares(s), kind: 'dusk', label: D.lines.yours });
+    if (done) pts.push({ f: [SC_VSV[0] + SC_VSV[1], SC_VSV[2], SC_VSV[3]], kind: 'dawn', label: D.lines.virus });
+    return { type: 'tri', variant: 'simplex', title: D.titles.tri, corners: [L.harm, L.none, L.help], trail: done ? s.trail.slice() : [], pts, frame: 'designed' };
+  },
+  dfeSpec() {
+    const s = this.sim.s, D = this.content.data, L = this.content.labels, n = Math.max(1, s.fates), done = s.hits.d1 !== undefined;
+    const bars = s.cnt.map((k, i) => ({ x: i, y: s.fates ? k / n : 0 }));
+    const ticks = done ? SC_DFE.map((y, i) => ({ x: i, y, label: i === 3 ? D.lines.model : null })).concat(SC_VSV.map((y, i) => ({ x: i, y, dot: true, label: i === 3 ? D.lines.virus : null }))) : [];
+    return { type: 'sc_xy', title: D.titles.dfe, fold: false, x: { lo: -0.5, hi: 3.5 }, xcat: [L.lethal, L.harmful, L.neutral, L.helps], xticks: [0, 1, 2, 3], y: { lo: 0, hi: 0.8, fmt: 'pct' }, frame: 'designed', bars, ticks, note: done ? { x: 3, y: 0.3, text: D.lines.real } : null };
+  },
+  countSpec() {
+    const s = this.sim.s, sim = this.sim, D = this.content.data, l = sim.ldMean(), bars = SC_BINS.map((b, i) => ({ x: i, y: s.n.filter(n => n >= b[0] && n <= b[1]).length }));
+    const gh = SC_BINS.map((b, i) => { let p = 0; for (let k = b[0]; k <= Math.min(b[1], 200); k++) p += sim.pois(l, k); return [i, Math.round(20 * p * 100) / 100]; });
+    return { type: 'sc_xy', title: D.titles.counts, x: { lo: -0.5, hi: 9.5, label: D.ax.bin }, xcat: SC_BINL, xticks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], y: { lo: 0, hi: 20, label: D.ax.plates, fmt: 'int' }, frame: 'designed', bars, lines: [{ pts: gh, dash: true, label: D.lines.phage }] };
+  },
+  muSpec() {
+    const s = this.sim.s, sim = this.sim, D = this.content.data, vl = [];
+    if (s.hits.u1 !== undefined) { const mh = sim.muHat(s); vl.push({ x: Det.log(sim.P().mu.v) / Det.log(10), dash: true, label: D.lines.truth }); if (mh) vl.push({ x: Math.max(-10, Math.min(-5, Det.log(mh) / Det.log(10))), label: D.lines.you }); }
+    return { type: 'sc_xy', title: D.titles.mu, fold: false, x: { lo: -10, hi: -5, label: D.ax.mu }, xlog: true, xticks: [-10, -9, -8, -7, -6, -5], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
+  },
+  shareSpec() {
+    const s = this.sim.s, D = this.content.data, L = this.content.labels, k = s.m1.filter(q => q.res).length, n = s.m1.length, bars = [];
+    if (s.st >= 1) bars.push({ x: 0, y: k / n }); if (s.st >= 2) bars.push({ x: 1, y: k / n }); if (s.cdone) bars.push({ x: 2, y: s.m2res ? 1 : 0 });
+    return { type: 'sc_xy', title: D.titles.share, x: { lo: -0.5, hi: 2.5 }, xcat: [L.A, L.B, L.C], xticks: [0, 1, 2], y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', bars };
+  },
+  winSpec() {
+    const s = this.sim.s, D = this.content.data, vl = [];
+    if (s.pa && s.pa.length && (this.v.moveT > 3 || s.phase !== 'patch')) vl.push({ x: s.pa.filter(q => q.win).length / s.pa.length, label: D.lines.yourLin });
+    return { type: 'sc_xy', title: D.titles.win, x: { lo: 0, hi: 1, fmt: 'pct' }, xticks: [0, 0.25, 0.5, 0.75, 1], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
+  },
+  patSpec() {
+    const s = this.sim.s, D = this.content.data, vl = [];
+    if (s.pt && this.v.patT > 2.6) vl.push({ x: s.pt.filter(x => x).length, label: D.lines.yours });
+    return { type: 'sc_xy', title: D.titles.pat, fold: false, x: { lo: 0, hi: 10, label: D.ax.pats, fmt: 'int' }, xticks: [0, 2, 4, 6, 8, 10], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
+  },
+  cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return s.whatif ? this.dfeSpec() : this.triSpec(); if (n === 1) return this.countSpec(); if (n === 2) return this.shareSpec(); return this.winSpec(); }
+};
+V2.push(CH_SCRIBE_V2);
+
+/* ---------- sc_xy: one XY chart for the unit — category bars, dashed expectations and model ticks, vertical marks, a log x axis ---------- */
+if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.sc_xy) LiveGraph.T.sc_xy = {
+  sup(v) { const m = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' }; return String(Math.round(v)).split('').map(ch => m[ch] || ch).join(''); },
+  fx(spec, v) { if (spec.xcat) return spec.xcat[Math.round(v)] || ''; if (spec.xlog) return '10' + this.sup(v); return wgFmt(spec.x.fmt, v); },
+  lay(w, h, spec, T, c) { const labels = (spec.lines || []).map(l => l.label).concat((spec.vlines || []).map(l => l.label), (spec.ticks || []).map(t => t.label)); return wgXY(w, h, spec, T, c, { xlo: spec.x.lo, xhi: spec.x.hi, ylo: spec.y ? spec.y.lo : 0, yhi: spec.y ? spec.y.hi : 1, labels }); },
+  draw(c, G, spec, T) {
+    const p = G.plot, I = T.I, ends = [];
+    wgAxes(c, G, spec, T, { noY: !!spec.noY, xticks: spec.xticks, xfmt: v => this.fx(spec, v) });
+    c.save(); c.beginPath(); c.rect(p.x, p.y, p.w, p.h); c.clip(); c.lineCap = 'round'; c.lineJoin = 'round';
+    for (const b of spec.bars || []) { const bw = b.w || 0.32, x0 = G.X(b.x - bw), x1 = G.X(b.x + bw), y = G.Y(b.y), yb = G.Y(spec.y.lo); c.fillStyle = wgRgba(I.text, 0.78); c.fillRect(x0, y, x1 - x0, yb - y); }
+    for (const t of spec.ticks || []) { const x0 = G.X(t.x - 0.42), x1 = G.X(t.x + 0.42), y = G.Y(t.y); c.lineWidth = 2 * T.k; c.strokeStyle = I.text; c.setLineDash(t.dot ? [1.5, 3] : [6, 3]); c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke(); if (t.label) ends.push({ y, text: t.label, col: I.text, dash: true }); }
+    c.setLineDash([6, 4]); c.lineWidth = 2 * T.k; c.strokeStyle = I.text;
+    for (const l of spec.lines || []) { if (!l.pts || !l.pts.length) continue; c.beginPath(); l.pts.forEach((q, i) => { const x = G.X(q[0]), y = G.Y(q[1]); if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke(); const q = l.pts[l.pts.length - 1]; if (l.label) ends.push({ y: G.Y(q[1]), text: l.label, col: I.text, dash: true }); }
+    c.setLineDash([]);
+    (spec.vlines || []).forEach((l, i) => { const x = G.X(l.x); c.lineWidth = (l.dash ? 2 : 3) * T.k; c.strokeStyle = I.text; c.setLineDash(l.dash ? [6, 4] : []); c.beginPath(); c.moveTo(x, p.y); c.lineTo(x, p.y + p.h); c.stroke(); c.setLineDash([]); if (!l.dash) wgMark(c, 'ink', x, p.y + p.h * 0.5, 4 * T.k, I.text, I.surface); if (l.label) ends.push({ y: p.y + p.h * (0.3 + 0.4 * i), text: l.label, col: I.text, dash: !!l.dash }); });
+    c.restore();
+    if (spec.note && !T.compact) wgText(c, spec.note.text, G.X(spec.note.x) - 4, G.Y(spec.note.y), G.tk, I.text2, { align: 'right', fam: 'b', wt: 600, halo: I.surface });
+    wgEnds(c, G, ends, T);
+  },
+  rows(spec) {
+    const out = [], f = v => this.fx(spec, v), fy = spec.y && spec.y.fmt;
+    for (const b of spec.bars || []) out.push(['yours', f(b.x), wgFmt(fy, b.y)]);
+    for (const t of spec.ticks || []) out.push([t.dot ? 'a virus (measured)' : 'model', f(t.x), wgFmt(fy, t.y)]);
+    for (const l of spec.lines || []) for (const q of l.pts || []) out.push([(l.label || 'expected') + ' (expected)', f(q[0]), wgFmt(fy, q[1])]);
+    for (const l of spec.vlines || []) out.push([l.label || 'mark', f(l.x), '']);
+    return { head: ['series', (spec.x && spec.x.label) || 'x', (spec.y && spec.y.label) || 'y'], rows: out };
+  },
+  say(spec) { return (spec.bars || []).length + ' bars' + ((spec.vlines || []).length ? ', marks: ' + spec.vlines.map(l => l.label).filter(Boolean).join(', ') : ''); }
+};
+
+/* ---------- the learning layer (D5 §3 item 12): overwritten for v2, untouched under ?v1=1 ---------- */
+if (!Url.v1) {
+  TAKE.scribe = SC_TEXT.take;
+  MODEL.scribe = 'Haploid bacteria on a dish: each mutation’s effect is drawn from a designed mix, blind to its source and to need. Tubes grow in step from 100 cells, so mutants arise before the phage; velvet copies a plate; a new sugar redraws effects but not the spark rate.';
+  RECALL.scribe = { q: 'Twenty cultures are plated on phage. Many plates are empty and a few hold hundreds. What does that show?', opts: [['before', 'Resistant mutants arose before the phage'], ['caused', 'The phage made some cells resistant'], ['luck', 'Some plates were poured badly']], ans: 'before', why: 'If the phage caused resistance, every plate would show a similar, Poisson-spread count. Jackpots and empty plates mean mutants arose at random times during growth.' };
+  BRIDGE.scribe = 'In Mendel’s Garden alleles were handed on unchanged. Here new ones arise, at random and blind to need.';
+}
