@@ -36,7 +36,7 @@ def check(name, ok, data, pg):
 with sync_playwright() as p:
     b = p.chromium.launch(**CHROME)
     # 1. a real tap on a palewing eats it; the juice (an Fx event) lands within 200 ms of the act
-    ctx, pg = page(b, '?unit=bitter&level=0&seed=4', 1280, 720)
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=0&seed=4', 1280, 720)
     pg.evaluate("()=>{ TB.Events.debug = true; window.__advance(300); }")
     i = pg.evaluate("()=>TB.REG.bitter.sim.autoPick()")
     pg.evaluate("()=>TB.Events.clear && TB.Events.clear()")
@@ -53,7 +53,7 @@ with sync_playwright() as p:
     check('bitter', r['led'] == 1 and r['bitter'] == 1 and r['lost'] >= 2.0 and r['gone'] == 2, r, pg); ctx.close()
 
     # 2. keyboard: arrows move the beak, Space pecks; A toggles the auto bird; the morning still ends
-    ctx, pg = page(b, '?unit=bitter&level=0&seed=5')
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=0&seed=5')
     r = pg.evaluate("""()=>{ const key=k=>document.body.dispatchEvent(new KeyboardEvent('keydown',{key:k,bubbles:true})); const ch=TB.REG.bitter;
        window.__advance(300); for (let k=0;k<8;k++){ key(k%2?'ArrowLeft':'ArrowDown'); key(' '); window.__advance(300); }
        const tried = ch.sim.s.eaten + ch.sim.s.bitN; key('a'); window.__advance(9000); const s=ch.sim.s; return { tried, auto: s.auto, gen: s.gen, phase: s.phase, eatenAll: s.eatenAll }; }""")
@@ -61,7 +61,7 @@ with sync_playwright() as p:
     check('keyboard', r['eatenAll'] >= 6 and (r['gen'] >= 2 or r['phase'] != 'hunt'), r, pg); ctx.close()
 
     # 3. a real mouse drag on the strip moves the prediction ghost; a tap on the ghost commits it through the sim
-    ctx, pg = page(b, '?unit=bitter&level=3&seed=6', 1280, 720)
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=3&seed=6', 1280, 720)
     pg.evaluate("""()=>{ const ch=TB.REG.bitter; for (let k=0;k<4000;k++){ const s=ch.sim.s; if (s.ask) break; if (s.phase==='hunt'||s.phase==='dawn'){ const i=ch.sim.autoPick(); if (i>=0) TB.Sim.act(ch,{k:'tap',i}); } window.__advance(120); } window.__advance(600); }""")
     box = pg.evaluate("()=>{ const cv=TB.Strip.canvas(0); if (!cv) return null; const r=cv.getBoundingClientRect(); return {x:r.left, y:r.top, w:r.width, h:r.height}; }")
     if box:
@@ -78,19 +78,19 @@ with sync_playwright() as p:
     ctx.close()
 
     # 4. untimed + Calm: looks instead of a clock; a tap spends a look; the ask waits with no timer
-    ctx, pg = page(b, '?unit=bitter&level=1&seed=7&untimed=1&calm=1', calm=True)
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=1&seed=7&untimed=1&calm=1', calm=True)
     r = pg.evaluate("""()=>{ const ch=TB.REG.bitter, s=ch.sim.s; window.__advance(300); const l0=s.looks; const i=ch.sim.autoPick(); TB.Sim.act(ch,{k:'tap',i}); window.__advance(200);
        const l1=s.looks; window.__advance(30000); return { unt: s.unt, l0, l1, time: s.time, phase: s.phase, calm: TB.Fx ? TB.Fx.calm : null }; }""")
     pg.screenshot(path=os.path.join(out, 'paths_untimed.png'))
     check('untimed', r['unt'] and r['l1'] < r['l0'] and abs(r['time'] - 12) < 1e-6, r, pg); ctx.close()
 
     # 5. teacher: step runs to the next dawn or prediction
-    ctx, pg = page(b, '?unit=bitter&level=2&seed=8&teacher=1')
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=2&seed=8&teacher=1')
     r = pg.evaluate("()=>{ const ch=TB.REG.bitter, g0=ch.sim.s.gen; ch.teacherStep(); const s=ch.sim.s; return { g0, g1: s.gen, ask: !!s.ask, phase: s.phase }; }")
     check('teacher', r['g1'] > r['g0'] or r['ask'], r, pg); ctx.close()
 
     # 6. What if?: finish L5, open the final card, thaw "Scatter B"; the rerun ends with a text chosen from it and no stars
-    ctx, pg = page(b, '?unit=bitter&level=4&seed=9')
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=4&seed=9')
     c1 = pg.evaluate(FINISH)
     r = pg.evaluate("""()=>{ const card=document.querySelector('#cards.on .card'); if (!card) return {err:'no card'};
        const wi=[...card.querySelectorAll('.card-btns button')].find(b=>/what if/i.test(b.textContent)); if (!wi) return {err:'no what if'}; wi.click(); window.__advance(400);

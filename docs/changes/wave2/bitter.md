@@ -152,3 +152,97 @@ Fixes found by looking: the whisper covered the ledger (moved to the bottom band
 5. L4: did the young birds' dusk make the cost of learning visible? Did the rarer pattern move as you predicted?
 6. L5: did "spared" siblings make sense? Was island C's question fair?
 7. Rate 1–5: fun, clarity, felt cost, would you set it for a class. Flag any moment you were bored, or wanted to know how long was left.
+
+---
+
+## Session 2 (21 October 2026): finished, moved into `v2/`, re-worlded for D6 addendum 7–8
+
+Unit agent: senior game developer, art director and evolutionary biologist. `git mv source/v2_wip/bitter.js source/v2/bitter.js` (staged rename, not committed). Files edited: `v2/bitter.js`, `tests/bitter_shots.py` and `tests/bitter_paths.py` (both now load with `&intro=0`), this log. No engine, legacy or other unit file was touched. **The sim is unchanged**, so session 1's numbers and test design still hold (rerun below).
+
+### What changed
+
+**A world of its own (D6 addendum 7).** The meadow and great tit are gone. The world is now a **Neotropical forest edge**:
+- **Ground.** Deep greens with light falling through canopy gaps. Two layers of big rainforest leaves (pointed blades with veins), dappled sun, and heliconia-like blades framing the sides. A passion vine runs along the top, with Passiflora flowers (ten petals and a banded purple–white–violet corona) placed at the edges, never where butterflies sit. Everything is baked once per size from a private PRNG.
+- **The player is a rufous-tailed jacamar** (*Galbula ruficauda*) with four downy white chicks in an earth-bank burrow. Jacamars nest in burrows in banks, and their chicks wear long white down. Chai (1986) watched this species taste Heliconius, release them and then reject them on sight. That is the game's "taste, retch, spare" loop, so the old "a model staggers off alive" beat is now true to the bird.
+- **Insects.**
+  - Palewings are Dismorphia-like whites: cream with dark wing tips. They are Bates's own Amazon mimics.
+  - As the look rises, a palewing darkens towards the model: black, a red forewing band, a yellow hindwing bar and thorax dots, in Heliconius "postman" style.
+  - L4 bitterwings and sourwings sit on a Müllerian pattern line on black, from two yellow spots to one red band, with rays at the band end.
+  - Safe food is now **dragonflies** (glassy wings, turquoise abdomen), not grubs, because jacamars take flying insects. Grubs never made sense for this bird.
+  - L5's defended prey are **shield bugs** (green and cryptic, or black with pale yellow bars) on two islands in a café-au-lait Amazon river. Shield-bug nymphs really do cluster as siblings.
+  - The L2 "models' food plant" is now a **passion vine** that browns, droops and wilts its flower. Heliconius caterpillars eat only Passiflora.
+- **Colour-blind safety** still rests on luminance and pattern, not hue: cream against black for the Batesian line; spots against band, and light against darker, for the Müllerian pair; green against bright-barred bugs; and a different shape for dragonflies. Checked in the `mono` and `deut` screenshots.
+- **Accent.** `accent: '#E2483A'` (Heliconius red) tints the intro card and the chrome. `place: 'pond'` is the nearest deep-green backdrop; see engine request 6.
+
+**Juice (fun first).**
+- Butterflies at rest fan their wings in short bursts and breathe in between, and each casts a shadow on the leaf. Dragonflies hover. Calm mode turns all this motion off.
+- **You are visible.** A jacamar head (metallic green, white throat, rufous breast, long black bill) swings in over the 90 ms telegraph and snaps. A tasty catch is pulled into the bill with a happy squint.
+- A **bitter** mouthful keeps D4 §5.3 (5 px shake, corners darken for 250 ms, 50 ms hit-stop, a chunk off the timer) and adds:
+  - the head recoils and swells by 25%;
+  - its eyes screw shut and its gape opens with a pink tongue;
+  - it shudders for about 0.6 s while green stink lines rise;
+  - green droplets burst from the bill;
+  - the model flutters away alive, as jacamars release tasted Heliconius.
+
+  The whole grimace lasts 0.8 s (T2). The whisper reads "Bleugh! Bitter. You retch."
+- The head comes from below, or from above near the nest band, so it is never hidden under the HUD.
+- In L4–L5 the young birds are young jacamars in flight (long tail, long bill), replacing `Rig 'tit'`. The chicks are painted locally (`bwChick`, white down and a yellow gape) instead of `Rig 'chick'`.
+- Actors are larger: a butterfly's wingspan is `0.1 × min(w, 1.2h)`, clamped to 34–64 px (it was 0.085, clamped to 30–60). L5 bugs went from 0.8 S to 0.9 S.
+
+**Opening card (D6 addendum 8).** `content.intro = {game, biology, how}`, two sentences each, 25, 31 and 29 words. `00_entry.js` (the engine agent's card) draws it in the accent; screenshot checked.
+
+**Words.** Everything was rewritten for the new world: HUD, whispers, Interesting texts, the five MODEL cards, `why`, the teacher prompts, BRIDGE and MODEL. The new science on screen:
+
+| Claim (card) | Reference | refs id |
+|---|---|---|
+| Rufous-tailed jacamars taste and release Heliconius-like models, then reject them on sight (L1 "In nature"). | Chai P (1986) Field observations and feeding experiments on the responses of rufous-tailed jacamars (*Galbula ruficauda*) to free-flying butterflies in a tropical rainforest. Biol J Linn Soc 29:161–189 | chai1986 |
+| *Heliconius erato* and *H. melpomene* match each other race by race across the Amazon (a Müllerian pair) (L4). | Müller 1879; Mallet 1999 (already cited) | muller1879, mallet1999 |
+| One gene, *optix*, switches the red pattern elements of these butterflies (L4). | Reed RD et al. (2011) *optix* drives the repeated convergent evolution of butterfly wing pattern mimicry. Science 333:1137–1141 | reed2011 |
+| In *H. numata* one supergene switches whole wing patterns (`why.real`, L4 refs). | Joron M et al. (2011) Nature 477:203–206 (already cited) | joron2011 |
+| Jacamars attack novel colour forms of Heliconius more often (L5: rare warning colours are attacked). | Langham GM (2004) Specialized avian predators repeatedly attack novel color morphs of *Heliconius* butterflies. Evolution 58:2783–2787 | langham2004 |
+| In the model a tasted L4 butterfly dies; real Heliconius often survive a taste (L4 simplification, an honesty note). | Chai 1986 | chai1986 |
+
+### Adversarial biologist review (results)
+
+1. **Batesian versus Müllerian.** L1–L3 are Batesian: palatable palewings with fixed models. L4 is Müllerian: both species defended, and they share the cost of predator learning. The two are kept apart in words and in art: the Batesian line runs from cream to model, the Müllerian line from spots to band.
+2. **Frequency dependence relative to models (Lindström et al. 1997).** The L2 axis is *mimics per model*, not mimic frequency, and the break-even k = C is the expected-value threshold. One check: with abundant safe food, tasting never pays. Here safe food (cream palewings and 6 dragonflies) cannot fill the quota of 12, so the marginal choice is "taste a warning look or go short", and k = C holds at that margin. Kept as is; the MODEL card already says "the model's rule".
+3. **Supergenes (Joron et al. 2011).** On screen it says "large-effect allele", while `why` and the L4 MODEL card now name *optix* and the *H. numata* supergene as the real cases. "Supergene" as a mechanism stays with Tangled Pairs (GAME_BIBLE §6).
+4. **Heliconius rings.** The L4 "In nature" line now names the *erato*/*melpomene* co-mimicry across the Amazon. Advergence (the rarer converges) is right for 24 : 8 (Mallet 1999); the oracle confirms the rarer moves 7.6× farther.
+5. **L5 origin of warning colour.** Anti-apostatic selection on rare new colours now cites the jacamar field result (Langham 2004) alongside Alatalo & Mappes (1996). Sillén-Tullberg (1988) keeps aggregation as "one route", and the card says so.
+6. **Agency words.** The lint is clean: no "evolve", "choose" or "need" for individuals.
+
+### Playtester and art-director review (results)
+
+Looked at 118 screenshots (`tests/bitter_shots.py`, seed 3, 390×780 and 1280×720 plus `mono`/`deut`) and a frame sequence of the grimace (`grim_*.png`). Fixed in this session:
+- the head was too small to read on a phone (it is now 1.25 S, swelling to 1.56 S in the grimace);
+- the head could vanish under the HUD for butterflies near the top (it now comes from below);
+- the bill was too thin (it is thicker now, with a pale rim);
+- the mid-layer leaf veins competed with intermediate looks (toned down);
+- L5's cryptic bugs were too small;
+- the intro text broke the lint at 20 words a sentence and 3 sentences a part (rewritten).
+
+Still open and acceptable:
+- spared-sibling rings overlap in tight clusters (session 1 note);
+- the shell's level-card button is the shell's carmine, not the accent (engine).
+
+### Island C Transfer: tried again, kept
+
+Session 1 noted that a fixed guess fits about 50% of seeds. This session measured the expectation by brood size (2 → 0.10, 3 → 0.21, 4 → 0.31, 6 → 0.38, 8 → 0.42) and over a founders × brood grid (4–16 founders). "More founders in pairs" lands on "fewer founders in eights" (for example 12 founders in pairs gives 0.22, and 4 founders in eights gives 0.21). So at ±0.07 a fixed guess still fits at least 37% of seeds in any design that stays fair to a human, and only ±0.05 brings it to 25%, which is too tight for an estimate. The pairs-or-eights contrast is kept. The protection is unchanged: the unit stars need L2 Discover, the L2/L3 and L4 Predicts, and Transfer together, and the memoriser earns three unit stars on 0 of 40 seeds. A designer decision could swap this ask for something else.
+
+### Engine requests (new; nothing edited)
+
+6. A `forest` place in `00_tokens.js` (for example `['forest', 'Forest Edge', '#16351F', 'jacamar']`). Bitter Wings uses `pond` as the nearest deep green until then.
+7. Level and unit cards could take `ch.accent` for their primary button, as the intro card does.
+
+### Tests (build `V2_ONLY='0*,zz_*,bitter.js'`, scratch `scratchpad/bitter/bitter.html`)
+- **Text lint:** 0 errors, 0 warnings (unit and source).
+- **Oracle:** 34 passed, 0 failed. The numbers are identical to session 1 because the sim is unchanged; the note on island C stands.
+- **Browser paths:** 8 of 8 (tap and juice within 40 ms, bitter mouthful and ledger, keyboard, strip drag, untimed with Calm, teacher step, What if? "Scatter B", `?v1=1` legacy Hunt).
+- **Bot sweep** (8 bots, seeds 1–40): PASS. No bot earns three stars in any level, and the table is identical to session 1's.
+- **Untimed sweep** (6 bots, 20 seeds): PASS.
+- **Monkey** (`GAME_HTML=… tests/monkey.py bitter 1,2,3 --vp 390x780,1280x720`): 6 of 6 runs reach "Unit complete", with no errors, NaN or stuck states.
+- **Screenshots** (118, including `mono`/`deut`): no JavaScript errors, label warnings or network requests.
+- **Not rerun:** legacy goldens. No legacy file was touched.
+- **Size:** `v2/bitter.js` is 120 KB raw and 39 KB gzip (it was 101 KB and 33 KB) because of the painters.
+
+Screenshots: `/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/bitter/s3/` (118 shots plus per-level contact sheets `sheet390_L*.png` and `cvd.png`), `grim/` (grimace sequence), `paths/`.

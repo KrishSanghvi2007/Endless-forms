@@ -83,7 +83,7 @@ def main():
                 ctx.route('**/*', lambda r: r.continue_() if r.request.url.startswith(('file:', 'data:')) else (ext.append(r.request.url), r.abort()))
                 pg = ctx.new_page()
                 pg.add_init_script(script=init)
-                pg.goto('file://' + html + f'?unit=bitter&level={lv}&seed={a.seed}' + (f'&cvd={cvd}' if cvd else ''))
+                pg.goto('file://' + html + f'?unit=bitter&intro=0&level={lv}&seed={a.seed}' + (f'&cvd={cvd}' if cvd else ''))
                 pg.evaluate(HELP)
                 ev = lambda js: pg.evaluate(js)
                 for name, js in SCRIPT[lv]:

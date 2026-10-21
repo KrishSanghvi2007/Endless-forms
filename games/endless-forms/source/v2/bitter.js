@@ -1,16 +1,17 @@
 /* ================= v2/bitter.js: Bitter Wings (CH_BITTER_V2; D1 §3.2, D5 §4 item 6, D6) =================
-   The player is a great tit feeding four chicks (role: selective environment). Tap an insect to eat it. A warning-
-   coloured model is bitter: the retch costs seconds (the felt cost, D0) and flips a tile into the taste ledger, the
+   World (D6 addendum 7): a Neotropical forest edge. The player is a rufous-tailed jacamar feeding four downy chicks in
+   a bank burrow (role: selective environment; jacamars taste and release Heliconius, then reject them on sight: Chai
+   1986). Tap a butterfly to eat it. A Heliconius-style model (black, red band, yellow bar) is bitter: the retch costs seconds (the felt cost, D0) and flips a tile into the taste ledger, the
    bird's memory (D1 Ledger; tiles fade over two mornings). What you spare breeds at dusk.
-     L1 Bitter lessons    8 models; 24 palewings start cream. Sparing what looks bitter makes palewings look bitter.
-     L2 Too many liars    the models' food plant wilts: models 12 → 2, then back to 12. Past the break-even (mimics per
+     L1 Bitter lessons    8 models; 24 palewings (Dismorphia-like whites, Bates's own mimics) start cream. Sparing what looks bitter makes palewings look bitter.
+     L2 Too many liars    the models' passion vine wilts: models 12 → 2, then back to 12. Past the break-even (mimics per
                           model above the retch cost in meals) tasting pays, and the mimics' edge collapses.
      L3 Deadly models     mild days (1.5 s) alternate with deadly days (6 s and a chick's meals): toxicity holds
                           protection up. The broad spread of rough mimics is shown, with a Contested pill.
      L4 Two poisons       bitterwings and sourwings, both defended; four young birds each taste one of every look they
                           have not learned (Müller 1879). The rarer species carries the cost and converges on the
                           commoner (advergence), by a large-effect allele first (Turner's two steps).
-     L5 The first warning (boss) a rare bright colour on a defended green bug, on two islands: eggs scattered on A,
+     L5 The first warning (boss) a rare bright colour on a defended green shield bug, on two river islands: eggs scattered on A,
                           sibling clusters on B. Rare and scattered, bright is tasted out; clustered, one taste spares
                           the siblings (Alatalo & Mappes 1996). Inverts L1–L2: for a warning colour, rare is bad.
    Every prediction is scored against the model's expectation for the parameters in force (D1 G10), never the realised
@@ -71,13 +72,13 @@ function bwYoung5(bugs, terr, dB, dG, rnd) {
 
 /* ---------- all words (API_v2 §9.2; D4 budgets; British spelling) ---------- */
 const BW_C = {
-  firstWords: 'You are a bird with four hungry chicks. Tap an insect to eat it. Some taste bitter.',
+  firstWords: 'You are a jacamar with four hungry chicks. Tap a butterfly to eat it. Some taste bitter.',
   hud: {
     hunt: 'Feed the chicks: {n} more meals.', huntU: 'Feed the chicks: {n} more meals. Each tap spends a look.',
-    l2: 'The models’ food plant is wilting. Fewer bitter insects each day.', l3: 'Some days the models are mild, some days deadly.',
-    l4: 'Two bitter species, two patterns. Eat the green grubs.', l5: 'Two islands. A few bugs wear a bright new colour.',
+    l2: 'The models’ passion vine is wilting. Fewer bitter butterflies each day.', l3: 'Some days the models are mild, some days deadly.',
+    l4: 'Two bitter species, two patterns. Dragonflies are safe food.', l5: 'Two river islands. A few bitter bugs wear a bright new colour.',
     mild: 'Mild day: a bitter mouthful costs 1.5 s.', deadly: 'Deadly day: a bitter mouthful costs 6 s and a chick’s meals.',
-    dusk: 'Dusk. The insects you spared lay eggs.', dusk4: 'Dusk. Young birds taste every look they have not learned.',
+    dusk: 'Dusk. The butterflies you spared lay eggs on the vines.', dusk4: 'Dusk. Young birds taste every look they have not learned.',
     dusk5: 'Dusk. Each young bird must taste a colour to know it.', post: 'The young hatch.', wait: 'The season is over.',
     ask1: 'Drag the marker: where will the average palewing look be by generation {g}?',
     ask2: 'A retch costs {c}. Drag: how many mimics per model before tasting pays?',
@@ -87,11 +88,11 @@ const BW_C = {
     whatif: 'What if: {lever}? The bird hunts for you.', reveal: 'Island C, run on to generation 6.'
   },
   whispers: {
-    miss: 'Only leaf there.', bitter: 'Bitter! You retch.', tasty: 'Tasty. It only looked bitter.', fed: 'All four chicks fed.',
+    miss: 'Only leaves there.', bitter: 'Bleugh! Bitter. You retch.', tasty: 'Tasty. It only looked bitter.', fed: 'All four chicks fed.',
     hungry: 'A chick went hungry.', busy: 'Still retching.', ring: 'You remember: those looks taste bitter.', crack: 'Your memory says: mostly tasty now.',
-    chick: 'Deadly! A chick goes hungry today.', kill: 'Tasting kills the insect.', spared: 'A young bird spared the siblings.',
-    drag: 'Drag the marker first.', timeup: 'Time up: your marker stayed put.', idle: 'Tap an insect to eat it.',
-    auto: 'The bird hunts for you.', manual: 'You hunt again.', grub: 'Grubs are safe food.'
+    chick: 'Deadly! A chick goes hungry today.', kill: 'Tasting kills it.', spared: 'A young bird spared the siblings.',
+    drag: 'Drag the marker first.', timeup: 'Time up: your marker stayed put.', idle: 'Tap a butterfly to eat it.',
+    auto: 'The bird hunts for you.', manual: 'You hunt again.', grub: 'Dragonflies are safe food.'
   },
   labels: {
     gen: 'Generation {g}', day: 'Day {g}', retch: 'Retch {c} s', models: '{m} models', mild: 'Mild day', deadly: 'Deadly day',
@@ -112,10 +113,10 @@ const BW_C = {
     short3: 'The chicks went short. On mild days a bitter mouthful is cheap, so tasting warning looks pays.',
     lost4: 'The big-jump allele was lost by chance. Without it, the rarer species could not cross the gap in small steps.',
     both4: 'Both species moved this time. Chance and your own tastes can push the commoner too.',
-    short4: 'The chicks went short. Grubs are safe food; warning insects only cost you retches.',
+    short4: 'The chicks went short. Dragonflies are safe food; warning butterflies only cost you retches.',
     b_lost: 'Bright was lost on island B by chance, though young birds spared siblings. New warning colours often vanish while rare.',
     a_kept: 'Bright survived on island A this time: a few bright bugs shared a territory. Rare and scattered usually means lost.',
-    short5: 'The chicks went short. Grubs are safe food on both islands.',
+    short5: 'The chicks went short. Dragonflies are safe food on both islands.',
     w_nomodels: 'With no models, nothing made warning looks worth sparing. Palewings did not come to look bitter.',
     w_noinherit: 'Same choices, but looks were not inherited. The young started from scratch, so nothing accumulated.',
     w_manymodels: 'With models common all season, tasting never paid. The mimics kept their edge.',
@@ -148,14 +149,14 @@ const BW_C = {
     { discover: 'Feed your chicks while the rarer pattern moves.', predict: 'Place the meeting point inside the band.' },
     { discover: 'Feed your chicks and see young birds spare siblings.', transfer: 'Predict island C inside its band.' }],
   model: [
-    { level: 0, simulated: 'You hunt 24 palewings and 8 bitter models on one leaf for 4 to 9 generations. Palewings you spare pair at random; 24 young hatch. Look is one inherited trait, cream to black-and-red.',
+    { level: 0, simulated: 'You hunt 24 palewings and 8 bitter models at one forest edge for 4 to 9 generations. Palewings you spare pair at random; 24 young hatch. Look is one inherited trait, cream to black-and-red.',
       simplification: 'Models never change. You are the only predator. A retch wastes 3 s. The morning asks a meal a second, so a retch costs about 3 meals.',
       params: [{ name: 'palewings', value: '24', tag: 'designed' }, { name: 'eaten each morning', value: 'up to 12 of 24, half', tag: 'xN', real: 'a few per cent a day' },
         { name: 'heritability of look', value: 'about 0.85', tag: 'designed' }, { name: 'retch', value: '3 s', tag: 'designed' }, { name: 'generations', value: '4 to 9 by seed', tag: 'xN', real: 'dozens to thousands' }],
       cannot: 'How the first faint resemblance arose, or mimics whose looks differ in many separate traits.',
-      nature: 'Bates (1862) described tasty Amazon butterflies that look like distasteful ones. Birds that learn a warning pattern spare its look-alikes.',
-      contested: false, refs: ['bates1862', 'brower1969'] },
-    { level: 1, simulated: 'The same leaf. The models’ food plant wilts, so models fall from 12 to 1 and return to 12. Your scatter compares good and poor mimics each day.',
+      nature: 'Bates (1862) found tasty Amazon whites that look like distasteful butterflies. Rufous-tailed jacamars taste and release such models, then reject them on sight (Chai 1986).',
+      contested: false, refs: ['bates1862', 'brower1969', 'chai1986'] },
+    { level: 1, simulated: 'The same forest edge. The models’ passion vine wilts, so models fall from 12 to 1 and return to 12. Your scatter compares good and poor mimics each day.',
       simplification: 'Break-even: tasting a warning look pays when mimics per model exceed the retch cost in meals. The retch cost (1–6 s) varies by seed.',
       params: [{ name: 'models', value: '12, 8, 5, 3, 1, 1, 3, 8, 12', tag: 'designed' }, { name: 'retch', value: '1–6 s by seed, so 1–6 meals', tag: 'designed' },
         { name: 'mimics', value: '24, most look warning-coloured', tag: 'designed' }, { name: 'eaten each morning', value: 'up to half', tag: 'xN', real: 'a few per cent a day' }],
@@ -169,31 +170,38 @@ const BW_C = {
       cannot: 'Whether rough mimics persist because predators generalise more when models are deadly. That is one explanation among several.',
       nature: 'Imperfect mimics are common. Relaxed selection under very toxic models is one explanation; others exist, and the debate is open (Sherratt 2002).',
       contested: true, refs: ['sherratt2002', 'duncan1965', 'lindstrom1997'] },
-    { level: 3, simulated: 'Bitterwings (band) and sourwings (spots), both defended. Four young birds each taste one of every look they have not learned; tasting kills.',
-      simplification: 'Pattern is one line from spots to band. A large-effect allele jumps most of the way; small genes refine it. Young birds generalise over about ±0.12.',
+    { level: 3, simulated: 'Bitterwings (red band) and sourwings (yellow spots), both defended. Four young jacamars each taste one of every look they have not learned; tasting kills.',
+      simplification: 'Pattern is one line from spots to band. A large-effect allele jumps most of the way; small genes refine it. Young jacamars generalise over about ±0.12. Real Heliconius often survive a taste.',
       params: [{ name: 'commoner : rarer', value: '24 : 8', tag: 'designed' }, { name: 'large-effect allele', value: '2 copies in each species; moves 92% of the gap', tag: 'designed' },
         { name: 'young birds', value: '4 a dusk', tag: 'designed' }, { name: 'generations', value: '8', tag: 'xN', real: 'many more' }],
       cannot: 'Linked genes and supergenes in detail; The Tangled Pairs takes that up.',
-      nature: 'Müller (1879) saw that two defended species sharing a look share the cost of teaching predators. Mimicry loci often have large effects (Joron et al. 2011).',
-      contested: false, refs: ['muller1879', 'mallet1999', 'turner1977', 'balogh2005', 'joron2011'] },
-    { level: 4, simulated: 'Two islands of 40 green, defended bugs. A dominant allele makes a bug bright. Eight young birds per island each learn for themselves; tasting kills.',
+      nature: 'Heliconius erato and H. melpomene match each other race by race across the Amazon (Müller 1879). One gene, optix, switches their red bands (Reed et al. 2011).',
+      contested: false, refs: ['muller1879', 'mallet1999', 'turner1977', 'balogh2005', 'reed2011', 'joron2011'] },
+    { level: 4, simulated: 'Two river islands of 40 green, defended shield bugs. A dominant allele makes a bug bright. Eight young birds per island each learn for themselves; tasting kills.',
       simplification: 'Young birds find bright bugs far more often than green ones. After one bright taste, a bird spares bright bugs for the rest of its dusk.',
       params: [{ name: 'bright at start', value: '8 of 40', tag: 'designed' }, { name: 'found per dusk', value: 'bright 95%, green 42%', tag: 'xN', real: 'far lower' },
         { name: 'brood', value: '6 eggs on B; 2 or 8 on C', tag: 'designed' }, { name: 'generations', value: '6', tag: 'xN', real: 'many more' }],
       cannot: 'Bright bugs that survive a taste, or predators that are wary of anything new.',
-      nature: 'Aggregated novel prey were learned faster by great tits (Alatalo & Mappes 1996). Phylogenies suggest warning colours often came before grouping (Sillén-Tullberg 1988).',
-      contested: false, refs: ['alatalo1996', 'lindstrom2001', 'sillentullberg1988', 'gittleman1980'] }
+      nature: 'Jacamars attack novel colour forms of Heliconius more often (Langham 2004). Aggregated novel prey are learned faster (Alatalo & Mappes 1996), but warning colours often came before grouping (Sillén-Tullberg 1988).',
+      contested: false, refs: ['langham2004', 'alatalo1996', 'lindstrom2001', 'sillentullberg1988', 'gittleman1980'] }
   ],
   why: {
-    real: ['Mimicry rings in tropical butterflies are textbook evolution. Birds that taste something bitter avoid its look afterwards, so tasty look-alikes are spared. Selection measured in a Heliconius hybrid zone was strong (Mallet & Barton 1989).',
-      'Müllerian mimics share the cost of teaching predators, so the rarer partner gains most by converging. Large-effect genes often make the first jump.'],
+    real: ['Mimicry rings in Amazon butterflies are textbook evolution. A jacamar that tastes a bitter Heliconius avoids its look afterwards, so tasty look-alikes are spared. Selection measured in a Heliconius hybrid zone was strong (Mallet & Barton 1989).',
+      'Müllerian mimics share the cost of teaching predators, so the rarer partner gains most by converging. Large-effect genes often make the first jump. In Heliconius numata, one supergene switches whole wing patterns (Joron et al. 2011).'],
     maths: ['Odds that a warning look is tasty = mimics per model, k. A retch costs C meals. Tasting pays when k × 1 > C, so the break-even is k = C.',
       'Say n young birds each taste one of every look they do not know. Each look then loses about n insects. Shared by N insects, the cost per insect is n ÷ N.']
   }
 };
 
+// D6 addendum 8: the opening card (00_entry draws it); each part ≤ 35 words. Addendum 7: this chapter's own accent (Heliconius red)
+BW_C.intro = {
+  game: 'You are a jacamar at a rainforest edge, feeding four chicks on butterflies. Some butterflies are bitter, and a bitter mouthful costs you seconds.',
+  biology: 'Tasty butterflies that look like bitter ones are spared, so the disguise spreads. It pays only while bitter models are common, and two bitter species come to share one look.',
+  how: 'Tap a butterfly to eat it, and feed the chicks before the clock runs out. Your taste memory fills the row below; drag the marker when asked to predict.'
+};
+const BW_ACCENT = '#E2483A';
 const CH_BITTER_V2 = {
-  id: 'bitter', v2: true, role: 'environment', place: 'meadow', plan: ['Bitter Wings', 'Mimicry and warning colours'],
+  id: 'bitter', v2: true, role: 'environment', place: 'pond', accent: BW_ACCENT, plan: ['Bitter Wings', 'Mimicry and warning colours'],   // place: the nearest deep-green ground until a 'forest' place exists (engine request)
   intro: { goal: 'Feed your chicks; watch mimicry rise, collapse and converge.' },
   content: BW_C,
   P: {
@@ -211,11 +219,12 @@ const CH_BITTER_V2 = {
   ],
   keys: { ArrowLeft: 'move the beak', ArrowRight: 'move the beak', ArrowUp: 'move the beak', ArrowDown: 'move the beak', Space: 'peck', A: 'auto hunt', E: 'rest (untimed)', P: 'predict', Enter: 'lock in or skip' },
   untimed: true,
-  teacher: { prompts: ['Why did palewings come to look bitter, when no palewing chose to?', 'Why does the rarer of two defended species do the moving?', 'This bird weighs each taste perfectly. What would a real, forgetful bird change?'], pool: 'trace' },
-  // look is luminance (cream to black) plus the red patch; the two defended species differ in pattern (spots, band); palewings, grubs and island bugs differ in shape
-  encodings: [{ k: 'look', rgb: [120, 104, 92], channels: ['luminance', 'shape'] }, { k: 'cream', rgb: [226, 212, 158], channels: ['luminance', 'shape'] }, { k: 'warning', rgb: [30, 24, 26], channels: ['luminance', 'pattern', 'shape'] },
-    { k: 'spots', rgb: [214, 128, 34], channels: ['pattern', 'shape'] }, { k: 'band', rgb: [196, 44, 40], channels: ['pattern', 'shape'] },
-    { k: 'green', rgb: [92, 128, 58], channels: ['luminance', 'shape'] }, { k: 'bright', rgb: [238, 228, 196], channels: ['luminance', 'pattern', 'shape'] }],
+  teacher: { prompts: ['Why did palewings come to look bitter, when no palewing chose to?', 'Why does the rarer of two defended species do the moving?', 'This jacamar weighs each taste perfectly. What would a real, forgetful bird change?'], pool: 'trace' },
+  // look is luminance (cream to black) plus a red band and a yellow bar; the two defended species differ in pattern (spots, band) and luminance;
+  // palewings and models share a butterfly shape (Batesian), dragonflies and island bugs differ in shape
+  encodings: [{ k: 'look', rgb: [120, 104, 92], channels: ['luminance', 'pattern', 'shape'] }, { k: 'cream', rgb: [242, 236, 214], channels: ['luminance', 'shape'] }, { k: 'warning', rgb: [24, 18, 20], channels: ['luminance', 'pattern', 'shape'] },
+    { k: 'spots', rgb: [242, 200, 58], channels: ['pattern', 'luminance', 'shape'] }, { k: 'band', rgb: [214, 44, 38], channels: ['pattern', 'shape'] },
+    { k: 'green', rgb: [96, 130, 60], channels: ['luminance', 'shape'] }, { k: 'bright', rgb: [244, 205, 80], channels: ['luminance', 'pattern', 'shape'] }],
   starTraits: ['look'],
 
   /* ---------- headless simulation (API_v2 §9.3): R(), Det, Gen only ---------- */
@@ -690,7 +699,7 @@ const CH_BITTER_V2 = {
     // the untimed setting enters the run as a logged action, so a replay plays the same mornings on any machine (lessons §1.6)
     if (!o.thaw && !o.replay) Sim.act(this, { k: 'unt', on: !!(Save.d && Save.d.ui && Save.d.ui.unt) });
     this.v = { t: 0, peck: {}, gone: {}, kill: {}, flinch: 0, chickPop: [0, 0, 0, 0], born: 0, title: 1, lastTap: null, cursor: null, retch: null, chunk: null,
-      dusk: null, flip: -1, flipT: 1, tastyM: -1, idle: 0, askT0: 0, glow: 0 };
+      dusk: null, flip: -1, flipT: 1, tastyM: -1, idle: 0, askT0: 0, glow: 0, jac: null };
     this._led = typeof Ledger !== 'undefined' ? Ledger.create({ n: BWK.MAXLED }) : null;
     this.dock(); this.hud(true);
     if (typeof Ghost !== 'undefined') this.ghost = Ghost.show({ verb: 'tap', at: () => this.ghostAt(), until: () => { const s = this.sim.s; return s.eatenAll > 0 || s.tastes > 0 || (s.phase !== 'hunt' && s.phase !== 'dawn'); } });
@@ -701,7 +710,7 @@ const CH_BITTER_V2 = {
   whisper(key, vars) { if (typeof Whisper !== 'undefined') Whisper.say(this.w('whispers', key, vars), 'bw-' + key); },
   introLine() { const C = this.content; return [C.firstWords, C.hud.l2, C.hud.l3, C.hud.l4, C.hud.l5][this.level] || C.firstWords; },
   px(x, y) { return [x / 390 * Stage.w, y / 540 * Stage.h]; },
-  size() { return Math.max(30, Math.min(60, 0.085 * Math.min(Stage.w, 1.2 * Stage.h))); },   // actors ≥ 0.07u (D4 §3)
+  size() { return Math.max(34, Math.min(64, 0.1 * Math.min(Stage.w, 1.2 * Stage.h))); },   // actors ≥ 0.07u (D4 §3); a butterfly's wingspan
   hudH() { return Math.max(56, this._hudPx || 0, (Stage.zones && Stage.zones.hud && Stage.zones.hud.h) || 0); },
   fmtC(c) { return (Math.round(c * 10) / 10).toString(); },
   dock() {
@@ -749,6 +758,7 @@ const CH_BITTER_V2 = {
     v.flinch = Math.max(0, v.flinch - dt * 6); for (let k = 0; k < 4; k++) v.chickPop[k] = Math.max(0, v.chickPop[k] - dt / 0.22);
     v.born += dt; v.flipT += dt; v.glow = Math.max(0, v.glow - dt);
     for (const m of [v.peck, v.gone]) for (const i in m) m[i] += dt;
+    if (v.jac) v.jac.age += dt;
     for (const i in v.kill) v.kill[i].age += dt;
     if (v.retch) { v.retch.age += dt; if (v.retch.age > 1.2) v.retch = null; }
     if (v.chunk) { v.chunk.age += dt; if (v.chunk.age > 0.7) v.chunk = null; }
@@ -771,14 +781,15 @@ const CH_BITTER_V2 = {
     const s = this.sim.s, v = this.v, F = typeof Fx !== 'undefined' ? Fx : null, W = Stage.w, H = Stage.h, S = this.size();
     const P = e.x != null ? this.px(e.x, e.y) : null;
     if (e.k === 'eat') {
-      v.peck[e.i] = 0; if (this.ghost && this.ghost.hide) this.ghost.hide();
-      if (F) F.after(F.calm ? 0 : 90, () => { F.burst('scale', P[0], P[1], 4); F.burst('dust', P[0], P[1], 2); F.ring(P[0], P[1], S * 0.5, { dashed: true }); });   // beak shadow 90 ms, then the strike
+      v.peck[e.i] = 0; v.jac = { x: P[0], y: P[1], age: 0, kind: 'tasty', i: e.i }; if (this.ghost && this.ghost.hide) this.ghost.hide();
+      if (F) F.after(F.calm ? 0 : 90, () => { F.burst('scale', P[0], P[1], 5, { ink: s.ins[e.i] && s.ins[e.i].k === 'u' ? '#BFE6EE' : null }); F.ring(P[0], P[1], S * 0.5, { dashed: true }); });   // the head swings in for 90 ms, then the snap
       if (typeof Snd !== 'undefined') Snd.peck();
       const c = this.chickPos(e.chick); v.chickPop[e.chick] = 1; if (F) F.pop('+1', c[0] + 6, c[1] - 4, 1);
       if (e.warn) { v.flip = s.led.length - 1; v.flipT = 0; if (v.tastyM !== s.gen) { v.tastyM = s.gen; this.whisper('tasty'); } }
     } else if (e.k === 'bitter') {
       if (e.kills) v.kill[e.i] = { age: 0, by: 'you' }; else v.gone[e.i] = 0;
-      if (F) { F.shake(5, 180); F.flash({ edge: true, alpha: 0.2, ms: 250 }); F.hitstop(50); F.burst('dust', P[0], P[1], 3); }
+      v.jac = { x: P[0], y: P[1], age: 0, kind: 'bitter', i: e.i };   // the snap, then a grimace and a shudder (0.8 s)
+      if (F) { F.shake(5, 180); F.flash({ edge: true, alpha: 0.2, ms: 250 }); F.hitstop(50); F.after(F.calm ? 0 : 160, () => F.burst('droplet', P[0] + S * 0.7, P[1] + S * 0.6, 6, { ink: '#A8D45A' })); }
       if (typeof Snd !== 'undefined') Snd.bitter();
       v.retch = { age: 0, c: e.cost, x: P[0], y: P[1] }; v.chunk = { age: 0, c: e.cost }; v.flip = s.led.length - 1; v.flipT = 0; v.flinch = 1;
       const T = this.timerBox(); if (F) F.pop('−' + this.fmtC(e.cost) + ' s', T.x + T.w * clamp(s.time / s.time0, 0, 1), T.y + 16, -1);
@@ -803,7 +814,7 @@ const CH_BITTER_V2 = {
       if (typeof Snd2 !== 'undefined') Snd2.play(e.hit ? 'count' : 'tock', { x: W / 2, y: H / 2, i: 6 });
       this._asked = null;
     } else if (e.k === 'bred') {
-      v.born = 0; v.title = 1; v.dusk = null; v.peck = {}; v.gone = {}; v.kill = {}; this._asked = null;
+      v.born = 0; v.title = 1; v.dusk = null; v.peck = {}; v.gone = {}; v.kill = {}; v.jac = null; this._asked = null;
       if (typeof Freezer !== 'undefined' && !Sim.replaying(this)) Freezer.put(this.id, e.gen, this.sim.snapshot());
       if (typeof Live !== 'undefined') Live.say(Txt.f('Generation {g}.', { g: e.gen }));
       if (typeof Snd !== 'undefined' && Snd.dawn) Snd.dawn();
@@ -846,32 +857,48 @@ const CH_BITTER_V2 = {
     return false;
   },
 
-  /* ---------- drawing ---------- */
-  sprite(q, S, frame) {   // insects baked once per look (32 bins), size and wing frame; palewings and models reuse the legacy flySprite
+  /* ---------- drawing: a Neotropical forest edge (D6 addendum 7) ---------- */
+  sprite(q, S) {   // butterflies, dragonflies and shield bugs, baked once per look (32 bins) and size
     const C = BWK.spr || (BWK.spr = new Map()), d = Math.min(2, Stage.dpr || 1), vq = Math.round(clamp(q.v, 0, 1) * 31) / 31;
-    const key = q.k + (q.k === 'g' ? (q.br ? 'B' : 'G') : vq) + '|' + Math.round(S) + '|' + d + '|' + frame;
+    const key = q.k + (q.k === 'g' ? (q.br ? 'B' : 'G') : vq) + '|' + Math.round(S) + '|' + d;
     let cv = C.get(key); if (cv) return cv;
     const W = 42, Hh = 36, sc = S / W; cv = mkCanvas(W * sc * d, Hh * sc * d); const g = cv.getContext('2d'); g.scale(sc * d, sc * d);
-    if (q.k === 'p' || q.k === 'm') {
-      const t = q.k === 'm' ? 1 : vq, src = flySprite({ dark: t > 0 ? Det.pow(t, 0.85) : 0, red: clamp(1.25 * t - 0.15, 0, 1) }, 2, 4242);   // legacy art: cream → black-and-red
-      g.save(); if (frame) { g.translate(W / 2, Hh / 2); g.scale(0.82, 1.04); g.translate(-W / 2, -Hh / 2); } g.drawImage(src, 0, 0, W, Hh); g.restore();
-    } else bwPaint(g, q.k, vq, !!q.br, frame);
+    if (q.k === 'u') bwDragon(g); else if (q.k === 'g') bwBug(g, !!q.br); else bwFly(g, q.k, vq);
     cv.cw = S; cv.ch = S * Hh / W; if (C.size > 700) C.clear(); C.set(key, cv); return cv;
   },
-  ground(w, h) {   // the meadow leaves, baked once per size and level kind (legacy leafTex), with a vignette; L5 adds the islands
+  ground(w, h) {   // the forest edge, baked once per size: canopy light, layered big leaves, dappled sun, a passion vine in flower; L5 adds the river
     const d = w * h > 300000 ? 1 : Math.min(1.5, Stage.dpr || 1), isl = this.level === 4, key = Math.round(w) + 'x' + Math.round(h) + '@' + d + (isl ? 'i' : '') + Math.round(this.hudH());
     const G = this._g; if (G && G.key === key) return G.cv;
     const cv = mkCanvas(w * d, h * d), g = cv.getContext('2d'); g.scale(d, d);
-    const leaf = leafTex(w, h, d, 777); g.drawImage(leaf, 0, 0, w, h);
-    g.fillStyle = 'rgba(16,24,12,.18)'; g.fillRect(0, 0, w, h);
-    if (isl) {
-      const wat = this.px(0, 284)[1], wy0 = this.px(0, BWK.ISL[0].y1 + 4)[1], wy1 = this.px(0, BWK.ISL[1].y0 - 6)[1];
-      g.fillStyle = '#5E7F86'; g.fillRect(0, wy0, w, wy1 - wy0); g.fillStyle = 'rgba(232,223,201,.25)'; for (let x = 6; x < w; x += 22) g.fillRect(x, wat - 1, 10, 1.5);
-      g.setLineDash([3, 5]); g.strokeStyle = 'rgba(232,223,201,.22)'; g.lineWidth = 1;
-      for (const I of BWK.ISL) { const y0 = this.px(0, I.y0)[1], y1 = this.px(0, I.y1)[1], ym = (y0 + y1) / 2; g.beginPath(); g.moveTo(0, ym); g.lineTo(w, ym); for (let k = 1; k < 4; k++) { const x = this.px(BWK.BOX.x0 + k * (BWK.BOX.x1 - BWK.BOX.x0) / 4, 0)[0]; g.moveTo(x, y0); g.lineTo(x, y1); } g.stroke(); }
+    const r = rng(4157), u = Math.min(w, 1.2 * h) / 390, I = BW_INK, top = this.hudH();
+    const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#1A4429'); bg.addColorStop(0.4, '#123320'); bg.addColorStop(1, '#0A1E13'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    for (const q of [[0.12, 0.16, 0.42], [0.86, 0.1, 0.36], [0.55, 0.5, 0.5]]) {   // light falling through gaps at the forest edge
+      const gr = g.createRadialGradient(q[0] * w, q[1] * h, 0, q[0] * w, q[1] * h, q[2] * Math.max(w, h)); gr.addColorStop(0, 'rgba(176,214,120,.2)'); gr.addColorStop(1, 'rgba(176,214,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    }
+    for (let k = 0; k < 80; k++) { const L = (46 + 74 * r()) * u; bwLeaf(g, r() * w, r() * h - L * 0.5, L, L * (0.34 + 0.18 * r()), (r() - 0.5) * 6.2, css(mix(I.leaf0, I.leaf1, 0.15 + 0.35 * r())), 'rgba(140,190,120,.09)'); }
+    for (let k = 0; k < 40; k++) { const L = (40 + 60 * r()) * u; bwLeaf(g, r() * w, r() * h - L * 0.5, L, L * (0.36 + 0.16 * r()), (r() - 0.5) * 6.2, css(mix(I.leaf1, I.leaf2, 0.02 + 0.22 * r())), 'rgba(190,230,160,.14)'); }
+    g.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 46; k++) { const x = r() * w, y = r() * h, rr = (8 + 30 * r()) * u, gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, 'rgba(120,130,60,.22)'); gr.addColorStop(1, 'rgba(120,130,60,0)'); g.fillStyle = gr; g.fillRect(x - rr, y - rr, 2 * rr, 2 * rr); }   // dappled sun
+    g.globalCompositeOperation = 'source-over';
+    for (let k = 0; k < 10; k++) {   // big heliconia-like leaves frame the sides
+      const left = k % 2 === 0, L = (110 + 70 * r()) * u, y = top + 20 + r() * (h - top - BWK.BAND - 40);
+      bwLeaf(g, left ? -L * 0.15 : w + L * 0.15, y, L, L * 0.32, left ? -1.9 - 0.5 * r() : 1.9 + 0.5 * r(), css(mix(I.leaf1, I.leaf2, 0.45 + 0.3 * r())), 'rgba(214,240,180,.35)');
+    }
+    // the passion vine (Passiflora: the models' food plant) along the top, flowering at the edges, never where butterflies sit
+    const vy = top + 18 * u; g.strokeStyle = '#3F6A34'; g.lineWidth = 2.2 * u; g.beginPath(); g.moveTo(-10, vy + 10 * u);
+    for (let x = 0; x <= w + 40; x += 60 * u) g.quadraticCurveTo(x + 30 * u, vy - 10 * u + 18 * u * r(), x + 60 * u, vy + 6 * u * r()); g.stroke();
+    for (let x = 14 * u; x < w; x += (34 + 20 * r()) * u) { bwPLeaf(g, x, vy + 4 * u, (11 + 5 * r()) * u, 2.6 + (r() - 0.5) * 1.2, css(mix(I.leaf1, I.leaf2, 0.6 + 0.3 * r()))); bwTendril(g, x + 10 * u, vy, 5 * u, '#5E8C46'); }
+    for (const q of [[0.04, vy + 14 * u, 15], [0.965, vy + 10 * u, 13], [0.965, h - BWK.BAND - 26 * u, 14], [0.035, h - BWK.BAND - 46 * u, 12]]) bwFlower(g, q[0] * w, q[1], q[2] * u, 0);
+    if (isl) {   // L5: a café-au-lait Amazon river between two islands; dashed territory lines
+      const wy0 = this.px(0, BWK.ISL[0].y1 + 4)[1], wy1 = this.px(0, BWK.ISL[1].y0 - 6)[1], rv = g.createLinearGradient(0, wy0, 0, wy1);
+      rv.addColorStop(0, '#5A4A30'); rv.addColorStop(0.5, '#7C6A47'); rv.addColorStop(1, '#5A4A30'); g.fillStyle = rv; g.fillRect(0, wy0, w, wy1 - wy0);
+      g.fillStyle = '#3C2C1C'; g.fillRect(0, wy0 - 3, w, 3); g.fillRect(0, wy1, w, 3);
+      g.strokeStyle = 'rgba(236,220,170,.28)'; g.lineWidth = 1.2; g.beginPath(); for (let k = 0; k < 9; k++) { const x = r() * w, y = wy0 + (0.2 + 0.6 * r()) * (wy1 - wy0); g.moveTo(x, y); g.quadraticCurveTo(x + 9 * u, y - 2, x + 18 * u, y); } g.stroke();
+      g.setLineDash([3, 5]); g.strokeStyle = 'rgba(232,223,201,.16)'; g.lineWidth = 1;
+      for (const I2 of BWK.ISL) { const y0 = this.px(0, I2.y0)[1], y1 = this.px(0, I2.y1)[1], ym = (y0 + y1) / 2; g.beginPath(); g.moveTo(0, ym); g.lineTo(w, ym); for (let k = 1; k < 4; k++) { const x = this.px(BWK.BOX.x0 + k * (BWK.BOX.x1 - BWK.BOX.x0) / 4, 0)[0]; g.moveTo(x, y0); g.lineTo(x, y1); } g.stroke(); }
       g.setLineDash([]);
     }
-    const gr = g.createRadialGradient(w / 2, h * 0.55, Math.min(w, h) * 0.35, w / 2, h * 0.55, Math.max(w, h) * 0.8); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.35)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    const gr = g.createRadialGradient(w / 2, h * 0.5, Math.min(w, h) * 0.3, w / 2, h * 0.5, Math.max(w, h) * 0.8); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,8,4,0.45)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
     this._g = { key, cv }; return cv;
   },
   onResize() { this._g = null; },
@@ -880,6 +907,7 @@ const CH_BITTER_V2 = {
     c.drawImage(this.ground(w, h), 0, 0, w, h);
     this.drawInsects(c, w, h);
     if (s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post' || s.phase === 'over' || s.phase === 'reveal') this.drawDusk(c, w, h);
+    this.drawJac(c);
     this.drawTop(c, w, h);
     this.drawBand(c, w, h);
     if (s.phase === 'dawn' || v.title > 0) this.drawTitle(c, w, h);
@@ -893,53 +921,65 @@ const CH_BITTER_V2 = {
   drawInsects(c, w, h) {
     const s = this.sim.s, v = this.v, S = this.size(), calm = typeof Fx !== 'undefined' && Fx.calm, t = v.t, D = v.dusk, dt0 = s.phase === 'dusk' ? s.t : 99;
     const killAt = {}; if (D) for (const k of D.kills) killAt[k.i] = k.t;
+    const put = (cv, x, y, a, sx, al) => { c.save(); c.globalAlpha = al; c.translate(x, y); c.rotate(a); c.scale(sx, 1); c.drawImage(cv, -cv.cw / 2, -cv.ch / 2, cv.cw, cv.ch); c.restore(); };
     s.ins.forEach((q, i) => {
-      const p = this.px(q.x, q.y), born = clamp(v.born / 0.5, 0, 1);
+      const p = this.px(q.x, q.y), born = clamp(v.born / 0.5, 0, 1), fly = q.k !== 'u' && q.k !== 'g', sz = q.k === 'u' ? S * 0.92 : q.k === 'g' ? S * 0.9 : S;
       let x = p[0], y = p[1];
       const alive = !q.st || (q.st === 3 && killAt[i] != null && dt0 < killAt[i]);
       if (alive) {
-        const ph = (q.id * 0.618) % 1, flick = !calm && ((t * (0.25 + 0.2 * ph) + ph) % 1) < 0.05, sz = q.k === 'u' ? S * 0.82 : q.k === 'g' ? S * 0.86 : S;
-        if (!calm && q.k === 'u') x += 2 * Det.sin(t * 0.8 + ph * 6);   // grubs inch along; winged insects twitch
-        const cv = this.sprite(q, sz, flick ? 1 : 0);
-        c.save(); c.globalAlpha = born; c.translate(x, y); c.rotate(q.a); c.drawImage(cv, -cv.cw / 2, -cv.ch / 2, cv.cw, cv.ch); c.restore();
+        const ph = (q.id * 0.618) % 1; let sx = 1, lift = 0;
+        if (!calm && fly) {   // a resting butterfly fans its wings now and then (a few quick beats), otherwise breathes
+          const cyc = (t * (0.15 + 0.12 * ph) + ph) % 1;
+          if (cyc < 0.2) { const f = cyc / 0.2; sx = 0.28 + 0.72 * Math.abs(Det.cos(f * 3 * Math.PI)); lift = 3 * Det.sin(f * Math.PI); } else sx = 0.95 + 0.05 * Det.cos(t * 1.3 + ph * 6);
+        }
+        if (!calm && q.k === 'u') { x += 1.6 * Det.sin(t * 2.1 + ph * 6); y += 1.2 * Det.cos(t * 1.7 + ph * 5); lift = 2; }   // a dragonfly hovers
+        c.globalAlpha = born * 0.3; c.fillStyle = '#000000'; c.beginPath(); c.ellipse(x + 3, y + 5, sz * 0.34 * sx, sz * 0.18, 0, 0, TAU); c.fill(); c.globalAlpha = 1;   // its shadow on the leaf
+        put(this.sprite(q, sz), x, y - lift, q.a, sx, born);
         const ring = this.avoid(q);
         if (ring) { c.save(); c.globalAlpha = 0.85; c.strokeStyle = '#F0E6CC'; c.lineWidth = 1.6 + (v.glow > 0 ? v.glow * 1.5 : 0); c.setLineDash(ring === 2 ? [2, 7] : [5, 3]); c.beginPath(); c.arc(x, y, sz * 0.62, 0, TAU); c.stroke(); c.restore(); }
         return;
       }
-      if (q.st === 1 && v.peck[i] != null && v.peck[i] < 0.45) {   // the peck: beak shadow 90 ms, strike, lift 6 px, swell, fade
-        const k = v.peck[i], tel = clamp(k / 0.09, 0, 1), lift = clamp((k - 0.09) / 0.3, 0, 1), cv = this.sprite(q, q.k === 'u' ? S * 0.82 : S, 0);
-        c.save(); c.globalAlpha = 1 - lift; c.translate(x, y - 6 * lift); c.rotate(q.a); const sc = 1 + 0.3 * lift; c.scale(sc, sc); c.drawImage(cv, -cv.cw / 2, -cv.ch / 2, cv.cw, cv.ch); c.restore();
-        if (k < 0.2 && !calm) this.beak(c, x, y, S, k < 0.09 ? tel : 1 - (k - 0.09) / 0.11, tel);
+      if (q.st === 1 && v.peck[i] != null && v.peck[i] < 0.45) {   // the catch: snapped up at the strike, pulled towards the bill, gone
+        const k = v.peck[i], f = clamp((k - 0.12) / 0.3, 0, 1), J = v.jac;
+        const tx = J && J.i === i ? lerp(x, x + S * 0.5, f) : x, ty = J && J.i === i ? lerp(y, y + S * 0.45, f) : y - 6 * f;
+        put(this.sprite(q, sz), tx, ty, q.a + 0.6 * f, k < 0.12 ? 1 : 0.4 + 0.6 * Math.abs(Det.cos(k * 40)), 1 - f);
         return;
       }
-      if (q.st === 2 && v.gone[i] != null && v.gone[i] < 1.6) {   // a tasted model staggers off alive (D4 §5.3)
-        const k = v.gone[i] / 1.6, dir = q.x < 195 ? -1 : 1, cv = this.sprite(q, S, ((v.gone[i] * 8) | 0) % 2);
-        c.save(); c.globalAlpha = 1 - k * k; c.translate(x + dir * k * (S * 3), y + 6 * Det.sin(v.gone[i] * 14)); c.rotate(q.a + 0.5 * Det.sin(v.gone[i] * 9)); c.drawImage(cv, -cv.cw / 2, -cv.ch / 2, cv.cw, cv.ch); c.restore();
-        if (v.gone[i] < 0.2 && !calm) this.beak(c, x, y, S, 1 - v.gone[i] / 0.2, 1);
+      if (q.st === 2 && v.gone[i] != null && v.gone[i] < 1.6) {   // a tasted model flutters off alive, as jacamars release Heliconius (D4 §5.3; Chai 1986)
+        const g0 = v.gone[i], k = g0 / 1.6, dir = q.x < 195 ? -1 : 1, hold = clamp((g0 - 0.25) / 1.35, 0, 1);
+        put(this.sprite(q, S), x + dir * hold * (S * 3.2) + 4 * Det.sin(g0 * 11), y - hold * S * 1.6 + 5 * Det.sin(g0 * 14), q.a + 0.5 * Det.sin(g0 * 9), g0 < 0.25 ? 1 : 0.25 + 0.75 * Math.abs(Det.cos(g0 * 20)), 1 - k * k);
         return;
       }
       const kk = v.kill[i] ? v.kill[i].age : killAt[i] != null ? dt0 - killAt[i] : null;
-      if (kk != null && kk >= 0 && kk < 1.2) {   // tasting kills (L4–L5): the bug falls; a dashed ghost ring stays
-        const k = kk / 1.2, cv = this.sprite(q, q.k === 'g' ? S * 0.86 : S, 0);
-        if (k < 0.6) { c.save(); c.globalAlpha = 1 - k / 0.6; c.translate(x, y + 14 * k); c.rotate(q.a + 1.4 * k); c.drawImage(cv, -cv.cw / 2, -cv.ch / 2, cv.cw, cv.ch); c.restore(); }
+      if (kk != null && kk >= 0 && kk < 1.2) {   // tasting kills (L4–L5): it falls; a dashed ghost ring stays
+        const k = kk / 1.2;
+        if (k < 0.6) put(this.sprite(q, sz), x, y + 14 * k, q.a + 1.4 * k, 1 - 0.5 * k, 1 - k / 0.6);
         c.save(); c.globalAlpha = 0.8 * (1 - k); c.strokeStyle = '#E8DFC9'; c.lineWidth = 1.5; c.setLineDash([4, 3]); c.beginPath(); c.arc(x, y, S * 0.42, 0, TAU); c.stroke(); c.restore();
-        if (kk < 0.25 && v.kill[i] && !calm) this.beak(c, x, y, S, 1 - kk / 0.25, 1);
       }
     });
   },
-  beak(c, x, y, S, a, tel) {   // the bird's head and beak closing in: a dark silhouette (telegraph)
-    c.save(); c.globalAlpha = 0.55 * clamp(a, 0, 1); c.fillStyle = '#0A0806'; c.translate(x + 6, y - 4);
-    c.beginPath(); c.ellipse(S * 0.6 * (1 - tel), -S * 0.5 * (1 - tel), S * 0.42, S * 0.3, -0.6, 0, TAU); c.fill();
-    c.beginPath(); c.moveTo(-S * 0.05, 0); c.lineTo(S * (0.55 - 0.3 * tel), -S * 0.2); c.lineTo(S * (0.5 - 0.3 * tel), S * 0.08); c.closePath(); c.fill(); c.restore();
+  drawJac(c) {   // you, the jacamar: the head swings in (90 ms telegraph), snaps, then gulps happily or grimaces and shudders at a bitter mouthful
+    const v = this.v, J = v.jac; if (!J) return;
+    const S = this.size(), calm = typeof Fx !== 'undefined' && Fx.calm, k = J.age, bad = J.kind === 'bitter', life = bad ? 0.95 : 0.42;
+    if (k > life) { v.jac = null; return; }
+    const dx = J.x > Stage.w * 0.62 ? -0.72 : 0.72, dy = J.y > Stage.h - BWK.BAND - S * 1.9 ? -0.69 : 0.69, Z = S * 1.25, reach = Z * 1.25;   // the head comes from below, or from above near the nest band
+    let dist = reach, gape = 0, mood = 0, alpha = 1, shud = 0;
+    if (calm) { dist = reach * 1.1; gape = bad ? 0.5 : 0; mood = bad ? 2 : 1; alpha = 1 - k / life; }
+    else if (k < 0.09) { const f = k / 0.09; dist = reach * (1.9 - 0.9 * f); gape = 0.7 * f; alpha = 0.35 + 0.65 * f; }
+    else if (k < 0.16) gape = 0.7 * (1 - (k - 0.09) / 0.07);
+    else if (bad) { const f = clamp((k - 0.16) / 0.18, 0, 1); dist = reach * (1 + 0.5 * f); gape = 0.85 * f; mood = 2; shud = (1 - clamp((k - 0.16) / 0.6, 0, 1)) * S * 0.08 * Det.sin(k * 80); alpha = 1 - clamp((k - 0.78) / 0.17, 0, 1); }
+    else { const f = (k - 0.16) / (life - 0.16); dist = reach * (1 + 0.7 * f); mood = 1; alpha = 1 - f * f; }
+    const zz = mood === 2 && !calm ? Z * (1 + 0.25 * clamp((k - 0.16) / 0.12, 0, 1)) : Z;   // the grimace swells into view
+    bwJacHead(c, J.x + dx * dist + shud, J.y + dy * dist, -dx, -dy, zz, { gape, mood, alpha, age: k });
   },
-  drawDusk(c, w, h) {   // dusk in the canvas: tint; in L4–L5 the young birds swoop on what they taste and spare the siblings
+  drawDusk(c, w, h) {   // dusk in the canvas: a violet tint; in L4–L5 the young jacamars swoop on what they taste and spare the siblings
     const s = this.sim.s, v = this.v, t = s.phase === 'dusk' ? s.t : 9, D = v.dusk, S = this.size();
-    c.fillStyle = 'rgba(14,18,30,' + (0.3 * clamp(t / 0.5, 0, 1)) + ')'; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(24,14,40,' + (0.34 * clamp(t / 0.5, 0, 1)) + ')'; c.fillRect(0, 0, w, h);
     if (s.level <= 2 && s.phase === 'dusk') {   // survivors lay eggs, tinted by their look; the eggs fly into the next column of the in-scene graph (T2)
       const G = this.graphBox(), n = Math.max(s.gens, s.hist.length), X = G.x + 6 + (G.w - 12) * (n > 1 ? Math.min(s.hist.length, n - 1) / (n - 1) : 0.5), Yt = G.y + G.h / 2;
       const a = clamp((t - 0.3) / 0.4, 0, 1), m = clamp((t - 1.3) / 0.8, 0, 1), e = m * m * (3 - 2 * m);
       s.ins.forEach((q, i) => {
-        if (q.k !== 'p' || q.st) return; const p = this.px(q.x, q.y), col = css(mix([236, 226, 190], [40, 30, 30], q.v));
+        if (q.k !== 'p' || q.st) return; const p = this.px(q.x, q.y), col = css(mix(BW_INK.cream, BW_INK.black, q.v));
         if (t < 0.9) { c.strokeStyle = 'rgba(240,230,204,' + (0.7 * (1 - t / 0.9)) + ')'; c.lineWidth = 2; c.beginPath(); c.arc(p[0], p[1], S * (0.5 + 0.2 * t), 0, TAU); c.stroke(); }
         for (let k = 0; k < 2; k++) {
           const ex = p[0] + (k ? 7 : -7), ey = p[1] + S * 0.45, f = clamp(e * 1.15 - (i % 7) * 0.02, 0, 1), x = lerp(ex, X, f), y = lerp(ey, Yt, f) - 40 * Det.sin(Math.PI * f);
@@ -947,11 +987,11 @@ const CH_BITTER_V2 = {
         }
       });
     }
-    if (!D || s.phase !== 'dusk' || typeof Rig === 'undefined') return;
+    if (!D || s.phase !== 'dusk') return;
     for (const k of D.kills) {
       const dtk = t - k.t; if (dtk < -0.3 || dtk > 0.3) continue; const q = s.ins[k.i]; if (!q) continue;
       const p = this.px(q.x, q.y), a = dtk < 0 ? 1 + dtk / 0.3 : 1 - dtk / 0.3, fx = p[0] + (dtk < 0 ? 1 : -1) * (1 - a) * 70, fy = p[1] - 14 - (1 - a) * 60;
-      Rig.draw(c, 'tit', {}, fx, fy, { size: S * 1.05, flip: dtk > 0 });
+      bwJacFly(c, fx, fy, S * 1.05, dtk > 0 ? 1 : -1, t + k.i);
     }
     if (D.spares.length && t > 0.4) {   // spared siblings: a paper ring, and one label
       const a = clamp((t - 0.4) / 0.4, 0, 1); c.save(); c.globalAlpha = a; c.strokeStyle = '#F0E6CC'; c.lineWidth = 2;
@@ -982,11 +1022,14 @@ const CH_BITTER_V2 = {
       Lbl.put('isl' + k + 'd', this.w('labels', k ? 'clus' : 'scat'), (b ? b.x : w - 70) - 6, y, { size: 12, align: 'right', mono: true });
     }
   },
-  drawPlant(c, x, y, f) {   // the models' food plant (L2): leaves droop and brown as the models fall (D1 §3.2)
-    const v = this.v, k = clamp(f, 0, 1), leaf = css(mix([132, 104, 58], [112, 168, 72], k)), droop = (1 - k) * 0.9;
-    c.save(); c.translate(x, y); c.strokeStyle = '#3A4A2A'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(0, 22); c.quadraticCurveTo(2, 4, 0, -16); c.stroke();
-    for (let i = 0; i < 4; i++) { const yy = 14 - i * 9, s = i % 2 ? 1 : -1; c.save(); c.translate(0, yy); c.rotate(s * (0.5 + droop) + (s > 0 ? 0 : 0)); c.fillStyle = leaf; c.beginPath(); c.ellipse(s * 9, 0, 9, 3.6, 0, 0, TAU); c.fill(); c.strokeStyle = 'rgba(27,22,18,.6)'; c.lineWidth = 1; c.stroke(); c.restore(); }
-    c.restore(); void v;
+  drawPlant(c, x, y, f) {   // the models' passion vine (L2; Heliconius caterpillars eat only Passiflora): leaves droop and brown, the flower wilts as the models fall
+    const k = clamp(f, 0, 1), leaf = css(mix([124, 98, 52], [74, 152, 82], k)), droop = (1 - k) * 0.9;
+    c.save(); c.translate(x, y); c.fillStyle = 'rgba(8,22,14,.55)'; c.beginPath(); c.ellipse(0, 2, 22, 28, 0, 0, TAU); c.fill();
+    c.strokeStyle = css(mix([100, 82, 48], [60, 116, 62], k)); c.lineWidth = 2.4; c.beginPath(); c.moveTo(2, 26); c.quadraticCurveTo(-6, 6, -2, -12); c.stroke();
+    bwTendril(c, 3, 8, 5, css(mix([110, 92, 52], [96, 150, 76], k)));
+    for (let i = 0; i < 3; i++) { const sd = i % 2 ? 1 : -1; bwPLeaf(c, -2 + sd * 2, 18 - i * 10, 9, sd * (1.2 + droop) + (i === 2 ? 0.4 : 0), leaf); }
+    bwFlower(c, -2, -15, 9, 1 - k);
+    c.restore();
   },
   drawLedger(c, x0, y0, w) {   // the taste ledger (the bird's memory, D4 rule 11) and the warning-wing cue whose outline thickens per fresh bitter taste
     const s = this.sim.s, v = this.v, wgt = this.sim.weights(), nb = Math.min(4, Math.round(wgt.b));
@@ -1005,13 +1048,17 @@ const CH_BITTER_V2 = {
   chickPos(k) { return [24 + k * 30, Stage.h - 26]; },
   drawBand(c, w, h) {   // the memory row, then the nest and the in-scene graph: the population's story, one column or point per generation
     const s = this.sim.s, v = this.v, y0 = h - BWK.BAND;
-    c.fillStyle = 'rgba(21,33,32,.88)'; c.fillRect(0, y0, w, BWK.BAND); c.fillStyle = 'rgba(232,223,201,.25)'; c.fillRect(0, y0, w, 1); c.fillRect(0, y0 + 36, w, 1);
+    c.fillStyle = 'rgba(8,22,14,.92)'; c.fillRect(0, y0, w, BWK.BAND);
+    c.fillStyle = '#4A2F1E'; c.beginPath(); c.moveTo(4, h - 4); c.lineTo(4, y0 + 46); c.quadraticCurveTo(68, y0 + 36, 132, y0 + 46); c.lineTo(132, h - 4); c.closePath(); c.fill();   // the jacamars' earth bank
+    c.fillStyle = '#5E3D27'; for (let k = 0; k < 14; k++) c.fillRect(8 + (k * 37) % 120, y0 + 50 + (k * 23) % 38, 3, 2);
+    c.fillStyle = '#140B06'; c.beginPath(); c.ellipse(68, h - 22, 60, 16, 0, 0, TAU); c.fill();   // the burrow mouth
+    c.fillStyle = 'rgba(232,223,201,.25)'; c.fillRect(0, y0, w, 1); c.fillRect(0, y0 + 36, w, 1);
     this.drawLedger(c, 6, y0 + 3, w - 12);
     for (let k = 0; k < BWK.CHICKS; k++) {
       const p = this.chickPos(k), per = s.quota / BWK.CHICKS, got = Math.floor(s.eaten / BWK.CHICKS) + (k < s.eaten % BWK.CHICKS ? 1 : 0), f = clamp(got / per, 0, 1);
       const hungry = (s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post') && k >= BWK.CHICKS - s.hungry;
       if (hungry) { c.strokeStyle = 'rgba(232,223,201,.7)'; c.setLineDash([4, 3]); c.lineWidth = 1.5; c.beginPath(); c.arc(p[0], p[1], 11, 0, TAU); c.stroke(); c.setLineDash([]); continue; }
-      if (typeof Rig !== 'undefined') Rig.draw(c, 'chick', { fed: s.phase === 'hunt' || s.phase === 'dawn' ? f : 1, gape: s.phase === 'hunt' && f < 1 }, p[0], p[1], { size: 28, state: v.chickPop[k] > 0 ? 'alert' : null, alert: v.chickPop[k] });
+      bwChick(c, p[0], p[1], 30, { fed: s.phase === 'hunt' || s.phase === 'dawn' ? f : 1, gape: (s.phase === 'hunt' && f < 1) || v.chickPop[k] > 0.5, pop: v.chickPop[k] });
     }
     const b = this.graphBox(), H = s.hist, n = Math.max(s.gens, H.length);
     c.strokeStyle = 'rgba(232,223,201,.35)'; c.lineWidth = 1; c.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
@@ -1095,37 +1142,140 @@ EXPORT.BITTER = { K: BWK, fitBeta: bwFitBeta, young5: bwYoung5 };   // for tests
 /* ---------- the learning layer (D5 §3 item 12): overwritten for v2, untouched under ?v1=1 (there was no TRANSFER.bitter to rebuild) ---------- */
 if (!Url.v1) {
   TAKE.bitter = BW_C.take;
-  BRIDGE.bitter = 'In the Black Country you ate the moths that stood out. Now some insects taste bitter, and say so.';
-  MODEL.bitter = 'You are the only predator in L1–L3: a retch costs seconds, about one meal each. Look is one inherited trait. L4–L5 add young birds that each learn by tasting. Selection is many times stronger than in nature.';
+  BRIDGE.bitter = 'In the Black Country you ate the moths that stood out. Now, at a rainforest edge, some butterflies taste bitter and say so.';
+  MODEL.bitter = 'You are a jacamar, the only predator in L1–L3: a retch costs seconds, about one meal each. Look is one inherited trait. L4–L5 add young birds that each learn by tasting. Selection is many times stronger than in nature.';
   RECALL.bitter = { q: 'A bitter model and its tasty mimic look alike. When is the mimic best protected?', opts: [['rare', 'When mimics are rare relative to models'], ['common', 'When mimics are common'], ['always', 'Always, once it looks right']], ans: 'rare', why: 'Each mimic a bird tastes teaches it the warning may be a bluff. Mimics do best while models outnumber them, or models are very toxic.' };
 }
 
-/* ---------- insect painters for the bitterwing/sourwing pattern line, grubs and the island bugs (view only) ---------- */
-function bwPaint(g, k, v, br, frame) {   // into a 42 × 36 unit box; frame 1 = wings flicked
-  g.save(); g.translate(21, 18); if (frame) g.scale(0.84, 1.04);
-  const INK = [28, 22, 24], wing = (s, fore) => { g.beginPath(); if (fore) { g.moveTo(0, -2); g.bezierCurveTo(s * 5, -12, s * 15, -14, s * 17.5, -10.5); g.bezierCurveTo(s * 17, -3, s * 13, 1.5, 0, 2); } else { g.moveTo(0, 1); g.bezierCurveTo(s * 7, 1, s * 13.5, 4, s * 11.5, 10); g.bezierCurveTo(s * 8, 13.5, s * 3, 11, 0, 7); } g.closePath(); };
-  if (k === 'b' || k === 's') {   // pattern line: two round ochre spots per forewing (0) merge into one red band (1)
-    const col = css(mix([238, 176, 52], [214, 40, 38], v)), ground = css(INK);
-    for (const s of [-1, 1]) for (const fore of [false, true]) {
-      wing(s, fore); g.fillStyle = ground; g.fill(); g.save(); wing(s, fore); g.clip(); g.fillStyle = col;
-      if (fore) { const sep = 3.9 * (1 - v), rx = 2.5 + 3.1 * v, ry = 2.5 + 0.4 * v; for (const d of [-1, 1]) { g.beginPath(); g.ellipse(s * (9.5 + d * sep), -6 + d * sep * 0.35, rx, ry, s * -0.45, 0, TAU); g.fill(); } }
-      else if (v < 0.5) { g.beginPath(); g.arc(s * 7, 6.5, 1.7 * (1 - v), 0, TAU); g.fill(); } else { g.fillRect(s > 0 ? 3 : -11, 4, 8, 1.6 * v); }
-      g.restore(); g.strokeStyle = 'rgba(240,230,210,.35)'; g.lineWidth = 0.6; wing(s, fore); g.stroke();
+/* ---------- painters for the forest edge (view only; Det trig; the scenery uses a private PRNG) ---------- */
+const BW_INK = { cream: [242, 236, 214], black: [24, 18, 20], red: [214, 44, 38], yellow: [242, 200, 58], leaf0: [12, 36, 22], leaf1: [28, 78, 46], leaf2: [60, 128, 70] };
+function bwWing(g, s, fore) {   // Heliconius proportions: long narrow forewings, rounded hindwings
+  g.beginPath();
+  if (fore) { g.moveTo(s * 1, -4); g.bezierCurveTo(s * 6, -14, s * 15, -17.5, s * 19.5, -14.5); g.bezierCurveTo(s * 21, -10.5, s * 17.5, -3.5, s * 12, -0.5); g.bezierCurveTo(s * 7, 1.2, s * 3, 0.8, s * 1, 0); }
+  else { g.moveTo(s * 1, -1); g.bezierCurveTo(s * 8, -2.5, s * 15, 1.5, s * 14, 8); g.bezierCurveTo(s * 13, 13, s * 6, 14.5, s * 2.5, 9.5); g.bezierCurveTo(s * 1.2, 6.5, s * 0.6, 3, s * 1, -1); }
+  g.closePath();
+}
+function bwFly(g, k, v) {   // a butterfly, wings open, head up, in a 42 × 36 box
+  // 'p'/'m': the Batesian look line, a cream white with dark tips (0) → black with a red forewing band and a yellow hindwing bar (1, the model)
+  // 'b'/'s': the Müllerian pattern line on black, two yellow spots (0) → one red band (1): pattern and luminance differ, not only hue
+  g.save(); g.translate(21, 19);
+  const I = BW_INK, bat = k === 'p' || k === 'm', t = bat ? (k === 'm' ? 1 : v) : 1, d = t > 0 ? Det.pow(t, 0.85) : 0, ground = bat ? mix(I.cream, I.black, d) : I.black;
+  for (const s of [-1, 1]) for (const fore of [false, true]) {
+    bwWing(g, s, fore); g.fillStyle = css(ground); g.fill();
+    g.save(); bwWing(g, s, fore); g.clip();
+    if (bat) {
+      if (fore && t < 0.7) { g.fillStyle = css(mix(ground, [64, 58, 56], 0.8), 1 - t / 0.7); g.beginPath(); g.ellipse(s * 18, -13.5, 5.2, 3.8, s * -0.5, 0, TAU); g.fill(); }
+      const rA = clamp(1.25 * t - 0.15, 0, 1), yA = clamp(1.6 * t - 0.6, 0, 1);
+      if (fore && rA > 0) { g.fillStyle = css(I.red, rA); g.beginPath(); g.ellipse(s * 11.5, -7.8, 7, 3, s * -0.48, 0, TAU); g.fill(); }
+      if (!fore && yA > 0) { g.fillStyle = css(I.yellow, yA); g.beginPath(); g.ellipse(s * 7.6, 2.8, 6.2, 1.6, s * 0.42, 0, TAU); g.fill(); }
+      g.strokeStyle = css(mix(ground, [0, 0, 0], 0.4), 0.5 * (1 - 0.7 * d)); g.lineWidth = 0.45; g.beginPath();
+      if (fore) for (const q of [[19, -14], [16, -6], [12, -2]]) { g.moveTo(s * 1.5, -2.5); g.lineTo(s * q[0], q[1]); } else for (const q of [[13, 7], [8, 12], [4, 10]]) { g.moveTo(s * 1.5, 0); g.lineTo(s * q[0], q[1]); }
+      g.stroke();
+    } else {
+      g.fillStyle = css(mix(I.yellow, I.red, v));
+      if (fore) { const sep = 4.2 * (1 - v), rx = 2.6 + 3.8 * v, ry = 2.5 + 0.5 * v; for (const e of [-1, 1]) { g.beginPath(); g.ellipse(s * (11.5 + e * sep), -7.8 + e * sep * 0.45, rx, ry, s * -0.48, 0, TAU); g.fill(); } }
+      else if (v < 0.5) { g.fillStyle = css(I.yellow, 1 - v); for (const q of [[6, 5], [10.5, 7.5]]) { g.beginPath(); g.arc(s * q[0], q[1], 2.1 * (1 - v), 0, TAU); g.fill(); } }
+      else { g.fillStyle = css(I.red, 0.3 + 0.5 * v); for (const q of [[13, 4], [11, 9], [7, 11]]) { g.beginPath(); g.moveTo(s * 2, 0.5); g.lineTo(s * q[0], q[1]); g.lineTo(s * q[0] * 0.92, q[1] + 1.6); g.closePath(); g.fill(); } }   // rays at the band end
     }
-    g.fillStyle = css(INK); g.beginPath(); g.ellipse(0, 2, 1.8, 7, 0, 0, TAU); g.fill();
-    g.strokeStyle = css(INK); g.lineWidth = 0.7; g.beginPath(); g.moveTo(-0.5, -4.5); g.quadraticCurveTo(-2.5, -10, -4.5, -12); g.moveTo(0.5, -4.5); g.quadraticCurveTo(2.5, -10, 4.5, -12); g.stroke();
-  } else if (k === 'u') {   // a grub: pale segmented caterpillar, no wings
-    g.rotate(-0.3); g.scale(1.3, 1.3); for (let i = 5; i >= 0; i--) { const x = -12 + i * 4.8, y = 1.8 * Det.sin(i * 0.9); g.fillStyle = css(mix([196, 208, 132], [158, 176, 96], (i % 2) * 0.5)); g.beginPath(); g.arc(x, y, i === 5 ? 3.6 : 4.2, 0, TAU); g.fill(); g.strokeStyle = 'rgba(60,72,34,.55)'; g.lineWidth = 0.7; g.stroke(); }
-    g.fillStyle = '#3A3226'; g.beginPath(); g.arc(13.4, 1.8 * Det.sin(4.5) - 0.6, 1, 0, TAU); g.fill();
-  } else {   // an island bug: a rounded shield; green (cryptic) or bright (black with paper bars)
-    const body = br ? [26, 22, 24] : [96, 130, 60], edge = br ? [26, 22, 24] : [52, 78, 34];
-    g.fillStyle = css(body); g.beginPath(); g.ellipse(0, 2, 11, 13, 0, 0, TAU); g.fill(); g.strokeStyle = css(edge); g.lineWidth = 1.2; g.stroke();
-    g.save(); g.beginPath(); g.ellipse(0, 2, 11, 13, 0, 0, TAU); g.clip();
-    if (br) { g.fillStyle = '#F0E6C6'; g.fillRect(-12, -4, 24, 4); g.fillRect(-12, 5, 24, 4); }
-    else { g.strokeStyle = 'rgba(40,60,26,.5)'; g.lineWidth = 0.8; for (let i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(0, -9); g.lineTo(i * 5, 15); g.stroke(); } }
-    g.restore(); g.strokeStyle = css(edge); g.lineWidth = 1; g.beginPath(); g.moveTo(0, -10); g.lineTo(0, 15); g.stroke();
-    g.fillStyle = css(edge); g.beginPath(); g.ellipse(0, -11, 4, 3, 0, 0, TAU); g.fill();
-    g.strokeStyle = css(edge); g.lineWidth = 0.7; g.beginPath(); g.moveTo(-1, -13); g.quadraticCurveTo(-3, -17, -6, -18); g.moveTo(1, -13); g.quadraticCurveTo(3, -17, 6, -18); g.stroke();
+    g.restore();
+    bwWing(g, s, fore); g.strokeStyle = 'rgba(255,248,226,.62)'; g.lineWidth = 0.8; g.stroke();   // a pale rim keeps black wings readable on dark leaves
   }
+  g.fillStyle = '#16110F'; g.beginPath(); g.ellipse(0, -2.5, 1.9, 3.4, 0, 0, TAU); g.fill(); g.beginPath(); g.ellipse(0, 5, 1.3, 6.2, 0, 0, TAU); g.fill(); g.beginPath(); g.arc(0, -6.6, 1.7, 0, TAU); g.fill();
+  g.strokeStyle = '#16110F'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-0.6, -7.6); g.quadraticCurveTo(-2.5, -13, -5.6, -16.6); g.moveTo(0.6, -7.6); g.quadraticCurveTo(2.5, -13, 5.6, -16.6); g.stroke();
+  g.beginPath(); g.arc(-5.6, -16.6, 0.9, 0, TAU); g.arc(5.6, -16.6, 0.9, 0, TAU); g.fill();
+  if (bat && t > 0.5) { g.fillStyle = css(I.yellow, clamp(2 * t - 1, 0, 1)); g.beginPath(); g.arc(-0.8, -3.6, 0.5, 0, TAU); g.arc(0.8, -3.6, 0.5, 0, TAU); g.fill(); }   // thorax dots
   g.restore();
+}
+function bwDragon(g) {   // safe food: a dragonfly, glassy wings and a turquoise abdomen (a different shape from every butterfly)
+  g.save(); g.translate(21, 18);
+  for (const q of [[-7, 19, 3.4, -0.12], [-3.5, 17, 3.8, 0.1]]) for (const s of [-1, 1]) {
+    g.beginPath(); g.ellipse(s * q[1] / 2, q[0], q[1] / 2, q[2], s * q[3], 0, TAU); g.fillStyle = 'rgba(214,236,246,.34)'; g.fill(); g.strokeStyle = 'rgba(232,246,255,.8)'; g.lineWidth = 0.6; g.stroke();
+    g.fillStyle = 'rgba(30,30,30,.85)'; g.fillRect(s * (q[1] - 3.4) - 0.8, q[0] - 1, 1.6, 1.6);
+  }
+  for (let i = 0; i < 9; i++) { g.fillStyle = i % 2 ? '#1A8193' : '#46C9D6'; g.fillRect(-1.15, -2 + i * 2, 2.3, 2.1); }
+  g.fillStyle = '#2E8F5E'; g.beginPath(); g.ellipse(0, -5.5, 2.7, 3.7, 0, 0, TAU); g.fill();
+  g.fillStyle = '#5CC2D0'; g.beginPath(); g.arc(-1.8, -10, 2.2, 0, TAU); g.arc(1.8, -10, 2.2, 0, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.arc(-2.3, -10.7, 0.6, 0, TAU); g.arc(1.3, -10.7, 0.6, 0, TAU); g.fill();
+  g.restore();
+}
+function bwBug(g, br) {   // L5: a defended shield bug, green (cryptic) or bright (black with pale yellow bars: luminance and pattern)
+  g.save(); g.translate(21, 18);
+  const body = br ? [24, 20, 22] : [92, 128, 58], edge = br ? [24, 20, 22] : [46, 72, 30];
+  g.fillStyle = css(body); g.beginPath(); g.moveTo(0, -9); g.bezierCurveTo(12, -9, 12.5, 2, 0, 15.5); g.bezierCurveTo(-12.5, 2, -12, -9, 0, -9); g.fill(); g.strokeStyle = css(edge); g.lineWidth = 1.2; g.stroke();
+  g.save(); g.beginPath(); g.moveTo(0, -9); g.bezierCurveTo(12, -9, 12.5, 2, 0, 15.5); g.bezierCurveTo(-12.5, 2, -12, -9, 0, -9); g.clip();
+  if (br) { g.fillStyle = '#F4CD50'; g.fillRect(-13, -5, 26, 3.6); g.fillRect(-13, 3, 26, 3.6); g.beginPath(); g.arc(0, 11, 2.2, 0, TAU); g.fill(); }
+  else { g.fillStyle = 'rgba(160,196,96,.6)'; g.beginPath(); g.moveTo(0, -3); g.lineTo(5, 7); g.lineTo(0, 13); g.lineTo(-5, 7); g.closePath(); g.fill(); g.strokeStyle = 'rgba(36,56,22,.5)'; g.lineWidth = 0.7; for (let i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(0, -8); g.lineTo(i * 5, 15); g.stroke(); } }
+  g.restore();
+  g.fillStyle = css(edge); g.beginPath(); g.ellipse(0, -10.5, 4, 2.8, 0, 0, TAU); g.fill();
+  g.strokeStyle = css(edge); g.lineWidth = 0.8; g.beginPath(); g.moveTo(-1, -12.5); g.quadraticCurveTo(-3, -16.5, -6.5, -17.5); g.moveTo(1, -12.5); g.quadraticCurveTo(3, -16.5, 6.5, -17.5);
+  for (const s of [-1, 1]) for (const y of [-4, 1, 6]) { g.moveTo(s * 9, y); g.lineTo(s * 13, y + 2.5); } g.stroke();
+  g.restore();
+}
+function bwLeaf(g, x, y, L, W, rot, col, vein) {   // a pointed rainforest leaf from its base at (x, y)
+  g.save(); g.translate(x, y); g.rotate(rot);
+  g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(W * 0.95, L * 0.14, W * 0.78, L * 0.7, 0, L); g.bezierCurveTo(-W * 0.78, L * 0.7, -W * 0.95, L * 0.14, 0, 0); g.fillStyle = col; g.fill();
+  if (vein) { g.strokeStyle = vein; g.lineWidth = Math.max(0.6, W * 0.045); g.beginPath(); g.moveTo(0, 0); g.lineTo(0, L * 0.96); for (let k = 1; k < 6; k++) { const yy = L * k / 6.5; g.moveTo(0, yy); g.quadraticCurveTo(W * 0.3, yy + L * 0.04, W * 0.62, yy + L * 0.13); g.moveTo(0, yy); g.quadraticCurveTo(-W * 0.3, yy + L * 0.04, -W * 0.62, yy + L * 0.13); } g.stroke(); }
+  g.restore();
+}
+function bwPLeaf(g, x, y, r, rot, col) {   // a three-lobed passion-vine leaf
+  g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col;
+  for (const a of [-0.8, 0, 0.8]) { g.save(); g.rotate(a); g.beginPath(); g.ellipse(0, r * 0.55, r * 0.27, r * 0.6, 0, 0, TAU); g.fill(); g.restore(); }
+  g.strokeStyle = 'rgba(200,236,170,.3)'; g.lineWidth = 0.7; g.beginPath(); for (const a of [-0.8, 0, 0.8]) { g.moveTo(0, 0); g.lineTo(-Det.sin(a) * r, Det.cos(a) * r); } g.stroke();
+  g.restore();
+}
+function bwTendril(g, x, y, r, col) { g.strokeStyle = col; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y); for (let k = 1; k <= 14; k++) { const a = k * 0.75, rr = r * (1 - k / 16); g.lineTo(x + rr * Det.cos(a) + k * 0.4, y - k * 0.9 + rr * Det.sin(a)); } g.stroke(); }
+function bwFlower(g, x, y, r, wilt) {   // Passiflora: ten pale petals, a banded corona of filaments, the green ovary and stamens; wilt browns and shrinks it
+  g.save(); g.translate(x, y);
+  const pet = css(mix([238, 230, 246], [140, 112, 66], wilt)), band = [mix([92, 46, 140], [104, 78, 48], wilt), mix([246, 244, 250], [168, 146, 106], wilt), mix([118, 100, 214], [116, 92, 58], wilt)];
+  for (let k = 0; k < 10; k++) { g.save(); g.rotate(k * TAU / 10 + wilt * 0.2); g.beginPath(); g.ellipse(0, -r * (0.55 - 0.12 * wilt), r * 0.19, r * 0.48 * (1 - 0.4 * wilt), 0, 0, TAU); g.fillStyle = pet; g.fill(); g.restore(); }
+  const L = r * (0.84 - 0.32 * wilt);
+  [[0.2, 0.38], [0.38, 0.56], [0.56, 1]].forEach((q, j) => { g.strokeStyle = css(band[j]); g.lineWidth = Math.max(0.6, r * 0.05); g.beginPath(); for (let k = 0; k < 36; k++) { const ux = Det.cos(k * TAU / 36), uy = Det.sin(k * TAU / 36); g.moveTo(ux * L * q[0], uy * L * q[0]); g.lineTo(ux * L * q[1], uy * L * q[1]); } g.stroke(); });
+  g.fillStyle = '#7DA84E'; g.beginPath(); g.arc(0, 0, r * 0.15, 0, TAU); g.fill();
+  g.fillStyle = '#D6CC5C'; for (let k = 0; k < 5; k++) { const a = k * TAU / 5; g.beginPath(); g.ellipse(Det.cos(a) * r * 0.26, Det.sin(a) * r * 0.26, r * 0.1, r * 0.055, a, 0, TAU); g.fill(); }
+  g.restore();
+}
+function bwJacHead(c, x, y, ux, uy, S, o) {   // a rufous-tailed jacamar's head: metallic green, white throat, long black bill pointing along (ux, uy)
+  const r = S * 0.32, b0 = r * 0.75, L = S * 0.95, gp = o.gape || 0;
+  c.save(); c.globalAlpha = clamp(o.alpha, 0, 1); c.transform(ux, uy, -uy, ux, x, y); if (ux < 0) c.scale(1, -1);   // keep the crown up
+  c.fillStyle = '#B5542A'; c.beginPath(); c.ellipse(-r * 1.05, r * 1.05, r * 0.95, r * 0.7, -0.5, 0, TAU); c.fill();
+  c.fillStyle = '#1C6440'; c.beginPath(); c.ellipse(-r * 1.5, r * 0.15, r * 1.15, r * 0.75, -0.3, 0, TAU); c.fill();
+  c.fillStyle = '#121010'; c.strokeStyle = 'rgba(255,248,226,.55)'; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(b0 - 2, r * 0.1); c.lineTo(b0 + L * 0.93, r * 0.06 + gp * S * 0.26); c.lineTo(b0 - 2, r * 0.46); c.closePath(); c.fill(); c.stroke();
+  if (o.mood === 2 && gp > 0.2) { c.fillStyle = '#EE8FA0'; c.beginPath(); c.ellipse(b0 + L * 0.3, r * 0.3 + gp * S * 0.1, L * 0.2, r * 0.15, 0.3, 0, TAU); c.fill(); c.fillStyle = '#121010'; }
+  c.beginPath(); c.moveTo(b0 - 2, -r * 0.3); c.lineTo(b0 + L, r * 0.04 - gp * S * 0.12); c.lineTo(b0 - 2, r * 0.14); c.closePath(); c.fill(); c.stroke();
+  const gr = c.createRadialGradient(-r * 0.3, -r * 0.45, r * 0.1, 0, 0, r * 1.05); gr.addColorStop(0, '#86E6A6'); gr.addColorStop(0.45, '#2E9A5E'); gr.addColorStop(1, '#154A30');
+  c.fillStyle = gr; c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fill(); c.strokeStyle = 'rgba(255,248,226,.5)'; c.lineWidth = 1.2; c.stroke();
+  c.fillStyle = '#F2EEE2'; c.beginPath(); c.ellipse(r * 0.38, r * 0.62, r * 0.46, r * 0.28, 0.3, 0, TAU); c.fill();
+  const ex = r * 0.28, ey = -r * 0.16, er = r * 0.21; c.strokeStyle = '#0D0B0A'; c.fillStyle = '#0D0B0A'; c.lineWidth = Math.max(1.4, r * 0.13); c.lineCap = 'round';
+  if (o.mood === 2) { c.beginPath(); c.moveTo(ex - er, ey - er); c.lineTo(ex + er * 0.6, ey); c.lineTo(ex - er, ey + er); c.stroke(); }   // screwed shut
+  else if (o.mood === 1) { c.beginPath(); c.arc(ex, ey + er * 0.5, er, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); }   // a happy squint
+  else { c.beginPath(); c.arc(ex, ey, er, 0, TAU); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(ex + er * 0.35, ey - er * 0.35, er * 0.32, 0, TAU); c.fill(); }
+  c.restore();
+  if (o.mood === 2) {   // stink lines rising off a bitter mouthful
+    const a = clamp(o.alpha, 0, 1) * clamp((o.age - 0.16) / 0.12, 0, 1); if (a <= 0) return;
+    c.save(); c.globalAlpha = a; c.strokeStyle = '#B4DC5A'; c.lineWidth = Math.max(1.6, S * 0.05); c.lineCap = 'round';
+    for (let k = -1; k <= 1; k++) { const bx = x + k * r * 0.85, by = y - r * 1.3 - o.age * S * 0.4; c.beginPath(); for (let j = 0; j <= 6; j++) { const yy = by - j * r * 0.17, xx = bx + Det.sin(j * 1.6 + o.age * 14 + k) * r * 0.17; if (j) c.lineTo(xx, yy); else c.moveTo(xx, yy); } c.stroke(); }
+    c.restore();
+  }
+}
+function bwJacFly(c, x, y, S, dir, t) {   // a young jacamar in flight, side view: long tail, long bill, rufous belly
+  const r = S * 0.2, f = Det.sin(t * 22);
+  c.save(); c.translate(x, y); c.scale(dir, 1);
+  c.fillStyle = '#1C6440'; c.beginPath(); c.moveTo(-r * 1.1, -r * 0.15); c.lineTo(-r * 4.2, -r * 0.55); c.lineTo(-r * 4.1, r * 0.2); c.closePath(); c.fill();
+  c.fillStyle = '#B5542A'; c.beginPath(); c.ellipse(0, r * 0.15, r * 1.5, r * 0.68, 0, 0, TAU); c.fill();
+  c.fillStyle = '#2E9A5E'; c.beginPath(); c.ellipse(-r * 0.2, -r * 0.22, r * 1.4, r * 0.48, 0, 0, TAU); c.fill(); c.beginPath(); c.arc(r * 1.3, -r * 0.3, r * 0.62, 0, TAU); c.fill();
+  c.fillStyle = '#F2EEE2'; c.beginPath(); c.ellipse(r * 1.55, r * 0.1, r * 0.35, r * 0.2, 0.3, 0, TAU); c.fill();
+  c.fillStyle = '#121010'; c.beginPath(); c.moveTo(r * 1.8, -r * 0.42); c.lineTo(r * 4.1, -r * 0.15); c.lineTo(r * 1.8, -r * 0.02); c.closePath(); c.fill(); c.beginPath(); c.arc(r * 1.45, -r * 0.42, r * 0.12, 0, TAU); c.fill();
+  c.fillStyle = '#237A4C'; c.beginPath(); c.moveTo(-r * 0.7, -r * 0.25); c.quadraticCurveTo(-r * 0.1, -r * (0.4 + 2.3 * f), r * 0.8, -r * 0.25); c.closePath(); c.fill();
+  c.restore();
+}
+function bwChick(c, x, y, z, o) {   // a jacamar nestling in the burrow mouth: jacamar chicks hatch in long white down
+  const r = z * 0.42 * (1 + 0.18 * (o.pop || 0)), fed = clamp(o.fed, 0, 1);
+  c.save(); c.translate(x, y); c.fillStyle = '#EEE9DD';
+  for (let j = 0; j < 9; j++) { const a = j * TAU / 9; c.beginPath(); c.arc(Det.cos(a) * r * 0.72, r * 0.2 + Det.sin(a) * r * 0.6, r * (0.38 + 0.08 * fed), 0, TAU); c.fill(); }
+  c.beginPath(); c.arc(0, -r * 0.45, r * 0.6, 0, TAU); c.fill();
+  c.strokeStyle = 'rgba(200,190,170,.7)'; c.lineWidth = 0.8; c.beginPath(); for (const q of [[-0.5, -0.95], [0, -1.1], [0.35, -1]]) { c.moveTo(q[0] * r, q[1] * r * 0.9); c.lineTo(q[0] * r * 1.3, q[1] * r * 1.25); } c.stroke();   // wisps of down
+  c.fillStyle = '#1A1412'; c.beginPath(); c.arc(r * 0.2, -r * 0.55, r * 0.11, 0, TAU); c.fill();
+  if (o.gape) { c.fillStyle = '#E8B048'; c.beginPath(); c.moveTo(r * 0.45, -r * 0.42); c.lineTo(r * 1.3, -r * 0.85); c.lineTo(r * 1.25, -r * 0.05); c.closePath(); c.fill(); c.fillStyle = '#2A2220'; c.beginPath(); c.moveTo(r * 0.45, -r * 0.5); c.lineTo(r * 1.32, -r * 0.88); c.lineTo(r * 1.2, -r * 0.7); c.closePath(); c.fill(); }
+  else { c.fillStyle = '#2A2220'; c.beginPath(); c.moveTo(r * 0.45, -r * 0.55); c.lineTo(r * 1.35, -r * 0.42); c.lineTo(r * 0.45, -r * 0.28); c.closePath(); c.fill(); }
+  c.restore();
 }
