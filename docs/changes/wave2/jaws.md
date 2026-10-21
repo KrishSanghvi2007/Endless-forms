@@ -195,3 +195,76 @@ I looked at them and fixed what looked wrong:
 8. Settings → Untimed: replay L2. Does it still feel like a decision?
 
 Feedback form (1–5 unless stated): fun; clarity of the verb; did the swing feel caused by you?; the boss's link to the fish (words); any moment you were bored or wondered how long was left (where?); any science you doubt (where?).
+
+---
+
+## Session 2 (21 October 2026): finish, world, review and fixes
+
+Unit agent (senior game developer, art director, evolutionary biologist). `git mv source/v2_wip/jaws.js source/v2/jaws.js`, then finished the draft rather than restarting. Files touched: `v2/jaws.js`, `tests/oracle_jaws.js`, `tests/jaws_paths.py`, `tests/jaws_shots.py`, this log. No engine, legacy or other unit file was edited; nothing was committed.
+
+### D6 addendum (21 October) applied
+- **Its own world (decision 7).** The lake was a flat blue gradient with olive fish; it now reads as the Lake Tanganyika shallows: turquoise water (`#62CFC6` → `#0F6170`), slanting sun shafts, a drifting net of **sun caustics** in the water and brighter on the sand (two copies of a baked cell-edge tile, composed at half resolution), rock piles furred with algae on both shores, pebbles along the shore line, a sand floor with ripples and **empty snail shells** (the lake's shell beds), a hazy far reef and a vignette. Palette teal / coral / sand: prey are sand-silver cichlids with coral fins; the scale-eaters are tawny with dark bars; the striped species (L4) wears bold bars. The boss gets its own world too: a sun-baked California hillside (warm wash over the rocks ground, coastal sage, warm vignette). Allele inks appear nowhere (twist is shape and position; lizard morphs are throat pattern plus letter).
+- **Accent.** `accent: '#E2725B'` (coral). The engine tints the chrome with it; in the scene it marks the guard: the plate timer arc and the ready-plate pips are coral. Never a data ink.
+- **Opening card (decision 8).** `content.intro = {game, biology, how}` (23, 30 and 25 words; every sentence ≤ 18 words). Checked in a browser: the card shows three labelled parts, the sim is paused under it (`s.T` stays 0), Play closes it, the dock "?" reopens it, and the ghost hand then demonstrates the first tap on the commoner flank while the first scale-eater waits.
+
+### Review 1: playtester and art director (screenshots of every level and phase at 390 × 780 and 1280 × 720, plus juice moments)
+| # | Issue | Verdict | Action |
+|---|---|---|---|
+| A1 | The world looked like every other chapter: muted blue water, olive fish, sand strip | High | New lake and boss worlds (above) |
+| A2 | The scale-eater's jaw was barely visible; at quantisation the half-twisted jaws drew straight (the rig cache clamps non-integer traits to 0–1, so `tw = −0.5` became 0) | **Bug**, high | The rig now takes `tq` in 0–1; the head bends up to 0.72 rad and the jaw is a hook with pale lips and a dark gape opening towards the prey; scale-eaters drawn 10% larger |
+| A3 | Scale flecks were a generic 6-flake burst | Medium | Bites tear 7 silver scales that spin, glint (they flatten and brighten as they turn), drift and sink onto the sand, where they fade; the bitten fish jolts away from the bite (0.3 s) |
+| A4 | No moment marked the swing itself, the unit's aha | Medium | When a breeding carries the share past 50:50, "Left-strikers lead" / "Right-strikers lead" rises over that side of the floor histogram with a ring (from the `breed` event and the sim's own shares) |
+| A5 | Long seasons of identical taps | Medium | A block streak ("Streak 4", from block events; a widening ring from three in a row); speed still rises each season |
+| A6 | Caustics first drawn per frame doubled the phone frame time (42–48 ms vs 18 ms at 4× throttle, DPR 2) | High | Caustics composed at half resolution with the baked lake into one layer, refreshed about eight times a second and staggered over two frames: median frame 18–19 ms (same as without caustics), p95 48–53 ms; 1280 × 720 16.5 ms; boss 16.6 ms |
+| A7 | Two and three series on one trace: the end labels all used a disc while the lines used disc, square and triangle | Medium | `jw_trace` now draws its own end labels with the matching marker (square, triangle, disc) |
+| A8 | "crossing 50:50 1 times" | Low | Plural phrases (once, twice, *n* times) in `content.data.cross` |
+| A9 | The first caustics looked like cracked tiles | Low | Softer, thinner net at 1.7× and 2.3× scale, depth-weighted alpha |
+| A10 | Streak label over the 3-word label budget | Low | "Streak {n}" |
+
+### Review 2: adversarial evolutionary biologist
+| # | Issue | Verdict | Action |
+|---|---|---|---|
+| S1 | Laterality is partly plastic (Raffini & Meyer 2019): scale diet and striking experience make jaws more lopsided (Lee, Heim & Meyer 2015); the model's development term is random and use-independent | Must say so | L3 MODEL `cannot`: "Plasticity: in the lake, a diet of scales and practice at striking make jaws more lopsided." L3 "In nature" and Why? real updated; L1 `cannot` adds "jaws shaped by use" |
+| S2 | Hori (1993) read the jaw as a single Mendelian locus; later work finds a continuous, partly heritable trait (Kusche, Lee & Meyer 2012) | Must say so | L1 "In nature" adds it; ref `kusche2012` |
+| S3 | Prey vigilance as the mechanism is Hori's hypothesis, stated as fact | Fix | L2 MODEL and Why? now say "Hori proposed that prey watch the flank attacked most" |
+| S4 | "Cycle over about four to five years" attributed to Sinervo & Lively (1996) is not clearly theirs (D1 §6 flagged it) | Fix | "Over several years of counts, Sinervo and Lively saw the morphs take turns: blue, then orange, then yellow." |
+| S5 | L3 take "moved the young only a quarter of the way" was fixed text; realised R/S varies by run (lessons rule 6) | Fix | Take chosen from the run's pooled R/S: 0 < R/S ≤ 0.6 → "only part of the way"; ≤ 0 → "Chance swamped the response"; > 0.6 → "more than heritability predicts … chance" |
+| S6 | L1 body "The side you guarded less fed better and left more young" was an unchecked causal claim | Fix | Replaced by the measured bite success on the rarer and the commoner side over the level |
+| S7 | L1, L2 and L4 takes asserted a swing or synchrony that some runs do not show | Fix | `sim.take(s, n)`: the lesson take only when the run showed it (a full swing; synchrony ≥ 4 of seasons with ≤ 1 against); otherwise `content.data.takeNo[n]` |
+| S8 | L2 body "so the swing overshoots" unconditional | Fix | The overshoot sentence lives only in the swing take; the body says "Each season's young answer the guards their parents met." |
+| S9 | The striped species | Name it | *Plecodus straeleni* named in L4 Why?; ref `boileau2015` (aggressive mimicry). Synchrony stays labelled a model prediction |
+| S10 | Negative frequency dependence, the lizard matrix (O > B > Y > O, blue vs yellow = 2b − 1), the 2% input floor, ×N tags | Checked | Correct and tagged; oracle unchanged and passing |
+
+New references for Coordinator A: Kusche H, Lee HJ, Meyer A (2012) Mouth asymmetry in the textbook example of scale-eating cichlid fish is not a discrete dimorphism after all. *Proc R Soc B* 279: 4715. Boileau N et al. (2015) A complex mode of aggressive mimicry in a scale-eating cichlid fish. *Biol Lett* 11: 20150521. Lee, Heim & Meyer 2015: **to check** that the diet contrast is scales against other food, as now worded.
+
+### Review 3: D5 §3 checklist (as amended by D6)
+| # | Line | Status this session |
+|---|---|---|
+| 1 | Core verb | Unchanged; act-to-juice 40 ms max over 135 acts (paths) |
+| 2 | First 10 seconds | The D6 opening card comes first (decision 8 overrides "no card"); the sim waits under it; ghost hand on the commoner flank after Play; the first wave still waits for the first guard (oracle) |
+| 3 | Predict inside play | Unchanged; `needMove`, ghosts off the answer, band after commit |
+| 4 | Escalation | 5 levels; bot sweep PASS (7 bots × 40 seeds) |
+| 5 | Boss | Unchanged (`boss.inverts`) |
+| 6 | Live graph | `jw_trace` end labels now match line markers |
+| 7 | Juice | New flecks, jolt, streak and swing label all from `Sim.run` events; Calm stops caustic drift, fleck wobble and sway; 60 fps median at 1280 × 720 and 52–55 fps at phone DPR 2 under 4× throttle |
+| 8 | Text budget | Lint 0 errors, 0 warnings (alternative takes and plural phrases live in `content.data`, which the lint checks as text) |
+| 9 | Science honesty | S1–S9 fixed; Coordinator A sign-off still pending (three references to check) |
+| 10 | Teacher hook | Unchanged; teacher step passes (after the opening card) |
+| 11 | Accessibility | Unchanged keyboard map; untimed paths pass; `?cvd=deut` and `?cvd=mono` shots readable (no hue carries a score) |
+| 12 | Learning layer | Unchanged |
+| 13 | Monkey | See tests |
+
+### Tests (build `V2_ONLY='0*,zz_*,jaws.js'`, scratch `jaws/jaws.html`)
+- `node --check` clean; `tests/lint_text.js … jaws`: **0 errors, 0 warnings**.
+- `node tests/oracle.js … jaws` (full): **29 passed, 0 failed**. New check 14: every level card's take matches its own run, recomputed from the raw records (192 runs: 112 lesson shown, 75 not, 5 chance-large), and the L1 body's rarer/commoner bite rates match an independent tally. Science numbers unchanged: commoner-side bot opposes p − ½ in 439/439 seasons; h² in force 0.916 and 0.250; L3 R/S 0.230, R/Σh²S 1.049; lizard period 5.08 ± 0.09; a morph lost in every run without the floor (median season 3).
+- `tests/bots.py … --seeds 1-40 --bots alwaysA,alwaysB,random,greedy,threshold,lazy,mirror`: **PASS**, same masks as session 1 (mirror DP on 2 of 40 L2 seeds).
+- `tests/jaws_paths.py`: **30 ok, 0 failed** (new: the opening card's three parts, Play closes it, "?" reopens it; deep-link and teacher paths now pass the card first).
+- Monkey: see the summary line below.
+- Size: `v2/jaws.js` 105 KB raw, 33.6 KB gzip (session 1: 90.6 / 28.8). **Over the ≤ 90 KB raw guide** by the world art (lake bake, caustics, rocks, boss hillside ≈ 9 KB) and the run-chosen words; flagged for the coordinator.
+
+### Screenshots
+`/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/jaws/`: `final/` (every level and phase at 390 × 780 and 1280 × 720, plus `L1_intro_*`), `m/` and `m2/` (juice moments: pre-strike, bite, scale flecks, block, swing label), `cvd/` (deut and mono), `s0/` (session-1 look, for comparison).
+
+### Engine requests (new)
+1. The opening card ignores taps for its first moments; scripted tests must advance ~800 ms before clicking Play (documented in `jaws_paths.py`).
+2. `Rig` quantisation clamps non-integer traits to 0–1 silently; a signed trait (−1…1) drew straight. A warning in `Rig.def` for out-of-range values would have caught it.

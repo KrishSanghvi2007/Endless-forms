@@ -59,7 +59,7 @@ const TP_TEXT = {
   labels: {
     drip: 'drip', leak: 'leak', pool: 'a copies', hidden: 'in carriers', net: 'warden’s net', drum: 'rusty drum', gen: 'Generation {n}',
     lensOn: 'Lens on', ff: 'Tap: faster', xn: 'Drip ×2000', lock: 'Lock in', lensB: 'Lens', end: 'End dusk', fast: 'Faster',
-    half: 'half load', line: 'drip line', bal: 'balance', fedN: '{m} of {need}', divesN: '{d} dives', catchN: 'catch {s}%', loadN: '{l} per 1000',
+    half: 'half load', line: 'drip line', bal: 'balance', fedN: 'fed {m}/{need}', divesN: '{d} dives', catchN: 'catch {s}%', loadN: '{l} per 1000',
     dusk: 'Dusk {n}', season: 'Season {n}', unsteady: 'unsteady', shutDrum: 'Shut drum', gulls: '+2 gulls'
   },
   interesting: {
@@ -107,7 +107,7 @@ const TP_TEXT = {
   },
   levelStars: [
     { discover: 'Bring home 8 unsteady chicks this season.', predict: 'Land the balance prediction inside the band.' },
-    { discover: 'Bring home 4 chicks and look under the lens.', predict: 'Land the recessive balance inside the band.' },
+    { discover: 'Bring home 4 chicks, or all there are, and look under the lens.', predict: 'Land the recessive balance inside the band.' },
     { discover: 'Bring home 6 chicks from the feast.', predict: 'Land the doubling time inside the band.' },
     { discover: 'After the gulls join, shut the drum and bring the load near half.', transfer: 'Predict where the load settles under harder hunting.' }
   ],
@@ -117,7 +117,7 @@ const TP_TEXT = {
     'Relaxed selection lets the drip refill the pool, but only by about μ a generation.'
   ],
   levelBody: [
-    'You caught {c} of {n} unsteady chicks: a catch rate of {s}%. The a share settled near {q}; μ ÷ s gives {e}. At balance you caught {b} in a dusk; the drip adds about {d} copies to your stretch.',
+    'You caught {c} of {n} unsteady chicks: a catch rate of {s}%. The a share settled near {q}; μ ÷ s gives {e}. At balance the gulls removed about {k} copies a generation, and the drip added {m}.',
     'Your catch rate was {s}%. The a share settled near {q}, against √(μ ÷ s) = {e}. At balance {k} chicks in 100 carried a, but only {a} in 100 were unsteady.',
     'Under the net the a share rose from {q0} to {q1} in 30 generations. It doubled after about {d}. At a real drip near 10⁻⁵, doubling from balance takes about 450 generations.'
   ],
@@ -214,7 +214,7 @@ const CH_TAP_V2 = {
       if (o.thaw) { this.restore(o.thaw.snap); this.s.log = []; this.lever(o.thaw.lever); return; }
       const s = this.s = { level: level | 0, h: L.h, mu: L.mu, muD: 0, drum: false, N, gen: 0, si: -1, phase: 'start', t: 0, unt: false, auto: false, whatif: null,
         lensLv: !!L.lens, lens: false, lensUsed: false, net: false, gulls: false, plugGen: null, meals: 0, quota: 0, balDone: false, balC: 0, balN: 0,
-        sYou: 0.5, sCol: 0.5, seasons: [], caught: 0, seen: 0, cTot: 0, nTot: 0, vis: [], dusk: 0, dives: 0, divesMax: 0, busy: 0, dv: null, ut: 0,
+        sYou: 0.5, sCol: 0.5, need: 0, seasons: [], caught: 0, seen: 0, cTot: 0, nTot: 0, vis: [], dusk: 0, dives: 0, divesMax: 0, busy: 0, dv: null, ut: 0,
         asks: [], pred: {}, exp: {}, tol: {}, now: {}, hits: {}, ask: null, hist: [], steps: L.steps, log: [] };
       let q0 = L.q0;
       if (L.boss) {   // the drip varies by seed so no fixed answer fits every run; rain and drum each give half
@@ -261,7 +261,8 @@ const CH_TAP_V2 = {
       for (let k = 0; k < 3; k++) for (let j = 0; j < m[k]; j++) g.push(k);
       for (let i = g.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)), x = g[i]; g[i] = g[j]; g[j] = x; }   // shuffle the nests
       s.vis = g.map(x => ({ g: x, aff: this.affOf(x, s.h), alive: true, ex: false, tm: 0 }));
-      s.caught = 0; s.seen = s.vis.filter(c => c.aff).length; s.dusk = 0; s.quota = st.quota || 0;
+      s.caught = 0; s.seen = s.vis.filter(c => c.aff).length; s.dusk = 0; s.quota = st.quota ? Math.max(1, Math.min(st.quota, s.seen)) : 0;   // a thin sample asks for all there are
+      if (st.quota) s.need = s.quota;
       if (s.auto) { this.seasonEnd(s, ev, st, true); return; }
       ev.push({ k: 'season', bal: !!st.bal, n: s.seasons.length }); this.duskStart(s, ev);
     },
@@ -318,8 +319,9 @@ const CH_TAP_V2 = {
       const nx = WF.multinom(N, [(1 - q2) * (1 - q2), 2 * q2 * (1 - q2), q2 * q2]);
       const LE = this.load(s.qE, sc, h);
       s.qE = this.qn(s.qE, sc, h, mu); s.c = [nx[0], nx[1], nx[2]]; s.q = (nx[1] + 2 * nx[2]) / (2 * N); s.gen++;
-      const rec = { g: s.gen, q: this.r5(s.q), qE: this.r5(s.qE), m, k: kAa + 2 * kaa, d: kAa + kaa, L: Math.round((kAa + kaa) / N * 1e4) / 10, LE: Math.round(LE * 1e4) / 10, s: sc, mu };
-      s.hist.push(rec); ev.push({ k: 'gen', g: s.gen, m, kc: rec.k, q: rec.q });
+      const qb = (Aa + 2 * aa) / (2 * N), qs = tot > 0 ? ac / tot : 0, two = 2 * N;   // drip and leak as changes in the a share, in copies of 4,000: they cancel at balance
+      const rec = { g: s.gen, q: this.r5(s.q), qE: this.r5(s.qE), m: Math.round((q2 - qs) * two * 10) / 10, k: Math.round((qb - qs) * two * 10) / 10, d: kAa + kaa, L: Math.round((kAa + kaa) / N * 1e4) / 10, LE: Math.round(LE * 1e4) / 10, s: sc, mu };
+      s.hist.push(rec); ev.push({ k: 'gen', g: s.gen, m, kc: kAa + 2 * kaa, q: rec.q });
     },
     /* ---------- predictions: the sim opens the ask; the expectation is the model's ---------- */
     openAsk(s, ev, id) {
@@ -373,7 +375,7 @@ const CH_TAP_V2 = {
       if (s.whatif) return null; const st = CH_TAP_V2.stars, n = s.level;
       if (n === 3) { if (st.discover(s, 3)) return null; if (s.plugGen == null) return 'nodrum'; return s.plugGen < 5 ? 'early' : 'late'; }
       if (st.discover(s, n)) return n < 2 && s.sCol < 0.3 ? 'weak' : null;
-      if (n === 1 && !s.lensUsed && s.meals >= s.quota) return 'nolens';
+      if (n === 1 && !s.lensUsed && s.meals >= s.need) return 'nolens';
       return n === 2 ? 'feast' : 'hungry';
     },
     snapshot() { return Snap.enc({ s: this.s, rs: R.state() }); },
@@ -394,7 +396,7 @@ const CH_TAP_V2 = {
       lensAlways(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'lens', 'mid', 'g5'); },       // the lens on all the time
       line(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'nochange', 'g5'); },        // "no change" answers; the boss line at a fixed 20
       halfNow(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'half', 'g5'); },         // "half of now" answers
-      expert(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'exact', 'g5'); }          // test policy: reads s.exp (never in a sweep)
+      expert(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'exact', 'g10'); }         // test policy: reads s.exp (never in a sweep); shuts the drum a season after the gulls join
     },
     bot(s, acts, rnd, hunt, pred, drum) {
       if (typeof Save !== 'undefined' && Save.d && Save.d.ui && Save.d.ui.unt && !s.unt) return { k: 'unt', on: true };
@@ -406,7 +408,7 @@ const CH_TAP_V2 = {
         if (pred === 'half') return near(A.id === 't1' ? 500 * this.load(s.qE, s.sCol, s.h) : A.id === 'c1' ? s.qE / this.muNow(s) : s.qE / 2);
         return near(pred === 'lo' ? A.lo : pred === 'hi' ? A.hi : (A.lo + A.hi) / 2);
       }
-      if (s.drum && (drum === 'now' || (drum === 'g5' && s.gen >= 5 && s.gulls))) return { k: 'plug' };
+      if (s.drum && (drum === 'now' || (drum === 'g5' && s.gen >= 5 && s.gulls) || (drum === 'g10' && s.gen >= 10))) return { k: 'plug' };
       if (s.phase !== 'dusk') return null;
       if (hunt === 'never') return s.busy === 0 && s.t > 0.5 ? { k: 'end' } : null;
       if (hunt === 'lens') { if (!s.lens && s.lensLv) return { k: 'lens', on: true }; return s.t > 2 && s.busy === 0 ? { k: 'end' } : null; }
@@ -426,9 +428,9 @@ const CH_TAP_V2 = {
   stars: {
     discover: (s, n) => {
       if (s.whatif || s.phase !== 'over') return false;
-      if (n === 0) return s.meals >= 8 && s.balDone;
-      if (n === 1) return s.meals >= 4 && s.lensUsed && s.balDone;
-      if (n === 2) return s.meals >= 6;
+      if (n === 0) return s.meals >= s.need && s.balDone;
+      if (n === 1) return s.meals >= s.need && s.lensUsed && s.balDone;
+      if (n === 2) return s.meals >= s.need;
       const LE0 = 1000 * s.mt, end = CH_TAP_V2.sim.lastLE(s);
       return s.plugGen != null && s.plugGen >= 5 && end <= 0.6 * LE0;
     },
@@ -560,7 +562,8 @@ const CH_TAP_V2 = {
   bodyVars() {
     const s = this.sim.s, sim = this.sim, f3 = x => (Math.round(x * 1000) / 1000).toFixed(3), H = s.hist, last = H[H.length - 1] || { q: s.q };
     const tail = H.slice(-8), qm = tail.reduce((a, b) => a + b.q, 0) / Math.max(1, tail.length), mu = sim.muNow(s), n = this.level;
-    const V = { c: s.cTot, n: s.nTot, s: Math.round(100 * s.sCol), q: f3(qm), b: s.balC, d: (mu * 96).toFixed(1), l: (sim.lastLE(s)).toFixed(0) };
+    const V = { c: s.cTot, n: s.nTot, s: Math.round(100 * s.sCol), q: f3(qm), b: s.balC, l: (sim.lastLE(s)).toFixed(0) };
+    const t10 = H.slice(-10).filter(r => r.m != null); V.k = Math.round(t10.reduce((a, r) => a + r.k, 0) / Math.max(1, t10.length)); V.m = Math.round(t10.reduce((a, r) => a + r.m, 0) / Math.max(1, t10.length));   // realised, colony-wide
     V.e = f3(sim.qhat(s.sCol, s.h, mu)); V.r = f3(sim.qhat(s.sCol, 0, mu)); V.x = Math.round(Math.sqrt(s.sCol / Math.max(1e-9, mu)));
     if (n === 1) { const q = qm; V.k = Math.round(200 * q * (1 - q)); V.a = Math.round(100 * q * q); }
     if (n === 2) { const q0 = s.wiQ0 != null ? s.wiQ0 : H[0] ? H[0].q : s.q0, q30 = H[Math.min(30, H.length - 1)].q; V.q0 = f3(q0); V.q1 = f3(q30); V.d = Math.round(s.exp.c1 != null ? s.exp.c1 : sim.doubling(q0, s.h, 0.02)) + ' generations'; V.q = f3(last.q); V.e = (30 * mu * (1 - q0)).toFixed(4); }
@@ -634,12 +637,13 @@ const CH_TAP_V2 = {
   /* ---------- geometry (canvas px, from a fixed virtual layout: 6 ledges × 8 nests) ---------- */
   pos() {
     const W = Stage.w, H = Stage.h, top = this.hudH() + 4, ph = W < 600, h = H - top, P = { W, H, top, ph, u: Stage.u || Math.min(W, 1.2 * H) };
-    P.hz = top + h * (ph ? 0.2 : 0.46); P.foot = H - Math.max(58, h * 0.16);
+    P.hz = top + h * (ph ? 0.2 : 0.46); P.band = Math.max(ph ? 86 : 80, h * (ph ? 0.19 : 0.17)); P.foot = H - P.band;
     P.x0 = ph ? W * 0.05 : W * 0.3; P.x1 = W - (ph ? 6 : W * 0.025); P.y0 = top + h * (ph ? 0.1 : 0.08); P.cx = (P.x0 + P.x1) / 2;
     const dy = (P.foot - P.y0 - 14) / 6.15; P.dy = dy; P.ledgeY = []; for (let k = 0; k < 6; k++) P.ledgeY.push(P.y0 + 14 + dy * (k + 0.92));
-    P.dx = (P.x1 - P.x0) / 8.4; P.cr = Math.max(7, Math.min(P.dx, dy) * 0.24);
-    P.poolX = ph ? W * 0.24 : W * 0.15; P.poolY = P.foot + (H - P.foot) * 0.52; P.poolW = ph ? W * 0.36 : Math.min(W * 0.24, 190); P.poolH = Math.max(26, (H - P.foot) * 0.5);
-    P.drumX = ph ? W * 0.8 : W * 0.88; P.drumY = P.foot + (H - P.foot) * 0.46; P.drumR = Math.max(13, (H - P.foot) * 0.26);
+    P.dx = (P.x1 - P.x0) / 8.4; P.cr = Math.max(8, Math.min(P.dx, dy) * 0.3);
+    P.poolX = ph ? W * 0.25 : W * 0.15; P.poolY = P.foot + P.band * 0.66; P.poolW = ph ? W * 0.38 : Math.min(W * 0.24, 200); P.poolH = Math.max(26, P.band * 0.46);
+    P.cloudX = P.poolX + P.poolW * 0.02; P.cloudY = P.foot + P.band * 0.16;
+    P.drumX = ph ? W * 0.84 : W * 0.88; P.drumY = P.foot + P.band * 0.6; P.drumR = Math.max(13, P.band * 0.2);
     P.gnX = P.x1 - Math.max(40, P.dx * 0.9); P.gnY = P.y0 - 2;
     return P;
   },
@@ -671,7 +675,7 @@ const CH_TAP_V2 = {
     if (s.phase !== 'dusk' && s.phase !== 'dawn') Lbl.put('tp-gen', Txt.f(L.gen, { n: s.gen }), 12, P.top + 16, { align: 'left', size: 14, c, mono: true });
     if (s.lens) Lbl.put('tp-lens', L.lensOn, P.cx, P.y0 + 2, { size: 13, c });
     if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('tp-banner', b.text, w / 2, P.top + 40, { size: 22, c, weight: 700 }); c.restore(); }
-    if (/lapse|pause|dawn/.test(s.phase) && !v.ff && !s.auto) Lbl.put('tp-ff', L.ff, w - 12, h - 14, { align: 'right', size: 12, c });
+    if (/lapse|pause|dawn/.test(s.phase) && !v.ff && !s.auto) Lbl.put('tp-ff', L.ff, w - 12, P.top + 16, { align: 'right', size: 12, c });
     if (s.phase === 'ask') { c.fillStyle = 'rgba(30,20,44,0.2)'; c.fillRect(0, 0, w, h); }
   },
   bake(key, w, h, fn) {
@@ -698,6 +702,7 @@ const CH_TAP_V2 = {
     c.strokeStyle = 'rgba(240,140,110,0.55)'; c.lineWidth = 3; c.beginPath(); c.moveTo(P.x0 + 6, P.y0); c.lineTo(P.x0 + 2, P.foot); c.stroke();
     c.fillStyle = '#5E6B45'; c.beginPath(); c.moveTo(P.x0 + 4, P.y0 + 2); for (let x = P.x0; x <= W; x += 8) c.lineTo(x, P.y0 - 4 - r() * 6); c.lineTo(W, P.y0 + 4); c.closePath(); c.fill();   // the grassy cliff top
     c.strokeStyle = 'rgba(120,140,80,0.9)'; c.lineWidth = 1.2; for (let x = P.x0 + 4; x < W; x += 5) { c.beginPath(); c.moveTo(x, P.y0 - 2); c.lineTo(x + 5 + r() * 3, P.y0 - 10 - r() * 6); c.stroke(); }   // grass bent by the wind
+    c.strokeStyle = 'rgba(18,12,24,0.4)'; c.lineWidth = 1.5; for (let i = 0; i < 9; i++) { let x = P.x0 + 20 + r() * (W - P.x0 - 30), y = P.y0 + 6; c.beginPath(); c.moveTo(x, y); while (y < P.foot) { y += 10 + r() * 16; x += (r() - 0.5) * 8; c.lineTo(x, y); } c.stroke(); }   // vertical fissures
     c.strokeStyle = 'rgba(20,14,26,0.35)'; c.lineWidth = 1; for (let i = 0; i < 14; i++) { const y = P.y0 + 10 + r() * (P.foot - P.y0 - 20); c.beginPath(); c.moveTo(P.x0 + 8, y); c.quadraticCurveTo(P.cx, y + (r() - 0.5) * 16, W, y + (r() - 0.5) * 10); c.stroke(); }
     for (let k = 0; k < 6; k++) {
       const y = P.ledgeY[k], x0 = P.x0 + 6 + (k % 2 ? P.dx * 0.25 : 0);
@@ -706,7 +711,7 @@ const CH_TAP_V2 = {
       c.strokeStyle = 'rgba(242,160,120,0.6)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x0, y - 1); c.lineTo(W, y - 1); c.stroke();   // coral light on each ledge lip
       for (let j = 0; j < 8; j++) {
         const nx = P.x0 + P.dx * (j + 0.55 + (k % 2 ? 0.35 : 0));
-        c.fillStyle = 'rgba(236,230,220,0.5)'; c.fillRect(nx - 2 + r() * 4, y + 4, 2 + r() * 2, P.dy * (0.25 + 0.4 * r()));   // guano streaks
+        c.fillStyle = 'rgba(236,230,220,0.22)'; for (let q = 0; q < 3; q++) c.fillRect(nx - 4 + r() * 8, y + 5, 1 + r(), P.dy * (0.08 + 0.22 * r()));   // thin guano streaks
         c.fillStyle = '#5A4632'; c.beginPath(); c.ellipse(nx, y - 1, P.cr * 1.25, P.cr * 0.45, 0, 0, TAU); c.fill();   // the nest cup of mud and weed
         c.strokeStyle = '#3A2C22'; c.lineWidth = 1; c.stroke();
       }
@@ -731,6 +736,7 @@ const CH_TAP_V2 = {
       const fl = Det.sin(t * 16 + id) * 0.5; c.fillStyle = '#C9C3C2'; for (const sgn of [-1, 1]) { c.save(); c.translate(sgn * r * 0.7, -r * 0.1); c.rotate(sgn * (0.6 + fl)); c.beginPath(); c.ellipse(0, 0, r * 0.18, r * 0.45, 0, 0, TAU); c.fill(); c.stroke(); c.restore(); }
       c.fillStyle = '#F7F4EF'; c.beginPath(); c.arc(0, -r * 1.05, r * 0.55, 0, TAU); c.fill(); c.stroke();
       c.fillStyle = '#1E1A22'; c.beginPath(); c.arc(r * 0.18, -r * 1.12, r * 0.1, 0, TAU); c.fill(); c.fillStyle = '#3A3438'; c.beginPath(); c.moveTo(r * 0.45, -r * 1.05); c.lineTo(r * 0.8, -r * 0.98); c.lineTo(r * 0.45, -r * 0.92); c.fill();
+      c.strokeStyle = 'rgba(251,227,200,0.85)'; c.lineWidth = 1.5; for (const sg of [-1, 1]) { c.beginPath(); c.arc(0, -r * 0.2, r * 1.35, sg > 0 ? -0.5 : Math.PI - 0.5, sg > 0 ? 0.3 : Math.PI + 0.3); c.stroke(); }   // motion arcs: the totter reads without colour
       c.strokeStyle = '#2B2530'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-r * 0.25, r * 1.0); c.lineTo(-r * 0.3, r * 1.35); c.moveTo(r * 0.25, r * 1.0); c.lineTo(r * 0.3, r * 1.35); c.stroke();
     } else {
       c.fillStyle = '#DAD5D1'; c.beginPath(); c.ellipse(0, -r * 0.15, r * 0.95, r * 0.6, 0, Math.PI, 0); c.fill(); c.lineWidth = 1.1; c.strokeStyle = '#2B2530'; c.stroke();
@@ -739,13 +745,15 @@ const CH_TAP_V2 = {
     }
     c.restore();
   },
-  adult(c, x, y, r) {   // a kittiwake parent: white head and body, grey back, black wingtips, dark legs (natural paint)
-    c.save(); c.translate(x, y);
-    c.fillStyle = '#9DA4AE'; c.beginPath(); c.ellipse(-r * 0.1, -r * 0.9, r * 1.0, r * 0.5, -0.15, 0, TAU); c.fill();
-    c.fillStyle = '#F4F2EE'; c.beginPath(); c.ellipse(r * 0.15, -r * 0.7, r * 0.75, r * 0.45, 0, 0, TAU); c.fill(); c.beginPath(); c.arc(r * 0.75, -r * 1.25, r * 0.36, 0, TAU); c.fill();
-    c.fillStyle = '#1C1A20'; c.beginPath(); c.moveTo(-r * 0.95, -r * 0.95); c.lineTo(-r * 1.45, -r * 0.75); c.lineTo(-r * 0.9, -r * 0.7); c.fill();
-    c.fillStyle = '#D8C25A'; c.beginPath(); c.moveTo(r * 1.05, -r * 1.25); c.lineTo(r * 1.4, -r * 1.18); c.lineTo(r * 1.05, -r * 1.1); c.fill();
-    c.fillStyle = '#1C1A20'; c.beginPath(); c.arc(r * 0.85, -r * 1.3, r * 0.06, 0, TAU); c.fill();
+  adult(c, x, y, r) {   // a kittiwake parent standing at the nest: white head and breast, grey wing, black wingtips, short dark legs
+    c.save(); c.translate(x, y); c.lineWidth = 1; c.strokeStyle = 'rgba(30,24,36,0.8)';
+    c.beginPath(); c.moveTo(-r * 0.12, 0); c.lineTo(-r * 0.12, -r * 0.45); c.moveTo(r * 0.14, 0); c.lineTo(r * 0.14, -r * 0.45); c.stroke();
+    c.fillStyle = '#F4F2EE'; c.beginPath(); c.ellipse(r * 0.05, -r * 1.1, r * 0.55, r * 0.72, -0.2, 0, TAU); c.fill(); c.stroke();
+    c.fillStyle = '#A3AAB4'; c.beginPath(); c.ellipse(-r * 0.18, -r * 1.05, r * 0.42, r * 0.62, -0.35, 0, TAU); c.fill();
+    c.fillStyle = '#1C1A20'; c.beginPath(); c.moveTo(-r * 0.45, -r * 0.62); c.lineTo(-r * 0.9, -r * 0.2); c.lineTo(-r * 0.3, -r * 0.5); c.closePath(); c.fill();
+    c.fillStyle = '#F7F5F1'; c.beginPath(); c.arc(r * 0.28, -r * 1.85, r * 0.34, 0, TAU); c.fill(); c.stroke();
+    c.fillStyle = '#1C1A20'; c.beginPath(); c.arc(r * 0.38, -r * 1.9, r * 0.06, 0, TAU); c.fill();
+    c.fillStyle = '#D8C25A'; c.beginPath(); c.moveTo(r * 0.58, -r * 1.86); c.lineTo(r * 0.92, -r * 1.8); c.lineTo(r * 0.58, -r * 1.74); c.closePath(); c.fill();
     c.restore();
   },
   colony(c, P, t) {   // the 48 nests: chicks drawn from the sim's stretch in a season, else from the colony's shares (view only, no draws)
@@ -758,7 +766,7 @@ const CH_TAP_V2 = {
     }
     for (let i = 0; i < 48; i++) {
       const q = show[i]; if (!q) continue; const p = this.nestXY(i), x = p[0], y = p[1] + P.cr * 0.55;
-      if (this.hash('a' + i) % 3 === 0) this.adult(c, x - P.cr * 1.1, y, P.cr * 0.75);
+      if (this.hash('a' + i) % 4 === 0) this.adult(c, x - P.cr * 1.25, y - P.cr * 0.1, P.cr * 0.95);
       if (!q.alive) continue;
       const diving = v.dive && v.dive.i === i && v.dive.res === 'catch';
       if (diving) continue;
@@ -803,8 +811,8 @@ const CH_TAP_V2 = {
   },
   poolDraw(c, P, t) {   // the tap: a rain-fed rock pool. Rain drips in (mutation), the crack leaks (selection), the level is q
     const s = this.sim.s, v = this.v, L = this.content.labels, x = P.poolX, y = P.poolY, w = P.poolW, h = P.poolH, top = y - h / 2;
-    const scale = this.level === 0 ? 0.25 : 0.7, f = Math.max(0, Math.min(1, (v.pool || 0) / scale));
-    c.save(); c.fillStyle = '#231D2B'; c.beginPath(); c.ellipse(x, y, w / 2, h / 2, 0, 0, TAU); c.fill();   // the basin
+    const scale = [0.1, 0.5, 0.8, 0.4][this.level], f = Math.max(0.04, Math.min(1, (v.pool || 0) / scale));   // each level's scale puts its balance mid-pool; L1 opens brimming
+    c.save(); c.fillStyle = '#4A4058'; c.beginPath(); c.ellipse(x, y, w / 2, h / 2, 0, 0, TAU); c.fill(); c.lineWidth = 2; c.strokeStyle = 'rgba(242,160,120,0.5)'; c.stroke();   // the basin, its rim lit by the low sun
     c.beginPath(); c.ellipse(x, y, w / 2 - 3, h / 2 - 3, 0, 0, TAU); c.clip();
     const wy = top + h * (1 - f), wg = c.createLinearGradient(0, wy, 0, y + h / 2); wg.addColorStop(0, '#7E8FA8'); wg.addColorStop(1, '#3E4D66'); c.fillStyle = wg; c.fillRect(x - w / 2, wy, w, h);
     c.strokeStyle = 'rgba(255,214,170,0.75)'; c.lineWidth = 1.5; c.beginPath(); for (let k = 0; k <= 20; k++) { const xx = x - w / 2 + w * k / 20, yy = wy + Det.sin(k * 1.3 + t * 3) * 1.2; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); } c.stroke();
@@ -816,19 +824,19 @@ const CH_TAP_V2 = {
     c.restore();
     c.fillStyle = '#3B3344'; c.beginPath(); c.moveTo(x - w / 2 - 6, y - 2); c.quadraticCurveTo(x - w * 0.3, top - h * 0.35, x - w * 0.02, top + 4); c.lineTo(x - w * 0.1, top + 8); c.quadraticCurveTo(x - w * 0.32, top - h * 0.1, x - w / 2 + 2, y + 2); c.closePath(); c.fill();   // the overhang
     c.strokeStyle = '#151019'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + w / 2 - 4, y - 4); c.lineTo(x + w / 2 + 3, y + 2); c.lineTo(x + w / 2 - 1, y + 8); c.stroke();   // the crack, seaward
-    const cx = x + w * 0.05, cy = top - h * 0.9;   // the rain cloud over the pool
-    c.fillStyle = 'rgba(70,56,92,0.9)'; for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(cx - w * 0.22 + k * w * 0.14, cy + (k % 2) * 3, h * 0.32, 0, TAU); c.fill(); }
+    const cx = P.cloudX, cy = P.cloudY, cr = Math.max(8, P.band * 0.11);   // the rain cloud over the pool
+    c.fillStyle = 'rgba(78,62,100,0.95)'; for (let k = 0; k < 5; k++) { c.beginPath(); c.arc(cx - w * 0.26 + k * w * 0.13, cy + (k % 2) * 3, cr * (k % 2 ? 1 : 1.25), 0, TAU); c.fill(); }
+    c.fillStyle = 'rgba(240,150,120,0.45)'; c.fillRect(cx - w * 0.3, cy + cr * 0.9, w * 0.6, 1.5);
     c.fillStyle = '#B8C6DA';
-    for (const d of v.drops) { if (d.t < 0) continue; const k = d.t / d.d, xx = cx - w * 0.25 + w * 0.5 * d.x; c.beginPath(); c.ellipse(xx, cy + h * 0.2 + (wy - cy - h * 0.2) * k, 1.6, 3, 0, 0, TAU); c.fill(); if (k > 0.9) v.spl.push({ x: xx, y: wy, t: 0, d: 0.3 }); }
+    for (const d of v.drops) { if (d.t < 0) continue; const k = d.t / d.d, xx = cx - w * 0.25 + w * 0.5 * d.x, y0 = cy + cr; c.beginPath(); c.ellipse(xx, y0 + (wy - y0) * k, 1.6, 3, 0, 0, TAU); c.fill(); if (k > 0.9 && !d.sp) { d.sp = 1; v.spl.push({ x: xx, y: wy, t: 0, d: 0.3 }); } }
     for (const sp of v.spl) { c.strokeStyle = 'rgba(200,214,232,' + (1 - sp.t / sp.d).toFixed(2) + ')'; c.lineWidth = 1; c.beginPath(); c.arc(sp.x, sp.y, 2 + sp.t * 20, Math.PI, 0); c.stroke(); }
     c.fillStyle = '#9FB0C8';
     for (const l of v.leaks) { const k = l.t / l.d; for (let j = 0; j < l.n; j++) { c.beginPath(); c.arc(x + w / 2 + 4 + k * 14 + j * 3, y + 4 + k * k * 30 + j * 4, 1.8, 0, TAU); c.fill(); } }
     if (s.drum && s.level === 3) { c.strokeStyle = 'rgba(176,96,64,0.8)'; c.lineWidth = 2; c.setLineDash([3, 4]); c.lineDashOffset = -t * 20; c.beginPath(); c.moveTo(P.drumX - P.drumR, P.drumY); c.quadraticCurveTo((P.drumX + x) / 2, P.drumY + 14, x + w / 2 - 2, y); c.stroke(); c.setLineDash([]); }   // the drum's trickle into the pool
     if (typeof Lbl === 'undefined') return;
-    Lbl.put('tp-drip', L.drip, cx + w * 0.34, cy - 4, { size: 12, c, align: 'left' });
-    Lbl.put('tp-leak', L.leak, x + w / 2 + 6, y + h * 0.55, { size: 12, c, align: 'left' });
-    Lbl.put('tp-pool', s.lens && s.h === 0 ? L.hidden : L.pool, x, y + h / 2 + 12, { size: 12, c });
-    Lbl.put('tp-xn', L.xn, x - w / 2, cy - 4, { size: 12, c, align: 'left', pill: false, ink: '#F4EEE6' });
+    Lbl.put('tp-xn', L.xn, cx + w * 0.36, cy, { size: 12, c, align: 'left' });
+    Lbl.put('tp-pool', s.lens && s.h === 0 ? L.hidden : L.pool, x + w / 2 + 10, y - 6, { size: 12, c, align: 'left' });
+    Lbl.put('tp-leak', L.leak, x + w / 2 + 10, y + 14, { size: 12, c, align: 'left' });
   },
   drumDraw(c, P, t) {   // the rusty drum on the shore rocks (boss); shut, it sits capped and dry
     const s = this.sim.s, x = P.drumX, y = P.drumY, r = P.drumR;
@@ -852,7 +860,7 @@ const CH_TAP_V2 = {
     if (this.level === 3) { row(D.load, { l: this.loadNow().toFixed(1) }); return { stats, charts: [this.loadSpec(), this.qSpec(true)] }; }
     return { stats, charts: [this.qSpec(false), this.cpSpec()] };
   },
-  gens() { return this.level === 0 ? 30 : this.level === 1 ? 40 : this.level === 2 ? 55 : 30; },
+  gens() { return this.level === 0 ? 30 : this.level === 1 ? 40 : this.level === 2 ? 60 : 30; },
   qSpec(second) {   // the a share against generation: realised solid; the expected path dashed only after the ask is answered
     const s = this.sim.s, D = this.content.data, id = ['a1', 'b1', 'c1', 't1'][this.level], shown = s.hits[id] !== undefined || s.whatif;
     const hi = this.level === 0 ? 0.25 : this.level === 1 ? 0.5 : this.level === 2 ? 0.8 : 0.4;
@@ -863,7 +871,7 @@ const CH_TAP_V2 = {
   },
   cpSpec() {   // copies dripped in against copies removed, per generation: equal at balance
     const s = this.sim.s, D = this.content.data, H = s.hist.slice(1);
-    return { type: 'trace', title: D.titles.cp, fold: false, x: { lo: 0, hi: this.gens(), label: D.ax.gen }, y: { lo: 0, label: D.ax.cp }, frame: 'designed',
+    return { type: 'trace', title: D.titles.cp, fold: false, x: { lo: 0, hi: Math.max(this.gens(), s.gen), label: D.ax.gen }, y: { lo: 0, hi: Math.round(8 * s.N * TP_LV[this.level].mu / 10) * 10, label: D.ax.cp }, frame: 'designed',
       series: [{ d: H.map(r => [r.g, r.m]), ink: 'mut', label: D.lines.drip }, { d: H.map(r => [r.g, r.k]), ink: 'sel', label: D.lines.drain }] };
   },
   loadSpec() {   // the boss: chicks lost per 1,000 each generation; the drip line and the keeper's goal only after the ask

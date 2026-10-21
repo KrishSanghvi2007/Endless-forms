@@ -19,7 +19,7 @@
 const SC_TEXT = {
   intro: {
     game: 'Night in a microbiology lab. Under the lamp, bacteria copy their DNA and divide, and now and then a mutation sparks.',
-    biology: 'Mutations arise from copying errors, DNA damage and faulty repair, whether or not they would help. Most do nothing or harm; selection sorts the rest.',
+    biology: 'Mutations arise from copying errors, DNA damage, faulty repair and jumping genes, whether or not they would help. Most do nothing or harm.',
     how: 'Tap sparks to tag them, pour tubes onto plates, and stamp velvet from plate to plate. Drag on the graph to predict, then Lock in.'
   },
   firstWords: 'A mutation just sparked at the colony’s edge. Tap the spark to tag that lineage.',
@@ -119,7 +119,7 @@ const SC_TEXT = {
     { level: 0, simulated: 'A colony of haploid bacteria grows outward across a dish. A division at the edge sometimes makes a mutation, and its lineage forms a wedge.',
       simplification: 'Each mutation’s effect is drawn from a designed mix: 35% lethal, 30% harmful, 34% neutral, 1% helpful. The effect never depends on its source.',
       params: [{ name: 'sparks shown', value: 'about 1 a second', tag: 'designed' }, { name: 'genome mutation rate U', value: '0.01 per division', tag: 'xN', real: 'about 0.003 in DNA microbes' }, { name: 'helpful share', value: '1%', tag: 'xN', real: '0.001% to 1%' }],
-      cannot: 'Repair, mutation hot spots, or effects that differ by kind of change. Real insertions and frameshifts break genes more often than single-base changes.',
+      cannot: 'Repair, hot spots, or drift at the edge, which makes real neutral wedges wander and often vanish. Real insertions and frameshifts break genes more often than single-base changes.',
       nature: 'Measured mixes agree. In a virus, about 40% of single changes were lethal and a few per cent helped. Genome-wide, helpful mutations are rarer still.',
       contested: false, refs: ['drake1991', 'eyrewalker2007', 'sanjuan2004', 'hallatschek2007'] },
     { level: 1, simulated: 'Twenty tubes each grow from 100 cells to about 13 million. Any division can make a phage-resistant mutant, and its offspring stay resistant.',
@@ -138,8 +138,8 @@ const SC_TEXT = {
       simplification: 'A lineage wins on the new sugar by chance. The odds are 35% if it was neutral, 10% if harmful, 50% if helpful. Sparks keep their rate.',
       params: [{ name: 'neutral turned winner', value: '35%', tag: 'xN', real: 'much rarer' }, { name: 'bacteria a patient', value: '100 million', tag: 'designed' }, { name: 'resistance mutations a patient', value: '1.5 on average', tag: 'designed' }],
       cannot: 'Stress raising mutation rates. Stressed bacteria can make more mutations, but they are not aimed at what would help.',
-      nature: 'Gene effects change with conditions. In yeast, nearly every deletion slows growth in some condition. Mutations that help on one sugar often cost on another.',
-      contested: false, refs: ['hillenmeyer2008', 'ostrowski2005', 'foster2007'] }
+      nature: 'Gene effects change with conditions. In yeast, nearly every deletion slows growth in some condition. Mutations that help on one sugar can be neutral or costly on another.',
+      contested: false, refs: ['hillenmeyer2008', 'ostrowski2005', 'cooper2000', 'foster2007'] }
   ],
   why: {
     real: ['Mutations helpful on one food can be useless or costly on another. Which mutations win depends on the world they land in, not on how they arose.'],
@@ -384,7 +384,7 @@ const CH_SCRIBE_V2 = {
       if (a.k === 'predict') { if (s.ask && a.id === s.ask.id) this.commit(s, ev, a.id, a.moved === false ? null : a.v); return ev; }
       if (s.auto || s.phase === 'ask') return ev;
       if (a.k === 'tag' && s.kind === 'dish' && s.phase === 'run') this.tag(s, ev, a.id);
-      else if (a.k === 'skip' && s.kind === 'dish' && s.phase === 'run') { if (s.sp.some(p => !p.tag && !p.gone && p.wait)) ev.push({ k: 'wait' }); else this.letGo(s, ev); }
+      else if (a.k === 'skip' && s.kind === 'dish' && s.phase === 'run') { if (s.unt) this.letGo(s, ev); else ev.push({ k: 'wait' }); }   // untimed only: let lit sparks go
       else if (a.k === 'plate') this.plate(s, ev, a.i);
       else if (a.k === 'flag' && s.phase === 'flag' && a.i >= 0 && a.i < 20) { s.flag[a.i] = s.flag[a.i] ? 0 : 1; ev.push({ k: 'flag', i: a.i, on: s.flag[a.i] }); }
       else if (a.k === 'done' && s.phase === 'flag') { const z = this.zeros(s); this.openAsk(s, ev, 'u1', 'x', -10, -5, 0.301, -5, Math.round(Det.log(this.P().mu.v) / Det.log(10) * 1e4) / 1e4, 'end'); s.zAt = z; }
@@ -415,7 +415,7 @@ const CH_SCRIBE_V2 = {
         return out;
       }
       if (s.auto) return out;
-      if (s.kind === 'dish' && s.phase === 'run') { for (const p of s.sp) if (!p.tag && !p.gone) out.push({ k: 'tag', id: p.id }); }
+      if (s.kind === 'dish' && s.phase === 'run') { for (const p of s.sp) if (!p.tag && !p.gone) out.push({ k: 'tag', id: p.id }); if (s.unt && out.length) out.push({ k: 'skip' }); }
       else if (s.phase === 'plate') s.n.forEach((n, i) => { if (n < 0) out.push({ k: 'plate', i }); });
       else if (s.phase === 'flag') { s.n.forEach((n, i) => out.push({ k: 'flag', i })); out.push({ k: 'done' }); }
       else if (s.phase === 'stamp' || s.phase === 'stamp2') out.push({ k: 'stamp' });
@@ -442,7 +442,7 @@ const CH_SCRIBE_V2 = {
         if (o.pred === 'induced') { const ind = { z1: 0, u1: -5, c1: 0, b1: 0, b2: 0 }; return { k: 'predict', id, v: ind[id] }; }   // need-driven: no plate empty, rate high, no resistance without the drug
         return { k: 'predict', id, v: o.pred === 'lo' ? A.lo : o.pred === 'hi' ? A.hi : (A.lo + A.hi) / 2 };
       }
-      if (s.kind === 'dish' && s.phase === 'run') { if (o.tag === 'none') return null; const a = acts.find(x => x.k === 'tag'); return a || null; }
+      if (s.kind === 'dish' && s.phase === 'run') { if (o.tag === 'none') return s.unt && acts.length ? { k: 'skip' } : null; const a = acts.find(x => x.k === 'tag'); return a || null; }
       if (s.phase === 'plate') return acts[0] || null;
       if (s.phase === 'flag') {
         if (o.flag === 'none') return { k: 'done' };

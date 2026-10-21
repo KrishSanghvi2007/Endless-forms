@@ -43,7 +43,8 @@ const RY_TEXT = {
     court: 'Sweep the lamp over white-eyed males. In bright light they court poorly.',
     courtU: 'Tap to flash the lamp on white-eyed males. Each flash costs battery.',
     bred: 'The next generation hatches.',
-    askBal: 'From now the lamp catches half the white males. Where will their share settle?',
+    askBal: 'Now the lamp catches {f} white males. Where will their share settle?',
+    fH: 'half the', fQ: 'a quarter of the', fA: 'all the',
     auto: 'Sixty generations under the lamp. Watch the white males.',
     prior: '{name}. Before her sons are known, drag her chance of being a carrier.',
     sons: 'Her sons step forward.',
@@ -67,9 +68,9 @@ const RY_TEXT = {
     goal1: 'the F1', goal2: 'the F2', goal3: 'a white-eyed daughter', goal4: 'the reverse cross',
     lock: 'Lock in', breed: 'Breed now', seal: 'Seal', faster: 'Faster', crossN: 'Cross {n}', battery: 'Battery', gen: 'Generation {n}',
     ctl: 'Autosome cage', xcage: 'X cage', fem: '♀ X copies', male: '♂ X copies', carrier: 'carrier', notc: 'not carrier',
-    aff: 'haemophilia', none: 'no children', chance: 'Carrier chance', xN: 'Mutation ×1000', exact: 'exact {p}%', youP: 'you {p}%',
-    obligate: 'father affected', newcage: 'New cage', dish: 'Courtship dish', wm: 'white ♂ {n}%', wfem: 'white ♀ {n}%',
-    q: 'q', mother: 'mother', father: 'father', plus: '+{n}', pct: '{n}%', ask: 'predict', gallery: 'Victoria’s line'
+    aff: 'haemophilia', none: 'no children', chance: 'Carrier chance', clear: 'assumed clear', xN: 'Mutation ×1000', exact: 'exact {p}%', youP: 'you {p}%',
+    obligate: 'father affected', newcage: 'New cage', dish: 'Courtship dish', wm: 'white-eyed ♂ {n}%', wfem: 'white-eyed ♀ {n}%',
+    mother: 'mother', father: 'father', plus: '+{n}', pct: '{n}%', ask: 'predict', gallery: 'Victoria’s line'
   },
   interesting: {
     nowhite: 'No white-eyed daughters appeared. A daughter needs a white X from both parents: a white-eyed father and a mother carrying white.',
@@ -145,8 +146,8 @@ const RY_TEXT = {
       nature: 'In real populations the sexes reach the same X-linked frequencies within a few generations of mixing.',
       contested: false, refs: ['hartl2007'] },
     { level: 2, simulated: 'The same cage under a lamp. White-eyed males caught by the beam fail to mate, and new white mutations arise each generation.',
-      simplification: 'Only males are selected. The flies in the dish stand for the whole cage. After five rounds the lamp catches half of white males.',
-      params: [{ name: 'mutation to white', value: '1 in 100 copies', tag: 'xN', real: 'about 1 in 100,000 per gene per generation, or fewer' }, { name: 'selection on white males', value: '50% after five rounds', tag: 'designed' }, { name: 'flies of each sex', value: 1000, tag: 'designed' }],
+      simplification: 'Only males are selected. The flies in the dish stand for the whole cage. After five rounds the lamp catches a fixed share, usually half.',
+      params: [{ name: 'mutation to white', value: '1 in 100 copies', tag: 'xN', real: 'about 1 in 100,000 per gene per generation, or fewer' }, { name: 'selection on white males', value: 'half (a quarter or all in some runs) after five rounds', tag: 'designed' }, { name: 'flies of each sex', value: 1000, tag: 'designed' }],
       cannot: 'The poorer survival of white-eyed flies of both sexes, or mosaic carrier females.',
       nature: 'White-eyed Drosophila males mate less often than red-eyed ones, and laboratory cages lose the white allele over generations.',
       contested: false, refs: ['sturtevant1915', 'reed1950', 'haldane1935'] },
@@ -256,8 +257,8 @@ const CH_ROYAL_V2 = {
       s.left--; const qf = this.r6(this.qOf(F)), qm = this.qOf(M), type = this.typeOf(F, M);
       const c = { no: s.crosses.length + 1, f: F.id, m: M.id, qf, qm, fw: F.white, type, kids: [0, 0, 0, 0], n: this.P().brood.v, i: 0 };
       s.cur = c; s.crosses.push(c); ev.push({ k: 'cross', f: F.id, m: M.id, no: c.no });
-      if (!s.auto && type === 'f2' && s.asks.indexOf('a') < 0 && qf >= 0.3) this.openAsk(s, ev, 'a', 'x', 0, 1, 0.12, 0, qf, 'hatch', c.no);
-      else if (!s.auto && type === 'rev' && s.asks.indexOf('b') < 0) this.openAsk(s, ev, 'b', 'x', 0, 1, 0.12, 0, 1, 'hatch', c.no);
+      if (!s.auto && type === 'f2' && s.asks.indexOf('a') < 0 && qf >= 0.3) this.openAsk(s, ev, 'a', 'x', 0, 1, 0.12, 0, qf, 'hatch', this.P().vials.v + 1 - c.no);
+      else if (!s.auto && type === 'rev' && s.asks.indexOf('b') < 0) this.openAsk(s, ev, 'b', 'x', 0, 1, 0.12, 0, 1, 'hatch', this.P().vials.v + 1 - c.no);
       else { s.phase = 'hatch'; s.t = 0; }
     },
     crossStep(s, ev) {
@@ -278,7 +279,7 @@ const CH_ROYAL_V2 = {
         const st = { id: 'c' + c.no + (sex === 'f' ? (white ? 'w' : 'r') : (white ? 'W' : 'R')), sex, g, lab: white ? 'wF' : 'cF', no: c.no, white };
         s.stocks.push(st); ev.push({ k: 'stock', id: st.id, white });
         if (sex === 'f' && white && !s.goals.wf) { s.goals.wf = 1; ev.push({ k: 'wd' }); }
-        const fem = s.stocks.filter(x => x.sex === 'f'); if (fem.length > 5) { const old = fem.find(x => x.id !== 'wf' && !x.white && x.id !== st.id); if (old) s.stocks.splice(s.stocks.indexOf(old), 1); }
+        const fem = s.stocks.filter(x => x.sex === 'f'); if (fem.length > 4) { const ok = x => x.id !== 'wf' && !x.white && x.id !== st.id, old = fem.find(x => ok(x) && Math.abs(x.g[1] - 1) > 1e-6) || fem.find(ok); if (old) s.stocks.splice(s.stocks.indexOf(old), 1); }   // the shelf holds four female bottles: wild, white and the carriers stay longest
       };
       if (c.kids[0] > 0 && phom + phet > 0) add('f', [phom / (phom + phet), phet / (phom + phet), 0], false);
       if (c.kids[1] > 0) add('f', [0, 0, 1], true);
@@ -304,6 +305,7 @@ const CH_ROYAL_V2 = {
     aGen(cage, N) { const qf = this.qF(cage.F, N), qm = this.qM(cage.M, N); cage.F = this.diploid(N, qf, qm); cage.M = this.diploid(N, qf, qm); },   // autosomal: both sexes alike
     cageStep(s, ev) {
       if (s.phase === 'gen') {
+        if (!s.auto && s.g === 0 && s.t < 1.4 && s.asks.length === 0) return;   // a moment to see the cage before the first ask
         if (!s.auto) { const p = s.plan.find(x => x[1] === s.g + 1 && s.asks.indexOf(x[0]) < 0); if (p) { if (this.cageAsk(s, ev, p[0])) return; } }
         if (s.t < (s.g >= 3 || s.auto ? RY_T.run : RY_T.gen) / (s.ff ? 3 : 1)) return;
         s.t = 0; if (s.auts) this.aGen(s.cage, s.N); else this.xGen(s.cage, s.N, 0, 0); if (s.ctl && !s.auts) this.aGen(s.ctl, s.N);
@@ -377,9 +379,11 @@ const CH_ROYAL_V2 = {
     },
     lampEq(qf, qm, sel, mu) { const mut = q => q + mu * (1 - q); for (let g = 0; g < 3000; g++) { const fa = qm * (1 - sel) / (1 - sel * qm), a = mut(qf), b = mut(fa); qf = (a + b) / 2; qm = a; } return qm; },   // deterministic recursion to its balance
     balAsk(s, ev) {
-      const h = s.hist[s.hist.length - 1], e = this.r6(this.lampEq(h.qf, h.qm, s.sAuto, s.mu)), cur = h.qm, inBand = cur >= e / 1.5 && cur <= e * 1.5;
-      s.atAsk = { F: s.cage.F.slice(), M: s.cage.M.slice(), g: s.g, hl: s.hist.length };
-      this.openAsk(s, ev, 'bal', 'y', 0, 0.4, this.r6(e * 0.45), inBand ? 0.4 : cur, e, 'auto', 65);
+      // the lamp's share from now: half, unless "no change" would already sit inside the band; then a quarter, else all (lessons rule 4)
+      const h = s.hist[s.hist.length - 1], cur = h.qm; let sel = 0.5, e = 0;
+      for (const c of [0.5, 0.25, 1]) { e = this.r6(this.lampEq(h.qf, h.qm, c, s.mu)); sel = c; if (!(cur >= e / 1.5 && cur <= e * 1.5)) break; }
+      s.sAuto = sel; s.atAsk = { F: s.cage.F.slice(), M: s.cage.M.slice(), g: s.g, hl: s.hist.length };
+      this.openAsk(s, ev, 'bal', 'y', 0, 0.4, this.r6(e * 0.45), cur, e, 'auto', 65);
     },
 
     /* ---------- L3 (boss): the Queen's carriers ---------- */
@@ -620,7 +624,7 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     let t = '', num = '';
     if (s.auto) t = C.whatif;
-    else if (s.phase === 'ask') t = { a: C.askA, b: C.askB, m1: C.askM, m2: C.askM, f1: C.askF, f2: C.askF, f3: C.askF, bal: C.askBal, cv: C.cv }[s.ask.id] || (s.ask.id === 't' ? Txt.f(C.askT, { f: Math.round(100 * s.th[0].qf), m: Math.round(100 * s.th[0].qm) }) : C.askF);
+    else if (s.phase === 'ask') t = { a: C.askA, b: C.askB, m1: C.askM, m2: C.askM, f1: C.askF, f2: C.askF, f3: C.askF, bal: Txt.f(C.askBal, { f: s.sAuto === 0.25 ? C.fQ : s.sAuto === 1 ? C.fA : C.fH }), cv: C.cv }[s.ask.id] || (s.ask.id === 't' ? Txt.f(C.askT, { f: Math.round(100 * s.th[0].qf), m: Math.round(100 * s.th[0].qm) }) : C.askF);
     else if (s.kind === 'cross') { const g = s.goals, nx = !g.f1 ? L.goal1 : !g.f2 ? L.goal2 : !g.wf ? L.goal3 : L.goal4; t = s.phase === 'hatch' ? C.hatch : s.phase === 'sorted' ? C.sorted : s.crosses.length === 0 ? this.content.firstWords : Txt.f(C.next, { goal: nx }); num = Txt.f(L.vials, {}) + ' ' + s.left; }
     else if (s.kind === 'cage') { t = s.phase === 'tgen' ? C.trun : s.g === 0 ? C.cage : C.run; num = Txt.f(L.gen, { n: s.phase === 'tgen' ? s.tg : s.g }); }
     else if (s.kind === 'lamp') { t = s.phase === 'court' ? (s.unt ? C.courtU : C.court) : s.phase === 'auto' ? C.auto : C.bred; num = Txt.f(L.gen, { n: s.g + (s.phase === 'court' ? 1 : 0) }); }
@@ -628,7 +632,7 @@ const CH_ROYAL_V2 = {
     if (s.phase === 'over' && !s.auto) t = C.over;
     const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
     const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
-    if (bar) { const lab = s.kind === 'gallery' ? L.gallery : s.kind === 'cross' ? L.vials + ' ' + s.left : Txt.f(L.gen, { n: s.g || 0 }); if (bar.textContent !== lab) bar.textContent = lab; }
+    if (bar) { const lab = s.kind === 'gallery' ? L.gallery : num; if (bar.textContent !== lab) bar.textContent = lab; }
   },
   dock() {
     if (typeof Dock === 'undefined') return; const s = this.sim.s, L = this.content.labels;
@@ -697,7 +701,7 @@ const CH_ROYAL_V2 = {
       case 'badcross': this.whisper('drop'); return;
       case 'gen': case 'tgen': {
         const h = e.k === 'gen' ? s.hist[s.hist.length - 1] : s.th[s.th.length - 1]; v.glow = 0.4;
-        if (s.kind === 'cage') { snd('tick', P.cage.x, P.cage.y); if (F && !s.auto) F.ring(P.cage.x, P.cage.y, P.cage.r * 0.8, { ms: 300 }); }
+        if (s.kind === 'cage') snd('tick', P.cage.x, P.cage.y);
         if (typeof Live !== 'undefined' && (e.g % 2 === 0 || e.g < 4)) Live.say(Txt.f(this.content.live.gen, { n: e.g, f: Math.round(100 * h.qf), m: Math.round(100 * h.qm) }));
         this.redraw(); return;
       }
@@ -776,27 +780,30 @@ const CH_ROYAL_V2 = {
     const W = Stage.w, H = Stage.h, u = Stage.u || Math.min(W, 1.2 * H), top = this.hudH() + 8, s = this.sim.s, bot = H - 10, ph = W < 600;
     const P = { W, H, u, top, bot, ph };
     // fly room: the shelf of stock bottles, the bench with the cross bottle and the sorting plate, the brass lamp
-    P.shelfY = top + Math.max(54, Math.min(92, (bot - top) * 0.15)); P.bw = Math.max(36, Math.min(64, (W - 40) / 7.6)); P.bh = P.bw * 1.45;
-    P.benchY = top + (bot - top) * (ph ? 0.5 : 0.52);
-    const pw = Math.min(W * (ph ? 0.92 : 0.5), 460), phh = Math.min((bot - P.benchY) * 0.86, pw * 0.62);
-    P.plate = { x: ph ? W / 2 : W * 0.62, y: P.benchY + (bot - P.benchY) * 0.5, w: pw, h: phh };
-    P.cross = { x: ph ? W * 0.5 : W * 0.24, y: ph ? P.benchY - 8 : P.benchY + (bot - P.benchY) * 0.45, w: P.bw * 1.5, h: P.bw * 2.1 };
-    if (ph) P.cross.y = P.shelfY + P.bh * 0.55 + (P.benchY - P.shelfY - P.bh * 0.55) * 0.5 + P.bw * 1.05;
+    P.bw = ph ? Math.max(40, Math.min(54, (W - 24) / 6.9)) : Math.max(48, Math.min(70, (bot - top) * 0.11)); P.bh = P.bw * 1.45;
+    P.shelfY = top + P.bh * 0.5 + (ph ? 6 : 14); P.band = P.shelfY + P.bh * 0.5 + (ph ? 40 : 46);
+    P.benchY = ph ? Math.max(P.band + 112, top + (bot - top) * 0.47) : Math.max(P.band + 60, top + (bot - top) * 0.5);
+    const pw = ph ? W - 20 : Math.min(W * 0.5, 560), phh = ph ? bot - P.benchY - 14 : Math.min(bot - P.benchY - 20, pw * 0.56);
+    P.plate = { x: ph ? W / 2 : W * 0.64, y: ph ? P.benchY + 8 + phh / 2 : P.benchY + (bot - P.benchY) / 2, w: pw, h: phh };
+    P.cross = { w: P.bw * 1.35, h: P.bw * 1.95 }; P.cross.x = ph ? W * 0.17 : W * 0.25; P.cross.y = ph ? P.benchY - P.cross.h / 2 + 2 : P.benchY + P.cross.h * 0.5 + 24;
+    P.goals = ph ? { x: W * 0.36, y: P.band + 4, w: W * 0.62, cols: 2 } : { x: 18, y: P.band - 6, w: Math.min(W * 0.22, 230), cols: 1 };
+    P.vials = ph ? { x: W * 0.36 + 6, y: P.band + 58 } : { x: P.cross.x - 50, y: P.benchY + P.cross.h + 70 };
     P.lampX = W - Math.max(40, W * 0.12); P.lampY = top + 6;
     // the cage (L1): a big cage bottle and the small autosome control
-    const cr = Math.max(80, Math.min((bot - top) * 0.36, W * (ph ? 0.36 : 0.22)));
-    P.cage = { x: ph ? W * 0.42 : W * 0.4, y: top + (bot - top) * 0.52, r: cr };
-    P.ctl = { x: ph ? W * 0.84 : W * 0.75, y: top + (bot - top) * (ph ? 0.3 : 0.5), r: cr * 0.42 };
-    P.jars = { x: ph ? W * 0.84 : W * 0.75, y: top + (bot - top) * (ph ? 0.66 : 0.82) };
+    const cr = Math.max(80, Math.min((bot - top) * (ph ? 0.3 : 0.38), W * (ph ? 0.4 : 0.22)));
+    P.cage = { x: ph ? W * 0.32 : W * 0.36, y: top + (bot - top) * (ph ? 0.42 : 0.5), r: cr };
+    P.ctl = { x: ph ? W * 0.8 : W * 0.68, y: top + (bot - top) * (ph ? 0.24 : 0.36), r: cr * 0.42 };
+    P.jars = { x: ph ? W * 0.45 : W * 0.68, y: ph ? bot - 50 : top + (bot - top) * 0.76, s: ph ? Math.min(240, W - 120) : Math.min(220, W * 0.17) };
     // the lamp (L2): the courtship dish under the lamp
-    const dr = Math.max(100, Math.min((bot - top) * 0.42, W * (ph ? 0.45 : 0.3)));
-    P.dish = { x: ph ? W / 2 : W * 0.45, y: top + (bot - top) * 0.55, r: dr };
+    const dr = Math.max(100, Math.min((bot - top) * (ph ? 0.37 : 0.42), W * (ph ? 0.45 : 0.3)));
+    P.dish = { x: ph ? W / 2 : W * 0.45, y: ph ? top + 40 + dr : top + (bot - top) * 0.53, r: dr };
     // the gallery (boss): the current portrait, her parents above, her sons below, the brass slider
-    const fr = Math.max(48, Math.min((bot - top) * 0.15, W * 0.17));
-    P.frame = { x: W / 2, y: top + (bot - top) * 0.36, r: fr };
-    P.par = { y: top + fr * 0.62, r: fr * 0.42 };
-    P.sonY = P.frame.y + fr * 1.95; P.sonR = Math.max(24, fr * 0.42);
-    P.sl = { x: W * (ph ? 0.12 : 0.3), w: W * (ph ? 0.76 : 0.4), y: bot - Math.max(34, (bot - top) * 0.08) };
+    const fr = Math.max(46, Math.min(100, (bot - top - 190) / 4.1, W * 0.2)), pr = fr * 0.42, sr = Math.max(22, fr * 0.42);   // stacked top-down: parents, her portrait and plate, her sons, the slider
+    P.par = { y: top + pr * 1.05 + 4, r: pr };
+    P.frame = { x: W / 2, y: P.par.y + pr + 46 + fr, r: fr };
+    P.sonR = sr; P.sonY = P.frame.y + fr * 1.12 + 62 + sr;
+    P.sl = { x: W * (ph ? 0.12 : 0.3), w: W * (ph ? 0.76 : 0.4), y: Math.max(P.sonY + sr * 1.2 + 64, bot - 34) };
+    if (P.sl.y > bot - 22) P.sl.y = bot - 22;
     return P;
   },
   shelf() {   // stock bottles in shelf order: females left, males right (keys 1–7 follow this order)
@@ -809,8 +816,8 @@ const CH_ROYAL_V2 = {
   bottleXY(id) { const b = this.shelf().find(q => q.id === id); return b ? [b.x, b.y] : [this.pos().W / 2, this.pos().shelfY]; },
   bottleAt(x, y) { const P = this.pos(); let best = null, bd = 1e9; for (const b of this.shelf()) { const dx = x - b.x, dy = y - b.y; if (Math.abs(dx) < P.bw * 0.62 && dy > -P.bh * 0.7 && dy < P.bh * 0.75) { const d = dx * dx + dy * dy; if (d < bd) { bd = d; best = b.id; } } } return best; },
   trayXY(cls, k) {   // the k-th fly in tray cls (0 ♀ red, 1 ♀ white, 2 ♂ red, 3 ♂ white): a neat grid in each quarter of the plate
-    const P = this.pos(), pl = P.plate, cw = pl.w / 2, chh = pl.h / 2, col = cls % 2, row = cls >> 1, per = 8, gx = (cw - 26) / per, gy = Math.min(gx * 0.9, (chh - 30) / 5);
-    return [pl.x - pl.w / 2 + col * cw + 16 + (k % per + 0.5) * gx, pl.y - pl.h / 2 + row * chh + 24 + (Math.floor(k / per) + 0.5) * gy];
+    const P = this.pos(), pl = P.plate, cw = pl.w / 2, chh = pl.h / 2, col = cls % 2, row = cls >> 1, per = 8, gx = (cw - 26) / per, gy = Math.min(gx * 1.05, (chh - 32) / 4);
+    const r0 = Math.floor(k / per), wrap = r0 % 4, lay = Math.floor(r0 / 4); return [pl.x - pl.w / 2 + col * cw + 16 + (k % per + 0.5 + lay * 0.5) * gx, pl.y - pl.h / 2 + row * chh + 26 + (wrap + 0.5) * gy];
   },
   flyXY(f) { const s = this.sim.s, D = this.pos().dish, p = this.sim.flyPos(f, s.ct || 0); return [D.x + (p[0] - 0.5) * 2 * D.r, D.y + (p[1] - 0.5) * 2 * D.r]; },
   sonXY(i) { const s = this.sim.s, P = this.pos(), c = RY_CASES[s.ci], n = Math.max(1, c.sons.length), sp = Math.min(P.sonR * 2.9, (P.W - 30) / n); return [P.W / 2 + (i - (n - 1) / 2) * sp, P.sonY]; },
@@ -861,7 +868,7 @@ const CH_ROYAL_V2 = {
     c.fillStyle = RY_C.band; if (m) { c.beginPath(); c.ellipse(0, L * 0.32, L * 0.13, L * 0.12, 0, 0, Math.PI); c.fill(); } else for (const k of [0.16, 0.27, 0.38]) c.fillRect(-L * 0.15, L * k, L * 0.3, L * 0.04);
     c.fillStyle = '#A07A44'; c.beginPath(); c.ellipse(0, -L * 0.06, L * 0.15, L * 0.14, 0, 0, TAU); c.fill();   // thorax
     c.fillStyle = '#B08A50'; c.beginPath(); c.ellipse(0, -L * 0.25, L * 0.11, L * 0.09, 0, 0, TAU); c.fill();   // head
-    const er = L * 0.085; for (const g of [-1, 1]) { c.beginPath(); c.arc(g * L * 0.1, -L * 0.27, er, 0, TAU); c.fillStyle = o.white ? RY_C.white : RY_C.red; c.fill(); c.lineWidth = 1; c.strokeStyle = o.white ? '#8A8478' : '#5A1A14'; c.stroke(); }
+    const er = L * 0.1; for (const g of [-1, 1]) { c.beginPath(); c.arc(g * L * 0.11, -L * 0.27, er, 0, TAU); c.fillStyle = o.white ? RY_C.white : RY_C.red; c.fill(); c.lineWidth = 1; c.strokeStyle = o.white ? '#8A8478' : '#5A1A14'; c.stroke(); }
     c.restore();
   },
   bottle(c, x, y, bw, bh, o) {   // a half-pint milk bottle with banana mash and a cotton plug; o {flies: [{white, male}], lift, sel, label, alpha, glow}
@@ -871,7 +878,7 @@ const CH_ROYAL_V2 = {
     c.lineTo(x + bw / 2 - 4, bot); c.quadraticCurveTo(x + bw / 2, bot, x + bw / 2, bot - 4); c.lineTo(x + bw / 2, top + bh * 0.48); c.quadraticCurveTo(x + bw / 2, top + bh * 0.3, x + nw / 2, top + bh * 0.2); c.lineTo(x + nw / 2, top + bh * 0.08); c.closePath();
     c.fillStyle = RY_C.glass; c.fill();
     c.save(); c.clip(); c.fillStyle = RY_C.mash; c.fillRect(x - bw / 2, bot - bh * 0.2, bw, bh * 0.2); c.fillStyle = 'rgba(120,90,40,0.35)'; c.fillRect(x - bw / 2, bot - bh * 0.2, bw, 2);
-    const fl = o.flies || []; fl.forEach((f, i) => { const fx = x + ((i * 37) % 7 - 3) * bw * 0.1, fy = top + bh * (0.42 + 0.12 * ((i * 3) % 4)); this.fly(c, fx, fy, Math.max(9, bw * 0.3), { white: f.white, male: f.male, rot: ((i * 1.7) % 3) - 1.5 }); });
+    const fl = o.flies || []; fl.forEach((f, i) => { const fx = x + ((i * 37) % 7 - 3) * bw * 0.1, fy = top + bh * (0.42 + 0.12 * ((i * 3) % 4)); this.fly(c, fx, fy, Math.max(12, bw * 0.36), { white: f.white, male: f.male, rot: ((i * 1.7) % 3) - 1.5 }); });
     c.restore();
     c.lineWidth = 1.5; c.strokeStyle = RY_C.glassE; c.stroke();
     c.fillStyle = 'rgba(255,255,255,0.25)'; c.fillRect(x - bw / 2 + 4, top + bh * 0.45, 3, bh * 0.4);   // a highlight down the glass
@@ -891,7 +898,7 @@ const CH_ROYAL_V2 = {
       const st = this.sim.stock(s, b.id); if (!st) return; const dragging = v.drag && v.drag.id === b.id && v.drag.moved, nk = v.newStock[b.id];
       const target = v.drag && v.drag.moved && st.sex === 'm' && this.bottleAt(v.drag.cx || 0, v.drag.cy || 0) === b.id;
       this.bottle(c, b.x, b.y, P.bw, P.bh, { flies: this.stockFlies(st), lift: v.sel === b.id ? 8 : target ? 4 : 0, sel: v.sel === b.id || target, alpha: dragging ? 0.35 : 1, glow: nk != null ? Math.max(0, 1 - nk / 1.5) : 0 });
-      Lbl.put('ry-st' + i, this.stockLabel(st), b.x, b.y + P.bh * 0.5 + 18, { size: 12, c });
+      const crowd = B.length > 1 && Math.abs(B[1].x - B[0].x) < 70; Lbl.put('ry-st' + i, this.stockLabel(st), b.x, b.y + P.bh * 0.5 + 16 + (crowd && i % 2 ? 18 : 0), { size: 12, c });
     });
     if (v.drag && v.drag.moved) { const st = this.sim.stock(s, v.drag.id); if (st) this.bottle(c, v.drag.cx, v.drag.cy, P.bw, P.bh, { flies: this.stockFlies(st), sel: true }); }
     // the plate: four trays, the flies sorted by sex and eye colour (rung 0: the world is the chart)
@@ -902,7 +909,7 @@ const CH_ROYAL_V2 = {
       const col = k % 2, row = k >> 1, cx = pl.x - pl.w / 2 + col * pl.w / 2, cy = pl.y - pl.h / 2 + row * pl.h / 2;
       Lbl.put('ry-tr' + k, L[keys[k]], cx + 34, cy + 11, { size: 12, c, pill: false, ink: '#3A2E24' });
       const n = cur ? cur.kids[k] : 0; Lbl.put('ry-tn' + k, String(n), cx + pl.w / 2 - 18, cy + 12, { size: 14, c, pill: false, ink: '#3A2E24', weight: 700 });
-      const shown = v.trays[k].length; for (let j = 0; j < shown; j++) { const q = this.trayXY(k, j); this.fly(c, q[0], q[1], Math.max(8, Math.min(14, pl.w / 34)), { white: k % 2 === 1, male: k > 1, rot: ((j * 2.3) % 2) - 1 }); }
+      const shown = v.trays[k].length; for (let j = 0; j < shown; j++) { const q = this.trayXY(k, j); this.fly(c, q[0], q[1], Math.max(12, Math.min(20, pl.w / 24)), { white: k % 2 === 1, male: k > 1, rot: 0.2 * (((j * 2.3) % 2) - 1) }); }
     }
     // the cross bottle on the bench: the two parent bottles pour in, then pupae crack and flies hatch out to the trays
     const cb = P.cross;
@@ -910,21 +917,19 @@ const CH_ROYAL_V2 = {
       const F = this.sim.stock(s, cur.f), M = this.sim.stock(s, cur.m), left = cur.n - cur.i;
       this.bottle(c, cb.x, cb.y, cb.w, cb.h, { flies: [{ white: F && F.white, male: false }, { white: M && M.white, male: true }] });
       c.fillStyle = '#C7A86A'; for (let j = 0; j < Math.min(14, Math.ceil(left / 3)); j++) { const px = cb.x - cb.w * 0.35 + (j % 5) * cb.w * 0.17, py = cb.y - cb.h * 0.1 + Math.floor(j / 5) * cb.h * 0.1; c.beginPath(); c.ellipse(px, py, 3, 6, 0.3, 0, TAU); c.fill(); }   // pupae on the glass
-      Lbl.put('ry-cno', Txt.f(L.crossN, { n: cur.no }), cb.x, cb.y + cb.h * 0.5 + 16, { size: 12, c });
+      Lbl.put('ry-cno', Txt.f(L.crossN, { n: cur.no }), cb.x, P.ph ? cb.y + cb.h * 0.12 : cb.y + cb.h * 0.5 + 16, { size: 12, c });
     }
     if (v.pour) { const k = v.pour.t / 0.7, a = this.bottleXY(v.pour.f), b = this.bottleXY(v.pour.m); for (const p of [a, b]) { const x = p[0] + (cb.x - p[0]) * k, y = p[1] + (cb.y - p[1]) * k - 30 * Det.sin(Math.PI * k); this.fly(c, x, y, 14, { male: p === b, alpha: 1 - k * 0.5 }); } }
-    for (const f of v.flies) { const k = f.t / f.d, e = k * k * (3 - 2 * k); this.fly(c, f.x0 + (f.x1 - f.x0) * e, f.y0 + (f.y1 - f.y0) * e - 26 * Det.sin(Math.PI * k), 12, { white: f.cls % 2 === 1, male: f.cls > 1, wing: Det.sin(v.t * 40) }); }
+    for (const f of v.flies) { const k = f.t / f.d, e = k * k * (3 - 2 * k); this.fly(c, f.x0 + (f.x1 - f.x0) * e, f.y0 + (f.y1 - f.y0) * e - 26 * Det.sin(Math.PI * k), 16, { white: f.cls % 2 === 1, male: f.cls > 1, wing: Det.sin(v.t * 40) }); }
     // the notebook: four goals, ticked as they are met; the vials left
-    const g = s.goals, nbx = P.ph ? 10 : 14, nby = P.ph ? P.benchY + 6 : P.benchY + 10, done = [g.f1, g.f2, g.wf, g.rev];
-    if (!P.ph) { c.fillStyle = 'rgba(239,230,210,0.92)'; c.fillRect(nbx, nby, 150, 104); c.strokeStyle = '#8A7A5E'; c.lineWidth = 1; c.strokeRect(nbx, nby, 150, 104); }
-    ['g1', 'g2', 'g3', 'g4'].forEach((k, i) => {
-      const yy = P.ph ? P.benchY - 10 - (3 - i) * 0 : nby + 16 + i * 22, xx = P.ph ? 14 + i * (w - 28) / 4 : nbx + 10;
-      if (P.ph) { const cx = xx + (w - 28) / 8; c.beginPath(); c.arc(cx, P.top + 10 + 0, 0, 0, 0); this.tick(c, cx - 30, yy, done[i]); Lbl.put('ry-g' + i, L[k], cx + 4, yy, { size: 12, c, pill: true }); }
-      else { this.tick(c, xx + 6, yy, done[i]); Lbl.put('ry-g' + i, L[k], xx + 22, yy, { size: 12, c, pill: false, ink: '#3A2E24', align: 'left' }); }
-    });
-    const vx = P.ph ? w - 16 - 6 * 14 : 24, vy = P.ph ? P.cross.y - 16 : nby + 132;
-    for (let i = 0; i < this.sim.P().vials.v; i++) { const full = i < s.left; c.fillStyle = full ? 'rgba(222,232,226,0.5)' : 'rgba(222,232,226,0.12)'; c.fillRect(vx + i * 14, vy, 9, 26); c.strokeStyle = 'rgba(240,246,242,0.6)'; c.lineWidth = 1; c.strokeRect(vx + i * 14, vy, 9, 26); if (full) { c.fillStyle = RY_C.mash; c.fillRect(vx + i * 14 + 1, vy + 18, 7, 7); } }
-    Lbl.put('ry-vl', L.vials, vx + this.sim.P().vials.v * 7 - 2, vy + 40, { size: 12, c });
+    // the notebook card: Morgan's four goals, ticked as they are met; then the vials left (the budget)
+    const g = s.goals, G0 = P.goals, done = [g.f1, g.f2, g.wf, g.rev], rows = G0.cols === 2 ? 2 : 4, cw = G0.w / G0.cols, nh = rows * 24 + 10;
+    c.fillStyle = 'rgba(239,230,210,0.94)'; c.fillRect(G0.x, G0.y, G0.w, nh); c.strokeStyle = '#8A7A5E'; c.lineWidth = 1; c.strokeRect(G0.x, G0.y, G0.w, nh);
+    c.strokeStyle = 'rgba(140,120,170,0.35)'; for (let r = 0; r < rows; r++) { c.beginPath(); c.moveTo(G0.x + 4, G0.y + 29 + r * 24); c.lineTo(G0.x + G0.w - 4, G0.y + 29 + r * 24); c.stroke(); }   // ruled lines
+    ['g1', 'g2', 'g3', 'g4'].forEach((k, i) => { const col = G0.cols === 2 ? i % 2 : 0, row = G0.cols === 2 ? i >> 1 : i, xx = G0.x + 10 + col * cw, yy = G0.y + 17 + row * 24; this.tick(c, xx + 6, yy, done[i]); Lbl.put('ry-g' + i, L[k], xx + 18, yy, { size: 12, c, pill: false, ink: '#2A2019', align: 'left' }); });
+    const V0 = P.vials, nv = this.sim.P().vials.v;
+    for (let i = 0; i < nv; i++) { const full = i < s.left, x = V0.x + i * 16; c.fillStyle = full ? 'rgba(222,232,226,0.55)' : 'rgba(222,232,226,0.1)'; c.fillRect(x, V0.y, 10, 28); c.strokeStyle = 'rgba(240,246,242,0.7)'; c.lineWidth = 1; c.strokeRect(x, V0.y, 10, 28); if (full) { c.fillStyle = RY_C.mash; c.fillRect(x + 1, V0.y + 19, 8, 8); c.fillStyle = RY_C.plug; c.fillRect(x - 1, V0.y - 3, 12, 4); } }
+    Lbl.put('ry-vl', L.vials + ' ' + s.left, V0.x + nv * 16 + 34, V0.y + 14, { size: 12, c });
     if (s.phase === 'ask') { c.fillStyle = 'rgba(10,8,6,0.18)'; c.fillRect(0, 0, w, h); }
   },
   tick(c, x, y, on) { c.save(); c.strokeStyle = on ? '#2F6B3A' : 'rgba(90,80,60,0.6)'; c.lineWidth = on ? 2.5 : 1.2; c.strokeRect(x - 6, y - 6, 12, 12); if (on) { c.beginPath(); c.moveTo(x - 4, y); c.lineTo(x - 1, y + 4); c.lineTo(x + 6, y - 6); c.stroke(); } c.restore(); },
@@ -938,17 +943,18 @@ const CH_ROYAL_V2 = {
     c.save(); c.fillStyle = 'rgba(222,232,226,0.16)'; c.beginPath(); c.ellipse(x, y, r * 0.78, r, 0, 0, TAU); c.fill(); c.strokeStyle = RY_C.glassE; c.lineWidth = 2; c.stroke();
     c.save(); c.beginPath(); c.ellipse(x, y, r * 0.78, r, 0, 0, TAU); c.clip(); c.fillStyle = RY_C.mash; c.fillRect(x - r, y + r * 0.62, 2 * r, r);
     const calm = typeof Fx !== 'undefined' && Fx.calm;
-    for (const f of flies) { const a = (f.h % 628) / 100, rr = ((f.h >> 10) % 100) / 100, sp = 0.25 + ((f.h >> 17) % 50) / 100, ang = a + (calm ? 0 : t * sp * 0.4), fx = x + Det.cos(ang) * r * 0.62 * Math.sqrt(rr), fy = y - r * 0.15 + Det.sin(ang * 1.3) * r * 0.62 * Math.sqrt(rr); this.fly(c, fx, fy, Math.max(9, r * 0.12), { white: f.white, male: f.male, rot: ang + 1.57 }); }
+    for (const f of flies) { const a = (f.h % 628) / 100, rr = ((f.h >>> 10) % 100) / 100, ph0 = ((f.h >>> 17) % 628) / 100, wob = calm ? 0 : t * (0.6 + ((f.h >>> 4) % 40) / 40), fx = x + Det.cos(a) * r * 0.66 * Math.sqrt(rr) + Det.sin(wob + ph0) * r * 0.05, fy = y - r * 0.1 + Det.sin(a) * r * 0.62 * Math.sqrt(rr) + Det.cos(wob * 0.8 + ph0) * r * 0.04; this.fly(c, fx, fy, Math.max(13, r * 0.15), { white: f.white, male: f.male, rot: a + Det.sin(wob) * 0.5 }); }
     c.restore();
     c.fillStyle = RY_C.plug; c.beginPath(); c.ellipse(x, y - r * 1.02, r * 0.3, r * 0.08, 0, 0, TAU); c.fill();
     if (lab) Lbl.put('ry-cl' + Math.round(x), lab, x, y + r + 16, { size: 12, c });
     c.restore();
   },
-  jars(c, x, y, qf, qm, s0) {   // allele read-out: X copies as rods, blue + and amber w (D6: allele inks only here); ♀ two rods per fly, ♂ one plus a Y bar
-    const T = typeof Pal !== 'undefined' ? Pal : null, A = T ? String(T.A) : '#6B97FF', a = T ? String(T.a) : '#F2C94C', L = this.content.labels, n = 10, wR = s0 * 0.11, gap = s0 * 0.04;
-    const row = (yy, q, k, lab, male) => { const nw = Math.round(n * q); for (let i = 0; i < n; i++) { const xx = x - (n * (wR + gap)) / 2 + i * (wR + gap); c.fillStyle = i < n - nw ? A : a; c.fillRect(xx, yy - s0 * 0.16, wR, s0 * 0.32); c.strokeStyle = RY_C.ink; c.lineWidth = 1; c.strokeRect(xx, yy - s0 * 0.16, wR, s0 * 0.32); }
-      Lbl.put('ry-jl' + k, lab, x, yy + s0 * 0.16 + 13, { size: 12, c }); Lbl.put('ry-jp' + k, Math.round(100 * q) + '%', x + (n * (wR + gap)) / 2 + 22, yy, { size: 13, c, weight: 700 }); void male; };
-    row(y - s0 * 0.42, qf, 0, L.fem, false); row(y + s0 * 0.42, qm, 1, L.male, true);
+  jars(c, x, y, qf, qm, jw) {   // allele read-out: X copies as rods, blue + and amber w (D6: allele inks only here); ♀ row and ♂ row, ten rods each
+    const T = typeof Pal !== 'undefined' ? Pal : null, A = T ? String(T.A) : '#6B97FF', a = T ? String(T.a) : '#F2C94C', L = this.content.labels, n = 10, st = jw / n, wR = st * 0.72, rh = 24;
+    c.fillStyle = 'rgba(20,14,10,0.55)'; c.fillRect(x - jw / 2 - 10, y - rh - 30, jw + 66, 2 * rh + 64);
+    const row = (yy, q, k, lab) => { const nw = Math.round(n * q); for (let i = 0; i < n; i++) { const xx = x - jw / 2 + i * st; c.fillStyle = i < n - nw ? A : a; c.fillRect(xx, yy - rh / 2, wR, rh); c.strokeStyle = RY_C.ink; c.lineWidth = 1; c.strokeRect(xx, yy - rh / 2, wR, rh); }
+      Lbl.put('ry-jl' + k, lab, x - jw / 2 + 2, yy - rh / 2 - 9, { size: 12, c, pill: false, ink: RY_C.paper, align: 'left' }); Lbl.put('ry-jp' + k, Math.round(100 * q) + '%', x + jw / 2 + 26, yy, { size: 13, c, weight: 700 }); };
+    row(y - rh * 0.6, qf, 0, L.fem); row(y + rh * 1.3, qm, 1, L.male);
   },
   drawCage(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels, N = s.N;
@@ -958,7 +964,7 @@ const CH_ROYAL_V2 = {
     this.drawCageBottle(c, P.cage.x, P.cage.y, P.cage.r, this.cageFlies(cage, N, 44, (tc ? 'T' : 'C') + (tc ? s.tg : s.g)), v.t, tc ? L.newcage : s.auts ? L.ctl : L.xcage);
     if (s.ctl && !tc) this.drawCageBottle(c, P.ctl.x, P.ctl.y, P.ctl.r, this.cageFlies(s.ctl, N, 12, 'A' + s.g), v.t, L.ctl);
     const qf = this.sim.qF(cage.F, N), qm = this.sim.qM(cage.M, N), hide = s.ask && s.ask.id !== 't';   // during a zigzag ask the jars show the cage now, never the answer
-    void hide; this.jars(c, P.jars.x, P.jars.y, qf, qm, Math.max(70, Math.min(130, P.cage.r * 0.9)));
+    void hide; this.jars(c, P.jars.x, P.jars.y, qf, qm, P.jars.s);
     if (s.phase === 'ask') { c.fillStyle = 'rgba(10,8,6,0.16)'; c.fillRect(0, 0, w, h); }
   },
   /* the lamp: the courtship dish under the brass lamp; the beam is where the pointer is */
@@ -976,25 +982,25 @@ const CH_ROYAL_V2 = {
     if (v.flash) { const k = 1 - v.flash.t / 0.5; c.fillStyle = 'rgba(255,240,200,' + (0.8 * k).toFixed(3) + ')'; c.beginPath(); c.arc(v.flash.x, v.flash.y, br * 1.25, 0, TAU); c.fill(); }
     // females (view only: the dish holds a few; white-eyed ones are rare, about q²) and the males (the sim's flies)
     const N = s.N, wf = s.cage.F[2] / N, nf = 14, kf = Math.round(nf * wf);
-    for (let i = 0; i < nf; i++) { const hh = this.hash('f' + s.g + ':' + i), a = (hh % 628) / 100, rr = 0.2 + 0.6 * ((hh >> 9) % 100) / 100; this.fly(c, D.x + Det.cos(a) * D.r * rr * 0.85, D.y + Det.sin(a) * D.r * rr * 0.85, Math.max(12, D.r * 0.11), { white: i < kf, male: false, rot: a }); }
+    for (let i = 0; i < nf; i++) { const hh = this.hash('f' + s.g + ':' + i), a = (hh % 628) / 100, rr = 0.2 + 0.6 * ((hh >>> 9) % 100) / 100; this.fly(c, D.x + Det.cos(a) * D.r * rr * 0.85, D.y + Det.sin(a) * D.r * rr * 0.85, Math.max(16, D.r * 0.14), { white: i < kf, male: false, rot: a }); }
     if (s.flies && (s.phase === 'court' || s.phase === 'bred')) s.flies.forEach((f, i) => {
       const p = this.flyXY(f), st = v.stumbles[i], lit = on && (p[0] - bx) * (p[0] - bx) + (p[1] - by) * (p[1] - by) < br * br, calm = typeof Fx !== 'undefined' && Fx.calm;
       const rot = f.c ? 3.14 + (st != null ? Math.min(1, st * 3) * 0.6 : 0.6) : (s.ct * f.wx * 0.7 + f.p1), wob = lit && f.w && !f.c && !calm ? Det.sin(v.t * 30) * 0.4 : 0;
-      this.fly(c, p[0], p[1], Math.max(11, D.r * 0.1), { white: f.w, male: true, rot: rot + wob, down: f.c, wing: f.c ? 0 : (calm ? 0 : Math.abs(Det.sin(v.t * 9 + i))) });
+      this.fly(c, p[0], p[1], Math.max(15, D.r * 0.13), { white: f.w, male: true, rot: rot + wob, down: f.c, wing: f.c ? 0 : (calm ? 0 : Math.abs(Det.sin(v.t * 9 + i))) });
       if (f.w && !f.c && lit) { c.strokeStyle = 'rgba(255,240,200,0.9)'; c.lineWidth = 2; c.beginPath(); c.arc(p[0], p[1], 12, -1.57, -1.57 + TAU * Math.min(1, f.ex / RY_T.expo)); c.stroke(); }   // the exposure ring fills before he stumbles
     });
-    else if (s.phase === 'auto' || s.phase === 'ask' || s.phase === 'over') { const fl = this.cageFlies(s.cage, N, 30, 'L' + s.g); fl.forEach((f, i) => { if (!f.male) return; const a = (f.h % 628) / 100 + v.t * 0.2, rr = 0.25 + 0.6 * ((f.h >> 9) % 100) / 100; this.fly(c, D.x + Det.cos(a) * D.r * rr * 0.85, D.y + Det.sin(a) * D.r * rr * 0.85, Math.max(11, D.r * 0.1), { white: f.white, male: true, rot: a + 1.57 }); void i; }); }
+    else if (s.phase === 'auto' || s.phase === 'ask' || s.phase === 'over') { const fl = this.cageFlies(s.cage, N, 30, 'L' + s.g); fl.forEach((f, i) => { if (!f.male) return; const a = (f.h % 628) / 100 + v.t * 0.2, rr = 0.25 + 0.6 * ((f.h >>> 9) % 100) / 100; this.fly(c, D.x + Det.cos(a) * D.r * rr * 0.85, D.y + Det.sin(a) * D.r * rr * 0.85, Math.max(15, D.r * 0.13), { white: f.white, male: true, rot: a + 1.57 }); void i; }); }
     // the battery gauge (brass), the catch tally, the mutation tag
     if (s.phase === 'court') {
-      const gx = P.ph ? 16 : Math.max(16, D.x - D.r - 70), gy = P.ph ? D.y + D.r + 18 : D.y - D.r * 0.6, gw = P.ph ? w * 0.45 : 26, gh = P.ph ? 12 : D.r * 1.2, k = s.bat0 > 0 ? s.bat / s.bat0 : 0;
+      const gx = P.ph ? 12 : Math.max(16, D.x - D.r - 70), gy = P.ph ? h - 24 : D.y - D.r * 0.6, gw = P.ph ? w * 0.3 : 26, gh = P.ph ? 14 : D.r * 1.2, k = s.bat0 > 0 ? s.bat / s.bat0 : 0;
       c.fillStyle = '#2A2019'; c.fillRect(gx, gy, gw, gh); c.fillStyle = RY_C.lamp; if (P.ph) c.fillRect(gx + 2, gy + 2, (gw - 4) * k, gh - 4); else c.fillRect(gx + 2, gy + 2 + (gh - 4) * (1 - k), gw - 4, (gh - 4) * k);
-      c.strokeStyle = RY_C.brass; c.lineWidth = 2; c.strokeRect(gx, gy, gw, gh); Lbl.put('ry-bat', L.battery, P.ph ? gx + gw / 2 : gx + gw / 2, P.ph ? gy + gh + 14 : gy + gh + 16, { size: 12, c });
-      Lbl.put('ry-ct', s.cg + ' / ' + s.nw, P.ph ? w - 50 : D.x + D.r + 50, P.ph ? gy + 6 : D.y - D.r * 0.5, { size: 16, c, weight: 700 });
+      c.strokeStyle = RY_C.brass; c.lineWidth = 2; c.strokeRect(gx, gy, gw, gh); Lbl.put('ry-bat', L.battery, P.ph ? gx + gw / 2 : gx + gw / 2, P.ph ? gy - 12 : gy + gh + 16, { size: 12, c });
+      Lbl.put('ry-ct', s.cg + ' / ' + s.nw, P.ph ? w * 0.5 : D.x + D.r + 50, P.ph ? gy + gh / 2 - 4 : D.y - D.r * 0.5, { size: 16, c, weight: 700 });
     }
     const last = s.hist[s.hist.length - 1];
-    Lbl.put('ry-wm', Txt.f(L.wm, { n: (Math.round(1000 * last.wm) / 10).toFixed(1) }), P.ph ? w * 0.28 : D.x + D.r + 70, P.ph ? D.y - D.r - 14 : D.y + D.r * 0.2, { size: 13, c });
-    Lbl.put('ry-wf', Txt.f(L.wfem, { n: (Math.round(1000 * last.wf) / 10).toFixed(1) }), P.ph ? w * 0.72 : D.x + D.r + 70, P.ph ? D.y - D.r - 14 : D.y + D.r * 0.2 + 26, { size: 13, c });
-    Lbl.put('ry-xn', L.xN, 12, h - 14, { align: 'left', size: 12, c });
+    Lbl.put('ry-wm', Txt.f(L.wm, { n: (Math.round(1000 * last.wm) / 10).toFixed(1) }), P.ph ? w * 0.27 : D.x + D.r + 80, P.ph ? D.y + D.r + 16 : D.y + D.r * 0.2, { size: 13, c });
+    Lbl.put('ry-wf', Txt.f(L.wfem, { n: (Math.round(1000 * last.wf) / 10).toFixed(1) }), P.ph ? w * 0.73 : D.x + D.r + 80, P.ph ? D.y + D.r + 16 : D.y + D.r * 0.2 + 26, { size: 13, c });
+    Lbl.put('ry-xn', L.xN, w - 12, h - 14, { align: 'right', size: 12, c });
     if (s.phase === 'ask') { c.fillStyle = 'rgba(10,8,6,0.18)'; c.fillRect(0, 0, w, h); }
   },
   /* the gallery: burgundy damask, gold frames, sepia portraits; the pedigree is read one woman at a time */
@@ -1018,8 +1024,14 @@ const CH_ROYAL_V2 = {
     c.fillStyle = '#D6BF98'; c.beginPath(); c.ellipse(cx, cy - r * 0.05, r * 0.27, r * 0.34, 0, 0, TAU); c.fill();   // face
     c.fillStyle = '#4A3828';
     if (male) { c.beginPath(); c.ellipse(cx, cy - r * 0.32, r * 0.29, r * 0.14, 0, Math.PI, 0); c.fill(); if (rr() < 0.7) { c.beginPath(); c.ellipse(cx, cy + r * 0.12, r * 0.16, r * 0.06 + r * 0.08 * rr(), 0, 0, Math.PI); c.fill(); } }
-    else { c.beginPath(); c.ellipse(cx, cy - r * 0.28, r * 0.31, r * 0.2, 0, Math.PI, 0); c.fill(); c.beginPath(); c.arc(cx - r * 0.28, cy - r * 0.08, r * 0.1, 0, TAU); c.arc(cx + r * 0.28, cy - r * 0.08, r * 0.1, 0, TAU); c.fill(); if (look % 2) { c.beginPath(); c.arc(cx, cy - r * 0.5, r * 0.12, 0, TAU); c.fill(); } }   // centre parting, side curls, a bun
-    c.fillStyle = 'rgba(60,40,26,0.75)'; c.fillRect(cx - r * 0.12, cy - r * 0.07, r * 0.06, r * 0.03); c.fillRect(cx + r * 0.06, cy - r * 0.07, r * 0.06, r * 0.03);
+    else {   // hair smoothed from a centre parting down over the ears, gathered in a bun or a coronet braid
+      if (look % 2) { c.beginPath(); c.ellipse(cx, cy - r * 0.42, r * 0.15, r * 0.11, 0, 0, TAU); c.fill(); }
+      c.beginPath(); c.moveTo(cx, cy - r * 0.4); c.quadraticCurveTo(cx - r * 0.36, cy - r * 0.42, cx - r * 0.3, cy + r * 0.02); c.quadraticCurveTo(cx - r * 0.24, cy - r * 0.2, cx, cy - r * 0.3); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(cx, cy - r * 0.4); c.quadraticCurveTo(cx + r * 0.36, cy - r * 0.42, cx + r * 0.3, cy + r * 0.02); c.quadraticCurveTo(cx + r * 0.24, cy - r * 0.2, cx, cy - r * 0.3); c.closePath(); c.fill();
+      if (look % 3 === 2) { c.strokeStyle = '#E8DCC2'; c.lineWidth = Math.max(1, r * 0.03); c.beginPath(); c.arc(cx, cy - r * 0.2, r * 0.3, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); }   // a pearl band
+    }
+    c.fillStyle = 'rgba(50,34,22,0.85)'; c.beginPath(); c.arc(cx - r * 0.1, cy - r * 0.05, Math.max(1, r * 0.03), 0, TAU); c.arc(cx + r * 0.1, cy - r * 0.05, Math.max(1, r * 0.03), 0, TAU); c.fill();   // eyes
+    c.strokeStyle = 'rgba(90,56,40,0.7)'; c.lineWidth = Math.max(1, r * 0.02); c.beginPath(); c.moveTo(cx - r * 0.06, cy + r * 0.14); c.quadraticCurveTo(cx, cy + r * 0.16, cx + r * 0.06, cy + r * 0.14); c.stroke();   // mouth
     c.fillStyle = 'rgba(120,90,60,0.18)'; for (let i = 0; i < 90; i++) c.fillRect(rr() * S, rr() * S, 1.2, 1.2);   // foxing
     if (aff) { c.fillStyle = 'rgba(27,22,18,0.62)'; c.fillRect(0, 0, S, S); }   // pedigree convention: an affected man's square is filled
     c.restore();
@@ -1034,18 +1046,17 @@ const CH_ROYAL_V2 = {
     c.drawImage(this.bake('gal', w, h, (cc, W, H) => this.galleryBg(cc, W, H, P)), 0, 0, w, h);
     const lg = c.createRadialGradient(fr.x, fr.y - fr.r, 10, fr.x, fr.y, fr.r * 3); lg.addColorStop(0, 'rgba(255,226,166,0.32)'); lg.addColorStop(1, 'rgba(255,226,166,0)'); c.fillStyle = lg; c.fillRect(0, 0, w, h);   // the picture light
     // the rail of finished cases: mini frames with their exact plaque
-    const done = s.ci + (s.phase === 'reveal' ? 1 : 0);
     // parents: mother (oval) and father (square), small, with a gold cord down to her
     const mx = fr.x - fr.r * 1.25, fx = fr.x + fr.r * 1.25, py = P.par.y, pr = P.par.r;
     c.strokeStyle = RY_C.gold; c.lineWidth = 2; c.beginPath(); c.moveTo(mx + pr, py); c.lineTo(fx - pr, py); c.moveTo(fr.x, py); c.lineTo(fr.x, fr.y - fr.r * 1.05); c.stroke();
     const momId = ca.mother || 'helenaW', mum = ca.mother === 'victoria' ? 'Queen Victoria' : ca.mother ? (RY_CASES.find(q => q.id === ca.mother) || {}).name : 'Helena of Waldeck';
     this.drawPortrait(c, momId, 7 + (ca.look % 3), mx, py, pr, false, false);
     this.drawPortrait(c, 'dad' + ca.id, 11 + ca.look, fx, py, pr, true, !!ca.fatherAff);
-    Lbl.put('ry-mum', mum.split(' ').slice(-2).join(' '), mx, py + pr + 14, { size: 12, c });
+    Lbl.put('ry-mum', mum, mx, py + pr + 14, { size: 12, c });
     Lbl.put('ry-dad', ca.fatherAff ? ca.fatherAff : L.father, fx, py + pr + 14, { size: 12, c });
     const mp = ca.mother === 'victoria' ? 1 : ca.mother ? s.post[ca.mother] : 0;
-    Lbl.put('ry-mp', ca.mother ? Txt.f(L.exact, { p: Math.round(100 * mp) }) : L.notc, mx, py - pr - 12, { size: 12, c });
-    if (ca.fatherAff) Lbl.put('ry-fa', L.aff, fx, py - pr - 12, { size: 12, c });
+    Lbl.put('ry-mp', ca.mother ? Txt.f(L.exact, { p: Math.round(100 * mp) }) : L.clear, mx, py + pr + 32, { size: 12, c });
+    if (ca.fatherAff) Lbl.put('ry-fa', L.aff, fx, py + pr + 32, { size: 12, c });
     // her portrait, name plate and the plaque
     this.drawPortrait(c, ca.id, ca.look, fr.x, fr.y, fr.r, false, false);
     c.fillStyle = RY_C.goldD; c.fillRect(fr.x - 70, fr.y + fr.r * 1.12, 140, 22); c.fillStyle = RY_C.gold; c.fillRect(fr.x - 68, fr.y + fr.r * 1.12 + 2, 136, 18);
@@ -1055,7 +1066,7 @@ const CH_ROYAL_V2 = {
     const rev = s.phase === 'prior' ? 0 : s.phase === 'sons' ? s.son : ca.sons.length;
     if (s.phase !== 'prior' && !ca.sons.length) Lbl.put('ry-none', L.none, fr.x, P.sonY, { size: 13, c });
     for (let i = 0; i < rev; i++) { const so = ca.sons[i], q = this.sonXY(i), sv = v.sons.find(z => z.i === i), k = sv ? Math.min(1, sv.t / 0.35) : 1; if (sv) sv.t += 1 / 60; this.drawPortrait(c, ca.id + 's' + i, 20 + i + ca.look, q[0], q[1] + (1 - k) * 20, P.sonR, true, !!so[1], k); Lbl.put('ry-son' + i, so[0], q[0], q[1] + P.sonR * 1.15 + 12, { size: 12, c }); if (so[1]) Lbl.put('ry-sa' + i, L.aff, q[0], q[1] - P.sonR * 1.1 - 10, { size: 12, c }); }
-    if (rev > 0 || s.phase !== 'prior') { c.strokeStyle = RY_C.gold; c.lineWidth = 1.5; if (ca.sons.length) { const a = this.sonXY(0), b = this.sonXY(ca.sons.length - 1), yy = P.sonY - P.sonR * 1.4; c.beginPath(); c.moveTo(fr.x, fr.y + fr.r * 1.12 + 42); c.lineTo(fr.x, yy); c.moveTo(a[0], yy); c.lineTo(b[0], yy); for (let i = 0; i < Math.min(rev, ca.sons.length); i++) { const q = this.sonXY(i); c.moveTo(q[0], yy); c.lineTo(q[0], q[1] - P.sonR * 1.05); } c.stroke(); } }
+    if (rev > 0 || s.phase !== 'prior') { c.strokeStyle = RY_C.gold; c.lineWidth = 1.5; if (ca.sons.length) { const a = this.sonXY(0), b = this.sonXY(ca.sons.length - 1), yy = P.sonY - P.sonR * 1.4; c.beginPath(); c.moveTo(fr.x, Math.min(yy, fr.y + fr.r * 1.12 + 46)); c.lineTo(fr.x, yy); c.moveTo(a[0], yy); c.lineTo(b[0], yy); for (let i = 0; i < Math.min(rev, ca.sons.length); i++) { const q = this.sonXY(i); c.moveTo(q[0], yy); c.lineTo(q[0], q[1] - P.sonR * 1.05); } c.stroke(); } }
     // the brass slider (your estimate) and, after sealing, the exact plaque and the two-worlds bar (Bayes as areas)
     const S = P.sl, J = s.judg.filter(x => x.id === ca.id), jp = J.find(x => x.st === 'prior'), jq = J.find(x => x.st === 'post');
     c.fillStyle = '#2A1A12'; c.fillRect(S.x - 10, S.y - 9, S.w + 20, 18); c.fillStyle = RY_C.goldD; c.fillRect(S.x, S.y - 3, S.w, 6);
@@ -1073,7 +1084,6 @@ const CH_ROYAL_V2 = {
       Lbl.put('ry-wc', L.carrier, bx + 2, byy - 10, { size: 12, c, align: 'left' }); Lbl.put('ry-wn', L.notc, bx + bw - 2, byy - 10, { size: 12, c, align: 'right' });
     }
     // the rail: completed women as small plaques along the top edge
-    for (let i = 0; i < Math.min(done, RY_CASES.length); i++) { const q = RY_CASES[i], x = 18 + i * Math.min(44, (w - 36) / 6), y = P.top + 4; c.fillStyle = RY_C.goldD; c.fillRect(x - 2, y - 2, 34, 18); c.fillStyle = RY_C.paper; c.fillRect(x, y, 30, 14); void q; Lbl.put('ry-rl' + i, Math.round(100 * s.post[RY_CASES[i].id]) + '%', x + 15, y + 7, { size: 12, c, pill: false, ink: RY_C.ink }); }
     if (s.phase === 'ask' || s.phase === 'end') { c.fillStyle = 'rgba(10,6,6,0.3)'; c.fillRect(0, 0, w, h); }
   },
 
@@ -1088,9 +1098,10 @@ const CH_ROYAL_V2 = {
   },
   sonsSpec() {   // L0: white share of sons (discs) and daughters (squares) per cross; the expectation dashed only after the ask is scored
     const s = this.sim.s, D = this.content.data, dots = [], lines = [], nC = this.sim.P().vials.v;
-    s.crosses.forEach(c => { const done = c.i >= c.n || c !== s.cur || s.phase === 'sorted'; const ns = c.kids[2] + c.kids[3], nd = c.kids[0] + c.kids[1]; if (ns) dots.push({ x: c.kids[3] / ns, y: c.no, shape: 'disc' }); if (nd) dots.push({ x: c.kids[1] / nd, y: c.no, shape: 'square' }); void done; });
-    for (const id of ['a', 'b']) if (s.hits[id] !== undefined && s.atOf && s.atOf[id]) { const no = s.atOf[id]; lines.push({ pts: [[s.exp[id], no - 0.35], [s.exp[id], no + 0.35]], label: D.lines.exp }); }
-    return { type: 'ry_xy', title: D.titles.sons, x: { lo: 0, hi: 1, label: D.ax.share, fmt: 'pct' }, y: { lo: 0.4, hi: nC + 0.6, label: D.ax.cross, fmt: 'int' }, yticks: [1, nC], frame: 'designed', dots, lines, dotLabel: dots.length ? D.lines.sons : null, legend: [['disc', D.lines.sons], ['square', D.lines.daus]] };
+    const row = no => nC + 1 - no, rl = [];   // cross 1 on the top row, as in a notebook
+    s.crosses.forEach(c => { const ns = c.kids[2] + c.kids[3], nd = c.kids[0] + c.kids[1]; rl.push({ y: row(c.no), text: String(c.no) }); if (ns) dots.push({ x: c.kids[3] / ns, y: row(c.no), shape: 'disc' }); if (nd) dots.push({ x: c.kids[1] / nd, y: row(c.no), shape: 'square' }); });
+    for (const id of ['a', 'b']) if (s.hits[id] !== undefined && s.atOf && s.atOf[id]) { const y = s.atOf[id]; lines.push({ pts: [[s.exp[id], y - 0.38], [s.exp[id], y + 0.38]], label: id === 'b' || !lines.length ? D.lines.exp : null }); }
+    return { type: 'ry_xy', title: D.titles.sons, x: { lo: 0, hi: 1, label: D.ax.share, fmt: 'pct' }, y: { lo: 0.4, hi: nC + 0.6, label: D.ax.cross }, noY: true, rowLabels: rl, frame: 'designed', dots, lines, legend: [['disc', D.lines.sons], ['square', D.lines.daus]] };
   },
   hatchSpec() { const s = this.sim.s, D = this.content.data, L = this.content.labels, k = s.cur ? s.cur.kids : [0, 0, 0, 0], mx = Math.max(10, s.cur ? s.cur.n * 0.6 : 10); return { type: 'ry_xy', title: D.titles.hatch, fold: false, x: { lo: 0, hi: 4 }, y: { lo: 0, hi: mx, label: D.ax.n, fmt: 'int' }, noX: true, frame: 'designed', bars: [L.fr, L.fw, L.mr, L.mw].map((lab, i) => ({ x: i + 0.5, y: k[i], label: lab, hatch: i % 2 === 1 })) }; },
   zigSpec() {   // L1: white share of X copies in females (discs) and males (squares) by generation; the control faint; the average dashed after the asks
@@ -1113,7 +1124,7 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s, D = this.content.data, dots = [], lines = [];
     for (const j of s.judg) { const i = RY_CASES.findIndex(q => q.id === j.id) + 1; dots.push({ x: i + (j.st === 'prior' ? -0.15 : 0.15), y: j.v, shape: j.st === 'prior' ? 'ring' : 'disc' }); lines.push({ pts: [[i + (j.st === 'prior' ? -0.35 : -0.05), j.e], [i + (j.st === 'prior' ? 0.05 : 0.35), j.e]] }); }
     if (lines.length) lines[lines.length - 1].label = D.lines.exact;
-    return { type: 'ry_xy', title: D.titles.odds, x: { lo: 0.4, hi: 6.6, label: '', fmt: 'int' }, xticks: [1, 2, 3, 4, 5, 6], y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', dots, lines, legend: [['ring', D.lines.prior], ['disc', D.lines.post]] };
+    return { type: 'ry_xy', title: D.titles.odds, x: { lo: 0.4, hi: 6.6, label: '', fmt: 'int' }, xticks: [1, 2, 3, 4, 5, 6], y: { lo: -0.05, hi: 1.3, fmt: 'pct' }, yt: [0, 0.5, 1], frame: 'designed', dots, lines, legend: [['ring', D.lines.prior], ['disc', D.lines.post]] };
   },
   errSpec() { const s = this.sim.s, D = this.content.data; return { type: 'ry_xy', title: D.titles.err, fold: false, x: { lo: 0, hi: 12.6 }, y: { lo: 0, hi: 0.6, fmt: 'pct' }, noX: true, frame: 'designed', bars: s.judg.map((j, i) => ({ x: i + 0.8, y: Math.abs(j.v - j.e), w: 0.32 })), lines: [{ pts: [[0, 0.1], [12.6, 0.1]], label: D.lines.ten }] }; },
   cvSpec() { const s = this.sim.s, D = this.content.data, lines = []; if (s.hits.cv !== undefined) lines.push({ pts: [[0.0064, 0], [0.0064, 1]], label: D.lines.exact }); return { type: 'ry_xy', title: D.titles.cv, x: { lo: 0, hi: 0.05, label: D.ax.pct, fmt: v => (Math.round(v * 1000) / 10) + '%' }, xticks: [0, 0.01, 0.02, 0.03, 0.04, 0.05], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', lines }; },
@@ -1130,7 +1141,7 @@ if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.ry_xy) LiveG
   draw(c, G, spec, T) {
     const p = G.plot, I = T.I, ends = [];
     wgAxes(c, G, spec, T, { noY: !!spec.noY, noX: !!spec.noX, xticks: spec.xticks });
-    if (spec.yticks && !T.compact) for (const v of spec.yticks) { const y = G.Y(v); wgText(c, wgFmt(spec.y.fmt, v), p.x + p.w - 4, y, G.tk, I.text2, { align: 'right', halo: I.surface }); }
+    if (spec.rowLabels && !T.compact) for (const r of spec.rowLabels) wgText(c, r.text, p.x + p.w - 6, G.Y(r.y), G.tk, I.text2, { align: 'right', halo: I.surface });
     for (const b of spec.bars || []) {
       const bw = b.w || 0.32, x0 = G.X(b.x - bw), x1 = G.X(b.x + bw), y = G.Y(b.y), yb = G.Y(spec.y.lo), col = b.ink ? T.fill(b.ink) : wgRgba(I.text, 0.75);
       c.fillStyle = col; c.fillRect(x0, y, x1 - x0, yb - y); if (b.hatch) wgHatch(c, x0, y, x1 - x0, yb - y, wgRgba(I.ink, 0.55), 5);
@@ -1150,7 +1161,7 @@ if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.ry_xy) LiveG
     }
     for (const d of spec.dots || []) { const x = G.X(d.x), y = G.Y(d.y), r = 4.5 * T.k; c.beginPath(); if (d.shape === 'square') c.rect(x - r, y - r, 2 * r, 2 * r); else c.arc(x, y, r, 0, TAU); if (d.shape === 'ring') { c.lineWidth = 2; c.strokeStyle = I.text; c.stroke(); } else { c.fillStyle = d.shape === 'square' ? I.surface : I.text; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I.text; c.stroke(); } }
     c.restore();
-    if (spec.legend && !T.compact) { let x = p.x + 8; const y = p.y + 9; for (const [sh, lab] of spec.legend) { const r = 4; c.beginPath(); if (sh === 'square') c.rect(x - r, y - r, 2 * r, 2 * r); else c.arc(x, y, r, 0, TAU); if (sh === 'ring') { c.lineWidth = 2; c.strokeStyle = I.text; c.stroke(); } else { c.fillStyle = sh === 'square' ? I.surface : I.text; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I.text; c.stroke(); } wgText(c, lab, x + 8, y, G.tk, I.text, { fam: 'b', wt: 600, halo: I.surface }); x += wgW(c, lab, G.tk, 'b', 600) + 24; } }
+    if (spec.legend && !T.compact) { let x = p.x + 8; const y = spec.rowLabels ? p.y + p.h - 9 : p.y + 9; for (const [sh, lab] of spec.legend) { const r = 4; c.beginPath(); if (sh === 'square') c.rect(x - r, y - r, 2 * r, 2 * r); else c.arc(x, y, r, 0, TAU); if (sh === 'ring') { c.lineWidth = 2; c.strokeStyle = I.text; c.stroke(); } else { c.fillStyle = sh === 'square' ? I.surface : I.text; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I.text; c.stroke(); } wgText(c, lab, x + 8, y, G.tk, I.text, { fam: 'b', wt: 600, halo: I.surface }); x += wgW(c, lab, G.tk, 'b', 600) + 24; } }
     wgEnds(c, G, ends, T);
   },
   rows(spec) {

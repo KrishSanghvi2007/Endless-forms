@@ -22,21 +22,21 @@
 /* ---------- constants and pure helpers (Det-safe: + − × ÷ and comparisons only) ---------- */
 const SWK = {
   G: ['Scr', 'Antp', 'Ubx', 'abdA', 'AbdB'],                                   // rows, front to back on the chromosome
-  WT: [[0, 1, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1], [0, 0, 0, 1, 2, 2, 2], [0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 1]],   // Ubx: 1 low, 2 high
-  WB: [1, 1, 3, 5, 6],                                                          // L3 wild-type front edges (column; 7 = off)
+  WT: [[0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 2, 2, 2], [0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 1]],   // Ubx: 1 low, 2 high
+  WB: [1, 2, 3, 5, 6],                                                          // L3 wild-type front edges (column; 7 = off)
   TGT: { bx: ['H', 'T1', 'T2', 'T2', 'A1', 'A', 'A8'], antp: ['T2', 'T1', 'T2', 'T3', 'A1', 'A', 'A8'], cbx: ['H', 'T1', 'T3', 'T3', 'A1', 'A', 'A8'],
     legsA1: ['H', 'T1', 'T2', 'T3', 'T3', 'A', 'A8'] },
   SOL: { bx: [2, 3, 0], antp: [1, 0, 1], cbx: [2, 2, 1], legsA1: [2, 4, 1] },  // the one-cell solution shown after three tries
-  VIAL: { antpAll: [[1, 1]], ubxAll: [[2, 2]], ubxDel: [[2, 0]], bxcDel: [[2, 0], [3, 0], [4, 0]], abdADel: [[3, 0]] },   // [row, value in every column]
-  VIALS: ['antpAll', 'ubxAll', 'ubxDel', 'bxcDel'],
-  MUT: { antpH: [1, 0, 3, 5, 6], bx: [1, 1, 4, 5, 6], cbx: [1, 1, 2, 5, 6], bxd: [1, 1, 5, 5, 6], abdA: [1, 1, 3, 7, 6], abdB: [1, 1, 3, 5, 5], scr: [7, 1, 3, 5, 6] },
+  VIAL: { ubxAll: [[2, 2]], ubxDel: [[2, 0]], bxcDel: [[2, 0], [3, 0], [4, 0]], abdADel: [[3, 0]] },   // [row, value in every column]
+  VIALS: ['ubxAll', 'ubxDel', 'bxcDel'],
+  MUT: { bx: [1, 2, 4, 5, 6], cbx: [1, 2, 2, 5, 6], bxbxd: [1, 2, 5, 5, 6], abdA: [1, 2, 3, 7, 6], abdB: [1, 2, 3, 5, 5] },
   CR: { artemia: { nT: 11, maxi: 0 }, isopod: { nT: 8, maxi: 1 }, lobster: { nT: 8, maxi: 3 }, mantis: { nT: 8, maxi: 5 } },
   MOD: ['pit', 'jaw', 'pel', 'stop', 'swap'],
   DARK: { pit: [1, 0, 0], jaw: [0, 1, 0], pel: [0, 0, 1], stop: [1, 1, 1], swap: [1, 1, 1] },
   FATE: { pit: 'dies', jaw: 'sick', pel: 'clean', stop: 'dies', swap: 'sick' },
-  LAKE: { N: 200, SHOW: 80, MU: 0.01, K: 0.1, MAX: 4, ASK0: 4, FORCE: 10, FLIP: 40, END: 60, GAIN: 0.25 },
+  LAKE: { N: 200, SHOW: 80, MU: 0.01, K: 0.08, MAX: 4, ASK0: 4, FORCE: 10, GAIN: 0.25, H: [12, 16, 20, 24, 28], BACK: [2, 3, 4], TAIL: [10, 15, 20], XHI: 58 },
   T: { hatch: 1.9, hatchR: 1.1, judge: 1.4, judgeR: 0.9, askMax: 45, test: 2.4, send: 2.4, gen: 1.25, fast: 0.3 },
-  TRIES: 3, TOL: { v1: 0.5, v2: 0.5, t4: 0.5, p6: 0.1, t6: 0.1 },
+  TRIES: 3, TOL: { v1: 0.4, v2: 0.4, t4: 0.4, p6: 0.08, t6: 0.06 },
   NYM: [[70, 486], [150, 494], [240, 488], [320, 492]], TRO: [[90, 230], [300, 210], [190, 300], [110, 360]],
   lay: {}
 };
@@ -98,10 +98,10 @@ const SW_C = {
     l5test: 'The embryo grows. Green shows where Pitx1 is on.',
     l5sent: 'Sent to the lake. Watch the population.',
     lake: 'Your lake. Tap open water to add trout, the weeds for dragonfly nymphs.',
-    lakeRun: 'Generation {g} of 60. Spineless fish carry two deleted copies.',
-    lakeSet: 'Generation {g} of 60. The season is set.',
-    ask1: 'Drag: what share of copies will carry the deletion at generation 40?',
-    ask2: 'Trout are back. Drag: the deletion share at generation 60?',
+    lakeRun: 'Generation {g}. Spineless fish carry two deleted copies.',
+    lakeSet: 'Generation {g} of {n}. The season is set.',
+    ask1: 'Drag: what share of copies will carry the deletion at generation {g}?',
+    ask2: 'Trout are back. Drag: the deletion share at generation {g}?',
     hatch: 'Hatching: the larva first, then the adult.',
     ok: 'That is the fly.', no: 'Not yet. Compare each segment with the order.',
     shown: 'Three tries used. Here is one way to build it.',
@@ -116,13 +116,13 @@ const SW_C = {
     sick: 'Alive, but damaged elsewhere.', clean: 'Pelvis gone; nothing else changed.',
     locked: 'The season is set.', full: 'At most four of each.', weeds: 'Weed beds spread: nymphs move in.',
     flip: 'Trout stocked; the weed beds silt up.', idle: 'Tap a glowing cell.', reset: 'Back to the wild type.',
-    sent: 'The lake gets this change.', retest: 'Tested before: try another switch.'
+    sent: 'The lake gets this change.', sendWhy: 'Test a switch first.', retest: 'Tested before: try another switch.'
   },
   labels: {
     c0: 'head', c1: 'T1', c2: 'T2', c3: 'T3', c4: 'A1', c5: 'A2–A7', c6: 'A8',
     g0: 'Scr', g1: 'Antp', g2: 'Ubx', g3: 'abd-A', g4: 'Abd-B',
     idH: 'antennae', idT1: 'legs', idT2: 'legs, wings', idT3: 'legs, halteres', idA1: 'bare (A1)', idA: 'bare abdomen', idA8: 'tail end',
-    order: 'Order', yours: 'Your fly', deleted: 'deleted', off: 'off', antc: 'ANT-C', bxc: 'BX-C', scale: '100 µm',
+    order: 'Order', yours: 'Your fly', stamp: 'Built!', deleted: 'deleted', off: 'off', antc: 'ANT-C', bxc: 'BX-C', scale: '100 µm',
     ban0: 'Paint the segments', ban1: 'Abdominal legs?', ban2: 'Colinearity', ban3: 'Body plans', ban4: 'Circuit board', ban5: 'The lake',
     artemia: 'brine shrimp', isopod: 'woodlouse', lobster: 'lobster', mantis: 'mantis shrimp', feed: 'feeding legs', walk: 'walking legs',
     pit: 'pituitary', jaw: 'jaw', pel: 'pelvis', mpit: 'pituitary enhancer', mjaw: 'jaw enhancer', mpel: 'pelvic enhancer', mstop: 'exon: stop', mswap: 'exon: swap',
@@ -144,6 +144,7 @@ const SW_C = {
     l4_miss: 'Feeding legs sit in front of the Ubx/abd-A edge. Five pairs puts the edge at the sixth segment.',
     l5_code: 'A coding change hit every tissue that uses Pitx1. An enhancer cut changes only its own tissue.',
     l5_wrong: 'That switch removed something other than the pelvis. Each enhancer works in one tissue.',
+    l5_nocode: 'You found the clean cut without testing a coding change, so the contrast stayed hidden.',
     l5_pred: 'Your tissue calls were off. Cutting an enhancer darkens one tissue; breaking the protein darkens all three.',
     l6_low: 'You expected a slower rise. Once spineless fish were common, selection saw most copies and the deletion raced up.',
     l6_high: 'You expected a faster rise. While rare, the deletion hid in spiny fish that also carry a working copy.',
@@ -173,11 +174,11 @@ const SW_C = {
     { discover: 'Put legs on A1 the way real flies do.', predict: 'Mark the legged segments, missing at most one.' },
     { discover: 'Rebuild three of the four mutants.', predict: 'Rebuild three mutants on the first try.' },
     { discover: 'Build all three crustaceans.', transfer: 'Place the mantis shrimp edge exactly.' },
-    { discover: 'Send the change that removes only the pelvis.', predict: 'Call three different tests, missing at most one tissue.' },
+    { discover: 'Test the pelvic enhancer and a coding change, then send the clean one.', predict: 'Call three different tests, missing at most one tissue.' },
     { predict: 'Predict generation 40 inside the band.', transfer: 'Predict generation 60 inside the band.' }],
   model: [
     { level: 0, simulated: 'Five Hox genes across seven columns: head, three thoracic, A1, the middle abdomen as one, and A8. The gene furthest back sets each column.',
-      simplification: 'Ubx has two designed doses: low makes T3, high makes A1. Antp is on along the whole trunk, hidden behind genes further back. With no Hox gene a segment builds antennae.',
+      simplification: 'Ubx has two designed doses: low makes T3, high makes A1. Antp is on from T2 back, hidden behind genes further back. With no Hox gene a segment builds antennae.',
       params: [{ name: 'genes', value: '5 of the 8 fly Hox genes', tag: 'designed' }, { name: 'Ubx dose', value: 'off, low or high', tag: 'designed' }, { name: 'columns', value: '7 (A2–A7 as one)', tag: 'designed' }],
       cannot: 'Graded, overlapping domains, parasegments, or Hox genes switching each other off. Most of these flies would die as embryos.',
       nature: 'Lewis (1978) studied bithorax flies with four wings. Antp switched on in the head turns antennae into legs (Schneuwly et al. 1987). Ubx everywhere makes the thorax A1-like (González-Reyes & Morata 1990).',
@@ -190,7 +191,7 @@ const SW_C = {
       contested: false, refs: ['sanchezherrero1985', 'vachon1992', 'lewis1978', 'nussleinvolhard1980'] },
     { level: 2, simulated: 'Each gene is on from its front edge to the back of the body. Scr is kept one segment wide. Moving an edge changes the segments it passes.',
       simplification: 'Ubx is low up to T3 and high from A1 back. Edges snap to whole segments.',
-      params: [{ name: 'front edges', value: 'T1, T1, T3, A2–A7, A8', tag: 'designed' }, { name: 'mutants', value: '4 of 7, one edge each', tag: 'designed' }],
+      params: [{ name: 'front edges', value: 'T1, T2, T3, A2–A7, A8', tag: 'designed' }, { name: 'mutants', value: '4 of 5, one edge each', tag: 'designed' }],
       cannot: 'Real edges follow parasegments, offset by half a segment, and are placed by earlier gap and pair-rule genes.',
       nature: 'Fly Hox genes lie on the chromosome in the order of the body parts they pattern (Lewis 1978). Mice and other animals share it (McGinnis & Krumlauf 1992).',
       contested: false, refs: ['lewis1978', 'mcginnis1992', 'duboule1994'] },
@@ -208,10 +209,10 @@ const SW_C = {
       nature: 'Freshwater sticklebacks lost pelvic spines through deletions of the pelvic enhancer, leaving the protein intact (Chan et al. 2010). Mice lacking Pitx1 have hindlimb and pituitary defects (Szeto et al. 1999).',
       contested: false, refs: ['chan2010', 'shapiro2004', 'szeto1999', 'carroll2005', 'stern2008'] },
     { level: 5, simulated: 'A lake of 200 sticklebacks; you see 80. A recessive pelvic-enhancer deletion arises by recurrent mutation. Survivors pair at random.',
-      simplification: 'Each nymph lowers a spiny fish’s survival by 10 points; each trout does the same to spineless fish. Why real lakes favour spine loss is debated.',
+      simplification: 'Each nymph lowers a spiny fish’s survival by 8 points; each trout does the same to spineless fish. Why real lakes favour spine loss is debated.',
       params: [{ name: 'intact to deleted', value: '1 copy in 100 a generation', tag: 'xN', real: 'far rarer, though repeat-rich DNA may raise it' },
-        { name: 'each predator', value: '10 points of survival', tag: 'xN', real: 'weaker' }, { name: 'fish', value: '200', tag: 'designed' },
-        { name: 'generations', value: '60', tag: 'xN', real: 'hundreds to thousands' }],
+        { name: 'each predator', value: '8 points of survival', tag: 'xN', real: 'weaker' }, { name: 'fish', value: '200', tag: 'designed' },
+        { name: 'generations', value: '26 to 58 by seed', tag: 'xN', real: 'hundreds to thousands' }],
       cannot: 'Armour plates, calcium, or the left-larger pelvic remnants of wild fish.',
       nature: 'The deletions bear signatures of positive selection (Chan et al. 2010). Fish predators reject spiny prey (Hoogland et al. 1956). Insect predators and low calcium are proposed causes of spine loss (Reimchen 1980; Bell et al. 1993).',
       contested: true, refs: ['chan2010', 'shapiro2004', 'hoogland1956', 'reimchen1980', 'bell1993', 'marchinko2009', 'haldane1924'] }
@@ -240,7 +241,7 @@ const CH_SWITCH_V2 = {
   content: SW_C,
   P: {
     mu: { v: 0.01, tag: 'xN', min: 0, max: 0.05, real: 'far rarer', label: 'deletion rate (L6)' },
-    k: { v: 0.1, tag: 'xN', min: 0.02, max: 0.2, real: 'weaker', label: 'survival per predator (L6)' },
+    k: { v: 0.08, tag: 'xN', min: 0.02, max: 0.2, real: 'weaker', label: 'survival per predator (L6)' },
     N: { v: 200, tag: 'designed', min: 50, max: 400, label: 'fish in the lake' },
     tries: { v: 3, tag: 'designed', min: 1, max: 5, label: 'tries per order' }
   },
@@ -268,7 +269,7 @@ const CH_SWITCH_V2 = {
       o = o || {};
       if (o.thaw) {   // What if? (L6): restore a frozen generation, apply one lever, run on without asks
         this.restore(o.thaw.snap); const t = this.s; t.log = []; t.thawed = true; t.ask = null; t.locked = true; if (t.phase === 'ask') t.phase = 'lake';
-        t.lever = o.thaw.lever || null; if (t.lever === 'dom') t.dom = true; if (t.lever === 'nomut') t.mu = 0; t.th0 = { gen: t.gen, q: this.q() }; return;
+        t.lever = o.thaw.lever || null; if (t.lever === 'dom') t.dom = true; if (t.lever === 'nomut') t.mu = 0; if (!t.flip) { t.flip = t.gen + t.H; t.end = t.flip + t.tail; } t.th0 = { gen: t.gen, q: this.q() }; return;
       }
       const K = SWK;
       this.s = { level, phase: 'paint', t: 0, unt: !!(o.untimed != null ? o.untimed : (Save.d && Save.d.ui && Save.d.ui.unt)), log: [], started: 0,
@@ -282,7 +283,7 @@ const CH_SWITCH_V2 = {
       if (level <= 3) { this.startJob(); return; }
       if (level === 4) { Object.assign(s, { phase: 'choose', tests: [], sel: null, tis: [0, 0, 0], none: false, sent: null, left: 4 }); return; }
       const L = K.LAKE, lay = swLay(L.MU), q0 = 0.02 + 0.02 * R();   // L6: a trout lake; the deletion rare
-      Object.assign(s, { phase: 'lake', fish: [], nextId: 1, gen: 1, mu: L.MU, dom: false, locked: false, hunted: 0, asked: {},
+      Object.assign(s, { phase: 'lake', fish: [], nextId: 1, gen: 1, mu: L.MU, dom: false, locked: false, hunted: 0, asked: {}, H: pick(L.H.slice()), back: pick(L.BACK.slice()), tail: pick(L.TAIL.slice()), flip: 0, end: 0,
         preds: [{ type: 't', x: K.TRO[0][0], y: K.TRO[0][1] }, { type: 't', x: K.TRO[1][0], y: K.TRO[1][1] }], hist: [] });
       for (let i = 0; i < L.N; i++) s.fish.push({ g: Gen.genome(lay, { pel: { p: 1 - q0 } }), id: s.nextId++, dead: 0 });
       s.hist.push(this.rec());
@@ -349,8 +350,8 @@ const CH_SWITCH_V2 = {
       if (id === 'v1' || id === 'v2') return swLegs(swIdent(s.grid));
       if (id === 't4') return SWK.CR.mantis.maxi + 1;
       const c = this.counts(), q = this.q();
-      if (id === 'p6') return swLakeRec(q, c[0], c[1], L.FLIP - s.gen, s.mu, s.dom);
-      if (id === 't6') return swLakeRec(q, c[0], c[1], L.END - s.gen, s.mu, s.dom);
+      if (id === 'p6') return swLakeRec(q, c[0], c[1], (s.flip || s.gen + s.H) - s.gen, s.mu, s.dom);
+      if (id === 't6') return swLakeRec(q, c[0], c[1], s.end - s.gen, s.mu, s.dom);
       return 0;
     },
     current(id) {   // "no change": what the screen shows at the ask
@@ -401,16 +402,16 @@ const CH_SWITCH_V2 = {
     },
     lakeTurn(ev) {   // asks, the forced weed beds, the trout's return and the end, checked after each breeding
       const s = this.s, L = SWK.LAKE, K = SWK;
-      if (s.gen >= L.END) { s.phase = 'over'; s.t = 0; ev.push({ k: 'over' }); return; }
-      if (s.gen === L.FLIP) {
-        s.preds = K.TRO.map(p => ({ type: 't', x: p[0], y: p[1] })); s.locked = true; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'flip' });
-        if (!s.thawed) { s.phase = 'ask'; s.t = 0; s.ask = { id: 't6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.t6, at: L.END }; ev.push({ k: 'ask', id: 't6' }); }
+      if (s.end && s.gen >= s.end) { s.phase = 'over'; s.t = 0; ev.push({ k: 'over' }); return; }
+      if (s.flip && s.gen === s.flip) {
+        s.preds = K.TRO.slice(0, s.back).map(p => ({ type: 't', x: p[0], y: p[1] })); s.locked = true; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'flip' });
+        if (!s.thawed) { s.phase = 'ask'; s.t = 0; s.ask = { id: 't6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.t6, at: s.end }; ev.push({ k: 'ask', id: 't6' }); }
         return;
       }
       if (s.thawed || s.asked.p6 || s.gen < L.ASK0) return;
       let gain = this.expect('p6') - this.q();
       if (gain < L.GAIN && s.gen >= L.FORCE) { s.preds = K.NYM.map(p => ({ type: 'n', x: p[0], y: p[1] })); s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'weeds' }); gain = 1; }
-      if (gain >= L.GAIN) { s.asked.p6 = 1; s.askGen = s.gen; s.phase = 'ask'; s.t = 0; s.ask = { id: 'p6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.p6, at: L.FLIP }; ev.push({ k: 'ask', id: 'p6' }); }
+      if (gain >= L.GAIN) { s.asked.p6 = 1; s.askGen = s.gen; s.flip = s.gen + s.H; s.end = s.flip + s.tail; s.phase = 'ask'; s.t = 0; s.ask = { id: 'p6', kind: 'y', lo: 0, hi: 1, tol: K.TOL.p6, at: s.flip }; ev.push({ k: 'ask', id: 'p6' }); }
     },
     /* ---------- the clock ---------- */
     step(dt) {
@@ -497,7 +498,7 @@ const CH_SWITCH_V2 = {
       const n = s.level;
       if (n <= 3) return { solved: s.solvedN, first: s.first, shown: s.shownN, ham: (s.ham.t1 || 0) + (s.ham.t2 || 0) };
       if (n === 4) return { sent: s.sent, tests: s.tests.length, ham: CH_SWITCH_V2.sim.l5ham(s) };
-      return { q40: (s.hist[SWK.LAKE.FLIP - 1] || {}).q, q60: s.hist[s.hist.length - 1].q };
+      return { qf: (s.hist[(s.flip || 1) - 1] || {}).q, qe: s.hist[s.hist.length - 1].q };
     },
     l5ham(s) { const seen = {}; let n = 0, h = 0; for (const t of s.tests || []) { if (seen[t.m]) continue; seen[t.m] = 1; n++; h += t.ham; } return { n, h }; },
     why(s) {   // the Interesting result, chosen from what happened in this run
@@ -507,21 +508,21 @@ const CH_SWITCH_V2 = {
       if (n === 1) { const p = s.pred.t1 || []; if (p[4] || p[5] || p[6]) return 'l2_trap'; if ((s.ham.t2 || 0) > 1) return 'l2_bxc'; return s.solved.legsA1 ? null : 'l2_shown'; }
       if (n === 2) return s.first < 4 ? 'l3_tries' : null;
       if (n === 3) return s.hit.t4 ? null : 'l4_miss';
-      if (n === 4) { if (s.sent === 'stop' || s.sent === 'swap') return 'l5_code'; if (s.sent !== 'pel') return 'l5_wrong'; return st.predict(s, n) ? null : 'l5_pred'; }
+      if (n === 4) { if (s.sent === 'stop' || s.sent === 'swap') return 'l5_code'; if (s.sent !== 'pel') return 'l5_wrong'; if (!st.discover(s, n)) return 'l5_nocode'; return st.predict(s, n) ? null : 'l5_pred'; }
       const L = SWK.LAKE, z = s.hist;
       if (s.pred.p6 != null && !s.hit.p6) return s.pred.p6 < s.exp.p6 ? 'l6_low' : 'l6_high';
       if (s.pred.t6 != null && !s.hit.t6) return s.pred.t6 < s.exp.t6 ? 'l6_gone' : 'l6_stay';
-      const q40 = z[L.FLIP - 1] ? z[L.FLIP - 1].q : null; if (q40 != null && s.exp.p6 != null && Math.abs(q40 - s.exp.p6) > 0.2) return 'l6_drift';
+      const q40 = s.flip && z[s.flip - 1] ? z[s.flip - 1].q : null; if (q40 != null && s.exp.p6 != null && Math.abs(q40 - s.exp.p6) > 0.2) return 'l6_drift';
       return null;
     },
     baseline(s) {   // what the frozen run expected from the thaw on: recessive, with mutation, under the realised predators
       const L = SWK.LAKE, out = {}; let q = s.th0.q;
-      for (let g = s.th0.gen; g < L.END; g++) { const r = s.hist[g - 1] || s.hist[s.hist.length - 1]; q = swLakeRec(q, r.T, r.M, 1, L.MU, false); if (g + 1 === L.FLIP) out.q40 = q; }
+      for (let g = s.th0.gen; g < s.end; g++) { const r = s.hist[g - 1] || s.hist[s.hist.length - 1]; q = swLakeRec(q, r.T, r.M, 1, L.MU, false); if (g + 1 === s.flip) out.q40 = q; }
       out.q60 = q; return out;
     },
     whatIfText(s) {   // a What if? text only when this rerun went the way it says (lessons §1.5); otherwise an honest "chance" line
-      const L = SWK.LAKE, b = this.baseline(s), z = s.hist, q40 = z[L.FLIP - 1] ? z[L.FLIP - 1].q : null, q60 = z[z.length - 1].q;
-      if (s.lever === 'dom') { if (s.th0.gen < L.FLIP) return q40 != null && q40 >= b.q40 + 0.05 ? 'w_dom' : 'w_chance'; return q60 <= b.q60 - 0.03 ? 'w_domfall' : 'w_chance'; }
+      const b = this.baseline(s), z = s.hist, q40 = z[s.flip - 1] ? z[s.flip - 1].q : null, q60 = z[z.length - 1].q;
+      if (s.lever === 'dom') { if (s.th0.gen < s.flip) return q40 != null && q40 >= b.q40 + 0.05 ? 'w_dom' : 'w_chance'; return q60 <= b.q60 - 0.03 ? 'w_domfall' : 'w_chance'; }
       if (s.lever === 'nomut') { if (q60 <= 0) return 'w_nomut_lost'; return q60 <= b.q60 - 0.02 ? 'w_nomut' : 'w_chance'; }
       return 'w_chance';
     },
@@ -588,7 +589,7 @@ const CH_SWITCH_V2 = {
 
   /* ---------- stars: pure functions of the final state, scored against expectations (D1 G10) ---------- */
   stars: {
-    discover: (s, n) => n === 0 ? s.solvedN >= 3 : n === 1 ? !!s.solved.legsA1 : n === 2 ? s.solvedN >= 3 : n === 3 ? s.solvedN >= 3 : n === 4 ? s.sent === 'pel' : false,
+    discover: (s, n) => n === 0 ? s.solvedN >= 3 : n === 1 ? !!s.solved.legsA1 : n === 2 ? s.solvedN >= 3 : n === 3 ? s.solvedN >= 3 : n === 4 ? s.sent === 'pel' && s.tests.some(t => t.m === 'pel') && s.tests.some(t => t.m === 'stop' || t.m === 'swap') : false,
     predict: (s, n) => {
       if (n === 0) return !!(s.hit.v1 && s.hit.v2);
       if (n === 1) return s.ham.t1 != null && s.ham.t2 != null && s.ham.t1 + s.ham.t2 <= 1;
@@ -649,10 +650,10 @@ const CH_SWITCH_V2 = {
       return C.t4;
     }
     if (n === 4) return { choose: s.tests.length ? C.l5more : C.l5, ask: C.l5ask, test: C.l5test, pick: C.l5pick, send: C.l5sent }[s.phase] || C.wait;
-    if (s.phase === 'ask') return s.ask && s.ask.id === 't6' ? C.ask2 : C.ask1;
+    if (s.phase === 'ask') return this.w('hud', s.ask && s.ask.id === 't6' ? 'ask2' : 'ask1', { g: s.ask ? s.ask.at : '' });
     if (s.phase === 'over') return C.wait;
     if (s.gen <= 2 && !s.started) return C.lake;
-    return this.w('hud', s.locked ? 'lakeSet' : 'lakeRun', { g: s.gen });
+    return this.w('hud', s.locked ? 'lakeSet' : 'lakeRun', { g: s.gen, n: s.end });
   },
   hud(force) {
     if (typeof HUD === 'undefined') return;
@@ -676,7 +677,7 @@ const CH_SWITCH_V2 = {
       b.push({ id: 'reset', label: L.reset, key: 'R', fn: act({ k: 'reset' }) });
       b.push({ id: 'hatch', label: J && J.k === 'crust' ? L.check : L.hatch, key: 'Enter', primary: true, fn: act({ k: 'hatch' }) });
     } else if (s.phase === 'hatch' || s.phase === 'judge' || s.phase === 'test' || s.phase === 'send') b.push({ id: 'skip', label: L.skip, key: 'Enter', fn: act({ k: 'skip' }) });
-    else if (s.phase === 'choose' || s.phase === 'pick') b.push({ id: 'send', label: L.send, key: 'Enter', primary: true, disabled: s.sel == null || (s.phase === 'choose' && !s.tests.length), why: this.w('hud', 'l5'), fn: act({ k: 'send' }) });
+    else if (s.phase === 'choose' || s.phase === 'pick') b.push({ id: 'send', label: L.send, key: 'Enter', primary: true, disabled: s.sel == null || (s.phase === 'choose' && !s.tests.length), why: this.w('whispers', 'sendWhy'), fn: act({ k: 'send' }) });
     else if (s.phase === 'lake') {
       if (s.locked) b.push({ id: 'set', label: L.set, disabled: true, why: this.w('whispers', 'locked'), fn: () => this.whisper('locked') });
       else { const c = this.sim.counts(); b.push({ id: 'addT', label: L.addT, key: 'T', fn: act({ k: 'add', type: 't', x: SWK.TRO[Math.min(3, c[0])][0], y: SWK.TRO[Math.min(3, c[0])][1] }) }); b.push({ id: 'addN', label: L.addN, key: 'N', fn: act({ k: 'add', type: 'n', x: SWK.NYM[Math.min(3, c[1])][0], y: SWK.NYM[Math.min(3, c[1])][1] }) }); }
@@ -894,7 +895,7 @@ const CH_SWITCH_V2 = {
     if (this.level === 5) { this.drawLake(c, w, h); return; }
     c.drawImage(this.scope(w, h), 0, 0, w, h);
     const G = this.geo();
-    if (this.level <= 2) { this.drawSpecimen(c, G); this.drawIdRow(c, G); if (this.level === 2) this.drawLanes(c, G); else this.drawGrid(c, G); this.drawTicket(c, G); }
+    if (this.level <= 2) { this.drawSpecimen(c, G); this.drawIdRow(c, G); if (this.level === 2) this.drawLanes(c, G); else this.drawGrid(c, G); }
     else if (this.level === 3) this.drawCrustLevel(c, G);
     else this.drawCircuit(c, G);
     this.drawBanner(c, G);
@@ -909,7 +910,7 @@ const CH_SWITCH_V2 = {
     const dur = first ? SWK.T.hatch : SWK.T.hatchR, f = ph === 'hatch' ? clamp(s.t / dur, 0, 1) : ph === 'judge' || ph === 'over' ? 1 : 0;
     const X = G.X, cy = G.cy, u = G.u, ids = s.ids || swIdent(s.grid);
     if (f === 0) {
-      this.drawEmbryo(c, G, s.grid, 1);
+      this.drawOrder(c, G); this.drawEmbryo(c, G, s.grid, 1);
       if (ph === 'ask' && s.ask && s.ask.kind === 'set') this.drawMarks(c, G);
       if (ph === 'ask') Lbl.put('sw-q', '?', X(3), cy, { size: 22, pill: false, ink: 'rgba(236,242,255,.55)', weight: 700 });
       return;
@@ -922,7 +923,7 @@ const CH_SWITCH_V2 = {
     if (ph === 'judge' || ph === 'over') {
       const tgt = this.sim.target(J);
       if (Array.isArray(tgt) && !s.shown && !s.ok) this.drawFly(c, tgt, G.cx0, G.cw, cy, u, { ghost: true, alpha: 0.5 });
-      if (this.v.stamp > 0) { c.save(); c.globalAlpha = clamp(this.v.stamp * 2, 0, 1); Lbl.put('sw-stamp', this.content.hud.ok, G.W / 2, G.sy + 16, { size: 16, ink: '#07080C', bg: css(SW_INK.Antp), weight: 700 }); c.restore(); }
+      if (this.v.stamp > 0) { c.save(); c.globalAlpha = clamp(this.v.stamp * 2, 0, 1); Lbl.put('sw-stamp', this.content.labels.stamp, G.W / 2, G.sy + 16, { size: 16, ink: '#07080C', bg: css(SW_INK.Antp), weight: 700 }); c.restore(); }
     }
   },
   glow(rgb) {   // a cached radial glow sprite per colour (drawn with 'lighter')
@@ -959,7 +960,7 @@ const CH_SWITCH_V2 = {
     }
   },
   drawLarva(c, G, ids, unused, a, belts, crawl) {   // dark-field larval cuticle: denticle belts shine white; Keilin's organs mark thoracic (leg) identity
-    if (a <= 0) return; const x0 = G.cx0, w = 7 * G.cw, cy = G.cy, hw = G.u * 0.36, cw = G.cw, wob = crawl ? Det.sin(crawl * TAU) * 0.03 : 0;
+    if (a <= 0) return; const x0 = G.cx0, w = 7 * G.cw, cy = G.cy, hw = G.u * 0.42, cw = G.cw, wob = crawl ? Det.sin(crawl * TAU) * 0.03 : 0;
     c.save(); c.globalAlpha = a;
     const L = x0 + cw * 0.05, Rr = x0 + w - cw * 0.05; c.beginPath(); c.moveTo(L + hw, cy - hw * 0.8); c.lineTo(Rr - hw, cy - hw); c.quadraticCurveTo(Rr + hw * 0.4, cy, Rr - hw, cy + hw); c.lineTo(L + hw, cy + hw * 0.8); c.quadraticCurveTo(L - hw * 0.5, cy, L + hw, cy - hw * 0.8);
     c.fillStyle = 'rgba(180,200,255,.06)'; c.fill(); c.strokeStyle = 'rgba(220,235,255,.5)'; c.lineWidth = 1.3; c.stroke();
@@ -1050,12 +1051,10 @@ const CH_SWITCH_V2 = {
       if (judged) { const ok = s.ids[j] === tgt[j], yy = G.iy - 8; c.lineWidth = 2; c.strokeStyle = ok ? css(SW_INK.Antp) : css(SW_INK.Ubx); c.beginPath(); if (ok) { c.moveTo(x - 5, yy); c.lineTo(x - 1, yy + 4); c.lineTo(x + 6, yy - 4); } else c.arc(x, yy, 5, 0, TAU); c.stroke(); }
     }
   },
-  drawTicket(c, G) {   // the order, pinned at the top right while you work
+  drawOrder(c, G) {   // the order as a dashed ghost fly behind the embryo: its wings, legs and antennae show what to build
     const s = this.sim.s, J = this.job(); if (!J || s.phase !== 'paint') return; const tgt = this.sim.target(J); if (!Array.isArray(tgt)) return;
-    const tw = Math.min(G.bw * 0.34, 170), th = tw * 0.5, tx = G.bx + G.bw - tw - 2, ty = G.sy + 2, cw = tw / 7.6;
-    c.save(); rrect(c, tx, ty, tw, th, 8); c.fillStyle = 'rgba(14,16,28,.88)'; c.fill(); c.strokeStyle = 'rgba(214,60,196,.6)'; c.lineWidth = 1.4; c.stroke(); c.restore();
-    this.drawFly(c, tgt, tx + cw * 0.3, cw, ty + th * 0.6, cw * 0.95, { grow: 1, alpha: 0.95, tint: true });
-    Lbl.put('sw-order', this.content.labels.order, tx + 8, ty + 10, { size: 12, pill: false, align: 'left', ink: 'rgba(255,160,240,.95)' });
+    this.drawFly(c, tgt, G.cx0, G.cw, G.cy, G.u, { ghost: true, alpha: 0.55 + 0.15 * Det.sin(this.v.t * 2.4) });
+    Lbl.put('sw-order', this.content.labels.order, G.bx + 4, G.sy + 12, { size: 12, pill: false, align: 'left', ink: 'rgba(255,160,240,.95)' });
   },
   drawGrid(c, G) {   // the paint board: rows are genes (chromosome order), columns are segments
     const s = this.sim.s, L = this.content.labels, J = this.job(), del = J && (J.k === 'vial' || J.k === 'tap') ? SWK.VIAL[J.v] : [], gone = {};
@@ -1131,7 +1130,7 @@ const CH_SWITCH_V2 = {
       this.drawCrust(c, tC, C.sp, SWK.CR[C.sp].maxi + 1, null, 0.95);
       Lbl.put('sw-order', L.order, tC.x0, tC.cy - tw * 0.2 + 10, { size: 12, pill: false, align: 'left', ink: 'rgba(255,160,240,.95)' });
     }
-    if (ph === 'judge' && J && J.k === 'crust' && s.ok) { c.save(); c.globalAlpha = clamp(this.v.stamp * 2, 0, 1); Lbl.put('sw-stamp', this.content.hud.ok, G.W / 2, C.cy - C.u * 1.6, { size: 16, ink: '#07080C', bg: css(SW_INK.Antp), weight: 700 }); c.restore(); }
+    if (ph === 'judge' && J && J.k === 'crust' && s.ok) { c.save(); c.globalAlpha = clamp(this.v.stamp * 2, 0, 1); Lbl.put('sw-stamp', this.content.labels.stamp, G.W / 2, C.cy - C.u * 1.6, { size: 16, ink: '#07080C', bg: css(SW_INK.Antp), weight: 700 }); c.restore(); }
   },
   drawCrust(c, C, sp, appB, stainB, a) {   // side view, head left: thoracic legs in front of the edge are short feeding legs that fold to the mouth
     const u = C.u, cy = C.cy, nT = C.nT, bodyH = u * (sp === 'isopod' ? 0.55 : sp === 'artemia' ? 0.32 : 0.45), abdL = C.len - C.head - C.thw, ab0 = C.thx + C.thw;
@@ -1298,13 +1297,13 @@ const CH_SWITCH_V2 = {
     const H = s.hist, ghost = [], Lk = SWK.LAKE;
     const curve = (g0, g1, q0, T, M, dom) => { const out = [[g0, q0]]; let q = q0; for (let g = g0; g < g1; g++) { q = swLakeRec(q, T, M, 1, s.mu, dom); out.push([g + 1, Math.round(q * 1000) / 1000]); } return out; };
     for (const id of ['p6', 't6']) {
-      if (s.exp[id] == null || s.pred[id] === undefined) continue; const g0 = id === 'p6' ? (s.askGen || Lk.ASK0) : Lk.FLIP, r = H[g0 - 1]; if (!r) continue;
-      ghost.push({ d: curve(g0, id === 'p6' ? Lk.FLIP : Lk.END, r.q, id === 'p6' ? r.T : Lk.MAX, id === 'p6' ? r.M : 0, false), label: L.expected });
-      if (id === 'p6') ghost.push({ d: curve(g0, Lk.FLIP, r.q, r.T, r.M, true), label: L.dominant });
+      if (s.exp[id] == null || s.pred[id] === undefined) continue; const g0 = id === 'p6' ? s.askGen : s.flip, r = H[g0 - 1]; if (!r) continue;
+      ghost.push({ d: curve(g0, id === 'p6' ? s.flip : s.end, r.q, r.T, r.M, false), label: L.expected });
+      if (id === 'p6') ghost.push({ d: curve(g0, s.flip, r.q, r.T, r.M, true), label: L.dominant });
     }
     stats.push(['Generation', String(s.gen), ''], ['Deletion share', Math.round(this.sim.q() * 100) + '%', 'Share of copies with the enhancer deleted.'], ['Spineless', Math.round(H[H.length - 1].dd * 100) + '%', 'Fish with two deleted copies.']);
-    return { stats, charts: [{ type: 'trace', title: L.chLake, x: { lo: 1, hi: Lk.END, label: L.gen }, y: { lo: 0, hi: 1, label: L.share, fmt: 'pct' }, frame: 'designed',
-      series: [{ d: H.map(r => r.q), ink: 'a', label: L.del }, { d: H.map(r => r.dd), ink: 'text2', label: L.ss }], ghost, marks: [Lk.FLIP] }] };
+    return { stats, charts: [{ type: 'trace', title: L.chLake, x: { lo: 1, hi: s.end || Lk.XHI, label: L.gen }, y: { lo: 0, hi: 1, label: L.share, fmt: 'pct' }, frame: 'designed',
+      series: [{ d: H.map(r => r.q), ink: 'a', label: L.del }, { d: H.map(r => r.dd), ink: 'text2', label: L.ss }], ghost, marks: s.flip ? [s.flip] : [] }] };
   }
 };
 V2.push(CH_SWITCH_V2);

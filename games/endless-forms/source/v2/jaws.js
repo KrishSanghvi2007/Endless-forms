@@ -1,21 +1,8 @@
-/* ================= v2/jaws.js: Left Jaw, Right Jaw (Act 5; D1 §3.3, D5 §4 item 7) =================
-   You guard a school of cichlids in Lake Tanganyika. Scale-eaters (Perissodus) dart in from behind and bite a flank; each one
-   mostly strikes one side, set by its twisted jaw (a continuous, partly inherited trait). Tap a flank to raise a guard plate
-   (1.2 s; at most two up). You cannot see the jaw until the strike, so you guard the side most bites come from. That habit is
-   the selection: the commoner side goes hungry, the rarer side feeds and breeds, and the share swings (negative frequency
-   dependence). Five levels:
-     L0 One fish        one prey, one plate; h² 0.9 (×N). The rare side feeds better.
-     L1 The school      three fish, two plates: triage is the selection; the young answer last season's guards (overshoot).
-     L2 Partly inherited h² 0.25 (realistic): drag where the young's mean twist lands (R = h²S, the Wood L2 echo).
-     L3 Two hunters     a second, striped species shares the prey; one defender selects both, so their swings line up.
-     L4 The lizard wheel (boss) side-blotched lizards, rock–paper–scissors; you are a blue mate-guarder blocking yellow sneakers.
-                        Rarity is no shield: a morph rises when the morph it beats is common (inverts L0–L3).
-   What if? (the freezer) thaws the last season and runs eight more with one lever: guards split evenly, no inheritance, always
-   guard right; in the boss: no arrivals from other rocks, weak or perfect blocking.
-   Code shape (API_v2 §9): a headless sim (plain JSON, R()/Det/Gen/WF only; a run is (seed, level, actions)); all words in
-   JW_TEXT; the view juices from Sim.run's events only. Load rule: top-level code touches only legacy objects and lower-numbered
-   v2 files (Rig, LiveGraph); every engine call at run time is behind a typeof guard. Under ?v1=1 the learning-layer rewrites at
-   the foot are skipped. */
+/* ================= v2/jaws.js: Left Jaw, Right Jaw (Act 5; D1 §3.3, D5 §4 item 7; log docs/changes/wave2/jaws.md) =================
+   Lake Tanganyika shallows. Scale-eaters (Perissodus) strike a flank set by a continuous, partly inherited jaw twist; you raise
+   guard plates on the side you expect, and that habit is the selection (negative frequency dependence). L0 one fish, L1 the
+   school (scarce guards), L2 low h² (R = h²S), L3 two species, L4 boss: rock–paper–scissors lizards. A headless sim (plain JSON,
+   R()/Det/Gen/WF; a run is (seed, level, actions)); words in JW_TEXT; juice from Sim.run's events only; ?v1=1 skips the foot. */
 
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const JW_TEXT = {
