@@ -19,11 +19,13 @@ module.exports = function (G, t) {
   const lag = (Rs, B) => { const f = l => Rs.map(R => R === 0 ? 1 : Math.max(1, Math.sqrt(R / l) - R)); let lo = 1e-9, hi = 10; for (let k = 0; k < 200; k++) { const m = Math.sqrt(lo * hi), tt = f(m).reduce((a, b) => a + b, 0); if (tt > B) lo = m; else hi = m; } return f(hi); };
   const greedyAlloc = (fs, B) => { const s = fs.map(() => 1); let left = B - fs.length; while (left > 0) { let bi = 0, bg = -1; fs.forEach((F, i) => { const g = E * (share(F, s[i] + 0.1) - share(F, s[i])); if (g > bg) { bg = g; bi = i; } }); s[bi] += 0.1; left -= 0.1; } return s; };
   const run = (lv, seed, bot, extra) => G.run(lv, Object.assign({ seed, bot }, extra || {}));
+  const margL2 = (F, x) => { const A = x + F.R, Bb = A + 20; return E * ((1 - F.q) * F.R / (A * A) + F.q * (F.R + 20) / (Bb * Bb)); };
+  const atL2 = (F, l) => { if (margL2(F, 1) <= l) return 1; if (margL2(F, 100) >= l) return 100; let a = 1, b = 100; for (let k = 0; k < 50; k++) { const m = (a + b) / 2; if (margL2(F, m) > l) a = m; else b = m; } return (a + b) / 2; };
+  const omniL2 = fs => { let lo = 1e-9, hi = 1e3; for (let k = 0; k < 90; k++) { const m = Math.sqrt(lo * hi); if (fs.reduce((x, F) => x + atL2(F, m), 0) > 100) lo = m; else hi = m; } return fs.map(F => atL2(F, hi)); };
   const stars3 = m => ((m & 1) ? 1 : 0) + ((m & 2) ? 1 : 0) + ((m & 4) ? 1 : 0);
 
   /* ---------- the fair raffle (L1) ---------- */
   const legacy = [0, 40, 20, 100, 0, 60], L0 = lag(legacy, 100);
-  t.near(sim.expect ? 1 : 1, 1, 0, 'sim loaded');
   { const F = { R: 40 }; let ok = true; for (const s of [1, 5, 20, 60]) if (Math.abs(E * share(F, s) - E * sh(s, 40)) > 1e-12) ok = false; t.ok(ok, 'fair raffle: your share of her 20 eggs is 20·s/(s + R)'); }
   { const S = ch.sim; S.reset(0, {}); const s = S.s; s.fem = legacy.map(R => ({ R, s: 0, eggs: -1 }));
     const b = S.bestPlan(s); t.eq(b.map(x => Math.round(x * 10) / 10), [1, 30.5, 29.8, 11.4, 1, 26.3], 'L1 best plan for rivals 0, 40, 20, 100, 0, 60 matches R7 A19 (1, 30.5, 29.8, 11.4, 1, 26.3 units)');
@@ -40,20 +42,18 @@ module.exports = function (G, t) {
     const eff = lag(fs.map(F => F.z * F.R / F.y), 100); t.ok(Math.abs(eggs(fs, eff) - l) < 0.05, 'her storage: the plan equals the fair raffle with each R replaced by z·R ÷ y'); }
 
   /* ---------- the expectation the stars read equals the mean of the draws ---------- */
-  { let tot = 0, n = N(800), lat = 0, came = 0;
+  { let tot = 0, n = N(800);
     for (let sd = 1; sd <= n; sd++) {
       const r = run(0, sd, 'threshold'); for (const F of r.s.fem) tot += F.eggs - E * share(F, F.s);
-      const r2 = run(1, sd, 'even'); for (const F of r2.s.fem) { lat++; if (F.later) came += 1 / F.q > 5 ? 1 : 0; }
     }
     t.ok(Math.abs(tot / (n * 6)) < 0.12, `egg draws: realised minus expected eggs averages ${(tot / (n * 6)).toFixed(3)} per female over ${n} runs (unbiased)`);
     let c9 = 0, n9 = 0, c1 = 0, n1 = 0; for (let sd = 1; sd <= n; sd++) { const r = run(1, sd, 'even'); for (const F of r.s.fem) { if (F.q > 0.5) { n9++; c9 += F.later ? 1 : 0; } else { n1++; c1 += F.later ? 1 : 0; } } }
-    t.near(c9 / n9, 0.9, 0.03, `L2: a later male came to ${(100 * c9 / n9).toFixed(1)}% of the 9-in-10 females`); t.near(c1 / n1, 0.1, 0.03, `and to ${(100 * c1 / n1).toFixed(1)}% of the 1-in-10 females`); void lat; void came; }
+    t.near(c9 / n9, 0.9, 0.03, `L2: a later male came to ${(100 * c9 / n9).toFixed(1)}% of the 9-in-10 females`); t.near(c1 / n1, 0.1, 0.03, `and to ${(100 * c1 / n1).toFixed(1)}% of the 1-in-10 females`); }
 
   /* ---------- L2: risk, and the benchmark (B) ---------- */
   { const S = ch.sim; let worst = 1, rvs = 0, n = N(200), heavy = 0;
     for (let sd = 1; sd <= n; sd++) {
-      G.reset(1, sd); const s = S.s, fs = s.fem, P = S.bestPlan(s), om = (() => { const tot = l => fs.reduce((a, F) => a + S.constructor ? 0 : 0, 0); void tot; return null; })(); void om;
-      const omni = eggs(fs, (() => { const f = fs.map(F => Object.assign({}, F)); let lo = 1e-9, hi = 1e3; const at = (F, l) => { let a = 1, b = 100; const mg = x => { const Rr = F.R, q = F.q, A = x + Rr, Bb = A + 20; return E * ((1 - q) * Rr / (A * A) + q * (Rr + 20) / (Bb * Bb)); }; if (mg(1) <= l) return 1; if (mg(100) >= l) return 100; for (let k = 0; k < 50; k++) { const m = (a + b) / 2; if (mg(m) > l) a = m; else b = m; } return (a + b) / 2; }; for (let k = 0; k < 90; k++) { const m = Math.sqrt(lo * hi); if (f.reduce((x, F) => x + at(F, m), 0) > 100) lo = m; else hi = m; } return f.map(F => at(F, hi)); })());
+      G.reset(1, sd); const s = S.s, fs = s.fem, P = S.bestPlan(s), omni = eggs(fs, omniL2(fs));
       const pe = eggs(fs, P); worst = Math.min(worst, pe / omni);
       if (P[s.risky] >= P[s.safe] + 5) rvs++;
       if (Math.abs(P.reduce((a, b) => a + b, 0) - 100) > 1e-6) heavy++;
@@ -62,13 +62,10 @@ module.exports = function (G, t) {
     t.eq(heavy, 0, 'B. the planner spends exactly the supply on every queue');
     t.ok(rvs === n, `L2: the planner gives the risky virgin at least 5 units more than the safe virgin on ${rvs} of ${n} queues (Parker 1990)`);
     // the spec's numbers: at the multiplier where a mated female with 20 rival units gets 15, a virgin at 9 in 10 gets about 15–22 and one at 1 in 10 gets 1
-    const marg = (F, x) => { const A = x + F.R, Bb = A + 20; return E * ((1 - F.q) * F.R / (A * A) + F.q * (F.R + 20) / (Bb * Bb)); };
-    const lam = marg({ R: 20, q: 0.5 }, 15), at = F => { let a = 1, b = 100; if (marg(F, 1) <= lam) return 1; for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if (marg(F, m) > lam) a = m; else b = m; } return (a + b) / 2; };
-    const v9 = at({ R: 0, q: 0.9 }), v1 = at({ R: 0, q: 0.1 }); t.ok(v9 > 10 && v9 < 25 && v1 <= 1.0001, `risk: a virgin at 9 in 10 earns ${v9.toFixed(1)} units, one at 1 in 10 earns ${v1.toFixed(1)} (D1: about 22 and about 1)`); }
+    const lam = margL2({ R: 20, q: 0.5 }, 15), v9 = atL2({ R: 0, q: 0.9 }, lam), v1 = atL2({ R: 0, q: 0.1 }, lam); t.ok(v9 > 10 && v9 < 25 && v1 <= 1.0001, `risk: a virgin at 9 in 10 earns ${v9.toFixed(1)} units, one at 1 in 10 earns ${v1.toFixed(1)} (D1: about 22 and about 1)`); }
 
   /* ---------- L3: the dung fly curve and the marginal value theorem ---------- */
   { const S = ch.sim, D = (S.reset(2, {}), S.s), F0 = D.fem[0];
-    const x36 = (() => { G.reset(2, 1); const s = S.s; S.act({ k: 'add', n: 36 }); return null; })(); void x36;
     // read the curve through the sim: mate exactly t minutes
     const shareAt = mins => { G.reset(2, 1); const s = S.s; for (let k = 0; k < 40 && s.phase !== 'pour'; k++) S.step(1 / 30); S.act({ k: 'add', n: 40 }); s.mins = mins; S.act({ k: 'mate' }); return s.fem[0].x; };
     t.near(shareAt(36), 0.80, 0.005, 'L3: a 36-minute mating gives the last male 80% of her store (Parker 1970)');
@@ -78,10 +75,10 @@ module.exports = function (G, t) {
     t.near(S.expect({ fem: [] }, 'p3'), 41.4, 0.1, 'and the Predict star is scored against the tangent point, 41.4 min');
     let bt2 = 0, bv2 = -1; for (let m = 10; m <= 50; m += 0.2) { const v = rate(m, 40); if (v > bv2) { bv2 = v; bt2 = m; } }
     t.near(bt2, 26.1, 0.3, `L3: with a 40-minute afternoon search the best mating falls to ${bt2.toFixed(1)} min (the Transfer's target)`);
-    const a = shareAt(1000 > 120 ? 120 : 120); t.ok(a < 0.894 && a > 0.88, `about one earlier sperm in nine stays out of reach: share at 120 min ${a.toFixed(3)} < 0.894`);
+    const a = shareAt(120); t.ok(a < 0.894 && a > 0.88, `about one earlier sperm in nine stays out of reach: share at 120 min ${a.toFixed(3)} < 0.894`);
     // constant random displacement: d(share)/dt = k (a − share)
     const s1 = shareAt(20), s2 = shareAt(20.5); t.near((s2 - s1) / 0.5, 0.0627036 * (0.8934849 - (s1 + s2) / 2), 2e-4, 'random displacement: the share rises at k·(a − share), slowing as your own sperm are flushed');
-    void F0; }
+  }
 
   /* ---------- determinism and snapshot replay ---------- */
   for (const lv of [0, 1, 2, 3]) {

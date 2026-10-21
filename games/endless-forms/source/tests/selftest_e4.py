@@ -24,7 +24,7 @@ def ok(c, m):
     else: fails.append(m); print('   FAIL', m)
 
 
-TAP_TO_CARD = """async () => { for (let i = 0; i < 400 && !document.querySelector('#cards.on .card'); i++) { const b = document.querySelector('#dock button'); if (b) b.click(); window.__advance(60); } return !!document.querySelector('#cards.on .card'); }"""
+TAP_TO_CARD = """async () => { for (let i = 0; i < 400 && !document.querySelector('#cards.on .card'); i++) { const b = document.querySelector('#dock button:not(.ef-q)'); if (b) b.click(); window.__advance(60); } return !!document.querySelector('#cards.on .card'); }"""
 STARS = """() => [...document.querySelectorAll('#cards .ef-star svg')].map(s => (s.classList.contains('off') ? 'o' : 'X') + (s.classList.contains('pop') ? 'p' : ''))"""
 
 with sync_playwright() as p:
@@ -42,7 +42,15 @@ with sync_playwright() as p:
         if name == 'phone': pg.screenshot(path=os.path.join(out, 'menu_390.png'))
         ok(pg.evaluate("() => document.querySelector('#menu-body .part h3').textContent") == 'Act 0The Wood', 'menu opens with Act 0, The Wood')
         # level 1 of the fixture, then its card
-        pg.evaluate("() => { TB.App.open(TB.REG.e4fix); window.__advance(1200); }")
+        pg.evaluate("() => { TB.App.open(TB.REG.e4fix); window.__advance(500); }")
+        # D6 decision 8: the unit opens on its description card; Play has focus, the card fits the screen, Enter plays
+        ic = pg.evaluate("""() => { const c = document.querySelector('#cards.on .card.ef-intro'); if (!c) return null; const p = c.querySelector('[data-play]'), r = c.getBoundingClientRect();
+            return { focus: document.activeElement === p, parts: c.querySelectorAll('.ef-in-part').length, fits: r.bottom <= innerHeight && c.scrollHeight <= c.clientHeight + 1, role: c.getAttribute('role'), modal: c.getAttribute('aria-modal') }; }""")
+        ok(bool(ic) and ic['focus'] and ic['role'] == 'dialog' and ic['modal'] == 'true', 'the unit opens on its description card, Play focused (%s)' % ic)
+        ok(bool(ic) and ic['fits'], 'the description card fits without scrolling (%s)' % ic)
+        if name == 'phone': pg.screenshot(path=os.path.join(out, 'intro_390.png'))
+        pg.keyboard.press('Enter'); pg.evaluate("() => window.__advance(700)")
+        ok(pg.evaluate("() => !document.querySelector('#cards.on')"), 'Enter on the description card starts the level')
         ok(pg.evaluate(TAP_TO_CARD), 'the fixture reaches its level card')
         pg.evaluate("() => window.TB.Whisper && TB.Whisper.say('Test whisper', 't')")
         st0 = pg.evaluate(STARS)
@@ -87,7 +95,7 @@ with sync_playwright() as p:
         # Begin: a stand-in v2 Wood is entered straight from the title
         pg.evaluate("() => { TB.Cards.close(); TB._lichen = TB.REG.lichen; TB.REG.lichen = TB.REG.e4fix; delete TB.Save.d.done.lichen; TB.App.go('title'); }")
         pg.click('#btn-begin'); pg.evaluate("() => window.__advance(200)")
-        ok(pg.evaluate("() => TB.App.scr === 'play' && TB.App.ch === TB.REG.e4fix && !document.querySelector('#cards.on')"), 'Begin goes straight into the Wood')
+        ok(pg.evaluate("() => TB.App.scr === 'play' && TB.App.ch === TB.REG.e4fix && !!document.querySelector('#cards.on .card.ef-intro')"), 'Begin goes straight into the Wood, behind its description card')
         pg.evaluate("() => { TB.App.exit(); TB.REG.lichen = TB._lichen; TB.App.go('title'); }")
         pg.click('#btn-begin'); pg.evaluate("() => window.__advance(200)")
         ok(pg.evaluate("() => TB.App.scr === 'menu'"), 'Begin with the legacy Wood opens the menu')
