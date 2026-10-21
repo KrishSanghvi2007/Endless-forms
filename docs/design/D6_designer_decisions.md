@@ -56,3 +56,16 @@
 - **D2 §5 and the Act 3 plan:** superseded by the single chapter above.
 - **Playtesting:** see decision 4.
 - **GAME_BIBLE and CRITIQUE:** decisions log updated, and the open questions are marked answered.
+
+---
+
+## Addendum, 21 October 2026: the designer's feedback after playing Batch 1 (binding)
+
+**7. Every chapter looks too similar** (beetles, blue and yellow, the same scene). From now on **each chapter has its own world**: its own organism, its own place and its own palette, with an art style that fits the place. Examples: dark-field fluorescence for embryos, sepia portraits for the royal pedigree, turquoise lake water for the cichlids, sunset coast for the gulls. The fixed allele inks (blue A, amber a) are used **only inside genotype or allele read-outs** (jars, genotype lenses, allele-frequency graphs), never as a chapter's overall colour scheme. Beetles belong to Equilibrium only. Chrome (HUD, dock, cards) may share a layout, but each chapter tints it with its own accent colour. Colour-blind safety rules still apply.
+
+**8. Every chapter opens with a short description card.** This overrides D5 decision 18 and the "no card before the first action" rule. The card has three labelled parts:
+- **The game:** what you are and what is happening.
+- **The biology:** the idea the chapter teaches, in plain words.
+- **How to play:** the controls and the goal.
+
+Each part is 1–2 sentences, at most about 35 words, so about 100 words in total. The card has a big Play button, and a "?" button in the dock reopens it during play. The ghost hand still demonstrates the first action once play starts. Chapters supply the text as `content.intro = {game, biology, how}`, and `00_entry.js` draws the card for every v2 chapter.
