@@ -39,6 +39,11 @@ const HK_LV = [   // per level: payoffs, baseline fitness B (w = B + payoff), ti
 
 const HK_TEXT = {
   firstWords: 'One empty shell. Hawk fights; Dove displays and backs off. Tap Hawk or Dove.',
+  intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
+    game: 'You are a hermit crab on a busy beach, contesting empty shells with rivals. From level 2 your young carry your rule, which spreads or fades with its payoff.',
+    biology: 'Evolutionarily stable strategies: a rule’s payoff depends on what the others do. When fights cost more than the shell is worth, neither pure Hawk nor pure Dove is stable.',
+    how: 'Tap Hawk to fight or Dove to display and back off (or the arrow keys). Predict where the beach settles; in the last level, hold to keep rapping.'
+  },
   hud: {
     duel0: 'Hawk fights; Dove backs off. Most crabs on this beach are hawks.',
     duel1a: 'Every other crab is a dove. Your young will play your picks.',
@@ -193,7 +198,7 @@ const HK_real = (s, id) => { const A = HK_ASK[s.askQ[id]] || HK_ASK.p, a = s.at0
 const HK_cv = H => { if (!H.length) return 0; let m = 0; for (const v of H) m += v; m /= H.length; let q = 0; for (const v of H) q += (v - m) * (v - m); return m > 0 ? Math.sqrt(q / H.length) / m : 0; };
 
 const CH_HAWKS_V2 = {
-  id: 'hawks', v2: true, role: 'animal', place: 'shore',
+  id: 'hawks', v2: true, role: 'animal', place: 'shore', accent: '#23998B',   // the chapter's chrome tint (D6 decision 7)
   intro: { goal: 'Win shells as Hawk or Dove; watch your rule spread or stall.' },
   content: HK_TEXT,
   P: {
@@ -971,11 +976,11 @@ const CH_HAWKS_V2 = {
     if (woa) { Dock.set([{ id: 'rap', label: holding ? L.stop : L.rap, key: ' ', primary: true, pressed: holding, fn: () => this.toggleRap() }]); return; }
     Dock.set([{ id: 'hk-dove', label: L.dovePad, key: 'ArrowLeft', aria: 'Dove: display', fn: () => this.pick(0) }, { id: 'hk-hawk', label: L.hawkPad, key: 'ArrowRight', aria: 'Hawk: fight', fn: () => this.pick(1) }]);
     if (typeof document === 'undefined' || !document.querySelector || typeof Pal === 'undefined') return;
-    for (const [id, role, up] of [['hk-dove', 'a', false], ['hk-hawk', 'A', true]]) {   // the buttons wear the rules' inks (blue Hawk, amber Dove), never the crimson primary
+    for (const [id, role, up] of [['hk-dove', 'a', false], ['hk-hawk', 'A', true]]) {   // neutral chrome (D6 decision 7): each button carries its rule's ink only as a key, a side bar and the claw glyph
       const el = document.querySelector('#dock [data-id="' + id + '"]'); if (!el) continue;
-      const fill = Pal.INK[Pal.theme] ? Pal.INK[Pal.theme][role] : Pal.INK.dusk[role], txt = Pal.best(fill, ['#1B1612', '#F4EEDD']);
-      el.style.background = fill; el.style.borderColor = fill; el.style.color = txt;
-      if (el.insertBefore) el.insertBefore(this.glyph(up), el.firstChild);
+      const fill = Pal.INK[Pal.theme] ? Pal.INK[Pal.theme][role] : Pal.INK.dusk[role];
+      el.style.boxShadow = 'inset 7px 0 0 ' + fill; el.style.paddingLeft = '18px';
+      if (el.insertBefore) { const g = this.glyph(up); g.style.color = fill; el.insertBefore(g, el.firstChild); }
     }
   },
   hud() {

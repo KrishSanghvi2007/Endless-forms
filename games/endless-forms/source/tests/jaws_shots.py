@@ -48,6 +48,9 @@ def main():
                 have = set()
                 once = lambda name: (name not in have) and (have.add(name) or True)
                 pg.evaluate("()=>window.__advance(500)")
+                if pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"):   # the opening card (D6 decision 8)
+                    if lv == 0: shot('intro')
+                    pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(600)")
                 shot('start')
                 asks = 0
                 for step in range(6000):

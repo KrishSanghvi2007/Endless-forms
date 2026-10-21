@@ -22,7 +22,7 @@ def page(b, html, q='', vp=(390, 780)):
     errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
-    pg.goto('file://' + html + q)
+    pg.goto('file://' + html + q + ('&' if q else '?') + 'intro=0')   # the opening card (D6 addendum 8) is tested by the engine; these paths start in play
     pg.evaluate("()=>window.__advance(600)")
     return pg, errs
 

@@ -34,6 +34,8 @@ def page(b, w=390, h=780, q='', calm=False):
 
 def play(pg, lv, seed=7):
     pg.evaluate("([lv, sd])=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.jaws, lv, {seed: sd}); window.__advance(200); }", [lv, seed])
+    if pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"):   # the opening card (D6 decision 8): Play closes it
+        pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(300)")
 
 
 def flank_xy(pg, f, side):
@@ -43,6 +45,21 @@ def flank_xy(pg, f, side):
 def main():
     with sync_playwright() as p:
         b = p.chromium.launch(**CHROME)
+
+        # ---- the opening card: three labelled parts from content.intro, the coral accent, Play, and "?" to reopen ----
+        ctx, pg, errs = page(b)
+        pg.evaluate("()=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.jaws, 0, {seed: 7}); window.__advance(300); }")
+        card = pg.evaluate("()=>{ const c = document.querySelector('#cards.on .card.ef-intro'); return c ? {n: c.querySelectorAll('.ef-in-part').length, text: c.innerText} : null; }")
+        check(bool(card) and card['n'] == 3 and 'Lake Tanganyika' in card['text'], 'the opening card shows the game, the biology and how to play')
+        pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(400)")
+        check(not pg.evaluate("()=>!!document.querySelector('#cards.on .card')"), 'Play closes the opening card')
+        q = pg.query_selector('.ef-q')
+        if q:
+            q.click(); pg.evaluate("()=>window.__advance(300)")
+            check(pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"), 'the dock "?" reopens the card during play')
+            pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(300)")
+        check(not errs, 'no page errors on the opening card: %s' % errs[:2])
+        ctx.close()
 
         # ---- taps, keys, latency, a whole level by real input ----
         ctx, pg, errs = page(b)

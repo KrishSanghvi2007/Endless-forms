@@ -19,6 +19,11 @@
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const LW_TEXT = {
   firstWords: 'You are a bird with four hungry chicks. Tap a moth to eat it.',
+  intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
+    game: 'You are a bird feeding four chicks in a lichen-covered wood. Each morning you eat the moths you spot; the moths you miss breed at dusk.',
+    biology: 'Natural selection: moths vary in shade, and young resemble their parents. The moths you miss leave the young, so the population evolves towards the bark.',
+    how: 'Tap a moth you can see to eat it, or use the arrows and Enter. Feed your chicks, then drag the diamond to predict where the young will land.'
+  },
   hud: {
     hunt0: 'Each moth you eat feeds a chick.',
     hunt: 'Eat {n} more before the light goes flat.',
@@ -170,7 +175,7 @@ const LW_T = { dawn: 0.8, fall: 0.5, eggs: 0.9, cull: 0.7, hatch: 0.9, askMax: 3
 const LW_D = [1, 1, 1];   // detectability of band, mottle, speck: the looks differ only in pattern (D1), so they hide equally well
 
 const CH_LICHEN_V2 = {
-  id: 'lichen', v2: true, role: 'environment', place: 'wood',
+  id: 'lichen', v2: true, role: 'environment', place: 'wood', accent: '#6F8A45',   // the chapter's chrome tint (D6 decision 7)
   intro: { goal: 'Feed your chicks; watch the hidden moths become common.' },
   content: LW_TEXT,
   P: {

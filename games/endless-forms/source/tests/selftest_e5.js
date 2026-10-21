@@ -109,6 +109,7 @@ if (process.argv[2] === '--build-only') { console.log(privateBuild()); process.e
 const HTML = process.argv[2] ? path.resolve(process.argv[2]) : privateBuild();
 const { load } = require('./vmgame');
 const G = load(HTML, { vw: 390, vh: 780 }), TB = G.TB, W = G.window, D = G.document;
+if (TB.Intro) TB.Intro.off = true;   // these checks drive levels directly; the opening description card (D6 decision 8) is tested in selftest_e4
 const { LiveGraph, Predict, GenePoolLens, Invasion, Ledger, Pin, Evidence, Chips, PedigreeView, DemeMap, PriceBars, TreeView, SceneLab, Hooks, App, REG, R, seed } = TB;
 const canvas = (w, h) => { const cv = D.createElement('canvas'); cv.style.width = (w || 300) + 'px'; cv.style.height = (h || 120) + 'px'; D.body.appendChild(cv); return cv; };
 

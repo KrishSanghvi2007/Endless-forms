@@ -125,6 +125,11 @@ const sootMix = wd => { const x = (1 - wd.pA) * (1 - wd.pA), y = (1 - wd.pB) * (
 /* ---------- all words (API_v2 §9.2; D4 budgets; British spelling) ---------- */
 const SOOT_C = {
   firstWords: 'Soot is falling. You are the jay: tap moths you see to feed your chicks.',
+  intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
+    game: 'You are a jay in a wood near the mills as soot blackens the bark. Eat the moths you spot to feed your chicks, then test the story in the field.',
+    biology: 'Industrial melanism: a dominant allele, carbonaria, makes moths black and spreads fast on sooty bark. When the air clears, pale copies hidden in black moths return slowly at first.',
+    how: 'Tap a moth to peck it, or steer the beak with the arrows and Space. Predict when black passes half; in the last level, mark, release and recapture moths.'
+  },
   hud: {
     hunt: 'Feed the chicks: {n} more moths.', dawn: 'Generation {g}. {line}',
     dusk: 'Dusk. The moths you missed lay eggs.', post: 'The survivors pair up.', wait: 'The season is over.',
@@ -239,7 +244,7 @@ const SOOT_C = {
 };
 
 const CH_SOOT_V2 = {
-  id: 'soot', v2: true, role: 'environment', place: 'wood',
+  id: 'soot', v2: true, role: 'environment', place: 'wood', accent: '#A0623E',   // the chapter's chrome tint (D6 decision 7)
   intro: { goal: 'Feed your chicks as soot comes and goes; watch dominance set the pace.' },
   content: SOOT_C,
   P: {
@@ -992,7 +997,7 @@ const CH_SOOT_V2 = {
     // timer strip
     const top = this.hudH() + 40, frac = s.phase === 'hunt' ? clamp(s.unt ? s.looks / SOOTK.LOOKS : s.time / (s.time0 || 10), 0, 1) : s.phase === 'dawn' ? 1 : 0;
     c.fillStyle = 'rgba(20,16,12,.45)'; c.fillRect(0, top, w, 5);
-    c.fillStyle = frac < 0.25 ? '#E8DFC9' : '#D9A441'; c.fillRect(v.flinch * 4, top, w * frac, 5);
+    c.fillStyle = frac < 0.25 ? '#D27A4C' : '#E8DFC9'; c.fillRect(v.flinch * 4, top, w * frac, 5);   // cream, rust when the morning is nearly over (never a data ink)
     // moths
     const size = this.size(), dusk = s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post' || s.phase === 'over';
     const lensOn = this.lens && this.lens.mode !== 'look' && dusk;
@@ -1029,16 +1034,19 @@ const CH_SOOT_V2 = {
     c.drawImage(C.vig, 0, 0, w, h);
   },
   chimneys() { const w = Stage.w, y = this.hudH() + 36, xs = [0.08, 0.17, 0.31, 0.46, 0.62, 0.71, 0.86, 0.94]; return xs.map((f, i) => [f * w, y - 14 - (i % 3) * 5]); },
-  skyline(c, w, h, smoky, soot) {   // a strip of the Black Country beyond the wood: sky, mills, chimneys and their smoke
+  skyline(c, w, h, smoky, soot) {   // a strip of the Black Country beyond the wood: a sulphur-brown sky, brick mills, chimneys and their smoke (D6 decision 7)
     const y0 = this.hudH(), y1 = y0 + 40;
-    const sky = c.createLinearGradient(0, y0, 0, y1); sky.addColorStop(0, css(mix([182, 196, 204], [92, 84, 76], soot))); sky.addColorStop(1, css(mix([214, 214, 200], [128, 116, 102], soot)));
+    const sky = c.createLinearGradient(0, y0, 0, y1); sky.addColorStop(0, css(mix([196, 190, 176], [96, 80, 64], soot))); sky.addColorStop(1, css(mix([222, 212, 190], [150, 116, 82], soot)));
     c.fillStyle = sky; c.fillRect(0, y0, w, 40);
-    c.fillStyle = css(mix([96, 104, 98], [40, 34, 30], Math.max(soot, smoky ? 0.5 : 0.2)));
-    c.beginPath(); c.moveTo(0, y1);
-    const roofs = [[0, 0.62], [0.12, 0.5], [0.22, 0.66], [0.36, 0.48], [0.52, 0.6], [0.66, 0.44], [0.8, 0.58], [0.92, 0.5], [1, 0.62]];
+    const brick = css(mix([112, 72, 56], [52, 36, 30], Math.max(soot, smoky ? 0.5 : 0.2)));
+    c.fillStyle = brick;
+    c.beginPath(); c.moveTo(0, y1);   // saw-tooth mill roofs
+    const roofs = [[0, 0.62], [0.06, 0.5], [0.12, 0.62], [0.18, 0.5], [0.24, 0.62], [0.36, 0.48], [0.44, 0.48], [0.52, 0.6], [0.66, 0.44], [0.72, 0.56], [0.8, 0.44], [0.86, 0.56], [0.92, 0.5], [1, 0.62]];
     for (const [f, k] of roofs) c.lineTo(f * w, y0 + 40 * k);
     c.lineTo(w, y1); c.closePath(); c.fill();
-    for (const [x, yy] of this.chimneys()) c.fillRect(x - 3, yy, 6, y1 - yy);
+    for (const [x, yy] of this.chimneys()) { c.fillRect(x - 3, yy, 6, y1 - yy); c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(x - 4, yy, 8, 2); c.fillStyle = brick; }   // brick stacks with sooty caps
+    c.fillStyle = 'rgba(232,196,140,' + (0.25 + 0.35 * soot) + ')';   // a few lit mill windows (natural paint)
+    for (let i = 0; i < 14; i++) { const f = ((i * 2654435761) >>> 0) / 4294967296; c.fillRect(f * w, y0 + 40 * (0.66 + 0.18 * (i % 3) / 2), 2, 2); }
     for (const p of this.v.plumes) { c.fillStyle = 'rgba(48,42,38,' + (0.45 * (1 - p.a / p.life)) + ')'; c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.fill(); }
     c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(0, y1 - 1, w, 2);
     const s = this.sim.s, K = SOOTK;

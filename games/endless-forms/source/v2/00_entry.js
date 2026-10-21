@@ -421,6 +421,146 @@ const Entry = {
     '.card.v2 .coderow{display:flex;align-items:center;gap:12px;min-height:36px;margin:6px 0}.card.v2 .coderow span{font-size:13px;color:var(--ink2)}'
 };
 
+/* ---------- Intro: the opening description card of every v2 chapter (D6 decision 8, addendum of 21 Oct 2026) ----------
+   ch.content.intro = {game, biology, how}: three labelled parts, 1–2 sentences each (≤ 35 words). Shown when a v2 chapter
+   is entered from outside it (menu, Begin, Next unit, Levels from the menu, a ?unit= link), after the level has been set
+   up but before it runs: a card pauses the stage, so the sim, the clocks and the ghost hand wait behind it. Play (Enter,
+   Space, Escape) starts the level. The dock's "?" button (or the ? key) reopens it during play, which pauses the level.
+   Tinted with ch.accent (a #rrggbb colour), else Intro.DEF. Input on the card or on "?" never reaches the ghost hand or
+   Fx (capture listener, registered before 00_fx's), so a demo the level started still plays once the card closes.
+   Not shown for replays, What if? thaws, Next level, Replay level, ?intro=0, or when Intro.off is set (scripted tests). */
+const Intro = {
+  DEF: '#A8263F',              // the shell's carmine, for a chapter without an accent
+  PARTS: [['game', 'The game', 'M12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm-2.6 7h5.2l1.9 7H7.5zM6 18h12v3H6z'],
+    ['biology', 'The biology', 'M7 3c0 4 10 5 10 9s-10 5-10 9M17 3c0 4-10 5-10 9s10 5 10 9M8.6 6.5h6.8M8.6 17.5h6.8M10 12h4'],
+    ['how', 'How to play', 'M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v4.5c0 3.6-2.4 6.5-6 6.5-2.4 0-3.9-1.2-5-3l-2.6-4.4a1.4 1.4 0 0 1 2.3-1.6L9 14']],
+  off: false, gh: null, _btn: null, _tint: null,
+  on() { return !Url.v1 && !this.off && !(Url.q && /^(0|false|no|off)$/i.test(Url.q.intro || '')); },
+  parts(ch) {   // → [[key, label, text]…] (a chapter without content.intro falls back to its map caption)
+    const I = (ch && ch.content && ch.content.intro) || {}, out = this.PARTS.filter(p => I[p[0]]).map(p => [p[0], p[1], I[p[0]], p[2]]);
+    if (!out.length && ch && ch.intro && ch.intro.goal) out.push(['game', 'The game', ch.intro.goal, this.PARTS[0][2]]);
+    return out;
+  },
+  // colours from the accent: the band and the Play button keep ≥ 4.5:1 with their text; labels on the paper card keep ≥ 4.5:1
+  tint(ch) {
+    const raw = ch && typeof ch.accent === 'string' && /^#[0-9a-f]{6}$/i.test(ch.accent) ? ch.accent.toUpperCase() : this.DEF;
+    if (this._tint && this._tint.raw === raw) return this._tint;
+    const P = typeof Pal !== 'undefined' && Pal.contrast ? Pal : null, PAPER = '#E8DFC9', INK = '#1B1612', LIGHT = '#FBF6EA';
+    if (!P) return (this._tint = { raw, band: raw, bandInk: LIGHT, text: INK, wash: PAPER, surf: null });
+    let band = raw, k = 0, bandInk = P.contrast(raw, LIGHT) >= P.contrast(raw, INK) ? LIGHT : INK;
+    while (P.contrast(band, bandInk) < 4.5 && k < 1) { k += 0.08; band = P.mix(raw, bandInk === LIGHT ? '#000000' : '#FFFFFF', k); }
+    let text = raw; k = 0; while (P.contrast(text, PAPER) < 4.5 && k < 1) { k += 0.08; text = P.mix(raw, INK, k); }
+    let surf = null;   // the play chrome (strip, dock, HUD) takes a little of the accent while its text keeps its contrast
+    for (const a of [0.16, 0.12, 0.08]) { const s = P.mix(P.surface, raw, a); if (P.contrast(P.text, s) >= 7 && P.contrast(P.text2, s) >= 4.5) { surf = s; break; } }
+    return (this._tint = { raw, band, bandInk, text, wash: P.mix(PAPER, raw, 0.07), surf });
+  },
+  box() { const b = typeof document !== 'undefined' && document.querySelector ? document.querySelector('#cards.on .card.ef-intro') : null; return b || null; },
+  where(ch) {   // 'Act 4 · Forces' from the plan, else ''
+    for (const p of PLAN) if (p.c.some(c => c[0] === ch.id)) return p.act != null ? 'Act ' + p.act + ' · ' + p.n : p.n || '';
+    return '';
+  },
+  // the opening (first) or a reopened card; o.key: opened with the ? key
+  open(ch, o) {
+    o = o || {}; if (!ch || !isV2(ch)) return null;
+    const E = Entry.esc.bind(Entry), T = this.tint(ch), first = !!o.first, uid = 'efi' + (++Entry._uid), L = ch.levels || [], n = ch.level | 0;
+    if (first) this.peek();
+    const sub = ch.concept || (ch.plan && ch.plan[1]) || '', kick = this.where(ch);
+    let h = '<div class="ef-in-head">' + (kick ? '<p class="ef-in-kick">' + E(kick) + '</p>' : '') + '<h3 id="' + uid + 'h">' + E(ch.title || ch.id) + '</h3>' + (sub ? '<p class="ef-in-sub">' + E(sub) + '</p>' : '') + '</div>';
+    h += '<div class="ef-in-parts" id="' + uid + 'd">' + this.parts(ch).map(([k, label, text, icon]) =>
+      '<section class="ef-in-part" aria-labelledby="' + uid + k + '"><h4 id="' + uid + k + '"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + icon + '"/></svg>' + E(label) + '</h4><p>' + E(text) + '</p></section>').join('') + '</div>';
+    if (L.length > 1 && L[n]) h += '<p class="ef-in-lv">' + E((first ? 'Starts at level ' : 'Paused at level ') + (n + 1) + ' of ' + L.length + ': ' + L[n].name) + '</p>';
+    const fine = typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const btns = first ? [{ t: 'Notebook', fn: () => App.exit() }] : fine ? [{ t: 'Keys', fn: () => { if (typeof Keys !== 'undefined' && Keys.help) Keys.help(); } }] : [];
+    btns.push({ t: first ? 'Play' : 'Resume', primary: true, fn: () => this.go() });
+    const box = Cards.open({ cls: 'ef-intro v2', html: h, buttons: btns });
+    const st = box.style; st.setProperty('--ef-acc', T.raw); st.setProperty('--ef-band', T.band); st.setProperty('--ef-bandink', T.bandInk); st.setProperty('--ef-acctext', T.text); st.setProperty('--ef-wash', T.wash);
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', uid + 'h'); box.setAttribute('aria-describedby', uid + 'd');
+    box.dataset.first = first ? '1' : '0';
+    const bs = [...box.querySelectorAll('.card-btns button')], play = bs[bs.length - 1];
+    play.dataset.play = '1'; play.setAttribute('aria-keyshortcuts', 'Enter Space');
+    play.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>');
+    if (first && bs.length > 1) bs[0].setAttribute('aria-label', 'Back to the notebook');
+    if (typeof Live !== 'undefined' && Live.say) Live.say((ch.title || '') + '. ' + (first ? 'Press Play to start.' : 'Paused.'));
+    setTimeout(() => { try { if (this.box() === box) play.focus({ preventScroll: true }); } catch (e) { } }, 60);
+    return box;
+  },
+  go() {   // Play / Resume: close the card; the frame loop picks the stage up again (dt is capped, so no jump)
+    const box = this.box(); if (!box) return;
+    Cards.close(); lastT = performance.now();
+    if (box.dataset.first !== '1' && this._btn && this._btn.isConnected) try { this._btn.focus({ preventScroll: true }); } catch (e) { }
+  },
+  peek() {   // draw the new level once, so the chapter's world shows (dimmed) behind the opening card; view only
+    try { const c = Stage.ctx, m = App.mode; if (!c || !m || m === Hunt) return; c.setTransform(Stage.dpr, 0, 0, Stage.dpr, 0, 0); m.draw(c, Stage.w, Stage.h); }
+    catch (e) { if (typeof console !== 'undefined') console.warn('Intro.peek', e); }
+  },
+  // the dock's "?" button: one element, put back first in the dock after every Dock.set while a v2 chapter plays
+  dockBtn() {
+    const dock = typeof document !== 'undefined' && document.getElementById ? document.getElementById('dock') : null, ch = App.ch;
+    if (!dock || typeof dock.insertBefore !== 'function' || !document.createElement || !ch || !isV2(ch) || !this.on()) return;
+    let b = this._btn;
+    if (!b) {
+      b = this._btn = document.createElement('button'); b.type = 'button'; b.className = 'ef-q'; b.dataset.id = 'ef-intro';
+      b.setAttribute('aria-label', 'About this chapter'); b.setAttribute('aria-haspopup', 'dialog'); b.setAttribute('aria-keyshortcuts', '?'); b.title = 'About this chapter (?)';
+      b.innerHTML = '<span aria-hidden="true">?</span>';
+      b.addEventListener('click', () => { if (App.scr === 'play' && App.ch && isV2(App.ch) && !Cards.isOpen()) { Snd.click(); this.open(App.ch); } });
+    }
+    if (dock.firstChild !== b) dock.insertBefore(b, dock.firstChild);
+  },
+  chrome(ch) {   // the play screen's accent: a rule under the bar and over the dock, and a tinted chrome surface (D6 decision 7)
+    const el = typeof document !== 'undefined' ? document.getElementById('scr-play') : null; if (!el) return;
+    const on = isV2(ch) && !Url.v1, T = on ? this.tint(ch) : null;
+    el.classList.toggle('ef-tint', !!on);
+    if (on) { el.style.setProperty('--ef-acc', T.raw); if (T.surf) el.style.setProperty('--ef-surf', T.surf); else el.style.removeProperty('--ef-surf'); }
+    else { el.style.removeProperty('--ef-acc'); el.style.removeProperty('--ef-surf'); }
+  },
+  // capture-phase input, ahead of Fx and Ghost: keys on an open card, and the ? key in v2 play
+  input(e) {
+    if (!this.on()) return;
+    const box = this.box(), t = e.target || {};
+    if (e.type === 'pointerdown') { if ((box && box.contains(t)) || (this._btn && this._btn.contains(t))) e.stopImmediatePropagation(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    const k = e.key || '';
+    if (!box) {
+      if (k === '?' && App.scr === 'play' && App.mode && App.ch && isV2(App.ch) && !Cards.isOpen() && !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || '')) { e.preventDefault(); e.stopImmediatePropagation(); this.open(App.ch, { key: true }); }
+      return;
+    }
+    if (k === 'Tab') {   // focus stays on the card
+      const f = [...box.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled); if (!f.length) return;
+      const i = f.indexOf(document.activeElement), j = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i < 0 || i >= f.length - 1 ? 0 : i + 1);
+      e.preventDefault(); e.stopImmediatePropagation(); f[j].focus(); return;
+    }
+    if (k === 'Enter' || k === ' ' || k === 'Spacebar') {
+      e.stopImmediatePropagation();
+      if (t.tagName === 'BUTTON' && box.contains(t)) return;   // the focused button acts on its own
+      e.preventDefault(); if (box.dataset.armed === '1') this.go(); return;
+    }
+    if (k === 'Escape' || k === '?') { e.preventDefault(); e.stopImmediatePropagation(); if (box.dataset.armed === '1') this.go(); }
+  },
+  css: '.card.ef-intro{width:min(100%,480px);padding:0 0 16px;background:var(--ef-wash,var(--paper))}' +
+    '.card.ef-intro::before{display:none}' +
+    '.ef-in-head{background:var(--ef-band);color:var(--ef-bandink);padding:18px 20px 15px;border-radius:4px 4px 0 0;box-shadow:inset 0 -4px 0 rgba(0,0,0,.14)}' +
+    '.ef-in-kick{margin:0 0 5px;font:700 12px/1.3 var(--fb);letter-spacing:.09em;text-transform:uppercase}' +
+    '.card.ef-intro .ef-in-head h3{font:600 30px/1.08 var(--fd);margin:0;color:inherit;letter-spacing:-.01em}' +
+    '.card.ef-intro .ef-in-sub{margin:5px 0 0;font:italic 17px/1.3 var(--fb);color:inherit}' +
+    '.ef-in-parts{padding:14px 20px 2px}' +
+    '.ef-in-part{border-left:4px solid var(--ef-acc);padding:1px 0 1px 12px;margin:0 0 13px}' +
+    '.card.ef-intro .ef-in-part h4{display:flex;align-items:center;gap:7px;margin:0 0 3px;font:700 13px/1.2 var(--fb);letter-spacing:.07em;text-transform:uppercase;color:var(--ef-acctext)}' +
+    '.ef-in-part h4 svg{width:19px;height:19px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}' +
+    '.card.ef-intro .ef-in-part p{margin:0;font-size:16px;line-height:1.45}' +
+    '.card.ef-intro .ef-in-lv{margin:0 20px;font:500 13px/1.4 var(--fm);color:var(--ink2)}' +
+    '.card.ef-intro .card-btns{padding:0 20px;margin-top:12px;gap:10px;flex-wrap:nowrap;align-items:stretch}' +
+    '.card.ef-intro .card-btns .btn:not(.primary){flex:0 0 auto;min-height:56px;padding:0 16px}' +
+    '.card.ef-intro .card-btns .btn.primary{flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;font:700 21px/1 var(--fb);letter-spacing:.02em;background:var(--ef-band);border-color:var(--ef-band);color:var(--ef-bandink)}' +
+    '.card.ef-intro .card-btns .btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}' +
+    '@media (max-height:700px){.ef-in-head{padding:12px 18px 10px}.card.ef-intro .ef-in-head h3{font-size:25px}.ef-in-parts{padding-top:10px}.ef-in-part{margin-bottom:9px}.card.ef-intro .ef-in-part p{font-size:15px;line-height:1.4}}' +
+    '#dock .ef-q{flex:0 0 auto;width:44px;min-width:44px;min-height:48px;padding:0;border-radius:24px;border:2px solid var(--ef-acc,var(--line));background:transparent;color:var(--s-text,var(--paper));font:700 21px/1 var(--fd);cursor:pointer;display:grid;place-items:center}' +
+    '#dock .ef-q:hover{background:rgba(255,255,255,.06)}#dock .ef-q:focus-visible{outline:3px solid var(--s-text,var(--paper));outline-offset:2px}' +
+    'body[data-layout=projector] #dock .ef-q{width:56px;min-height:56px;font-size:26px}' +
+    '#scr-play.v2.ef-tint{--s-surface:var(--ef-surf,var(--v-surface,var(--cab2)))}' +
+    '#scr-play.v2.ef-tint #bar{box-shadow:inset 0 -3px 0 var(--ef-acc)}' +
+    '#scr-play.v2.ef-tint #dock{box-shadow:inset 0 3px 0 var(--ef-acc)}'
+};
+
 /* ---------- wiring (skipped under ?v1=1, which is the legacy game) ---------- */
 if (!Url.v1) {
   // PLAN rewrite: the acts replace the legacy sections in place; boot.js applies PLAN_ADD and recomputes ORDER afterwards
@@ -450,8 +590,25 @@ if (!Url.v1) {
     const btn = typeof document !== 'undefined' && document.getElementById ? document.getElementById('btn-begin') : null;
     if (btn && btn.addEventListener) btn.addEventListener('click', () => { Entry.begin = true; }, true);
   }
+  // the opening description card (D6 decision 8): after the level is set up, when the chapter is entered from outside it
+  {
+    const prev = App.playLevel;
+    App.playLevel = function (ch, n, o) {
+      const fresh = isV2(ch) && Intro.on() && !(App.scr === 'play' && App.ch === ch) && !(o && (o.thaw || o.replay));
+      const r = prev.apply(this, arguments);
+      if (fresh && App.ch === ch && App.scr === 'play') Intro.open(ch, { first: true });
+      return r;
+    };
+  }
+  // the dock's "?" button rides along with every Dock.set; the play screen takes the chapter's accent
+  { const prev = Dock.set; Dock.set = function () { const b = Intro._btn, had = b && document.activeElement === b; const r = prev.apply(this, arguments); try { Intro.dockBtn(); if (had && b.isConnected) b.focus(); } catch (e) { } return r; }; }
+  Hooks.play.push(ch => Intro.chrome(ch));
+  if (typeof window !== 'undefined' && window.addEventListener) {   // registered before 00_fx's listeners, so it runs first
+    window.addEventListener('pointerdown', e => Intro.input(e), true);
+    window.addEventListener('keydown', e => Intro.input(e), true);
+  }
   if (typeof document !== 'undefined' && document.head && document.createElement && !document.getElementById('ef-entry')) {
-    const st = document.createElement('style'); st.id = 'ef-entry'; st.textContent = Entry.css; document.head.appendChild(st);
+    const st = document.createElement('style'); st.id = 'ef-entry'; st.textContent = Entry.css + Intro.css; document.head.appendChild(st);
   }
 }
-Object.assign(EXPORT, { ACT_PLAN, Entry, Sim, Snap, Freezer, Replay, ResultCode });
+Object.assign(EXPORT, { ACT_PLAN, Entry, Sim, Snap, Freezer, Replay, ResultCode, Intro });

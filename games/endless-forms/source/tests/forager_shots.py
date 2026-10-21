@@ -40,7 +40,7 @@ def main():
             pg.on('pageerror', lambda e: errs.append(str(e)))
             pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
             q = a.query
-            pg.goto('file://' + html + ('?dev=1' if not q else q + '&dev=1'))
+            pg.goto('file://' + html + ('?dev=1&intro=0' if not q else q + '&dev=1&intro=0'))
             pg.evaluate("()=>window.__advance(600)")
             tag = '%dx%d' % (w, h) + ('_calm' if a.calm else '') + (('_' + q.strip('?').replace('=', '-').replace('&', '_')) if q else '')
             for lv in [int(x) for x in a.levels.split(',')]:
@@ -106,7 +106,7 @@ def bold(html, out, vp='390x780'):
     vclock = open(os.path.join(SRC, 'vclock.js')).read()
     with sync_playwright() as p:
         b = p.chromium.launch(**CHROME); pg = b.new_page(viewport={'width': w, 'height': h}); pg.add_init_script(vclock)
-        pg.goto('file://' + html + '?dev=1'); pg.evaluate("()=>window.__advance(600)")
+        pg.goto('file://' + html + '?dev=1&intro=0'); pg.evaluate("()=>window.__advance(600)")
         for seed in range(1, 12):
             pg.evaluate("(sd)=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.forager, 2, {seed: sd}); window.__advance(300); const ch = TB.REG.forager, s = ch.sim.s; s.i = 1; s.rec.length = 1; ch.sim.newRound(s, []); }", seed)
             got = set()

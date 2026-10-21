@@ -6,7 +6,7 @@
 
 **Status tags.** **[B0]** lands in Batch 0, before any Batch 1 unit merges. **[B0-simple]** lands in Batch 0 as the simple first version described; the full version follows without changing the signature. **[by Bn]** is specified now and must land before Batch *n* starts. **[later]** is a reserved name only.
 
-**Contents.** 1 Ground rules · 2 Work packages · 3 `core.js` · 4 `ui.js`, `shell.html`, `boot.js` · 5 `00_tokens`, `00_cvd`, `00_fx`, `00_wf` · 6 `00_entry`, `zz_v1switch` · 7 `01_widgets` · 8 `02_hunt_ext`, `01_rig`, `01_scenes` · 9 The v2 chapter contract · 10 The act plan · 11 Testing recipe · 12 Deviations from D5 · 13 Where the built engine differs from §§3–9 (integration) · 14 Engine changes after Batch 1
+**Contents.** 1 Ground rules · 2 Work packages · 3 `core.js` · 4 `ui.js`, `shell.html`, `boot.js` · 5 `00_tokens`, `00_cvd`, `00_fx`, `00_wf` · 6 `00_entry`, `zz_v1switch` · 7 `01_widgets` · 8 `02_hunt_ext`, `01_rig`, `01_scenes` · 9 The v2 chapter contract · 10 The act plan · 11 Testing recipe · 12 Deviations from D5 · 13 Where the built engine differs from §§3–9 (integration) · 14 Engine changes after Batch 1 · 15 The opening description card and the chapter accent (D6 decisions 7–8)
 
 **Integration status (14 Oct 2026).** All Batch 0 engine files are built and integrated. Where the code and the sections below disagree, **§13 and the code win**; §13 lists every difference, package by package, and points to the logs in `docs/changes/wave2/`.
 
@@ -758,4 +758,47 @@ A chart under 100 CSS px tall (the folded 112 px phone strip) is drawn compact: 
 
 ### 14.7 Still open (not built)
 Hunt-mode replay, Freezer and bot sweep (no Batch 1 unit used Hunt mode; see the lessons); crowd-tier rigs (moth rest pose, hermit crab, beetle); `Pal.allele` B and I reuse the two data inks; a banner allowing 5-word level names; a "?" state for the `pq` chart; the class tournament and class-pool charts; projector-scaled strip charts; an empty-dock state (fill an empty dock with a `{id, el}` status element meanwhile); act locks from `needs`; the station map; axe-core. The primary button stays carmine (D4 §6); never use it to encode a choice (Hawks).
+
+---
+
+## 15. The opening description card and the chapter accent (D6 decisions 7–8, 21 Oct 2026)
+
+D6's addendum overrides D5 decision 18 ("no card before the first action"): **every v2 chapter opens with a short description card**, and each chapter tints the shared chrome with its own accent colour. `00_entry.js` (`Intro`) draws both for every v2 chapter; a unit supplies only words and a colour. Log: `docs/changes/wave2/intro_card.md`.
+
+### 15.1 What a unit supplies
+```js
+const CH_X_V2 = {
+  id, v2: true, place, accent: '#6F8A45',   // #rrggbb; the chapter's chrome tint. Not a data ink: keep it ≥ ΔE 8 from them (CVD.gamut)
+  content: {
+    intro: {                                 // required (tests/lint_text.js errors without it)
+      game:    'What you are and what is happening.',      // 1–2 sentences, ≤ 35 words each (sentences ≤ 18 words)
+      biology: 'The idea the chapter teaches, in plain words.',
+      how:     'The controls and the goal.'
+    },
+    firstWords, …                            // unchanged: the HUD line and the ghost hand still teach the first action
+  }
+};
+```
+- Write for the whole unit (the card shows whichever level the player starts at), plain British English, D0 agency rules ("populations evolve"; never "individuals evolve, choose or need"). The text lint checks the budget, sentences, spelling and agency; more than two sentences is a warning.
+- Without `content.intro` the card falls back to `intro.goal` as "The game" (and the lint fails). Without `accent` it uses the shell's carmine `Intro.DEF`.
+
+### 15.2 When the card shows
+- On **entering** a v2 chapter from outside it: the menu (`App.open`, including resume), **Begin** into the Lichen Wood, **Next unit**, Levels from the menu, and `?unit=` links. The `App.playLevel` wrap opens it *after* `startLevel` has run, so the level's world is drawn once behind the dimmed card (`Intro.peek`), and a card pauses the stage (`stageLive`): the sim, the soft Predict timers, `Fx.after` timers and the ghost hand all wait.
+- **Not** on Next level, Replay level, Levels from inside the chapter, What if? thaws (`o.thaw`), replays (`o.replay`), under `?v1=1`, with `?intro=0`, or while `Intro.off` is true (scripted screenshot tools may set `TB.Intro.off = true`).
+- **Play** (or Enter, Space, Escape) closes it and the level starts. The opening card also has **Notebook** (back to the menu).
+- The dock's **"?"** button (`#dock .ef-q`, `data-id="ef-intro"`, first in the dock, outside `Dock.items`) or the **?** key reopens it during play, which pauses the level; **Resume** (or Enter, Space, Escape, ?) continues and returns focus to "?". On a fine pointer the reopened card also offers **Keys** (the old ? list, `Keys.help`). In legacy chapters the ? key still opens the keys list.
+
+### 15.3 Engine details a unit may rely on
+- **The ghost hand survives the card.** Pointer and key input on the card, and on "?", is stopped in a window capture listener registered before `00_fx.js`'s, so `Ghost._input` and `Fx._input` never see it: a demo started by `startLevel` still plays once the card closes, and the unit's own `Ghost.show` handle stays valid.
+- `Dock.set` is wrapped to put "?" back after every call; do not count `#dock` children, use `Dock.items`. The dock still holds at most four of the unit's own buttons.
+- **Chrome tint** (`Intro.chrome`, on `Hooks.play`): `#scr-play` gets class `ef-tint`, `--ef-acc` (the accent) and `--ef-surf` (the dusk surface with 8–16% of the accent, chosen so `--v-text` keeps ≥ 7:1 and `--v-text2` ≥ 4.5:1). The bar gets a 3 px accent rule underneath, the dock one on top, and the strip, dock and HUD take `--ef-surf` as `--s-surface`. LiveGraph halos still use `Pal.surface`, which differs by at most 16% of the accent.
+- **Card colours** (`Intro.tint(ch)`): the header band and the Play button use the accent, darkened or lightened until their text keeps ≥ 4.5:1; the part labels use the accent darkened to ≥ 4.5:1 on the card's paper; the card body is paper with 7% of the accent.
+- **Accessibility:** `role="dialog"`, `aria-modal`, `aria-labelledby` (the title) and `aria-describedby` (the three parts); Play takes focus; Tab cycles inside the card; Play carries `aria-keyshortcuts="Enter Space"`; "?" carries `aria-label="About this chapter"`, `aria-haspopup="dialog"`, `aria-keyshortcuts="?"`. A live-region line names the chapter.
+- **Layout:** phone first (390 × 780 fits without scrolling at ~100 words), max width 480 px on desktop, a compact variant under 700 px of height, 56 px Play button.
+- `EXPORT.Intro` (`TB.Intro`): `open(ch, {first})`, `go()`, `on()`, `tint(ch)`, `off`.
+
+### 15.4 Tests
+- `tests/monkey.js` fails a v2 run whose chapter does not open on the card (`no-intro`), checks the card's text for NaN/undefined, presses Play (or Enter), and now and then presses "?" mid-level and resumes. Its report adds `intros`.
+- `tests/lint_text.js`: `content.intro.{game, biology, how}` required, ≤ 35 words each (`BUDGET.intro`).
+- Screenshot tools that drive a unit through `App.playLevel` from the title screen will meet the card: click `[data-play]`, or load with `?intro=0`.
 

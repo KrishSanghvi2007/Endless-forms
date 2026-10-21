@@ -70,6 +70,7 @@ if (process.argv[2] === '--build-only') { console.log(privateBuild()); process.e
 const HTML = process.argv[2] ? path.resolve(process.argv[2]) : privateBuild();
 const { load } = require('./vmgame');
 const G = load(HTML, { vw: 390, vh: 780 }), TB = G.TB, D = G.document;
+if (TB.Intro) TB.Intro.off = true;   // these checks drive levels directly; the opening description card (D6 decision 8) is tested in selftest_e4
 const { Rig, Petri, Strata, HuntX, Hunt, App, REG, R, seed, Save, Stage, Predict, Pin, Sim, CVD, Hooks } = TB;
 const hashPop = pop => { let h = 2166136261; for (const x of pop) for (const v of x.g) { const s = String(v); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } } return (h >>> 0).toString(16); };
 const itemXY = it => [it.x * Stage.w, it.y * Stage.h];
@@ -204,7 +205,7 @@ const toDawn = (H, onAsk) => { let guard = 0; const g = H.gen; while (H.gen === 
 
 /* ---------- 5. determinism: the dusk's timing never moves R(), nor does the viewport ---------- */
 {
-  const G2 = load(HTML, { vw: 1280, vh: 720 }), T2 = G2.TB; T2.App.playLevel(T2.REG.e6fix, 0, { seed: 202 }); G2.frames(2);
+  const G2 = load(HTML, { vw: 1280, vh: 720 }), T2 = G2.TB; if (T2.Intro) T2.Intro.off = true; T2.App.playLevel(T2.REG.e6fix, 0, { seed: 202 }); G2.frames(2);
   const H2 = T2.Hunt; let g2 = 0; while (H2.state !== 'dusk' && g2++ < 80) { const it = H2.items.find(q => q.alive && q.kind === 'prey'); if (!it) break; H2.tap(it.x * T2.Stage.w, it.y * T2.Stage.h); }
   let n2 = 0; while (H2.gen === 1 && n2++ < 400) { if (H2.x.dk && H2.x.dk.phase === 'ask') T2.Predict.commit(); G2.advance(40); }
   const wide = hashPop(H2.pop);

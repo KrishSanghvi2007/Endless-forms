@@ -49,6 +49,14 @@ const DC_BINS = {   // label keys (content.labels) per bin set
 };
 const DC_WHY = [{ real: [], maths: [2] }, { real: [], maths: [3] }, { real: [2, 3], maths: [4] }, { real: [4], maths: [5] }, { real: [0, 1], maths: [0, 1] }];   // Why? chunks per level (indices into content.why)
 const DC_STARS_BY = [{ discover: 'sDiscT', predict: 'sPred1' }, { discover: 'sDiscT', predict: 'sPred2' }, { discover: 'sDiscB', predict: 'sPredB', transfer: 'sTransB' }, { discover: 'sDiscT', predict: 'sPred2' }, { discover: 'sDiscZ', transfer: 'sTransZ' }];   // caption keys
+/* the look (D6 decision 7): a riverboat saloon. Burgundy damask walls, mahogany and brass, a green baize table, burgundy
+   chips, glass marbles in the jars; the castaways and the zoo are brown anoles on sand and scrub in a teal sea. Blue and amber
+   appear only where they are gene copies (marbles, founders' badges, vials, the outcome icons). CVD.gamut passes on DC_LOOK. */
+const DC_LOOK = {
+  wall: '#33161C', wall2: '#40202A', wood: '#4E2C1D', wood2: '#6B3F28', brass: '#B8954A', brass2: '#E0C27E', brassD: '#7C6230',
+  felt: '#1E5A43', felt2: '#2B7254', feltD: '#123D2D', chip: '#8C2438', chipD: '#561520', cream: '#F1E6C8', parch: '#EDE2C6',
+  sea: '#1F4C4B', sand: '#CDB68A', scrub: '#5C7A3A', liz: '#7A5434', lizD: '#4B321E', lizM: '#6A4A2E'
+};
 const DC_STARS = [['discover', 'predict'], ['discover', 'predict'], ['discover', 'predict', 'transfer'], ['discover', 'predict'], ['discover', 'transfer']];   // the stars each level can award
 
 /* ---------- exact science helpers: + − × ÷ only (no Math.exp/log/pow), cached; used by the sim, the stars and the oracle ---------- */
@@ -164,7 +172,7 @@ const DC = {
   },
   pass(q, e, c) { return this.ES(q, e) >= this.thr(e, c) - 1e-9; },
   gain(q, e, c) { return this.ES(q, e) - this.ES(c, e); },
-  // ---- the zoo (boss): 60 beetles, 12 alleles; the breeding rule under the keeper's levers ----
+  // ---- the zoo (boss): 60 lizards, 12 alleles; the breeding rule under the keeper's levers ----
   zooBreed(pop, eq, bal, r) {
     const N = pop.length, F = bal ? N / 2 : Math.round(N * DC_ZOO.F0 / DC_ZOO.N), fem = [], mal = [];
     for (const b of pop) (b.f ? fem : mal).push(b);
@@ -188,11 +196,16 @@ const DC = {
 /* ================= all words (API_v2 §9.2); tests/lint_text.js checks every budget ================= */
 const DC_TEXT = {
   firstWords: 'The croupier calls every jar a coin toss. Tap a bin to bet a chip.',
+  intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
+    game: 'You are a gambler at a riverboat casino, betting chips against the croupier. The stakes are jars of glass beads, bottles of flies and island lizards, all left to chance.',
+    biology: 'Genetic drift is chance in sampling: allele shares wander, fastest in small populations. A neutral allele takes over with a chance equal to its share, and crashes strip rare alleles.',
+    how: 'Tap a bin on the felt to bet a chip, then Spin. Bet close to the true odds to beat the croupier, and drag the marker to predict.'
+  },
   hud: {
     bet0: 'Bet all ten chips on how the jars end. {c} left.',
     bet1: 'Bet when jars settle; he treats all as jars of 20. Tap jars to crash.',
     bet2: 'Bet 107 bottles at generation 19. Families vary beyond chance.',
-    bet3a: 'Five beetles raft to each islet. Bet the islets’ amber share.',
+    bet3a: 'Five lizards raft to each islet. Bet the islets’ amber share.',
     bet3: 'Hold the beach to size the storm. Bet the islets, then release.',
     spin: 'All ten chips are down. Press Spin.',
     release: 'All ten chips are down. Press Release.',
@@ -208,11 +221,11 @@ const DC_TEXT = {
     run0: 'Each new bead copies a random bead from the jar before.',
     run1: 'Settled jars slide into their bins. Crashed jars drop to four beads.',
     run2: 'Sixteen flies breed each generation. Families vary more than chance makes them.',
-    run3: 'The storm rafts beetles out. Each islet starts from its founders.',
+    run3: 'The storm rafts lizards out. Each islet starts from its founders.',
     side: 'Three hundred cages drift. Their heterozygosity gives their Ne.',
     erupt: 'Tap the volcano.',
-    crash: 'Four beetles survive the eruption.',
-    zooIntro: 'Keepers saved 60 beetles first. Keep their letters for 20 generations.',
+    crash: 'Four lizards survive the eruption.',
+    zooIntro: 'Keepers saved 60 lizards first. Keep their letters for 20 generations.',
     zoo: 'Spend tokens to keep letters alive.',
     paused: 'Paused. Press Step for one generation, or Play.',
     pays: 'The house pays you {c}.',
@@ -228,14 +241,14 @@ const DC_TEXT = {
     volHint: 'Tap jars to crash them. He ignores crashes.', volSet: 'Crashed: four beads for four generations.', volMax: 'Four crashes a rack at most.', volOff: 'Crash called off.',
     reprice: 'The croupier changes his odds.', lost: 'Letter {x} is gone.', back: 'Letter {x} is back!',
     broke: 'Out of tokens.', oneGen: 'One migrant a generation at most.', equal: 'Every pair raises the same brood.', balanced: 'Thirty females and thirty males now.',
-    migrant: 'A migrant beetle arrives.', storm: 'The storm grows.', fixed: 'Five founders this time.', empty: 'Nothing to take back.',
+    migrant: 'A migrant lizard arrives.', storm: 'The storm grows.', fixed: 'Five founders this time.', empty: 'Nothing to take back.',
     neDef: 'Ne: ideal population size that drifts as fast.', cleared: 'Chips back in your stack.', same: 'Same bets as last table.'
   },
   labels: {
     allBlue: 'All blue', allAmber: 'All amber', mixed: 'Still mixed', by5: 'By gen 5', by10: '6–10', by20: '11–20', by40: '21–40', not40: 'Not by 40',
     lost: 'Lost', fixed: 'Fixed', s0: '< 25%', s1: '25–44%', s2: 'Near half', s3: '56–75%', s4: '> 75%',
     coin: 'Coin toss!', n20: 'All alike!', n16: 'Sixteen flies!', half: 'Exactly half!', halves: 'Variety halves!',
-    table: 'Table {n}/{m}', gen: 'Gen {n}/{m}', beads: '{n} beads', you: 'you', chips: '{n} chips', chip1: '{n} chip', storm: '×{n} beetles',
+    table: 'Table {n}/{m}', gen: 'Gen {n}/{m}', beads: '{n} beads', you: 'you', chips: '{n} chips', chip1: '{n} chip', storm: '×{n} lizards',
     mainland: 'Mainland', amber: '{n}% amber', letters: 'Letters', tokens: 'Tokens {n}', het: 'H', ne: 'Ne {n}', expected: 'expected', exp: 'exp', avg: 'avg', average: 'average',
     croupier: 'croupier', young: 'dots: young', yourJar: 'your jar', jar: 'jar', fit: 'fit {n} ±{e}', yourNe: 'you {n}', females: '{n} females', males: '{n} males', crash: 'crash', mutN: 'mutation ×N',
     spin: 'Spin', release: 'Release', lock: 'Lock in', erupt: 'Erupt', play: 'Play', pause: 'Pause', step: 'Step', bal: 'Balance', clear: 'Clear', same: 'Same bets',
@@ -301,8 +314,8 @@ const DC_TEXT = {
     { level: 0, simulated: 'Twelve jars of 10 beads. Each generation every bead copies a random bead from the jar before (Wright–Fisher). No bead colour is better.', simplification: 'A bead is a gene copy, not an animal. Generations do not overlap.', params: [{ name: 'beads a jar', value: 10, tag: 'designed' }, { name: 'generations', value: 30, tag: 'designed' }, { name: 'jars a table', value: 12, tag: 'designed' }], cannot: 'Selection, mutation or migration.', nature: 'Every finite population drifts. Small isolated ones drift fastest.', contested: false, refs: ['wright1931', 'fisher1930', 'kimura1962'] },
     { level: 1, simulated: 'Racks of 6, 20 and 200 beads from half blue, run for 40 generations. Before Spin you may crash up to four jars: each holds four beads in generations 1 to 4.', simplification: 'Above 30 expected beads a draw uses the normal approximation. The croupier prices every jar like a jar of 20 and ignores crashes.', params: [{ name: 'jar sizes', value: '6, 20, 200', tag: 'designed' }, { name: 'generations', value: 40, tag: 'designed' }, { name: 'crash', value: '4 beads, generations 1–4', tag: 'designed' }, { name: 'crashes a rack', value: 'up to 4', tag: 'designed' }], cannot: 'Overlapping generations or age structure.', nature: 'On average, N copies from half settle in about 2N ln 2 generations.', contested: false, refs: ['kimura1969'] },
     { level: 2, simulated: '107 bottles of 8 males and 8 females, all bw75/bw at first, for 19 generations. Each fly gets a low, middling or high fertility weight. Families vary more than chance alone makes them.', simplification: 'Fertility is redrawn each generation and is not inherited.', params: [{ name: 'bottles', value: 107, tag: 'realistic' }, { name: 'flies a bottle', value: 16, tag: 'realistic' }, { name: 'generations', value: 19, tag: 'realistic' }, { name: 'fertility weights', value: '0.15, 1, 1.85', tag: 'designed' }], cannot: 'Why Buri’s real families varied: crowding, larval competition and luck.', nature: 'Buri’s 1956 lines fitted an Ne of about eleven and a half, though each kept 16 parents.', contested: false, refs: ['buri1956', 'crow1970'] },
-    { level: 3, simulated: 'A large mainland at 50% amber. A storm rafts 2 to 12 beetles to each of 12 empty islets. Founders’ copies are a random sample.', simplification: 'The mainland is large and mates at random, so each founder copy is amber with chance one half.', params: [{ name: 'islets a table', value: 12, tag: 'designed' }, { name: 'founders', value: '2 to 12', tag: 'designed' }], cannot: 'What happens after founding: growth, drift and migration.', nature: 'Island populations founded by few individuals often differ from their source.', contested: false, refs: ['mayr1942'] },
-    { level: 4, simulated: 'A large island with 12 equally common alleles. The eruption leaves 4 beetles (8 copies) for one generation; the island regrows at once. The zoo breeds 60 beetles, 45 females, for 20 generations.', simplification: 'Migrants come from a neighbouring island the eruption missed. Mutation can only remake one of the 12 letters.', params: [{ name: 'alleles', value: 12, tag: 'designed' }, { name: 'survivors', value: 4, tag: 'designed' }, { name: 'zoo size', value: 60, tag: 'designed' }, { name: 'zoo generations', value: 20, tag: 'designed' }, { name: 'mutation (What if?)', value: '1 in 10,000 copies a generation', tag: 'xN', real: '1 in 100,000 or fewer for most genes' }], cannot: 'Inbreeding depression, or selection on any allele.', nature: 'Northern elephant seals and cheetahs carry little genetic variation after past declines.', contested: false, refs: ['nei1975', 'hoelzel1993', 'obrien1985', 'frankham1995', 'mills1996'] }
+    { level: 3, simulated: 'A large mainland at 50% amber. A storm rafts 2 to 12 lizards to each of 12 empty islets. Founders’ copies are a random sample.', simplification: 'The mainland is large and mates at random, so each founder copy is amber with chance one half.', params: [{ name: 'islets a table', value: 12, tag: 'designed' }, { name: 'founders', value: '2 to 12', tag: 'designed' }], cannot: 'What happens after founding: growth, drift and migration.', nature: 'Island populations founded by a few castaways often differ from their source. Brown anoles released on small Bahamian islands kept their founders’ differences for years.', contested: false, refs: ['mayr1942', 'kolbe2012', 'censky1998'] },
+    { level: 4, simulated: 'A large island with 12 equally common alleles. The eruption leaves 4 lizards (8 copies) for one generation; the island regrows at once. The zoo breeds 60 lizards, 45 females, for 20 generations.', simplification: 'Migrants come from a neighbouring island the eruption missed. Mutation can only remake one of the 12 letters.', params: [{ name: 'alleles', value: 12, tag: 'designed' }, { name: 'survivors', value: 4, tag: 'designed' }, { name: 'zoo size', value: 60, tag: 'designed' }, { name: 'zoo generations', value: 20, tag: 'designed' }, { name: 'mutation (What if?)', value: '1 in 10,000 copies a generation', tag: 'xN', real: '1 in 100,000 or fewer for most genes' }], cannot: 'Inbreeding depression, or selection on any allele.', nature: 'Northern elephant seals and cheetahs carry little genetic variation after past declines.', contested: false, refs: ['nei1975', 'hoelzel1993', 'obrien1985', 'frankham1995', 'mills1996'] }
   ],
   why: {   // every Why? chunk; DC_WHY says which ones each level's card shows. No decimals: the card's sentence splitter breaks on every full stop.
     real: [
@@ -372,7 +385,7 @@ const DC_BOT = {
 };
 
 const CH_CASINO_V2 = {
-  id: 'casino', v2: true, role: 'environment', place: 'lab',
+  id: 'casino', v2: true, role: 'environment', place: 'lab', accent: '#8C2438',   // the chapter's chrome tint (D6 decision 7)
   intro: { goal: 'Beat the croupier’s odds on jars, bottles and islands that drift.' },
   content: DC_TEXT,
   P: {
@@ -1161,31 +1174,50 @@ const CH_CASINO_V2 = {
   inkA() { return typeof Pal !== 'undefined' ? Pal.A : '#6B97FF'; },
   inka() { return typeof Pal !== 'undefined' ? Pal.a : '#F2C94C'; },
   lbl(id, text, x, y, o) { if (typeof Lbl !== 'undefined') return Lbl.put('dc-' + id, text, x, y, o); return null; },
-  drawGround(c, G) {   // the Lab plate: paper, with a faint grid (D4 §1.3)
-    const g = typeof Pal !== 'undefined' ? Pal.place('lab').ground : '#F4EEDD';
-    c.fillStyle = g; c.fillRect(0, 0, G.W, G.H);
-    if (G.k === 'jars' || G.k === 'buri') { c.strokeStyle = 'rgba(27,22,18,0.05)'; c.lineWidth = 1; c.beginPath(); for (let x = 0; x < G.W; x += 24) { c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, G.H); } for (let y = 0; y < G.H; y += 24) { c.moveTo(0, y + 0.5); c.lineTo(G.W, y + 0.5); } c.stroke(); }
+  drawGround(c, G) {   // the riverboat saloon: damask wall, a mahogany dado with a brass rail, lamplight and drifting smoke
+    const v = this.v, key = G.W + 'x' + G.H + G.k, K = DC_LOOK;
+    const paint = cc => {
+      cc.fillStyle = K.wall; cc.fillRect(0, 0, G.W, G.H);
+      cc.fillStyle = K.wall2; for (let x = 0; x < G.W; x += 36) cc.fillRect(x, 0, 14, G.H);   // wallpaper stripes
+      cc.fillStyle = 'rgba(224,194,126,0.07)';   // a quiet damask lozenge in each stripe
+      for (let x = 7; x < G.W; x += 36) for (let y = 20 + ((x / 36) % 2) * 22; y < G.H; y += 44) { cc.beginPath(); cc.moveTo(x, y - 8); cc.lineTo(x + 5, y); cc.lineTo(x, y + 8); cc.lineTo(x - 5, y); cc.closePath(); cc.fill(); }
+      const dy = G.H - Math.max(70, G.H * 0.16);   // the dado: mahogany panels under a brass rail
+      cc.fillStyle = K.wood; cc.fillRect(0, dy, G.W, G.H - dy);
+      cc.strokeStyle = 'rgba(0,0,0,0.25)'; cc.lineWidth = 1; for (let x = 0; x < G.W; x += 90) { cc.strokeRect(x + 8.5, dy + 10.5, 74, G.H - dy - 20); }
+      cc.fillStyle = K.brass; cc.fillRect(0, dy - 4, G.W, 4); cc.fillStyle = K.brass2; cc.fillRect(0, dy - 4, G.W, 1);
+      if (typeof cc.createRadialGradient === 'function') {   // the lamp over the table
+        const g = cc.createRadialGradient(G.W / 2, G.top - 40, 10, G.W / 2, G.top - 40, Math.max(G.W, G.H) * 0.75);
+        g.addColorStop(0, 'rgba(255,214,150,0.22)'); g.addColorStop(0.5, 'rgba(255,190,120,0.07)'); g.addColorStop(1, 'rgba(0,0,0,0.25)');
+        cc.fillStyle = g; cc.fillRect(0, 0, G.W, G.H);
+      }
+    };
+    if (typeof Layer === 'undefined') paint(c);
+    else { if (!v.bg || v.bg.key !== key) v.bg = { key, L: Layer(G.W, G.H).redraw(cc => paint(cc)) }; v.bg.L.blit(c, 0, 0); }
+    c.save(); c.fillStyle = 'rgba(214,200,184,0.045)';   // cigar smoke drifting under the lamp (cosmetic)
+    for (let i = 0; i < 4; i++) { const t = v.t * 0.05 + i * 0.27, x = ((t % 1) * 1.4 - 0.2) * G.W, y = G.top + 30 + i * G.A * 0.21 + 14 * Det.sin(v.t * 0.3 + i); c.beginPath(); c.ellipse(x, y, G.W * 0.28, 26 + 8 * i, 0, 0, TAU); c.fill(); }
+    c.restore();
   },
   /* the rack: jars of beads on wooden shelves; beads are gene copies (blue A, amber a) */
   drawRack(c, G) {
     const s = this.sim.s, v = this.v, I = this.ink(), L = this.content.labels;
-    for (const y of G.rack.rowY) { c.fillStyle = '#9C7650'; c.fillRect(G.rack.x + 4, y + 2, G.rack.w - 8, 7); c.fillStyle = 'rgba(27,22,18,0.35)'; c.fillRect(G.rack.x + 4, y + 9, G.rack.w - 8, 2); }
+    const K = DC_LOOK;
+    for (const y of G.rack.rowY) { c.fillStyle = K.wood2; c.fillRect(G.rack.x + 4, y + 2, G.rack.w - 8, 8); c.fillStyle = K.brass; c.fillRect(G.rack.x + 4, y + 1, G.rack.w - 8, 2); c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillRect(G.rack.x + 4, y + 10, G.rack.w - 8, 3); }
     s.jars.forEach((J, j) => this.drawJar(c, G.jars[j], J, j));
   },
   drawJar(c, R, J, j, o) {
     o = o || {}; const s = this.sim.s, v = this.v, I = this.ink(), gone = v.gone[j] && !o.fly;
     let x = R.x, y = R.y; const w = R.w, h = R.h, neck = Math.max(6, h * 0.12);
     if (v.shake[j]) x += Det.sin(v.t * 70) * 3 * v.shake[j];
-    if (gone) { c.save(); c.setLineDash([4, 4]); c.strokeStyle = 'rgba(27,22,18,0.35)'; c.lineWidth = 1.5; rrect(c, x, y + neck, w, h - neck, Math.min(10, w * 0.2)); c.stroke(); c.restore(); return; }
+    if (gone) { c.save(); c.setLineDash([4, 4]); c.strokeStyle = 'rgba(241,230,200,0.32)'; c.lineWidth = 1.5; rrect(c, x, y + neck, w, h - neck, Math.min(10, w * 0.2)); c.stroke(); c.restore(); return; }
     const pinned = s.pin === j && !o.fly && (s.phase !== 'bet' || v.ghosted.pin);
     if (pinned) { c.save(); c.lineWidth = 5; c.strokeStyle = I; rrect(c, x - 3, y + neck - 3, w + 6, h - neck + 6, 12); c.stroke(); c.lineWidth = 3; c.strokeStyle = this.paper(); c.stroke(); c.restore(); }
     c.save();
-    c.fillStyle = 'rgba(27,22,18,0.12)'; c.beginPath(); c.ellipse(x + w / 2, y + h + 1, w * 0.46, 3, 0, 0, TAU); c.fill();
-    rrect(c, x, y + neck, w, h - neck, Math.min(10, w * 0.2)); c.fillStyle = 'rgba(206,224,230,0.7)'; c.fill();
+    c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(x + w / 2, y + h + 1, w * 0.46, 3, 0, 0, TAU); c.fill();
+    rrect(c, x, y + neck, w, h - neck, Math.min(10, w * 0.2)); c.fillStyle = 'rgba(218,228,222,0.78)'; c.fill();
     this.beads(c, { x: x + 4, y: y + neck + 4, w: w - 8, h: h - neck - 8 }, J, j);
     rrect(c, x, y + neck, w, h - neck, Math.min(10, w * 0.2)); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
     c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillRect(x + 4, y + neck + 6, Math.max(2, w * 0.08), (h - neck) * 0.55);
-    rrect(c, x + w * 0.16, y + 1, w * 0.68, neck, 3); c.fillStyle = 'rgba(206,224,230,0.9)'; c.fill(); c.lineWidth = 1.5; c.stroke();
+    rrect(c, x + w * 0.16, y + 1, w * 0.68, neck, 3); c.fillStyle = DC_LOOK.brass; c.fill(); c.lineWidth = 1.5; c.stroke(); c.fillStyle = DC_LOOK.brass2; c.fillRect(x + w * 0.2, y + 2.5, w * 0.6, 1.5);
     if (J.fix >= 0 || o.cork) { rrect(c, x + w * 0.24, y - 4, w * 0.52, neck + 2, 3); c.fillStyle = '#A07C52'; c.fill(); c.lineWidth = 1.2; c.stroke(); }
     c.restore();
     const hot = J.crash >= 0 && !o.fly && (s.phase === 'bet' ? DC_LV[s.level].volcano : s.gen < J.crash + DC_CRASH.gens);   // a crash set before Spin, or one in progress
@@ -1204,17 +1236,21 @@ const CH_CASINO_V2 = {
     const ox = B.x + (B.w - cols * p) / 2 + p / 2, oy = B.y + B.h - p / 2, drop = v.tableT < 0.4 ? (1 - v.tableT / 0.4) * B.h * 0.6 : 0, A = this.inkA(), a = this.inka();
     for (let i = 0; i < n; i++) {
       const cx = ox + (i % cols) * p, cy = oy - Math.floor(i / cols) * p - drop * (1 - i / n), al = o[i] < J.k ? 0 : 1;
-      if (r >= 6 && typeof Pal !== 'undefined') Pal.token(c, cx, cy, r, al, { lw: 1.2 });
+      if (r >= 6 && typeof Pal !== 'undefined') { Pal.token(c, cx, cy, r, al, { lw: 1.2 }); this.gloss(c, cx, cy, r); }
       else {
         c.fillStyle = al ? a : A; if (r < 2.6) c.fillRect(cx - r, cy - r, 2 * r, 2 * r); else { c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.fill(); }
         if (al && r >= 2.6) { c.strokeStyle = 'rgba(27,22,18,0.55)'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx - r * 0.6, cy + r * 0.6); c.lineTo(cx + r * 0.6, cy - r * 0.6); c.stroke(); }   // amber carries a stroke, so blue and amber differ in shape too (CVD, greyscale)
+        if (r >= 3.5) this.gloss(c, cx, cy, r);
       }
     }
+  },
+  gloss(c, x, y, r) {   // a glass marble's highlight: a soft crescent top left (cosmetic; the letter stays clear)
+    c.save(); c.fillStyle = 'rgba(255,255,255,0.55)'; c.beginPath(); c.ellipse(x - r * 0.42, y - r * 0.5, r * 0.32, r * 0.18, -0.6, 0, TAU); c.fill(); c.restore();
   },
   /* the felt: the bins are the histogram; your chips on the left of each bin, finished jars stack on the right */
   drawFelt(c, G) {
     const s = this.sim.s, v = this.v, F = G.felt, I = this.ink(), P = this.paper(), L = this.content.labels, keys = DC_BINS[DC_LV[s.level].bins];
-    c.save(); rrect(c, F.x, F.y, F.w, F.h, 14); c.fillStyle = '#2C5646'; c.fill(); c.lineWidth = 4; c.strokeStyle = '#7A5A34'; c.stroke(); c.lineWidth = 1; c.strokeStyle = 'rgba(232,223,201,0.25)'; rrect(c, F.x + 5, F.y + 5, F.w - 10, F.h - 10, 10); c.stroke(); c.restore();
+    this.baize(c, F);
     if (G.k === 'buri') this.drawHist(c, G);
     this.feltTop(c, G);
     const odds = s.phase === 'bet' || !s.tab[s.ti] ? s.odds : s.tab[s.ti].c, rec = s.phase === 'bet' ? null : s.tab[s.ti];
@@ -1226,8 +1262,8 @@ const CH_CASINO_V2 = {
       const nIn = (v.inb && v.inb[b]) || 0, n = Math.max(0, s.chips[b] - nIn), fl = v.flash[b] || 0;
       for (let i = 0; i < n; i++) this.chip(c, B.cx, B.base - i * B.step - (i === n - 1 ? fl * 3 : 0), B.r);
       if (n) this.lbl('n' + b, String(n), B.cx, B.base - n * B.step - B.r - 6, { size: 12, mono: true });
-      if (G.k !== 'buri') { const m = v.shown[b] || 0, st = this.landStep(B), lf = v.flash['l' + b] || 0, cols = (v.landCol && v.landCol[b]) || []; for (let i = 0; i < m; i++) this.icon(c, B.lx, B.base - 4 - i * st - (i === m - 1 ? lf * 3 : 0), G.k, cols[i], B.isz); if (m) this.lbl('m' + b, String(m), B.lx, B.base - 4 - m * st - B.isz - 8, { size: 12, mono: true, bg: '#D8E6EA' }); }
-      else if (v.shown[b]) this.lbl('m' + b, String(v.shown[b]), B.lx, B.base - 12, { size: 13, mono: true, bg: '#D8E6EA' });
+      if (G.k !== 'buri') { const m = v.shown[b] || 0, st = this.landStep(B), lf = v.flash['l' + b] || 0, cols = (v.landCol && v.landCol[b]) || []; for (let i = 0; i < m; i++) this.icon(c, B.lx, B.base - 4 - i * st - (i === m - 1 ? lf * 3 : 0), G.k, cols[i], B.isz); if (m) this.lbl('m' + b, String(m), B.lx, B.base - 4 - m * st - B.isz - 8, { size: 12, mono: true, bg: '#EAD8A8' }); }
+      else if (v.shown[b]) this.lbl('m' + b, String(v.shown[b]), B.lx, B.base - 12, { size: 13, mono: true, bg: '#EAD8A8' });
       if (v.focus && v.cursor === b && s.phase === 'bet') { c.save(); c.setLineDash([4, 3]); c.lineWidth = 2; c.strokeStyle = P; c.strokeRect(B.x + 1, B.y + 1, B.w - 2, B.h - 2); c.restore(); }
       const pr = v.press; if (pr && pr.bin === b && !pr.drag && v.t - pr.t > 0.12) { const f = Math.min(1, (v.t - pr.t) / 0.45); c.save(); c.lineWidth = 3; c.strokeStyle = P; c.beginPath(); c.arc(B.cx, B.base - n * B.step, B.r + 6, -TAU / 4, -TAU / 4 + TAU * f); c.stroke(); c.restore(); }
       this.lbl('b' + b, L[keys[b]], B.x + B.w / 2, B.y + B.h - 11, { size: B.w < 70 ? 12 : 13 });
@@ -1238,25 +1274,34 @@ const CH_CASINO_V2 = {
     });
     const pr = v.press; if (pr && pr.drag && pr.mx != null) this.chip(c, pr.mx, pr.my, G.bins[0].r);
   },
+  baize(c, F) {   // the table: mahogany rail, brass rim, green baize brighter under the lamp, a brass pinstripe
+    const K = DC_LOOK; c.save();
+    rrect(c, F.x - 2, F.y - 2, F.w + 4, F.h + 4, 16); c.fillStyle = K.wood; c.fill(); c.lineWidth = 1.5; c.strokeStyle = 'rgba(0,0,0,0.5)'; c.stroke();
+    rrect(c, F.x + 3, F.y + 3, F.w - 6, F.h - 6, 12);
+    if (typeof c.createRadialGradient === 'function') { const g = c.createRadialGradient(F.x + F.w / 2, F.y + F.h * 0.35, 10, F.x + F.w / 2, F.y + F.h * 0.4, Math.max(F.w, F.h) * 0.7); g.addColorStop(0, K.felt2); g.addColorStop(0.7, K.felt); g.addColorStop(1, K.feltD); c.fillStyle = g; } else c.fillStyle = K.felt;
+    c.fill(); c.lineWidth = 2.5; c.strokeStyle = K.brass; c.stroke();
+    c.lineWidth = 1; c.strokeStyle = 'rgba(224,194,126,0.35)'; rrect(c, F.x + 9, F.y + 9, F.w - 18, F.h - 18, 8); c.stroke(); c.restore();
+  },
   feltTop(c, G) {   // the table's state along the felt's top edge: generation, table number, size
     const s = this.sim.s, F = G.felt, L = this.content.labels, nt = (DC_LV[s.level].tables || []).length, y = F.y + 2;
     if (F.h < 110) return;   // landscape phones: the chip counts need the room; the strip and HUD carry the generation
     if (G.k === 'jars') { this.lbl('gen', Txt.f(L.gen, { n: s.gen, m: s.T }), F.x + 14, y, { size: 12, align: 'left', mono: true }); this.lbl('beads', Txt.f(L.beads, { n: s.N }), F.x + F.w - 14, y, { size: 12, align: 'right' }); }
     if (nt > 1) this.lbl('table', Txt.f(L.table, { n: s.ti + 1, m: nt }), F.x + F.w / 2, y, { size: 12 });
   },
-  chip(c, x, y, r) {   // a casino chip: paper face, ink rim, dashed inlay (your stake; never a data ink)
-    const I = this.ink(), P = this.paper();
-    c.save(); c.beginPath(); c.ellipse(x, y + r * 0.22, r, r * 0.62, 0, 0, TAU); c.fillStyle = '#8F8670'; c.fill(); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke();
-    c.beginPath(); c.ellipse(x, y, r, r * 0.62, 0, 0, TAU); c.fillStyle = P; c.fill(); c.lineWidth = 1.4; c.stroke();
-    c.setLineDash([2.5, 2.5]); c.beginPath(); c.ellipse(x, y, r * 0.66, r * 0.4, 0, 0, TAU); c.lineWidth = 1.2; c.stroke(); c.restore();
+  chip(c, x, y, r) {   // a casino chip: burgundy, cream edge spots and inlay, ink rim (your stake; never a data ink)
+    const I = this.ink(), K = DC_LOOK;
+    c.save(); c.beginPath(); c.ellipse(x, y + r * 0.22, r, r * 0.62, 0, 0, TAU); c.fillStyle = K.chipD; c.fill(); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke();
+    c.beginPath(); c.ellipse(x, y, r, r * 0.62, 0, 0, TAU); c.fillStyle = K.chip; c.fill(); c.lineWidth = 1.4; c.stroke();
+    c.setLineDash([r * 0.32, r * 0.5]); c.beginPath(); c.ellipse(x, y, r * 0.84, r * 0.5, 0, 0, TAU); c.lineWidth = Math.max(1.5, r * 0.2); c.strokeStyle = K.cream; c.stroke();
+    c.setLineDash([2.5, 2.5]); c.beginPath(); c.ellipse(x, y, r * 0.5, r * 0.29, 0, 0, TAU); c.lineWidth = 1.1; c.stroke(); c.restore();
   },
   icon(c, x, y, k, col, sz) {   // a finished jar (filled with its final colour: blue, amber or both) or a founded islet, stacked in its bin
     const I = this.ink(), z = sz || 12, w = z * 0.8, h = z; c.save();
-    if (k === 'islets') { c.beginPath(); c.ellipse(x, y, z * 0.75, z * 0.38, 0, 0, TAU); c.fillStyle = '#C9B283'; c.fill(); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke(); }
+    if (k === 'islets') { c.beginPath(); c.ellipse(x, y, z * 0.75, z * 0.38, 0, 0, TAU); c.fillStyle = DC_LOOK.sand; c.fill(); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke(); c.fillStyle = DC_LOOK.scrub; c.beginPath(); c.ellipse(x - z * 0.15, y - z * 0.05, z * 0.3, z * 0.15, 0, 0, TAU); c.fill(); }
     else {
       rrect(c, x - w / 2, y - h / 2, w, h, 3); c.fillStyle = col === 0 ? this.inkA() : col === 1 ? this.inka() : 'rgba(206,224,230,0.95)'; c.fill();
       if (col === 2) { c.save(); rrect(c, x - w / 2, y - h / 2, w, h, 3); c.clip(); c.fillStyle = this.inkA(); c.fillRect(x - w / 2, y, w, h / 2); c.fillStyle = this.inka(); c.fillRect(x - w / 2, y - h / 2, w, h / 2); c.restore(); }
-      rrect(c, x - w / 2, y - h / 2, w, h, 3); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke(); c.fillStyle = '#A07C52'; c.fillRect(x - w * 0.3, y - h / 2 - 3, w * 0.6, 3);
+      rrect(c, x - w / 2, y - h / 2, w, h, 3); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke(); c.fillStyle = DC_LOOK.brass; c.fillRect(x - w * 0.3, y - h / 2 - 3, w * 0.6, 3);
     }
     c.restore();
   },
@@ -1269,11 +1314,11 @@ const CH_CASINO_V2 = {
   croupier(c, x, base, h) {   // one-ink human pictogram (D4 rule 10): visor, bow tie, rake; his belief in a speech pill
     const I = this.ink(), v = this.v, k = h / 54, sp = v.spinT >= 0 ? Det.sin(v.spinT * 12) * 0.5 : 0;
     c.save(); c.translate(x, base); c.scale(k, k);
-    c.fillStyle = 'rgba(232,223,201,0.95)'; rrect(c, -30, -56, 60, 56, 8); c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
+    c.fillStyle = DC_LOOK.cream; rrect(c, -30, -56, 60, 56, 8); c.fill(); c.lineWidth = 3; c.strokeStyle = DC_LOOK.brass; c.stroke(); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke();
     c.fillStyle = I; c.beginPath(); c.arc(0, -38, 8, 0, TAU); c.fill();
     c.beginPath(); c.moveTo(-11, -44); c.lineTo(11, -44); c.lineTo(7, -49); c.lineTo(-7, -49); c.closePath(); c.fill();
     c.beginPath(); c.moveTo(-14, -2); c.quadraticCurveTo(-14, -26, 0, -27); c.quadraticCurveTo(14, -26, 14, -2); c.closePath(); c.fill();
-    c.fillStyle = 'rgba(232,223,201,0.95)'; c.beginPath(); c.moveTo(-5, -25); c.lineTo(0, -22); c.lineTo(5, -25); c.lineTo(5, -19); c.lineTo(0, -22); c.lineTo(-5, -19); c.closePath(); c.fill();
+    c.fillStyle = DC_LOOK.cream; c.beginPath(); c.moveTo(-5, -25); c.lineTo(0, -22); c.lineTo(5, -25); c.lineTo(5, -19); c.lineTo(0, -22); c.lineTo(-5, -19); c.closePath(); c.fill();
     c.save(); c.translate(12, -16); c.rotate(-0.6 + sp); c.strokeStyle = I; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, 0); c.lineTo(16, -6); c.stroke(); c.lineWidth = 2; c.beginPath(); c.moveTo(16, -12); c.lineTo(16, 0); c.stroke(); c.restore();
     c.restore();
     if (v.talk && v.talk.text) { const b = v.talk.t < 0.3 ? 1 + 0.15 * Det.sin(v.talk.t / 0.3 * Math.PI) : 1; this.lbl('talk', v.talk.text, x - 36 * k, base - h * 0.55, { size: Math.round(13 * b), align: 'right', bg: '#FFF7E0' }); }
@@ -1303,7 +1348,7 @@ const CH_CASINO_V2 = {
   },
   drawTray(c, G) {
     const s = this.sim.s, v = this.v, T = G.tray, L = this.content.labels;
-    c.save(); rrect(c, T.x, T.y, T.w, T.h, 10); c.fillStyle = 'rgba(27,22,18,0.06)'; c.fill(); c.restore();
+    c.save(); rrect(c, T.x, T.y, T.w, T.h, 10); c.fillStyle = DC_LOOK.parch; c.fill(); c.lineWidth = 2.5; c.strokeStyle = DC_LOOK.brass; c.stroke(); c.restore();
     s.bot.forEach((B, j) => {
       const R0 = this.vialRect(G, j);
       if (v.gone[j]) { c.save(); c.setLineDash([2, 2]); c.strokeStyle = 'rgba(27,22,18,0.3)'; c.strokeRect(R0.x, R0.y, R0.w, R0.h); c.restore(); return; }
@@ -1316,7 +1361,7 @@ const CH_CASINO_V2 = {
   drawHero(c, G) {
     const s = this.sim.s, v = this.v, R0 = G.hero, B = s.bot[s.pin] || s.bot[0], I = this.ink();
     const bx = R0.x + 6, by = R0.y + 18, bw = R0.w - 12, bh = R0.h - 40;
-    c.save(); rrect(c, bx, by, bw, bh, 18); c.fillStyle = 'rgba(206,224,230,0.55)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
+    c.save(); rrect(c, bx, by, bw, bh, 18); c.fillStyle = 'rgba(234,240,236,0.93)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
     c.fillStyle = '#B9A27A'; c.fillRect(bx + 3, by + bh - 14, bw - 6, 11); rrect(c, bx + bw * 0.3, by - 10, bw * 0.4, 12, 4); c.fillStyle = '#E9E2CF'; c.fill(); c.stroke(); c.restore();
     const fl = B.b.m.concat(B.b.f), sz = Math.max(12, Math.min(26, Math.min(bw, bh - 14) / 5.2)), kids = this.broods(s.pin * 131 + s.gen, s.mode || 'w');
     fl.forEach((g, i) => {   // a jittered 4 × 4 grid, so the 16 flies can be counted and their eyes read
@@ -1358,6 +1403,7 @@ const CH_CASINO_V2 = {
   drawSide(c, G) {
     const s = this.sim.s, v = this.v, D = DC_SIDES[s.side], sd = s.sd, L = this.content.labels, I = this.ink(), top = G.top + 6, bot = G.foot.y - 92;
     const cw = G.W * 0.42, cage = { x: 10, y: top, w: cw - 16, h: bot - top }, vr = { x: cw, y: top, w: G.W - cw - 10, h: bot - top };
+    c.save(); rrect(c, 4, top - 4, G.W - 8, G.foot.y - top - 2, 12); c.fillStyle = DC_LOOK.parch; c.fill(); c.lineWidth = 3; c.strokeStyle = DC_LOOK.brass; c.stroke(); c.restore();   // the ledger the side tables are drawn on
     c.save(); rrect(c, cage.x, cage.y, cage.w, cage.h, 10); c.fillStyle = 'rgba(206,224,230,0.45)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
     c.strokeStyle = 'rgba(27,22,18,0.12)'; c.lineWidth = 1; c.beginPath(); for (let x = cage.x + 10; x < cage.x + cage.w; x += 10) { c.moveTo(x, cage.y + 2); c.lineTo(x, cage.y + cage.h - 2); } c.stroke(); c.restore();
     let flies = [];
@@ -1387,11 +1433,11 @@ const CH_CASINO_V2 = {
   },
   /* ---------- L4: the castaways: islets at sea, the mainland swarm, the storm ---------- */
   drawSea(c, G) {
-    const s = this.sim.s, v = this.v, S = G.sea, I = this.ink(), sea = typeof Pal !== 'undefined' ? Pal.place('outer').ground : '#4E6A7A';
+    const s = this.sim.s, v = this.v, S = G.sea, I = this.ink(), sea = DC_LOOK.sea;
     c.fillStyle = sea; c.fillRect(S.x, S.y, S.w, S.h);
     c.strokeStyle = 'rgba(232,223,201,0.18)'; c.lineWidth = 1.5; c.beginPath(); for (let y = S.y + 16; y < S.y + S.h; y += 22) for (let x = (y * 7) % 40; x < S.w; x += 60) { c.moveTo(x, y); c.quadraticCurveTo(x + 8, y - 4 + 2 * Det.sin(v.t + x), x + 16, y); } c.stroke();
     G.isl.forEach((R0, i) => {
-      c.save(); c.beginPath(); c.ellipse(R0.x + R0.w / 2, R0.y + R0.h / 2, R0.w / 2, R0.h / 2, 0, 0, TAU); c.fillStyle = '#C9B283'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke(); c.restore();
+      this.islet(c, R0, i);
       const I0 = s.isl && s.isl[i]; if (!I0) return;
       const ta = DC_T.storm + DC_T.land * i - 0.08, here = I0.landed || (v.stormT >= ta && s.phase === 'run') || s.phase === 'settle' || s.phase === 'over';
       if (!here) return;
@@ -1408,11 +1454,36 @@ const CH_CASINO_V2 = {
       });
     }
   },
+  islet(c, R0, i) {   // a sandy islet with a tuft of scrub (natural paint), seeded by its index so it never flickers
+    const I = this.ink(), K = DC_LOOK, cx = R0.x + R0.w / 2, cy = R0.y + R0.h / 2, h1 = ((i * 2654435761) >>> 0) / 4294967296;
+    c.save(); c.beginPath(); c.ellipse(cx, cy, R0.w / 2 + 3, R0.h / 2 + 3, 0, 0, TAU); c.fillStyle = 'rgba(241,230,200,0.18)'; c.fill();   // surf
+    c.beginPath(); c.ellipse(cx, cy, R0.w / 2, R0.h / 2, 0, 0, TAU); c.fillStyle = K.sand; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
+    c.fillStyle = K.scrub; c.beginPath(); c.ellipse(cx + (h1 - 0.5) * R0.w * 0.5, cy - R0.h * 0.18, R0.w * 0.16, R0.h * 0.2, 0, 0, TAU); c.ellipse(cx + (h1 - 0.5) * R0.w * 0.5 + R0.w * 0.1, cy - R0.h * 0.1, R0.w * 0.1, R0.h * 0.16, 0, 0, TAU); c.fill();
+    c.restore();
+  },
+  // a brown anole seen from above, head to +x (natural paint, D4 §1.2): s = nose-to-tail length in px; o.male: bigger and plain,
+  // a female carries the dorsal diamonds (as in brown anoles); o.dark 0..1 shades it
+  lizard(c, x, y, s, rot, o) {
+    o = o || {}; const I = this.ink(), K = DC_LOOK, k = s / 46, body = o.dark ? (o.dark > 0.5 ? K.lizD : K.lizM) : K.liz;
+    c.save(); c.translate(x, y); c.rotate(rot || 0); c.scale(k, k); c.lineJoin = 'round'; c.lineCap = 'round';
+    for (const [lx, sy, fx] of [[7, 1, 1], [7, -1, 1], [-6, 1, -1], [-6, -1, -1]]) {   // legs: ink under paint, elbows out, toes forward or back
+      const pts = [lx, 0, lx + fx * 1.5, sy * 6.5, lx + fx * 5, sy * 8];
+      for (const [col, lw] of [[I, 4], [body, 2.2]]) { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.moveTo(pts[0], pts[1]); c.lineTo(pts[2], pts[3]); c.lineTo(pts[4], pts[5]); c.stroke(); }
+    }
+    c.beginPath(); c.moveTo(-7, -2.4); c.quadraticCurveTo(-18, -3.2, -27, 1.5); c.quadraticCurveTo(-18, 1.6, -7, 2.4); c.closePath();   // tail
+    c.fillStyle = body; c.fill(); c.lineWidth = 1.2; c.strokeStyle = I; c.stroke();
+    c.beginPath(); c.ellipse(2, 0, 10.5, 4.2, 0, 0, TAU); c.fill(); c.stroke();   // body
+    c.beginPath(); c.moveTo(11, -3); c.quadraticCurveTo(19, -3.2, 21, 0); c.quadraticCurveTo(19, 3.2, 11, 3); c.closePath(); c.fill(); c.stroke();   // head
+    c.fillStyle = I; c.beginPath(); c.arc(15.5, -2.1, 0.8, 0, TAU); c.arc(15.5, 2.1, 0.8, 0, TAU); c.fill();
+    if (!o.male) { c.fillStyle = 'rgba(241,230,200,0.55)'; for (const dx of [-4, 1, 6]) { c.beginPath(); c.moveTo(dx - 2, 0); c.lineTo(dx, -1.6); c.lineTo(dx + 2, 0); c.lineTo(dx, 1.6); c.closePath(); c.fill(); } }
+    c.restore();
+  },
   drawLand(c, G) {
-    const s = this.sim.s, v = this.v, Lr = G.land, I = this.ink(), sand = typeof Pal !== 'undefined' ? Pal.place('beetle').ground : '#B7A57A', L = this.content.labels;
+    const s = this.sim.s, v = this.v, Lr = G.land, I = this.ink(), sand = DC_LOOK.sand, L = this.content.labels;
     c.fillStyle = sand; c.beginPath(); c.moveTo(0, Lr.y + 8); for (let x = 0; x <= G.W; x += 20) c.lineTo(x, Lr.y + 6 + 4 * Det.sin(x * 0.05 + v.t * 0.8)); c.lineTo(G.W, Lr.y + Lr.h); c.lineTo(0, Lr.y + Lr.h); c.closePath(); c.fill();
+    c.fillStyle = DC_LOOK.scrub; for (let i = 0; i < 9; i++) { const h1 = ((i * 2246822519) >>> 0) / 4294967296; c.beginPath(); c.ellipse(G.W * (i + 0.5) / 9 + (h1 - 0.5) * 30, Lr.y + Lr.h - 8 - h1 * 10, 18 + h1 * 14, 7 + h1 * 4, 0, 0, TAU); c.fill(); }   // scrub along the back of the beach
     const sz = Math.max(18, Math.min(30, 0.06 * G.u)), n = 28;
-    for (let i = 0; i < n; i++) { const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = (((i + 3) * 40503 * 2246822519) >>> 0) / 4294967296; if (typeof Rig !== 'undefined') Rig.draw(c, 'beetle', { a: [0, 0], dark: 0.1 + 0.4 * h2 }, 14 + (G.W - 28) * h1, Lr.y + 20 + (Lr.h - 30) * h2, { size: sz, id: i, state: 'idle', t: v.t, rot: (h1 - 0.5) * 2 }); }
+    for (let i = 0; i < n; i++) { const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = (((i + 3) * 40503 * 2246822519) >>> 0) / 4294967296; this.lizard(c, 14 + (G.W - 28) * h1, Lr.y + 22 + (Lr.h - 34) * h2 + Det.sin(v.t * 1.3 + i) * 0.6, sz * 1.5, (h1 - 0.5) * 2 + (i % 2 ? Math.PI : 0), { male: i % 3 === 0, dark: h2 > 0.6 ? 0.3 : 0 }); }
     this.lbl('main', L.mainland, 12, Lr.y + 16, { size: 12, align: 'left' });
     this.lbl('main2', Txt.f(L.amber, { n: 50 }), G.W - 12, Lr.y + 16, { size: 12, align: 'right', bg: '#F5E2A0' });
     if (s.phase === 'bet' || (s.phase === 'run' && v.stormT < DC_T.storm)) {   // the storm cloud: its size is the number rafted
@@ -1452,9 +1523,12 @@ const CH_CASINO_V2 = {
     this.lbl('hg', L.het, x - 6, y + 6, { size: 12, align: 'right' }); this.lbl('hgv', Math.round(100 * frac) + '%', x + w + 6, y + 6, { size: 12, align: 'left', mono: true });
   },
   drawIsland(c, G) {
-    const s = this.sim.s, v = this.v, Is = G.isle, I = this.ink(), sea = typeof Pal !== 'undefined' ? Pal.place('outer').ground : '#4E6A7A', sand = typeof Pal !== 'undefined' ? Pal.place('beetle').ground : '#B7A57A';
+    const s = this.sim.s, v = this.v, Is = G.isle, I = this.ink(), sea = DC_LOOK.sea, sand = DC_LOOK.sand;
     c.fillStyle = sea; c.fillRect(0, Is.y - 4, G.W, Is.h + 8);
-    c.save(); rrect(c, Is.x + 6, Is.y + 6, Is.w - 12, Is.h - 12, 40); c.fillStyle = sand; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke(); c.restore();
+    c.strokeStyle = 'rgba(241,230,200,0.14)'; c.lineWidth = 1.5; c.beginPath(); for (let y = Is.y + 10; y < Is.y + Is.h; y += 24) for (let x = (y * 7) % 40; x < G.W; x += 64) { c.moveTo(x, y); c.quadraticCurveTo(x + 8, y - 4 + 2 * Det.sin(v.t + x), x + 16, y); } c.stroke();
+    c.save(); rrect(c, Is.x + 6, Is.y + 6, Is.w - 12, Is.h - 12, 40); c.fillStyle = sand; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
+    c.clip(); c.fillStyle = DC_LOOK.scrub; [[0.07, 0.1], [0.2, 0.2], [0.79, 0.12], [0.93, 0.24], [0.06, 0.42], [0.95, 0.5], [0.12, 0.95], [0.9, 0.94]].forEach(([fx, fy], i) => { const h1 = ((i * 2246822519) >>> 0) / 4294967296; c.beginPath(); c.ellipse(Is.x + Is.w * fx, Is.y + Is.h * fy, 20 + 16 * h1, 9 + 5 * h1, 0, 0, TAU); c.fill(); });   // scrub round the shore, clear of the cone
+    c.restore();
     const [vx, vy] = this.volcanoAt(), bw = Math.min(Is.w * 0.46, 260), bh = Is.h * 0.24, er = v.erT;
     c.save(); c.beginPath(); c.moveTo(vx - bw / 2, vy + bh); c.lineTo(vx - bw * 0.12, vy - bh * 0.15); c.lineTo(vx + bw * 0.12, vy - bh * 0.15); c.lineTo(vx + bw / 2, vy + bh); c.closePath(); c.fillStyle = '#6F625A'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I; c.stroke();
     c.beginPath(); c.ellipse(vx, vy - bh * 0.15, bw * 0.12, bh * 0.08, 0, 0, TAU); c.fillStyle = '#3C3530'; c.fill(); c.stroke();
@@ -1468,14 +1542,14 @@ const CH_CASINO_V2 = {
     const showSurv = s.crash && (er < 0 || er > 1.1);
     if (showSurv) {
       const n = s.crash.surv.length, sz = Math.max(36, Math.min(60, 0.12 * G.u)), y = Is.y + Is.h * 0.68;
-      s.crash.surv.forEach((g, i) => { const x = Is.x + Is.w * (i + 1) / (n + 1); if (typeof Rig !== 'undefined') Rig.draw(c, 'beetle', { a: [0, 0], dark: 0.4 }, x, y, { size: sz, id: 'surv' + i, state: 'idle', t: v.t }); if (typeof Pal !== 'undefined') Pal.genotype(c, x, y + sz * 0.75, 13, g[0], g[1], { multi: true }); });
+      s.crash.surv.forEach((g, i) => { const x = Is.x + Is.w * (i + 1) / (n + 1); this.lizard(c, x, y - sz * 0.1, sz * 1.5, -Math.PI / 2 + 0.25 * Det.sin(v.t * 0.8 + i), { male: i % 2 === 0 }); if (typeof Pal !== 'undefined') Pal.genotype(c, x, y + sz * 0.75, 13, g[0], g[1], { multi: true }); });
     }
     const hk = s.crash ? s.crash.H / s.H0 : 1, frac = er < 0 ? hk : 1 - (1 - hk) * Math.max(0, Math.min(1, (er - 1.2) / 0.8));
     this.hGauge(c, G, Is.x + Is.w - 120, Is.y + 22, 80, frac);
   },
-  crowd(c, G) {   // 240 beetles in natural paint, baked once into a cached layer (D4 §1.4)
+  crowd(c, G) {   // 240 anoles in natural paint, baked once into a cached layer (D4 §1.4)
     const Is = G.isle, key = G.W + 'x' + G.H, v = this.v;
-    const paint = (cc) => { for (let i = 0; i < 240; i++) { const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = (((i + 11) * 40503 * 2246822519) >>> 0) / 4294967296, x = Is.x + 30 + (Is.w - 60) * h1, y = Is.y + Is.h * 0.5 + (Is.h * 0.42) * h2; if (typeof Rig !== 'undefined') Rig.draw(cc, 'beetle', { a: [0, 0], dark: 0.25 + 0.55 * h2 }, x, y, { size: 13, rot: (h1 - 0.5) * 3 }); } };
+    const paint = (cc) => { for (let i = 0; i < 240; i++) { const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = (((i + 11) * 40503 * 2246822519) >>> 0) / 4294967296, x = Is.x + 30 + (Is.w - 60) * h1, y = Is.y + Is.h * 0.5 + (Is.h * 0.42) * h2; this.lizard(cc, x, y, i % 3 ? 17 : 21, (h1 - 0.5) * 6, { male: i % 3 === 0, dark: h2 > 0.55 ? 0.3 : 0 }); } };
     if (typeof Layer === 'undefined') { paint(c); return; }
     if (!v.crowd || v.crowd.key !== key) v.crowd = { key, L: Layer(G.W, G.H).redraw(cc => paint(cc)) };
     v.crowd.L.blit(c, 0, 0);
@@ -1483,19 +1557,19 @@ const CH_CASINO_V2 = {
   penRect(G, p) { const Is = G.isle, top = Is.y + 30, bot = Is.y + Is.h - 66, gw = (Is.w - 30) / 2, gh = (bot - top - 10) / 2; return { x: Is.x + 10 + (p % 2) * (gw + 10), y: top + Math.floor(p / 2) * (gh + 10), w: gw, h: gh }; },
   drawZoo(c, G) {
     const s = this.sim.s, v = this.v, Z = s.zoo, Is = G.isle, I = this.ink(), L = this.content.labels;
-    c.fillStyle = '#A99E80'; c.fillRect(0, Is.y - 4, G.W, Is.h + 8);
+    c.save(); rrect(c, Is.x, Is.y - 2, Is.w, Is.h + 4, 12); c.fillStyle = 'rgba(78,44,29,0.85)'; c.fill(); c.restore();   // the keepers' bench
     let nf = 0; for (const b of Z.pop) if (b.f) nf++;
     const per = Math.ceil(Z.pop.length / 4);
     for (let p = 0; p < 4; p++) {
-      const P = this.penRect(G, p); c.save(); rrect(c, P.x, P.y, P.w, P.h, 8); c.fillStyle = '#D9CBA7'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#8C6B45'; c.stroke(); c.restore();
+      const P = this.penRect(G, p); c.save(); rrect(c, P.x, P.y, P.w, P.h, 8); c.fillStyle = DC_LOOK.sand; c.fill(); c.lineWidth = 3; c.strokeStyle = DC_LOOK.brass; c.stroke(); c.lineWidth = 1; c.strokeStyle = 'rgba(0,0,0,0.45)'; c.stroke(); c.restore();
       const cols = Math.max(3, Math.round(Math.sqrt(per * P.w / P.h))), rows = Math.ceil(per / cols), q = Math.min(P.w / cols, P.h / rows), sz = Math.max(10, Math.min(46, q * 1.1)), grow = v.zt < 0.3 && !Z.auto ? 0.6 + 0.4 * v.zt / 0.3 : 1;
       for (let k = 0; k < per; k++) {
         const i = k * 4 + p, b = Z.pop[i]; if (!b) continue;
         const x = P.x + (P.w - cols * q) / 2 + (k % cols + 0.5) * q, y = P.y + (P.h - rows * q) / 2 + (Math.floor(k / cols) + 0.5) * q;
         if (Z.eq && k % 2 === 0 && k + 1 < per && (k % cols) + 1 < cols) { c.strokeStyle = 'rgba(27,22,18,0.35)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, y); c.lineTo(x + q, y); c.stroke(); }
         const tagged = sz >= 18 && !Z.auto, bs = tagged ? 0.82 : 1;
-        if (typeof Rig !== 'undefined') Rig.draw(c, 'beetle', { a: [0, 0], dark: b.f ? 0.35 : 0.6 }, x, y - (tagged ? sz * 0.12 : 0), { size: sz * (b.f ? 1 : 0.8) * grow * bs, id: 'z' + i, state: Z.auto ? undefined : 'idle', t: v.t });
-        if (tagged && typeof Pal !== 'undefined') Pal.genotype(c, x, y + sz * 0.36, Math.max(6, Math.min(10.5, sz * 0.25)), b.a[0], b.a[1], { multi: true });   // each beetle wears its two letters
+        this.lizard(c, x, y - (tagged ? sz * 0.16 : 0), sz * 1.25 * (b.f ? 0.86 : 1) * grow * bs, (((i * 2654435761) >>> 0) / 4294967296 - 0.5) * 0.8 + (k % 2 ? Math.PI : 0), { male: !b.f });   // males bigger and plain, as in brown anoles
+        if (tagged && typeof Pal !== 'undefined') Pal.genotype(c, x, y + sz * 0.36, Math.max(6, Math.min(10.5, sz * 0.25)), b.a[0], b.a[1], { multi: true });   // each lizard wears its two letters
       }
     }
     this.lbl('zf', Txt.f(L.females, { n: nf }), Is.x + 12, Is.y + 14, { size: 12, align: 'left' });
@@ -1506,7 +1580,7 @@ const CH_CASINO_V2 = {
     v.tags = [];
     if (!Z.auto) {
       const tot = CH_CASINO_V2.P.budget.v, r = 5, gap = Math.min(13, (Is.w * 0.5) / tot);
-      for (let i = 0; i < tot; i++) { const x = Is.x + 16 + i * gap, filled = i < Z.budget; c.beginPath(); c.arc(x, by + 6, r, 0, TAU); if (filled) { c.fillStyle = '#CF9A33'; c.fill(); } c.lineWidth = 1.2; c.strokeStyle = I; c.stroke(); }
+      for (let i = 0; i < tot; i++) { const x = Is.x + 16 + i * gap, filled = i < Z.budget; c.beginPath(); c.arc(x, by + 6, r, 0, TAU); if (filled) { c.fillStyle = DC_LOOK.brass; c.fill(); c.lineWidth = 1.2; c.strokeStyle = I; } else { c.lineWidth = 1.2; c.strokeStyle = 'rgba(241,230,200,0.6)'; } c.stroke(); }
       let tx = Is.x + 12; const ty = by + 30, tag = (id, text, ok, a) => { const B0 = this.lbl(id, text, tx, ty, { size: 12, align: 'left', bg: ok ? '#FFF7E0' : '#CFC6B0' }); if (B0) { v.tags.push({ box: B0, a }); tx = B0.x + B0.w + 8; } };
       tag('pb', Txt.f(L.pBal, { n: DC_ZOO.cBal }), !Z.bal && Z.budget >= DC_ZOO.cBal, () => ({ k: 'bal' }));
       tag('pe', L.pEq, Z.eq || Z.budget >= DC_ZOO.cEq, () => ({ k: 'eq', on: !this.sim.s.zoo.eq }));
@@ -1515,7 +1589,7 @@ const CH_CASINO_V2 = {
     if (v.mig) {   // a migrant flies in from the wild island (migration ink, D4 §2.1)
       const P = this.penRect(G, v.mig.i % 4), t = Math.min(1, v.mig.t / 0.7), x = G.W + 10 + (P.x + P.w / 2 - G.W - 10) * t, y = P.y + P.h / 2 - Det.sin(t * Math.PI) * 30, M = typeof Pal !== 'undefined' ? Pal.mig : '#7CC4F0';
       c.save(); c.strokeStyle = M; c.lineWidth = 4; c.beginPath(); c.moveTo(G.W, P.y + P.h / 2); c.lineTo(x + 14, y); c.stroke(); c.restore();
-      if (typeof Rig !== 'undefined') Rig.draw(c, 'beetle', { a: [0, 0], dark: 0.4 }, x, y, { size: 26, rot: -1.57 });
+      this.lizard(c, x, y, 40, Math.PI, { male: true });
     }
     this.hGauge(c, G, Is.x + Is.w - 120, by, 80, DC.het(n) / (11 / 12));
   },
@@ -1611,7 +1685,7 @@ if (typeof Rig !== 'undefined' && !Rig.has('fruitfly')) {
 /* ---------- the learning layer (D5 §3 item 12): overwritten for v2, untouched under ?v1=1 ---------- */
 if (!Url.v1) {
   TAKE.casino = DC_TEXT.take;
-  MODEL.casino = 'Jars hold gene copies sampled with replacement each generation (Wright–Fisher). Buri’s bottles add family sizes more unequal than chance (designed weights, Ne ≈ 11.5). Founders are a random sample of a large mainland. The eruption draws 8 copies; the zoo breeds 60 beetles under your levers.';
+  MODEL.casino = 'Jars hold gene copies sampled with replacement each generation (Wright–Fisher). Buri’s bottles add family sizes more unequal than chance (designed weights, Ne ≈ 11.5). Founders are a random sample of a large mainland. The eruption draws 8 copies; the zoo breeds 60 lizards under your levers.';
   RECALL.casino = { q: 'A neutral allele is at 20% in a small population. What is its chance of eventually taking over?', opts: [['20', 'About 20%'], ['50', 'About 50%'], ['0', 'Almost none']], ans: '20', why: 'With no selection, an allele’s chance of fixing equals its current share.' };
   BRIDGE.casino = 'In the Black Country selection pushed the moths one way. Here no colour is better, and chance alone moves the jars.';
   if (typeof TRANSFER !== 'undefined') delete TRANSFER.casino;   // the chips are the casino's predictions. TRANSFER.castaways stays until Genetic Rescue replaces the legacy Castaways chapter

@@ -4,7 +4,7 @@
 
    Content (every v2 chapter in the build, or the ids given), loaded headless through tests/vmgame.js:
      budgets   firstWords 40 · hud 15 · whispers 8 · labels 3 · panels 35–60 · interesting 25 · levers 3 · take 20 · body 60 ·
-               law.title 4 · boss.inverts 15 · stars.* 15 · why.* 60 per chunk · chips/captions 25 · intro.goal 15 · keys 4
+               law.title 4 · boss.inverts 15 · stars.* 15 · why.* 60 per chunk · chips/captions 25 · intro.goal 15 · keys 4 · content.intro.{game, biology, how} 35 (required, D6)
                (a {placeholder} counts as one word)
      sentences ≤ 18 words, in every string of content, intro, plan, levels and teacher prompts
      spelling  British (-ise, colour, behaviour, grey, centre, ageing …)
@@ -22,9 +22,9 @@
 const fs = require('fs'), path = require('path');
 
 const BUDGET = { firstWords: 40, hud: 15, whispers: 8, labels: 3, interesting: 25, levers: 3, take: 20, body: 60, 'law.title': 4,
-  'boss.inverts': 15, stars: 15, why: 60, chips: 25, captions: 25, panelMin: 35, panelMax: 60, sentence: 18, goal: 15, key: 4, model: 60, live: 25 };
+  'boss.inverts': 15, stars: 15, why: 60, chips: 25, captions: 25, panelMin: 35, panelMax: 60, sentence: 18, goal: 15, key: 4, model: 60, live: 25, intro: 35 };
 const CONTENT_KEYS = ['firstWords', 'hud', 'whispers', 'labels', 'panels', 'interesting', 'levers', 'take', 'body', 'law', 'boss', 'stars', 'model', 'why', 'chips', 'captions',
-  'levelTake', 'levelBody', 'levelWhy', 'levelStars', 'whatifBody', 'live', 'data'];   // the per-level keys are read by Entry.show (API_v2 §14.3)
+  'levelTake', 'levelBody', 'levelWhy', 'levelStars', 'whatifBody', 'live', 'data', 'intro'];   // the per-level keys are read by Entry.show (API_v2 §14.3)
 /* Units with a designer waiver on the level count (D5 §3.4 says 3–6). D6 decision 1b: Equilibrium (census) is one chapter of 8 levels. */
 const LEVEL_WAIVER = { census: 8 };
 
@@ -123,6 +123,13 @@ function lintChapter(ch, o) {
   else {
     const deep = (v, at, fn) => { if (typeof v === 'string') fn(v, at); else if (v && typeof v === 'object') for (const k of Object.keys(v)) deep(v[k], `${at}.${k}`, fn); };
     for (const k of Object.keys(C)) if (CONTENT_KEYS.indexOf(k) < 0) { W.push(`content.${k}: not a content key in API_v2 §9.2 (checked as text only)`); deep(C[k], 'content.' + k, T); }
+    // D6 decision 8: the opening description card, content.intro = {game, biology, how}, each 1–2 sentences of ≤ 35 words
+    if (!C.intro || typeof C.intro !== 'object') E.push('content.intro: missing ({game, biology, how}: the opening description card, D6 decision 8)');
+    else for (const k of ['game', 'biology', 'how']) {
+      const v = C.intro[k], at = 'content.intro.' + k;
+      if (typeof v !== 'string' || !v.trim()) { E.push(at + ': missing (1–2 sentences, ≤ 35 words)'); continue; }
+      budget(v, BUDGET.intro, at, E); T(v, at); if (sentences(v).length > 2) W.push(`${at}: ${sentences(v).length} sentences (D6 asks for 1–2)`);
+    }
     if (C.firstWords != null) { budget(C.firstWords, BUDGET.firstWords, 'content.firstWords', E); T(C.firstWords, 'content.firstWords'); } else W.push('content.firstWords: missing (≤ 40 words before the first action)');
     for (const k of ['hud', 'whispers', 'labels', 'interesting', 'levers', 'chips', 'captions'])
       each(C[k], (v, kk) => { budget(v, BUDGET[k], `content.${k}.${kk}`, E); T(v, `content.${k}.${kk}`); });

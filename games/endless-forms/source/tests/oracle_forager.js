@@ -148,4 +148,10 @@ module.exports = function (G, t) {
       void base;
     }
     t.ok(ok, 'every What if? run ends, earns no stars and matches its lever' + (notes.length ? ' (' + notes.join(', ') + ')' : '')); }
+
+  /* 13. the opening card and the chapter's own world (D6 addendum, 21 Oct 2026) */
+  { const I = G.ch.content.intro || {}, wc = x => String(x || '').split(/\s+/).filter(Boolean).length, sc = x => (String(x || '').match(/[.!?](\s|$)/g) || []).length;
+    t.ok(['game', 'biology', 'how'].every(k => wc(I[k]) > 0 && wc(I[k]) <= 35 && sc(I[k]) >= 1 && sc(I[k]) <= 2), 'content.intro has game, biology and how, each 1–2 sentences and ≤ 35 words (' + ['game', 'biology', 'how'].map(k => wc(I[k])).join(', ') + ')');
+    t.ok(/^#[0-9a-f]{6}$/i.test(G.ch.accent || '') && G.ch.accent.toUpperCase() !== '#A8263F', 'the chapter has its own accent (' + G.ch.accent + '), not the shell carmine');
+    t.ok(!/\b(evolves?|chooses?|chose|needs?|wants?)\b/i.test([I.game, I.biology, I.how].join(' ')), 'the card never says a bird evolves, chooses or needs'); }
 };

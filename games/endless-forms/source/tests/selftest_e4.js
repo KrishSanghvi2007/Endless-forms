@@ -97,6 +97,8 @@ if (process.argv.includes('--build-only')) { console.log(out); process.exit(0); 
 const LEGACY = ['mendel', 'scribe', 'cross', 'census', 'coal', 'casino', 'castaways', 'sex', 'lichen', 'soot', 'fancier', 'sieve', 'bitter', 'landscape', 'jaws', 'hawks', 'bats', 'brood', 'gametes', 'lek', 'raffle', 'spindle', 'meadow', 'alarm', 'nest', 'commons', 'many', 'livefast', 'forager', 'crowd', 'plastic', 'lock', 'clinic', 'virulence', 'guest', 'switch', 'copy', 'sweep', 'clock', 'river', 'fruits', 'ring', 'double', 'arch', 'tree', 'web', 'islands', 'fire'];
 const card = G => G.document.querySelector('#cards .card');
 const cardOpen = G => G.document.getElementById('cards').classList.contains('on') ? card(G) : null;
+// play the unit's own first dock button until a level or end card opens; a description card (D6 decision 8) is closed with Play
+const untilCard = (G, TB) => { for (let k = 0; k < 3000; k++) { const c = cardOpen(G); if (c && !c.classList.contains('ef-intro')) return c; if (c) TB.Intro.go(); else TB.Dock.items[0]._el.click(); G.advance(60); } return null; };
 const btns = c => [...c.querySelector('.card-btns').children];
 const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 380 ms
 
@@ -222,18 +224,19 @@ const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 3
   Save.d.stars.e4fix = 3; const opens = Save.d.opens;
   App.open(ch); G.advance(100);
   ok(App.scr === 'play' && App.ch === ch && ch.level === 0, 'App.open plays a v2 unit at level 0');
-  ok(!cardOpen(G), 'no intro card for a v2 unit');
+  ok(cardOpen(G) && card(G).classList.contains('ef-intro'), 'a v2 unit opens on its description card (D6 decision 8), not the legacy intro');
+  ok(!card(G).classList.contains('intro'), 'the legacy intro card is skipped'); TB.Intro.go(); ok(!cardOpen(G), 'Play closes the description card');
   ok(Save.d.v1stars.e4fix === 3 && Save.d.stars.e4fix === 0, 'App.open migrates the old best to v1stars');
   eq(Save.d.opens, opens, 'ch99 TRANSFER/RECALL wrap is bypassed (opens unchanged)');
   // ch99 would ask a TRANSFER question for soot once lichen is done; a v2 soot must skip it
   Save.d.done.lichen = 1; const vsoot = Object.assign({}, ch, { id: 'soot', title: 'Soot', num: 1 });
   App.open(vsoot); G.advance(100);
-  ok(!cardOpen(G) && App.ch === vsoot, 'a v2 unit skips ch99 question cards');
+  ok(App.ch === vsoot && (!cardOpen(G) || card(G).classList.contains('ef-intro')), 'a v2 unit skips ch99 question cards (only its description card)'); TB.Intro.go();
   delete Save.d.done.lichen;
   // the level card
-  App.open(ch); G.advance(1200);
+  App.open(ch); G.advance(100); TB.Intro.go(); G.advance(1100);
   const L0 = [...Events.log];
-  for (let i = 0; i < 5; i++) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  for (let i = 0; i < 5; i++) { TB.Dock.items[0]._el.click(); G.advance(60); }   // the unit's own first button (the dock's "?" sits outside Dock.items)
   G.advance(100);
   let c = cardOpen(G);
   ok(!!c && c.classList.contains('lvl') && c.classList.contains('v2') && !c.classList.contains('end'), 'level card: class lvl v2');
@@ -283,7 +286,7 @@ const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 3
   eq(App.seed, seed0, 'a thaw keeps the run seed');
   ok(Events.log.slice(nWhat).some(e => e.type === 'whatif' && e.gen === vialGen && e.lever === 'double'), 'whatif event');
   ok(Freezer.list('e4fix').length >= 1, 'a thaw keeps the level vials');
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  untilCard(G, TB);
   c = cardOpen(G);
   ok(c.classList.contains('lvl') && c.dataset.replay == null, 'a thawed run has no replay code (it is not (seed, level, log))');
   arm(G);
@@ -299,13 +302,13 @@ const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 3
   eq(Freezer.list('e4fix', 1).length, 0, 'list(id, level) filters by level');
   ok(Freezer.thaw('e4fix', 99, 'half') === false, 'thaw of a missing vial is refused');
   // finish levels 1 and 2: Next level, then the end card
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  untilCard(G, TB);
   arm(G); btns(cardOpen(G))[3].click(); G.advance(50);
   eq(ch.level, 1, 'Next level plays level 2');
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  untilCard(G, TB);
   arm(G); btns(cardOpen(G)).slice(-1)[0].click(); G.advance(1200);
   eq(ch.level, 2, 'then the boss');
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  untilCard(G, TB);
   c = cardOpen(G);
   ok(c.classList.contains('end') && c.classList.contains('v2') && !c.classList.contains('lvl'), 'final card: class end v2');
   eq(c.dataset.stars, '2', 'final card: data-stars counts Discover and Transfer');
@@ -322,8 +325,8 @@ const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 3
   eq(App.scr, 'menu', 'Notebook returns to the menu');
   // the royal stand-in has a next registered unit (soot), so its final card offers Next unit
   const roy = TB.REG.royal;
-  App.playLevel(roy, 2); G.advance(1200);
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  App.playLevel(roy, 2); G.advance(100); if (TB.Intro.box()) TB.Intro.go(); G.advance(1200);   // the description card first (D6 decision 8)
+  untilCard(G, TB);
   c = cardOpen(G);
   eq(btns(c).map(b => b.textContent).join('|'), 'Notebook|Why?|What if?|Next unit', 'final card buttons with a next unit');
   eq(btns(c)[3].getAttribute('aria-label'), 'Next unit: The Black Country', 'Next unit names the next registered unit in act order');
@@ -338,16 +341,16 @@ const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 3
 {
   const G = load(out, { search: '?unit=e4fix&seed=77' }), TB = G.TB, ch = TB.REG.e4fix;
   ch.resultBits = (s, n) => s.taps * 1000 + n * 7 + 3;
-  G.advance(1500);
+  G.advance(100); if (TB.Intro.box()) TB.Intro.go(); G.advance(1500);
   ok(TB.App.scr === 'play' && TB.App.ch === ch && TB.App.seed === 77, 'the deep link plays the unit with its seed');
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  untilCard(G, TB);
   const c = cardOpen(G), code = c.querySelector('.code');
   ok(!!code && TB.ResultCode.read(code.textContent) === 5003, 'the card shows the result code of resultBits (' + (code && code.textContent) + ')');
   arm(G); const cpb = c.querySelector('.coderow').querySelector('button'); cpb.click();
   eq(cpb.textContent, 'Copied', 'Copy confirms on the button');
   TB.Cards.close(); delete ch.resultBits;
-  TB.App.playLevel(ch, 0); G.advance(1200);
-  while (!cardOpen(G)) { G.document.getElementById('dock').firstChild.click(); G.advance(60); }
+  TB.App.playLevel(ch, 0); G.advance(100); if (TB.Intro.box()) TB.Intro.go(); G.advance(1200);
+  untilCard(G, TB);
   ok(!cardOpen(G).querySelector('.coderow'), 'no result code without resultBits');
 }
 
@@ -384,7 +387,8 @@ const arm = G => G.advance(400);   // Cards' ghost-tap guard arms a card after 3
   G = load(out); const TB = G.TB, fake = TB.REG.e4fix, legacy = TB.REG.lichen;
   TB.REG.lichen = fake;   // stand in for v2/lichen.js
   let A = begin(G);
-  ok(A.scr === 'play' && A.ch === fake && fake.level === 0 && !cardOpen(G), 'Begin goes straight into the live Wood, with no card');
+  ok(A.scr === 'play' && A.ch === fake && fake.level === 0 && cardOpen(G) && card(G).classList.contains('ef-intro'), 'Begin goes straight into the live Wood, behind its description card (D6 decision 8)');
+  TB.Intro.go(); ok(!cardOpen(G), 'Play starts the Wood');
   ok(TB.Save.d.v1stars.e4fix != null, 'Begin migrates the Wood stars');
   A.exit(); eq(A.scr, 'menu', 'exiting the Wood reaches the menu');
   TB.App.go('title'); A = begin(G); eq(A.scr, 'play', 'Begin again, Wood unfinished: the Wood');
@@ -423,7 +427,7 @@ if (fs.existsSync(SKEL)) {
   cp.execFileSync('python3', ['build.py', out2], { cwd: tmp, env: Object.assign({}, process.env, { V2_ONLY: '' }), stdio: 'pipe' });
   const G = load(out2), TB = G.TB, ch = TB.REG.skeleton; G.advance(1000);
   const play = () => { let f = 0; while (!cardOpen(G) && f++ < 20000) { const s = ch.sim.s; if (s.phase === 'hunt' && f % 7 === 0) { const i = s.pop.findIndex(b => b.alive && ch.sim.visible(b)); if (i >= 0) TB.Sim.act(ch, { k: 'tap', i }); } G.advance(40); } return cardOpen(G); };
-  TB.App.playLevel(ch, 1, { seed: 12345 }); G.advance(500);
+  TB.App.playLevel(ch, 1, { seed: 12345 }); G.advance(100); ok(!!TB.Intro.box(), 'skeleton: entering the unit shows its description card'); TB.Intro.go(); G.advance(400);
   let c = play(); const live = TB.Snap.enc(ch.sim.s), code = c && c.dataset.replay;
   ok(!!c && c.classList.contains('lvl') && !!code, 'skeleton: level 2 ends on a level card with a replay code');
   ok(TB.Freezer.list('skeleton').length >= 4, 'skeleton: a vial per generation');

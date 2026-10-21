@@ -123,4 +123,21 @@ module.exports = function (G, t) {
   /* 13. result text from the run: always guarding one side never reads as a swing */
   { let ok = true; for (let seed = 1; seed <= 12; seed++) { const r = G.run(0, { seed, bot: 'alwaysB' }); if (r.result.interesting === null && r.result.mask & 1) ok = false; }
     t.ok(ok, 'always guarding right never earns Discover or a silent card'); }
+
+  /* 14. the level card's take and numbers, chosen from the run (lessons rule 6): recomputed here from the raw records */
+  { let ok = true, n0 = 0; const notes = [], cnt = { yes: 0, no: 0, big: 0 };
+    const cross = d => { let k = 0; for (let i = 1; i < d.length; i++) if ((d[i] - 0.5) * (d[i - 1] - 0.5) < 0) k++; return k; };
+    for (const lv of [0, 1, 2, 3]) for (const bot of ['greedy', 'alwaysB', 'random', 'threshold']) for (let seed = 1; seed <= (FAST ? 5 : 12); seed++) {
+      const s = G.run(lv, { seed, bot }).s, k = sim.take(s, lv); cnt[k]++; n0++;
+      let want;
+      if (lv <= 1) want = cross(s.ps[0]) >= 2 ? 'yes' : 'no';                                  // "No full swing" only when there was none
+      else if (lv === 2) { let S = 0, R = 0; for (const r of s.hist) { const q = r.sp[0]; if (q.R != null && q.S) { S += Math.abs(q.S); R += q.R * Math.sign(q.S); } } const g = S ? R / S : 0; want = g > 0 && g <= 0.6 ? 'yes' : g > 0.6 ? 'big' : 'no'; }
+      else { const A = s.ps[0], B = s.ps[1]; let same = 0, opp = 0; for (let i = 1; i < A.length; i++) { const da = A[i] - A[i - 1], db = B[i] - B[i - 1]; if (Math.max(Math.abs(da), Math.abs(db)) < 0.03) continue; if (da * db > 0) same++; else opp++; } want = same >= 4 && opp <= 1 ? 'yes' : 'no'; }
+      if (k !== want) { ok = false; notes.push(lv + 1 + '/' + bot + '/' + seed); }
+      if (lv === 0) {   // "bites on the rarer side landed u%, on the commoner side c%"
+        const a = [0, 0], b = [0, 0]; for (const r of s.hist) { const rare = r.sp[0].p >= 0.5 ? 0 : 1; a[0] += r.tally[2 * rare]; b[0] += r.tally[2 * rare + 1]; a[1] += r.tally[2 - 2 * rare]; b[1] += r.tally[3 - 2 * rare]; }
+        const rc = sim.rareCommon(s); if (Math.abs(rc[0] - (a[0] ? b[0] / a[0] : 0)) > 1e-9 || Math.abs(rc[1] - (a[1] ? b[1] / a[1] : 0)) > 1e-9) { ok = false; notes.push('rare/common ' + bot + '/' + seed); }
+      }
+    }
+    t.ok(ok, `every level card's take matches its own run (${n0} runs: ${cnt.yes} lesson shown, ${cnt.no} not, ${cnt.big} chance-large)` + (notes.length ? ' (' + notes.slice(0, 6).join(', ') + ')' : '')); }
 };

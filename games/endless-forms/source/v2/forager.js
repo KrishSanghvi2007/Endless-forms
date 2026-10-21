@@ -22,7 +22,12 @@
 
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const FG_TEXT = {
-  firstWords: 'You are a great tit with four hungry chicks. Tap a caterpillar to carry it home. Tap the hedge to let one pass.',
+  intro: {   // the opening card (D6 addendum 8): three parts, 1–2 sentences each, ≤ 35 words
+    game: 'You are a great tit raising four chicks on an English hedgerow. One day runs from dawn mist to dusk, then a winter night.',
+    biology: 'Every catch costs time that could find food elsewhere. Selection favours rules that weigh gain against time and danger, though no bird does the sums.',
+    how: 'Tap a caterpillar to carry it home, or tap the hedge to let it pass. Later you tap trees and feeders, and drag a line to predict.'
+  },
+  firstWords: 'Four hungry chicks. Tap a caterpillar to carry it home, or tap the hedge to let it pass.',
   hud: {
     hedge: 'Take a caterpillar home, or let it pass. Every trip home costs time.',
     hedgeU: 'Each caterpillar waits for you. Take it, or tap the hedge to pass.',
@@ -32,11 +37,11 @@ const FG_TEXT = {
     orchardU: 'Tap Stay to feed for half a second, or Fly on.',
     askB1: 'Drag the best time to leave a tree here, then Lock in.',
     askB2: 'The trees stand far apart now. Drag the best time to leave.',
-    hawk: 'Field caterpillars are out in the open. Hedge ones are safe. Take or pass.',
+    hawk: 'Field caterpillars are plentiful but out in the open. Hedge ones are safe.',
     askC1: 'When are field caterpillars worth the risk? Drag the danger per trip.',
     caught: 'Caught. Your mate finishes the day.',
     evening: 'Evening. The trees stand twice as far apart. Feed, then fly on.',
-    flock: 'Your leaving habit is now a gene in a flock of 200 tits.',
+    flock: 'Suppose your leaving time were inherited. It founds one lineage among 200 tits.',
     askD1: 'Where will the flock’s leaving time settle? Drag, then Lock in.',
     years: 'Each year, birds with better leaving rules raise more young.',
     night: 'Reach the line by nightfall. Steady gives 2 seeds. Lucky gives 0 or 4.',
@@ -91,7 +96,7 @@ const FG_TEXT = {
     right: ['Chance given up', '{r} points', 'Chance of dawn your feeder choices cost, against best play.'],
     titles: { nights: 'Chance of dawn', prof: 'Food per second carried', rate: 'Rate if you leave', round: 'Food this round', diet: 'When to take small', gain: 'Gain in a tree', risk: 'Food against danger', hist: 'Leaving times', lin: 'Lineage shares', res: 'Tonight’s reserve', odds: 'Chance tonight' },
     ax: { night: 'night', sec: 'seconds of the round', big: 'big ones a minute', rate: 'food a second', t: 'seconds in tree', got: 'caught', p: 'danger per field trip', food: 'chick food', lt: 'leaving time (s)', yr: 'year', sh: 'share', v: 'visit', e: 'seeds', ch: 'chance of dawn' },
-    lines: { takeAll: 'take all', bigOnly: 'big only', swarm: 'take all, swarm', smallBar: 'small ones', mean: 'your mean', curve: 'expected', tangent: 'tangent', field: 'take field', safe: 'hedge only', you: 'you', line: 'night line', yours: 'your rounds', trees: 'your trees', skip: 'passing small earns', yourN: 'your nights', bestP: 'best play' }
+    lines: { takeAll: 'take all', bigOnly: 'big only', swarm: 'take all, swarm', smallBar: 'small ones', mean: 'your mean', curve: 'expected', tangent: 'tangent', field: 'take field', safe: 'hedge only', you: 'you', line: 'night line', yours: 'your rounds', trees: 'your trees', skip: 'big only, now', yourN: 'your nights', bestP: 'best play' }
   },
   levers: { takeall: 'Take everything', bigonly: 'Big ones only', quick: 'Leave at 2s', slow: 'Leave at 10s', bold: 'Brave the hawk', nohawk: 'No hawk', nomut: 'No mutation', far: 'Trees far apart', steady: 'Always steady', gamble: 'Always lucky' },
   take: 'Good foragers act as if they weigh gain against time; selection, not calculation, builds the rule.',
@@ -114,7 +119,7 @@ const FG_TEXT = {
   stars: {
     discover: 'Feed the chicks well, and survive a winter night.',
     predict: 'Land the switch, leaving and risk predictions in two of three levels.',
-    transfer: 'Predict where the flock settles, and choose feeders well on winter nights.'
+    transfer: 'Predict where the flock settles, and pick feeders well on winter nights.'
   },
   levelStars: [
     { discover: 'Feed the chicks, taking small ones only while big ones are scarce.', predict: 'Land both switch-point predictions inside the band.' },
@@ -126,8 +131,8 @@ const FG_TEXT = {
   levelTake: [
     'Small prey pay only while big ones are scarce. How many small ones come does not matter.',
     'Leave a tree when its catch rate falls to the orchard’s average. Longer flights mean longer stays.',
-    'Danger is a cost too. When the hawk hunts, safe food beats rich food.',
-    'Nobody computed the tangent. Birds with better leaving rules raised more young, and the flock found it.'
+    'Danger is a cost too. When the hawk hunts, scarce safe food beats plentiful risky food.',
+    'Nobody computed the tangent. Birds with better leaving rules raised more young, so the flock moved to it.'
   ],
   levelBody: [
     'You took {a}% of small ones while big ones were scarce, and {b}% once they were common. The chicks got {f} food. The long-run rates cross at 15 big ones a minute, whatever the number of small ones.',
@@ -138,9 +143,9 @@ const FG_TEXT = {
   model: [
     { level: 0, simulated: 'One great tit on a hedgerow. Caterpillars appear one at a time, at random. Each one taken is carried home to the chicks.',
       simplification: 'Big caterpillars bring 3 food, small ones 1. Either costs a 2 s trip home. Time spent deciding is free.',
-      params: [{ name: 'trip home', value: '2 s', tag: 'designed' }, { name: 'big ones', value: '6, then 36 a minute', tag: 'designed' }, { name: 'small ones', value: '30, then 90 a minute', tag: 'designed' }, { name: 'chicks', value: 4, tag: 'realistic' }],
+      params: [{ name: 'trip home', value: '2 s', tag: 'xN', real: 'far longer for real tits' }, { name: 'big ones', value: '6, then 36 a minute', tag: 'designed' }, { name: 'small ones', value: '30, then 90 a minute', tag: 'designed' }, { name: 'chicks', value: 4, tag: 'realistic' }],
       cannot: 'Learning how common each prey is, or chicks that need variety.',
-      nature: 'Krebs and colleagues gave great tits a conveyor of large and small mealworm pieces. Birds became choosy when large ones were common. Some still took a few small ones.',
+      nature: 'Krebs and colleagues gave great tits a conveyor of large and small mealworm pieces. Birds mostly ignored small ones when large ones were common. Some still took a few.',
       contested: false, refs: ['krebs1977', 'stephens1986'] },
     { level: 1, simulated: 'The tit feeds itself in an orchard. In each tree catches come at a rate that falls as the tree empties.',
       simplification: 'Every tree is the same. The gain curve is 6(1 − e^(−t/4)) caterpillars after t seconds. The flight between trees is fixed.',
@@ -149,9 +154,9 @@ const FG_TEXT = {
       nature: 'Cowie gave captive great tits patches of mealworms with harder or easier lids. Birds stayed longer when travel took longer, slightly longer than predicted.',
       contested: false, refs: ['charnov1976', 'cowie1977'] },
     { level: 2, simulated: 'The hedgerow again. Field caterpillars are out in the open; a trip for one exposes you to a sparrowhawk.',
-      simplification: 'Each stoop catches you half the time. Caught means your day ends and your mate carries on. Future broods are not counted.',
-      params: [{ name: 'danger per field trip', value: '1%, then 50%', tag: 'xN', real: 'far lower for most single trips' }, { name: 'stoop success', value: '50%', tag: 'xN', real: 'often under 10% for sparrowhawks' }, { name: 'round', value: '35 s', tag: 'designed' }],
-      cannot: 'Vigilance, flocking or learning where the hawk hunts.',
+      simplification: 'Field caterpillars are twice as common as hedge ones and worth the same. Each stoop catches you half the time. Caught, your day ends and your mate carries on.',
+      params: [{ name: 'danger per field trip', value: '1%, then 50%', tag: 'xN', real: 'far lower for most single trips' }, { name: 'stoop success', value: '50%', tag: 'xN', real: 'most sparrowhawk attacks fail' }, { name: 'round', value: '35 s', tag: 'designed' }],
+      cannot: 'Vigilance, flocking, learning where the hawk hunts, or future broods.',
       nature: 'Animals across many groups give up food to lower their risk of being eaten. They feed nearer cover and scan more when predators are about.',
       contested: false, refs: ['limadill1990', 'newton1986'] },
     { level: 3, simulated: 'A flock of 200 tits. Each carries a leaving time. Birds with a higher catch rate leave more young; young sometimes shift by half a second.',
@@ -164,11 +169,11 @@ const FG_TEXT = {
       simplification: 'You survive the night if your reserve reaches the line. Your chance is computed exactly, backwards from nightfall.',
       params: [{ name: 'visits before night', value: 10, tag: 'designed' }, { name: 'feeders', value: '2, or 0 or 4', tag: 'designed' }, { name: 'night line', value: '22 to 28 seeds', tag: 'designed' }],
       cannot: 'Fat that costs flight speed, or hiding food for later.',
-      nature: 'Yellow-eyed juncos chose a steady feeder when on track and a variable one when short. Many later tests found weaker or no switches.',
+      nature: 'Yellow-eyed juncos on track for the night mostly fed at a steady tray. Birds falling short mostly fed at a variable one. Many later tests found weaker switches.',
       contested: true, refs: ['caraco1980', 'stephens1981', 'kacelnik1996'] }
   ],
   why: {
-    real: ['Thomas Caraco and colleagues kept yellow-eyed juncos at different temperatures. Birds on track for the night chose a steady seed tray. Birds falling short chose a variable one.',
+    real: ['Thomas Caraco and colleagues kept yellow-eyed juncos at different temperatures. Birds on track for the night mostly fed at a steady seed tray. Birds falling short mostly fed at a variable one.',
       'This energy-budget rule is contested. Most animals tested avoid variable amounts of food, and many do not switch when short.'],
     maths: ['Work backwards from nightfall. With t visits left and reserve e, your chance of dawn is the better of two options. Steady: the chance from e + 2. Lucky: half the chance from e plus half from e + 4.']
   },
@@ -194,10 +199,15 @@ const FG_LV = [
 /* timings: dt the tick; vis the 1.2 s a prey stays in view (real time, never charged to the sun); trip ticks (2 s: exposure
    in the first half, delivery at tick 40); gap and night in real seconds */
 const FG_T = { dt: 1 / 30, vis: 1.2, trip: 60, expo: 30, del: 40, gap: 1.3, askMax: 30, maxStay: 20, genT: 0.45, nightT: 2.6, feedT: 0.5, auto: 4 };
+/* the day's light (view only; the sun is the sim's clock, this paints it): [hour, sky top, horizon, sun] keyframes from dawn mist
+   to rose dusk (D6 addendum 7: this chapter's world is an English hedgerow and orchard in May, in sage, gold and rose) */
+const FG_SKY = [[5, '#5F6E93', '#EDBFA2', '#F6D2B0'], [6.5, '#8CA6C6', '#F4D6B6', '#FBE6C4'], [8.5, '#92B8D5', '#EBE6D0', '#FCF0CF'], [12, '#86B2D8', '#E3ECE3', '#FFF6DA'],
+  [15.5, '#8AAFCB', '#EEE0BA', '#FCE6B0'], [18, '#7A88AC', '#F2BC88', '#F9C27A'], [19.6, '#55567F', '#E99E7F', '#F2A070'], [21, '#2E3256', '#B47A80', '#E08A6A']];
 const FG_DIET = { big: 3, small: 1, t: 2 };   // food and carrying time; the long-run switch point is bE ÷ (1 + bt) = 1 ÷ 2 at b = 0.25 a second
 
 const CH_FORAGER_V2 = {
   id: 'forager', v2: true, role: 'animal', place: 'hedge',
+  accent: '#A8505E',   // rose-hip: the chapter's chrome tint and intro card (D6 addendum 7); the scene paints sage, gold and rose dusk
   intro: { goal: 'Feed your chicks; spend time like a great tit, not a calculator.' },
   content: FG_TEXT,
   P: {
@@ -206,7 +216,7 @@ const CH_FORAGER_V2 = {
     K: { v: 10, tag: 'xN', min: 1, max: 40, real: 'much weaker selection', label: 'selection strength' },
     mu: { v: 0.3, tag: 'xN', min: 0, max: 1, real: 'far rarer', label: 'mutation chance' },
     N: { v: 200, tag: 'designed', min: 50, max: 500, label: 'flock size' },
-    kill: { v: 0.5, tag: 'xN', min: 0.05, max: 1, real: 'often under 0.1', label: 'stoop success' }
+    kill: { v: 0.5, tag: 'xN', min: 0.05, max: 1, real: 'most attacks fail', label: 'stoop success' }
   },
   levels: [
     { name: 'The hedgerow', adds: 'prey choice', codes: ['F1'], minutes: 3 },
@@ -725,12 +735,12 @@ const CH_FORAGER_V2 = {
       case 'commit': if (this.phoneStrip()) v.hold = 0; this.reveal(e.reveal); return;
       case 'land': { if (F) F.burst('dust', P.treeX, P.treeY - P.tree * 0.2, 5, { ink: '#6E8F45' }); if (typeof Live !== 'undefined' && e.tree > 1) Live.say(Txt.f(this.content.live.tree, { n: e.tree, c: s.eat })); v.picks = []; v.ct = []; return; }
       case 'catch': {
-        const a = this.hash('c' + s.tree + ':' + e.got), ang = (a % 628) / 100, rr = 0.25 + ((a >>> 10) % 60) / 100, x = P.treeX + Det.cos(ang) * P.tree * 0.42 * rr, y = P.treeY - P.tree * 0.62 + Det.sin(ang) * P.tree * 0.3 * rr;
+        const SP = this.sim.P(), left = SP.G.v * Det.exp(-e.t / SP.tau.v), kk = Math.max(0, Math.min(SP.G.v - 1, Math.ceil(left) - 1)), q = this.slotXY(P, P.treeX, P.tree, kk, s.tree), x = q[0], y = q[1];   // the bird takes the caterpillar that is fading
         v.cpos = [x, y]; (v.picks || (v.picks = [])).push([x, y]); (v.ct || (v.ct = [])).push(e.t);
         if (F) { F.tier(1); F.burst('dust', x, y, 5, { ink: '#8FA35A' }); F.pop('+1', x, y - 18, 1); } if (typeof Snd !== 'undefined' && Snd.peck) Snd.peck();
         return;
       }
-      case 'leave': { snd('wing', P.titX, P.titY); v.deps.push({ stay: e.stay, got: e.got, T: e.T }); (v.past || (v.past = [])).push({ ct: (v.ct || []).slice(), stay: e.stay, round: s.i }); if (v.past.length > 6) v.past.shift(); const rid = 'b' + s.i; if (this.level === 1 && s.hits[rid] !== undefined || this.level === 3 && s.asks.indexOf('d1') >= 0) v.tan = { k: 0, T: e.T }; return; }
+      case 'leave': { v.prevStay = v.lastStay; v.lastStay = e.stay; snd('wing', P.titX, P.titY); v.deps.push({ stay: e.stay, got: e.got, T: e.T }); (v.past || (v.past = [])).push({ ct: (v.ct || []).slice(), stay: e.stay, round: s.i }); if (v.past.length > 6) v.past.shift(); const rid = 'b' + s.i; if (this.level === 1 && s.hits[rid] !== undefined || this.level === 3 && s.asks.indexOf('d1') >= 0) v.tan = { k: 0, T: e.T }; return; }
       case 'flock': this.birdsInit(); if (F) F.tier(3, () => this.banner(L.fl, 1300)); if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); return;
       case 'gen': {
         this.birdsAssign(); const f = s.fh[s.fh.length - 1]; snd('tick', Stage.w - 50, this.hudH() + 30);
@@ -826,23 +836,93 @@ const CH_FORAGER_V2 = {
     if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('fg-banner', b.text, w / 2, this.hudH() + 34, { size: 22, c, weight: 700 }); c.restore(); }
     if (/gap|night|gens/.test(s.phase) && !v.ff && !s.auto) Lbl.put('fg-ff', this.content.labels.ff, w - 12, h - 16, { align: 'right', size: 12, c });
   },
-  sky(c, w, h, top, bot, k) {   // k: 0 dawn, 1 noon, 2 afternoon, 3 dusk, 4 winter dusk
-    const S = [['#F3D9B1', '#C9DCE3'], ['#A9CCE0', '#E4EEE6'], ['#E9C98E', '#CFE0DA'], ['#5B5A7E', '#E6A97A'], ['#2E3A5C', '#C88E6F']][k], g = c.createLinearGradient(0, 0, 0, bot);
+  sky(c, w, h, top, bot, k) {   // the winter boss's baked sky (k 4); the day levels paint theirs live from the clock (skyLive)
+    const S = [['#F3D9B1', '#C9DCE3'], ['#A9CCE0', '#E4EEE6'], ['#E9C98E', '#CFE0DA'], ['#5B5A7E', '#E6A97A'], ['#D99A8E', '#3A3F66']][k], g = c.createLinearGradient(0, 0, 0, bot);
     g.addColorStop(0, S[1]); g.addColorStop(1, S[0]); c.fillStyle = g; c.fillRect(0, 0, w, bot);
   },
-  bake(key, w, h, fn) {   // static backdrops, baked once per size and level (never in the frame loop)
-    const k = key + Math.round(w) + 'x' + Math.round(h); if (this.v.bgk === k && this.v.bg) return this.v.bg; this.v.bgk = k;
-    const d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, cv = mkCanvas(Math.round(w * d), Math.round(h * d)), c = cv.getContext('2d'); c.scale(d, d); fn(c, w, h); this.v.bg = cv; return cv;
+  /* ---------- the day clock: one light from dawn mist to rose dusk across L1–L4 (view only) ---------- */
+  mixC(a, b, k) { const p = q => [1, 3, 5].map(i => parseInt(q.slice(i, i + 2), 16)), A = p(a), B = p(b); return 'rgb(' + A.map((x, i) => Math.round(x + (B[i] - x) * k)).join(',') + ')'; },
+  hour() {   // hedgerow 05:10–08:50, orchard 11–14, hawk 14:35–17:10, your rule 17:35–19:25, then the flock's years into dusk
+    const s = this.sim.s, n = this.level, f = this.dayFrac();
+    if (n === 0) return 5.15 + 3.6 * f; if (n === 1) return 11 + 3 * f; if (n === 2) return 14.6 + 2.6 * f;
+    return s.fh ? 19.4 + 1.3 * Math.min(1, (s.gen || 0) / 30) : 17.6 + 1.8 * f;
+  },
+  skyAt(h) { const K = FG_SKY; let i = 0; while (i < K.length - 2 && h > K[i + 1][0]) i++; const a = K[i], b = K[i + 1], k = Math.max(0, Math.min(1, (h - a[0]) / (b[0] - a[0]))); return { top: this.mixC(a[1], b[1], k), hor: this.mixC(a[2], b[2], k), sun: this.mixC(a[3], b[3], k) }; },
+  sunXY(h, P, hor) { const f = Math.max(0, Math.min(1, (h - 5) / 16)); return [P.W * (0.06 + 0.88 * f), hor + 10 - Det.sin(Math.PI * f) * Math.max(30, hor - P.top - 46)]; },
+  skyLive(c, P, hor, h) {   // the sky, the sun and its glow, painted each frame from the clock (two gradients and an arc)
+    const S = this.skyAt(h), g = c.createLinearGradient(0, P.top, 0, hor); g.addColorStop(0, S.top); g.addColorStop(1, S.hor); c.fillStyle = g; c.fillRect(0, 0, P.W, hor + 40);
+    const [x, y] = this.sunXY(h, P, hor), r = Math.max(12, P.u * 0.035), R = r * 7, gl = c.createRadialGradient(x, y, r * 0.6, x, y, R);
+    gl.addColorStop(0, h > 17 || h < 7 ? 'rgba(255,214,160,0.6)' : 'rgba(255,246,214,0.5)'); gl.addColorStop(1, 'rgba(255,240,210,0)'); c.fillStyle = gl; c.fillRect(x - R, y - R, 2 * R, 2 * R);
+    c.fillStyle = S.sun; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+  },
+  castLive(c, P, h, y0) {   // the light over the land: cool at dawn, gold late in the afternoon, rose at dusk (multiply keeps the dark lines)
+    let col = null, a = 0;
+    if (h < 8) { col = '#8E9CC4'; a = 0.24 * Math.min(1, (8 - h) / 2.4); }
+    else if (h > 15) { col = h < 18.6 ? '#F0B060' : '#D7868A'; a = h < 18.6 ? 0.32 * Math.min(1, (h - 15) / 3) : 0.32 + 0.1 * Math.min(1, (h - 18.6) / 2); }
+    if (!col || a <= 0.005) return; c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = a; c.fillStyle = col; c.fillRect(0, y0 || 0, P.W, P.H - (y0 || 0)); c.restore();
+  },
+  mistLive(c, P, h, y0, y1) {   // dawn mist lying in bands along the hedge foot and the field; gone by mid-morning
+    const a = 0.62 * Math.max(0, Math.min(1, (8.4 - h) / 2.8)); if (a <= 0.01) return; const t = typeof Fx !== 'undefined' && Fx.calm ? 0 : this.v.t;
+    for (let i = 0; i < 3; i++) {
+      const yc = y0 + (y1 - y0) * (0.15 + 0.4 * i), hh = 22 + 16 * i, dx = Det.sin(t * 0.08 + i * 2.1) * 34, g = c.createLinearGradient(0, yc - hh, 0, yc + hh);
+      g.addColorStop(0, 'rgba(246,240,228,0)'); g.addColorStop(0.5, 'rgba(246,240,228,' + (a * (0.5 + 0.22 * i)).toFixed(3) + ')'); g.addColorStop(1, 'rgba(246,240,228,0)');
+      c.fillStyle = g; c.fillRect(dx - 50, yc - hh, P.W + 100, 2 * hh);
+    }
+  },
+  insects(c, P, y0, y1, n, h) {   // midges dancing in the light and, by day, an orange-tip butterfly along the hedge (view only; none under Calm)
+    if (typeof Fx !== 'undefined' && Fx.calm) return; const t = this.v.t;
+    c.fillStyle = h > 17 ? 'rgba(255,214,150,0.85)' : 'rgba(236,230,196,0.75)';   // a midge swarm dancing in one place
+    const mx = P.W * 0.78, my = y0 + (y1 - y0) * 0.4;
+    for (let i = 0; i < n; i++) { const x = mx + Det.sin(t * (1.9 + i * 0.37) + i * 2.3) * 16, y = my + Det.sin(t * (2.7 + i * 0.29) + i * 1.7) * 10; c.beginPath(); c.arc(x, y, 1.1, 0, TAU); c.fill(); }
+    if (h > 18.8) return; const ph = (t % 15) / 15; if (ph > 0.55) return;
+    const f = ph / 0.55, x = -20 + (P.W + 40) * f, y = y0 + (y1 - y0) * 0.25 + Det.sin(f * 17) * 14, fl = 0.3 + 0.7 * Math.abs(Det.sin(t * 13)), s = Math.max(7, P.u * 0.018);
+    c.save(); c.translate(x, y); c.fillStyle = '#F6F1E4'; for (const g of [-1, 1]) { c.beginPath(); c.ellipse(g * s * 0.55 * fl, -s * 0.15, s * 0.6 * fl, s * 0.5, 0, 0, TAU); c.fill(); }
+    c.fillStyle = '#E8893A'; for (const g of [-1, 1]) { c.beginPath(); c.arc(g * s * 0.8 * fl, -s * 0.3, s * 0.24, 0, TAU); c.fill(); } c.fillStyle = '#1B1612'; c.fillRect(-0.8, -s * 0.5, 1.6, s * 0.9); c.restore();   // the male's orange wing tips
+  },
+  bake(key, w, h, fn) {   // static layers, baked once per size and key (never in the frame loop); a resize drops them all
+    const v = this.v, sz = Math.round(w) + 'x' + Math.round(h); if (v.bgk !== sz) { v.bgk = sz; v.bgs = {}; } if (v.bgs[key]) return v.bgs[key];
+    const d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, cv = mkCanvas(Math.round(w * d), Math.round(h * d)), c = cv.getContext('2d'); c.scale(d, d); fn(c, w, h); v.bgs[key] = cv; return cv;
   },
   hills(c, w, y, col, amp, seed) { const r = rng(seed); c.fillStyle = col; c.beginPath(); c.moveTo(0, y); for (let x = 0; x <= w + 40; x += 40) c.lineTo(x, y - amp * (0.4 + 0.6 * r())); c.lineTo(w, y + 400); c.lineTo(0, y + 400); c.closePath(); c.fill(); },
   leafBlob(c, x, y, r, col, rr) { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 7; i++) { const a = i / 7 * TAU, q = r * (0.75 + 0.35 * rr()); c.moveTo(x + Det.cos(a) * q * 0.3, y + Det.sin(a) * q * 0.3); c.arc(x + Det.cos(a) * q * 0.55, y + Det.sin(a) * q * 0.45, q * 0.5, 0, TAU); } c.fill(); },
-  hedgeTile(P) {   // a 2W-wide hedge strip; scrolled as the bird hops along
+  hedgeTile(P) {   // a 2W-wide hawthorn hedge in May: shadowed depths, sunlit sage crown, cream may blossom, dog roses, bramble arches; scrolled as the bird hops along
     const v = this.v, k = 'h' + Math.round(P.W) + 'x' + Math.round(P.hedgeBot - P.hedgeTop); if (v.htk === k && v.ht) return v.ht; v.htk = k;
     const d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, W2 = Math.round(P.W * 2), Hh = Math.round(P.hedgeBot - P.hedgeTop + 30), cv = mkCanvas(W2 * d, Hh * d), c = cv.getContext('2d'); c.scale(d, d);
-    const r = rng(17); c.fillStyle = '#3F5A2E'; c.fillRect(0, 22, W2, Hh - 22);
-    for (let i = 0; i < W2 / 9; i++) { const x = (i * 9 + r() * 9) % W2, y = 10 + r() * (Hh - 14), q = 12 + r() * 16, col = ['#4E6B37', '#5C7A40', '#43602F', '#6B8A4A'][(r() * 4) | 0]; this.leafBlob(c, x, y, q, col, r); this.leafBlob(c, x - W2, y, q, col, r); this.leafBlob(c, x + W2, y, q, col, r); }
-    for (let i = 0; i < W2 / 70; i++) { const fx = r() * W2, fy = 18 + r() * (Hh - 40), col = r() < 0.5 ? '#EDE6D2' : '#E3C6CF'; for (let k = 0; k < 5; k++) { const a = k / 5 * TAU; c.fillStyle = col; c.beginPath(); c.arc(fx + Det.cos(a) * 2.6, fy + Det.sin(a) * 2.6, 2.1, 0, TAU); c.fill(); } c.fillStyle = '#D9B54A'; c.beginPath(); c.arc(fx, fy, 1.4, 0, TAU); c.fill(); }   // dog-rose flowers
+    const r = rng(17), wrap = (fn, x) => { fn(x); if (x < 40) fn(x + W2); if (x > W2 - 40) fn(x - W2); };
+    const g = c.createLinearGradient(0, 24, 0, Hh); g.addColorStop(0, '#3E5631'); g.addColorStop(1, '#1F2F1B'); c.fillStyle = g; c.fillRect(0, 28, W2, Hh - 28);
+    const passes = [[['#2F4A27', '#36532C', '#2A4324'], 0.25, 1, 13, 16], [['#486836', '#527340', '#456335'], 0.1, 0.8, 17, 13], [['#6C8A54', '#7A9760', '#88A36A', '#97B176'], 0, 0.32, 12, 11]];
+    for (const [cols, y0, y1, step, q0] of passes) for (let i = 0; i < W2 / step; i++) {
+      const x = (i * step + r() * step) % W2, top = 8 + 10 * Det.sin(x / W2 * TAU * 3) * Det.sin(x / W2 * TAU * 5), y = top + (Hh - top) * (y0 + r() * (y1 - y0)), q = q0 + r() * 14, col = cols[(r() * cols.length) | 0], seed = r() * 1e6;
+      wrap(xx => this.leafBlob(c, xx, y, q, col, rng(seed | 0)), x);
+    }
+    c.lineCap = 'round';   // bramble shoots arching out of the crown, leafy
+    for (let i = 0; i < W2 / 150; i++) { const x = r() * W2, sp = 18 + r() * 22, hi = 6 + r() * 8, sd = (r() * 1e6) | 0; wrap(xx => { const rr = rng(sd); c.strokeStyle = '#4E3A2A'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(xx, 26); c.quadraticCurveTo(xx + sp * 0.5, 26 - hi * 2, xx + sp, 22 + hi); c.stroke(); for (let j = 1; j < 4; j++) { const f = j / 4; this.leafBlob(c, xx + sp * f, 26 - hi * 2 * f * (1 - f) * 2 + 2, 5, '#4F6E3B', rr); } }, x); }
+    for (let i = 0; i < W2 / 24; i++) {   // hawthorn (may) blossom: cream clusters, thick on the crown
+      const x = r() * W2, y = 12 + (Hh - 30) * r() * r(), n = 3 + ((r() * 5) | 0);
+      wrap(xx => { for (let j = 0; j < n; j++) { const a = j / n * TAU + x; c.fillStyle = j % 3 ? '#F3EEDF' : '#E6DEC8'; c.beginPath(); c.arc(xx + Det.cos(a) * 3.4, y + Det.sin(a) * 2.6, 1.9, 0, TAU); c.fill(); } }, x);
+    }
+    for (let i = 0; i < W2 / 95; i++) {   // dog roses
+      const fx = r() * W2, fy = 18 + r() * (Hh - 50);
+      wrap(xx => { c.fillStyle = '#EBB0BC'; for (let j = 0; j < 5; j++) { const a = j / 5 * TAU; c.beginPath(); c.arc(xx + Det.cos(a) * 2.8, fy + Det.sin(a) * 2.8, 2.3, 0, TAU); c.fill(); } c.fillStyle = '#E2BD4E'; c.beginPath(); c.arc(xx, fy, 1.5, 0, TAU); c.fill(); }, fx);
+    }
     v.ht = cv; v.htW = W2; v.htH = Hh; return cv;
+  },
+  bgHedge(c, W, H, P, hawk) {   // baked: far downs in blue-sage haze, hedgerow oaks on the field line, the verge with cow parsley; the sky is live
+    this.hills(c, W, P.hedgeTop - 26, '#A9B9AC', 18, 3);
+    const r = rng(5);
+    for (let i = 0; i < W / 110 + 1; i++) { const x = r() * W, sz = 22 + r() * 24, y = P.hedgeTop - 14; c.fillStyle = '#7C8F80'; c.fillRect(x - 2, y - sz * 0.5, 4, sz * 0.5); for (let j = 0; j < 6; j++) this.leafBlob(c, x + (r() - 0.5) * sz * 0.9, y - sz * 0.7 + (r() - 0.5) * sz * 0.5, sz * 0.4, j % 2 ? '#8A9C88' : '#7F927E', r); }
+    this.hills(c, W, P.hedgeTop - 2, hawk ? '#AFB083' : '#98AC84', 10, 5);
+    const g = c.createLinearGradient(0, P.gy, 0, H); g.addColorStop(0, hawk ? '#B9AE66' : '#86A257'); g.addColorStop(1, hawk ? '#9E9452' : '#66843F'); c.fillStyle = g; c.fillRect(0, P.gy - 6, W, H - P.gy + 6);
+    for (let i = 0; i < W / 3; i++) { c.strokeStyle = r() < 0.5 ? 'rgba(60,70,30,0.35)' : 'rgba(240,232,190,0.25)'; c.lineWidth = 1; const x = r() * W, y = P.gy + r() * (H - P.gy); c.beginPath(); c.moveTo(x, y); c.lineTo(x + (r() - 0.5) * 4, y - 6 - r() * 8); c.stroke(); }
+    if (hawk) for (let i = 0; i < W / 30; i++) { const cx = r() * W, cy = P.gy + 16 + r() * (H - P.gy - 24), yel = r() < 0.7; for (let j = 0; j < 8; j++) { c.fillStyle = yel ? 'rgba(232,196,64,0.85)' : 'rgba(246,242,228,0.9)'; c.beginPath(); c.arc(cx + (r() - 0.5) * 40, cy + (r() - 0.5) * 14, 1.5 + r(), 0, TAU); c.fill(); } }   // buttercups and ox-eye daisies in the hay meadow
+  },
+  verge(c, W, H, P) {   // baked foreground: long grass and cow parsley along the hedge foot, in front of the hedge
+    const r = rng(41), y = P.gy + 4;
+    for (let x = 0; x < W; x += 3) { c.strokeStyle = r() < 0.5 ? 'rgba(74,98,48,0.9)' : 'rgba(110,138,70,0.9)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x, y); c.lineTo(x + (r() - 0.5) * 8, y - 6 - r() * 14); c.stroke(); }
+    for (let x = 4; x < W; x += 14 + r() * 16) {
+      const hgt = 18 + r() * 26, lean = (r() - 0.5) * 8; c.strokeStyle = 'rgba(86,108,58,0.95)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x, y); c.lineTo(x + lean, y - hgt); c.stroke();
+      c.fillStyle = 'rgba(246,242,228,0.95)'; for (let j = 0; j < 9; j++) { const a = Math.PI + j / 8 * Math.PI; c.beginPath(); c.arc(x + lean + Det.cos(a) * 6, y - hgt + 1 + Det.sin(a) * 3.5, 1.6, 0, TAU); c.fill(); }
+    }
   },
   caterpillar(c, x, y, len, big, t, o) {   // a natural-paint caterpillar, looping as it walks; o: {alpha, rot, carry}
     o = o || {}; const n = big ? 7 : 5, r = len / (n * 1.55), body = big ? '#6E8B3D' : '#9AAF5C', dark = big ? '#4A6127' : '#6E8240', calm = typeof Fx !== 'undefined' && Fx.calm, ph = calm ? 0 : t * 6;
@@ -878,13 +958,16 @@ const CH_FORAGER_V2 = {
   },
   drawHedge(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), hawk = s.kind === 'hawk', L = this.content.labels;
-    const sunK = this.dayFrac(), bg = this.bake(hawk ? 'hk' : 'hd', w, h, (cc, W, H) => { this.sky(cc, W, H, 0, P.gy, hawk ? 2 : 0); this.hills(cc, W, P.hedgeTop + 10, hawk ? '#B7B98A' : '#A9B996', 26, 3); this.hills(cc, W, P.hedgeTop + 24, hawk ? '#93A06A' : '#8FA37A', 18, 5);
-      const g = cc.createLinearGradient(0, P.gy, 0, H); g.addColorStop(0, hawk ? '#B7AE62' : '#86A257'); g.addColorStop(1, hawk ? '#9C9550' : '#6C8A45'); cc.fillStyle = g; cc.fillRect(0, P.gy - 6, W, H - P.gy + 6);
-      const r = rng(9); for (let i = 0; i < W / 3; i++) { cc.strokeStyle = r() < 0.5 ? 'rgba(60,70,30,0.35)' : 'rgba(240,232,190,0.25)'; cc.lineWidth = 1; const x = r() * W, y = P.gy + r() * (H - P.gy); cc.beginPath(); cc.moveTo(x, y); cc.lineTo(x + (r() - 0.5) * 4, y - 6 - r() * 8); cc.stroke(); } });
+    const hr = this.hour(), bg = this.bake(hawk ? 'hk' : 'hd', w, h, (cc, W, H) => this.bgHedge(cc, W, H, P, hawk));
+    this.skyLive(c, P, P.hedgeTop - 10, hr);   // the sun is the day's clock
     c.drawImage(bg, 0, 0, w, h);
-    const sx = w * (0.1 + 0.8 * sunK), sy = P.top + 26 + (P.hedgeTop - P.top) * 0.5 * (1 - Det.sin(Math.PI * sunK)); c.fillStyle = hawk ? '#F4D58A' : '#F7E2A8'; c.beginPath(); c.arc(sx, sy, Math.max(12, P.u * 0.035), 0, TAU); c.fill();   // the sun is the day's clock
-    if (hawk) this.drawHawkSky(c, P);
+    if (hawk) this.drawHawkSky(c, P, false);
+    this.mistLive(c, P, hr, P.hedgeTop - 30, P.hedgeTop + 10);
     const ht = this.hedgeTile(P), off = -((v.scroll % v.htW) + v.htW) % v.htW; c.drawImage(ht, off, P.hedgeTop - 22, v.htW, v.htH); c.drawImage(ht, off + v.htW, P.hedgeTop - 22, v.htW, v.htH);
+    c.drawImage(this.bake('vg', w, h, (cc, W, H) => this.verge(cc, W, H, P)), 0, 0, w, h);
+    this.castLive(c, P, hr, P.hedgeTop - 40);
+    this.mistLive(c, P, hr, P.hedgeBot - 40, h - 10);
+    if (hawk) this.drawHawkSky(c, P, true);
     this.nestBox(c, P); this.chicks(c, P);
     c.strokeStyle = '#5B412A'; c.lineWidth = 4; c.lineCap = 'round'; c.beginPath(); c.moveTo(P.titX - P.hero * 0.9, P.titY + P.hero * 0.42); c.quadraticCurveTo(P.titX, P.titY + P.hero * 0.24, P.titX + P.hero * 0.55, P.titY + P.hero * 0.3); c.stroke();   // the perch twig
     // the prey in view (a draining ring in timed play), and prey slipping away
@@ -904,6 +987,7 @@ const CH_FORAGER_V2 = {
     }
     for (const a of v.anims) if (a.k === 'arc') { const f = Math.min(1, a.t / a.d), e = f * f * (3 - 2 * f); this.caterpillar(c, a.x0 + (a.x1 - a.x0) * e, a.y0 + (a.y1 - a.y0) * e - 20 * Det.sin(Math.PI * f), (a.big ? 0.09 : 0.05) * P.u, a.big, v.t, { alpha: 1 - 0.3 * f }); }
     if (v.dive) this.drawStoop(c, P);
+    this.insects(c, P, P.hedgeTop - 30, P.hedgeTop + 50, hawk ? 4 : 6, hr);
     if (v.ghostR) { c.save(); c.setLineDash([5, 4]); c.lineWidth = 2; c.strokeStyle = '#E8DFC9'; c.beginPath(); c.arc(v.ghostR.x, v.ghostR.y, P.hero * 0.45, 0, TAU); c.stroke(); c.restore(); }
     if (!hawk) this.drawLedger(c, P);
     if (hawk) { Lbl.put('fg-hedgeL', L.hedge, w * 0.82, P.hedgeTop + 18, { size: 13, c }); Lbl.put('fg-fieldL', L.field, w * 0.82, P.gy + 16, { size: 13, c }); Lbl.put('fg-xn', L.xnRisk, 12, h - 14, { align: 'left', size: 12, c }); }
@@ -915,39 +999,95 @@ const CH_FORAGER_V2 = {
     if (typeof Lbl !== 'undefined') { Lbl.put('fg-lbig', this.content.labels.big, 30, y0 - 9, { size: 12, c: Stage.ctx, pill: false, ink: '#1B1612' }); Lbl.put('fg-lsmall', this.content.labels.small, 30, y0 + 7, { size: 12, c: Stage.ctx, pill: false, ink: '#1B1612' }); }
     for (const q of L) { if (q.i !== lastI) { x += 8; lastI = q.i; } const yy = q.big ? y0 - 9 : y0 + 7, c0 = c; c0.beginPath(); c0.arc(x, yy, q.big ? r * 1.3 : r, 0, TAU); if (q.took) { c0.fillStyle = '#1B1612'; c0.fill(); } else { c0.lineWidth = 1.4; c0.strokeStyle = '#1B1612'; c0.stroke(); } x += 9; }
   },
-  hawkShape(c, x, y, s, rot, alpha) { c.save(); c.translate(x, y); c.rotate(rot || 0); c.globalAlpha *= alpha == null ? 1 : alpha; c.fillStyle = '#2B2520'; c.beginPath(); c.moveTo(-s, -s * 0.05); c.quadraticCurveTo(-s * 0.45, -s * 0.32, 0, -s * 0.08); c.quadraticCurveTo(s * 0.45, -s * 0.32, s, -s * 0.05); c.quadraticCurveTo(s * 0.4, s * 0.06, s * 0.12, s * 0.08); c.lineTo(s * 0.1, s * 0.42); c.lineTo(-s * 0.1, s * 0.42); c.lineTo(-s * 0.12, s * 0.08); c.quadraticCurveTo(-s * 0.4, s * 0.06, -s, -s * 0.05); c.fill(); c.restore(); },
-  drawHawkSky(c, P) {   // the sparrowhawk circling: rare in the first round (a speck now and then), always overhead while it hunts
-    const s = this.sim.s, v = this.v, hunting = s.i === 1 && s.lever !== 'nohawk', t = v.t, calm = typeof Fx !== 'undefined' && Fx.calm;
-    if (v.dive) return;
-    if (hunting) { const a = calm ? 0 : t * 0.7, x = P.W * 0.62 + Det.cos(a) * P.W * 0.2, y = P.top + 40 + Det.sin(a) * 16; c.fillStyle = 'rgba(27,22,18,0.16)'; c.beginPath(); c.ellipse(x + 20, P.gy + (P.H - P.gy) * 0.35, P.u * 0.1, P.u * 0.025, 0, 0, TAU); c.fill(); this.hawkShape(c, x, y, Math.max(30, P.u * 0.1), Det.cos(a) * 0.15, 1); }   // and its shadow sweeping the field
-    else if (s.kind === 'hawk' && (t % 9) < 3) { const f = (t % 9) / 3; this.hawkShape(c, P.W * (1.1 - 1.3 * f), P.top + 30, Math.max(12, P.u * 0.035), 0, 0.6); }
+  hawkShape(c, x, y, s, rot, alpha, fold, ink) {   // a sparrowhawk from below: short, broad, rounded wings, a long square-tipped barred tail; fold tucks the wings for a stoop
+    c.save(); c.translate(x, y); c.rotate(rot || 0); c.globalAlpha *= alpha == null ? 1 : alpha; c.fillStyle = ink || '#3A3029';
+    const ws = s * (1 - 0.6 * (fold || 0)), fl = fold ? 0 : 0.06 * s * Det.sin(this.v.t * 9);
+    c.beginPath(); c.moveTo(-s * 0.07, s * 0.08); c.lineTo(-s * 0.1, s * 0.6); c.lineTo(s * 0.1, s * 0.6); c.lineTo(s * 0.07, s * 0.08); c.closePath(); c.fill();   // the long, square-tipped tail
+    for (const g of [-1, 1]) {   // a broad wing: straight leading edge to the wrist, a rounded hand, a full trailing edge
+      c.beginPath(); c.moveTo(g * s * 0.06, -s * 0.14); c.lineTo(g * ws * 0.55, -s * 0.15 - fl * 0.5); c.quadraticCurveTo(g * ws * 0.92, -s * 0.13 - fl, g * ws, -s * 0.02 - fl);
+      c.quadraticCurveTo(g * ws * 0.98, s * 0.1 - fl * 0.5, g * ws * 0.7, s * 0.14); c.quadraticCurveTo(g * ws * 0.35, s * 0.17, g * s * 0.06, s * 0.1); c.closePath(); c.fill();
+    }
+    c.beginPath(); c.ellipse(0, -s * 0.04, s * 0.085, s * 0.19, 0, 0, TAU); c.fill(); c.beginPath(); c.arc(0, -s * 0.24, s * 0.07, 0, TAU); c.fill();
+    if (!ink) { c.strokeStyle = 'rgba(232,223,201,0.4)'; c.lineWidth = Math.max(1, s * 0.03); for (const k of [0.34, 0.44, 0.54]) { c.beginPath(); c.moveTo(-s * 0.09, s * k); c.lineTo(s * 0.09, s * k); c.stroke(); } }   // tail bars
+    c.restore();
   },
-  drawStoop(c, P) { const v = this.v, d = v.dive, f = Math.min(1, d.t / 0.35), sx = P.W * 0.62, sy = P.top + 40, x = sx + (d.x - sx) * f, y = sy + (d.y - sy) * f; if (d.t < 0.35) this.hawkShape(c, x, y, Math.max(26, P.u * 0.09), 0.6, 1); else { const g = Math.min(1, (d.t - 0.35) / 0.5); this.hawkShape(c, d.x + g * P.W * 0.4, d.y - g * P.H * 0.4, Math.max(26, P.u * 0.09), -0.5, 1 - g * 0.5); } },
-  tree(c, x, y, size, picked, seed) {   // an apple tree in natural paint; nibbled leaves pale as it is picked over
-    const r = rng(seed); c.fillStyle = '#6B4F33'; c.beginPath(); c.moveTo(x - size * 0.05, y); c.lineTo(x - size * 0.035, y - size * 0.42); c.lineTo(x + size * 0.035, y - size * 0.42); c.lineTo(x + size * 0.05, y); c.closePath(); c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke();
-    const cols = ['#4F7A37', '#5E8A40', '#46702F', '#6E9A4C'];
-    for (let i = 0; i < 22; i++) { const a = r() * TAU, rr = Math.sqrt(r()), px = x + Det.cos(a) * size * 0.4 * rr, py = y - size * 0.62 + Det.sin(a) * size * 0.28 * rr; this.leafBlob(c, px, py, size * (0.12 + 0.06 * r()), i / 22 < picked ? '#9AAE6A' : cols[(r() * 4) | 0], r); }
-    for (let i = 0; i < 6; i++) { const a = r() * TAU, rr = Math.sqrt(r()); c.fillStyle = '#C9A24A'; c.beginPath(); c.arc(x + Det.cos(a) * size * 0.34 * rr, y - size * 0.6 + Det.sin(a) * size * 0.24 * rr, size * 0.025, 0, TAU); c.fill(); }
+  hawkPath(P) {   // where the hunting hawk circles (and where a stoop starts): a slow loop over the field
+    const a = typeof Fx !== 'undefined' && Fx.calm ? 0 : this.v.t * 0.7; return { x: P.W * 0.6 + Det.cos(a) * P.W * 0.22, y: P.top + 44 + Det.sin(a) * 16, a };
+  },
+  drawHawkSky(c, P, ground) {   // the sparrowhawk: a rare pass in the first round, circling overhead while it hunts; its shadow sweeps the field and hedge
+    const s = this.sim.s, v = this.v, hunting = s.i === 1 && s.lever !== 'nohawk' && s.phase !== 'gap', t = v.t, sz = Math.max(30, P.u * 0.1);
+    if (v.dive) return;
+    let x, y, a = 0, k = 1;
+    if (hunting) { const H = this.hawkPath(P); x = H.x; y = H.y; a = H.a; }
+    else if ((t % 11) < 3.2) { const f = (t % 11) / 3.2; x = P.W * (1.15 - 1.3 * f); y = P.top + 30 + 10 * f; k = 0.45; a = Math.PI; } else return;
+    if (ground) { const gx = x + 30, gy = P.gy + (P.H - P.gy) * (0.25 + 0.15 * Det.sin(a)); c.save(); c.translate(gx, gy); c.scale(1, 0.45); this.hawkShape(c, 0, 0, sz * k * 1.1, Det.cos(a) * 0.15, 0.22, 0, '#141A10'); c.restore(); return; }
+    this.hawkShape(c, x, y, sz * k, Det.cos(a) * 0.15, k < 1 ? 0.7 : 1);
+  },
+  drawStoop(c, P) {   // the stoop: wings tucked, straight at the tit (350 ms); then away, wings open, with or without it
+    const v = this.v, d = v.dive, f = Math.min(1, d.t / 0.35), H = d.from || (d.from = this.hawkPath(P)), x = H.x + (d.x - H.x) * f * f, y = H.y + (d.y - H.y) * f * f, sz = Math.max(26, P.u * 0.09);
+    if (d.t < 0.35) { this.hawkShape(c, x, y, sz, Math.max(-0.6, Math.min(0.6, (d.x - H.x) / P.W * 1.4)), 1, 0.9); return; }
+    const g = Math.min(1, (d.t - 0.35) / 0.5); this.hawkShape(c, d.x + g * P.W * 0.4, d.y - g * P.H * 0.4, sz, -0.5, 1 - g * 0.5, 0.3 * (1 - g));
+  },
+  tree(c, x, y, size, picked, seed) {   // an apple tree after blossom: two baked versions per tree (fresh, picked over), crossfaded as it is picked
+    const v = this.v, d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, k = Math.max(0, Math.min(1, picked / 0.6));
+    const get = pk => { const key = seed + '|' + Math.round(size) + '|' + pk; v.tc = v.tc || {}; let cv = v.tc[key]; if (cv) return cv; if (Object.keys(v.tc).length > 24) v.tc = {};
+      const S = Math.ceil(size * 1.1), Hh = Math.ceil(size * 1.05); cv = mkCanvas(Math.ceil(S * d), Math.ceil(Hh * d)); const g = cv.getContext('2d'); g.scale(d, d); this.treePaint(g, S / 2, Hh - 4, size, pk ? 0.6 : 0, seed); cv.ox = S / 2; cv.oy = Hh - 4; cv.cw = S; cv.ch = Hh; return (v.tc[key] = cv); };
+    c.fillStyle = 'rgba(30,40,20,0.22)'; c.beginPath(); c.ellipse(x, y + 2, size * 0.42, size * 0.06, 0, 0, TAU); c.fill();
+    const a = get(0); c.drawImage(a, x - a.ox, y - a.oy, a.cw, a.ch);
+    if (k > 0.02) { const p = get(1); c.save(); c.globalAlpha *= k; c.drawImage(p, x - p.ox, y - p.oy, p.cw, p.ch); c.restore(); }
+  },
+  treePaint(c, x, y, size, picked, seed) {   // gnarled trunk, shadowed and sunlit sage canopy, green fruitlets
+    const r = rng(seed); c.fillStyle = '#5E4630'; c.lineWidth = 1.5; c.strokeStyle = '#1B1612';
+    c.beginPath(); c.moveTo(x - size * 0.06, y); c.quadraticCurveTo(x - size * 0.01, y - size * 0.2, x - size * 0.05, y - size * 0.44); c.lineTo(x + size * 0.02, y - size * 0.46); c.quadraticCurveTo(x + size * 0.03, y - size * 0.22, x + size * 0.06, y); c.closePath(); c.fill(); c.stroke();
+    c.strokeStyle = '#5E4630'; c.lineCap = 'round'; c.lineWidth = Math.max(2, size * 0.028); c.beginPath(); c.moveTo(x - size * 0.02, y - size * 0.38); c.lineTo(x - size * 0.22, y - size * 0.56); c.moveTo(x, y - size * 0.4); c.lineTo(x + size * 0.2, y - size * 0.6); c.stroke();
+    const layer = (n, cols, dy, sc, pale) => { for (let i = 0; i < n; i++) { const a = r() * TAU, rr = Math.sqrt(r()), px = x + Det.cos(a) * size * 0.4 * rr, py = y - size * 0.62 + dy * size + Det.sin(a) * size * 0.26 * rr, q = size * sc * (0.85 + 0.4 * r()), col = pale && r() < picked ? '#A7A672' : cols[(r() * cols.length) | 0]; this.leafBlob(c, px, py, q, col, r); } };
+    layer(14, ['#3F5F33', '#45683A', '#3A5A30'], 0.05, 0.14, false);
+    layer(16, ['#56793F', '#5F8446', '#527440'], 0, 0.13, true);
+    layer(9, ['#7F9F5E', '#8DAC68', '#9BB874'], -0.08, 0.1, true);
+    for (let i = 0; i < 7; i++) { const a = r() * TAU, rr = Math.sqrt(r()); c.fillStyle = '#B8C46A'; c.beginPath(); c.arc(x + Det.cos(a) * size * 0.34 * rr, y - size * 0.58 + Det.sin(a) * size * 0.22 * rr, Math.max(2, size * 0.018), 0, TAU); c.fill(); }
+  },
+  bgOrchard(c, W, H, P, eve) {   // baked: far downs, a hedgerow line, the orchard grass with buttercups and daisies; the sky is live
+    const hy = P.gy - P.tree * 0.5; this.hills(c, W, hy, eve ? '#8E8C9A' : '#A8BBAA', 22, 7);
+    const r = rng(23); for (let x = -10; x < W + 10; x += 14) this.leafBlob(c, x, hy + 22 + r() * 6, 16 + r() * 8, r() < 0.5 ? '#6F8668' : '#7A9073', r);
+    c.fillStyle = eve ? '#6E7A4C' : '#89A65A'; c.fillRect(0, hy + 26, W, P.gy - hy - 26);
+    const g = c.createLinearGradient(0, P.gy, 0, H); g.addColorStop(0, eve ? '#6F7A4C' : '#8DAA5C'); g.addColorStop(1, eve ? '#56603A' : '#6E8C45'); c.fillStyle = g; c.fillRect(0, P.gy, W, H - P.gy);
+    for (let i = 0; i < W / 40; i++) { const cx = r() * W, cy = P.gy + 8 + r() * (H - P.gy - 12), yel = r() < 0.6; for (let j = 0; j < 7; j++) { c.fillStyle = yel ? 'rgba(232,196,64,0.85)' : 'rgba(246,242,228,0.9)'; c.beginPath(); c.arc(cx + (r() - 0.5) * 30, cy + (r() - 0.5) * 10, 1.3 + r() * 0.7, 0, TAU); c.fill(); } }   // buttercups and daisies in drifts
+  },
+  slotXY(P, x, size, k, tree) {   // where caterpillar k of a tree hangs on its silk thread under the canopy
+    const G = this.sim.P().G.v, a = this.hash('s' + tree + ':' + k), ang = 0.4 + 2.35 * ((k * 0.618 + (a % 100) / 400) % 1), rr = 0.55 + ((a >>> 9) % 40) / 100, len = 8 + ((a >>> 15) % 14); void G;
+    return [x + Det.cos(Math.PI - ang) * size * 0.4 * rr, P.treeY - size * 0.62 + Det.sin(ang) * size * 0.22 * rr + len * 0.6, len];
+  },
+  treePrey(c, P, x, size, tree, left) {   // the tree's caterpillars, hanging on silk; slot k shows while the expected catch still to come exceeds k (view only, from the gain curve)
+    const G = this.sim.P().G.v, calm = typeof Fx !== 'undefined' && Fx.calm;
+    for (let k = 0; k < G; k++) {
+      const al = Math.max(0, Math.min(1, left - k)); if (al <= 0.02) continue; const [px, py, len] = this.slotXY(P, x, size, k, tree), sw = calm ? 0 : Det.sin(this.v.t * 1.6 + k) * 2;
+      c.save(); c.globalAlpha *= al; c.strokeStyle = 'rgba(240,236,220,0.7)'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(px, py - len); c.lineTo(px + sw, py); c.stroke();
+      this.caterpillar(c, px + sw, py + 3, Math.max(12, P.u * 0.04), false, this.v.t + k, { rot: Math.PI / 2 }); c.restore();
+    }
   },
   drawOrchard(c, w, h) {
-    const s = this.sim.s, v = this.v, P = this.pos(), eve = this.level === 3, r = this.sim.cfg(this.level).rd[Math.min(s.i, this.sim.cfg(this.level).rd.length - 1)], L = this.content.labels;
-    const bg = this.bake(eve ? 'ev' : 'or', w, h, (cc, W, H) => { this.sky(cc, W, H, 0, P.gy, eve ? 3 : 1); this.hills(cc, W, P.gy - P.tree * 0.55, eve ? '#7A6E7E' : '#A9BDA4', 24, 7); const g = cc.createLinearGradient(0, P.gy, 0, H); g.addColorStop(0, eve ? '#6F7A4C' : '#8DAA5C'); g.addColorStop(1, eve ? '#56603A' : '#6E8C45'); cc.fillStyle = g; cc.fillRect(0, P.gy, W, H - P.gy); });
-    c.drawImage(bg, 0, 0, w, h);
-    const sunK = this.dayFrac(); c.fillStyle = eve ? '#F2B57A' : '#FBEBB5'; c.beginPath(); c.arc(w * (0.12 + 0.76 * sunK), P.top + 30 + (eve ? 40 * sunK : 0), Math.max(12, P.u * 0.035), 0, TAU); c.fill();
+    const s = this.sim.s, v = this.v, P = this.pos(), eve = this.level === 3, r = this.sim.cfg(this.level).rd[Math.min(s.i, this.sim.cfg(this.level).rd.length - 1)], L = this.content.labels, hr = this.hour(), tau = this.sim.P().tau.v, G = this.sim.P().G.v;
+    const bg = this.bake(eve ? 'ev' : 'or', w, h, (cc, W, H) => this.bgOrchard(cc, W, H, P, eve));
+    this.skyLive(c, P, P.gy - P.tree * 0.5, hr); c.drawImage(bg, 0, 0, w, h);
     // the camera: in flight it pans from this tree to the next (distance ∝ flight time)
     const fl = s.phase === 'fly' ? 1 - s.flyN / s.flyTot : 0, gap = P.tree * 1.0 + (r.T > 5 ? w * 0.9 : r.T > 3 ? w * 0.25 : 0), pan = fl * gap;
-    const picked = s.phase === 'tree' ? Math.min(0.85, s.tt * this.sim.dt / 12) : 0.85;
+    const now = s.phase === 'tree' ? s.tt * this.sim.dt : (v.lastStay == null ? 6 : v.lastStay), left = t => G * Det.exp(-t / tau), picked = Math.min(0.6, now / 14);
     c.save(); c.translate(-pan, 0);
-    this.tree(c, P.treeX - gap, P.treeY, P.tree * 0.9, 0.85, s.tree * 7 + 3);
-    this.tree(c, P.treeX, P.treeY, P.tree, s.phase === 'fly' ? 0.85 : picked, s.tree * 7 + 11);
+    const prevT = s.tree - 1, prevS = s.phase === 'fly' ? v.prevStay : v.lastStay;
+    this.tree(c, P.treeX - gap, P.treeY, P.tree * 0.9, 0.85, prevT * 7 + 11);
+    this.tree(c, P.treeX, P.treeY, P.tree, picked, s.tree * 7 + 11);
     this.tree(c, P.treeX + gap, P.treeY, P.tree, 0, (s.tree + 1) * 7 + 11);
-    if (s.phase === 'tree' && v.picks) for (const q of v.picks.slice(-3)) { c.fillStyle = 'rgba(232,223,201,0.5)'; c.beginPath(); c.arc(q[0], q[1], 3, 0, TAU); c.fill(); }
+    this.castLive(c, { W: w + pan + gap, H: h }, hr, 0);
+    this.treePrey(c, P, P.treeX - gap, P.tree * 0.9, prevT, left(prevS == null ? 6 : prevS));
+    this.treePrey(c, P, P.treeX, P.tree, s.tree, left(now));
+    this.treePrey(c, P, P.treeX + gap, P.tree, s.tree + 1, G);
     c.restore();
     // the tit: in the canopy, hopping to each catch; in flight between trees
-    let tx = P.titX, ty = P.titY, flip = false;
-    if (s.phase === 'tree' && v.cpos && s.tt > 0) { tx = v.cpos[0]; ty = v.cpos[1] + 8; }
-    if (s.phase === 'fly') { tx = P.treeX + (gap - pan) * 0 + (w * 0.42 - P.treeX) + P.treeX * 0 + 0; tx = w * 0.42; ty = P.treeY - P.tree * 0.75 - 30 * Det.sin(Math.PI * fl); flip = false; }
-    this.titDraw(c, tx, ty, P.hero * 0.9, { flip, idle: s.phase === 'tree', rot: s.phase === 'fly' ? -0.1 : 0 });
+    let tx = P.titX, ty = P.titY;
+    if (s.phase === 'tree' && v.cpos && s.tt > 0) { tx = v.cpos[0]; ty = v.cpos[1] - 6; }
+    if (s.phase === 'fly') { tx = w * 0.42; ty = P.treeY - P.tree * 0.75 - 30 * Det.sin(Math.PI * fl); }
+    this.titDraw(c, tx, ty, P.hero * 0.9, { idle: s.phase === 'tree', rot: s.phase === 'fly' ? -0.1 : 0 });
+    this.insects(c, P, P.gy - P.tree * 0.95, P.gy - P.tree * 0.35, 5, hr);
     if (s.phase === 'fly') Lbl.put('fg-travel', Txt.f(L.travel, { t: r.T }), w * 0.42, ty - P.hero * 0.7, { size: 13, c, mono: true });
     if (r.T > 5 && s.phase === 'tree') { Lbl.put('fg-far', Txt.f(L.travel, { t: r.T }), w - 14, P.treeY - P.tree * 0.5, { align: 'right', size: 13, c, mono: true }); c.fillStyle = '#E8DFC9'; c.beginPath(); c.moveTo(w - 10, P.treeY - P.tree * 0.35); c.lineTo(w - 22, P.treeY - P.tree * 0.35 - 8); c.lineTo(w - 22, P.treeY - P.tree * 0.35 + 8); c.closePath(); c.fill(); }
     this.drawGainCard(c, P);
@@ -980,23 +1120,29 @@ const CH_FORAGER_V2 = {
   birdsTick(dt) { for (const b of this.v.birds) { if (b.fl > 0) { b.fl -= dt; if (b.fl <= 0) { b.tree = b.to; b.t = 0; } continue; } b.t += dt; if (b.t >= b.stay * 0.3) { b.to = (b.tree + 1 + ((b.stay * 10) | 0) % 4) % 5; b.fl = 0.45; } } },
   drawFlock(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels;
-    const bg = this.bake('fl', w, h, (cc, W, H) => { this.sky(cc, W, H, 0, P.gy, 3); this.hills(cc, W, P.gy - 40, '#6E6375', 20, 7); cc.fillStyle = '#56603A'; cc.fillRect(0, P.gy, W, H - P.gy); const ts = Math.min(W / 4.6, (P.gy - P.top) * 0.7); for (let i = 0; i < 5; i++) this.tree(cc, W * (0.1 + 0.2 * i), P.gy - 50, ts, 0, 31 + i); });
-    c.drawImage(bg, 0, 0, w, h);
-    if (!v.birds) this.birdsInit();
-    const ts = Math.min(w / 4.6, (P.gy - P.top) * 0.7), tx = i => w * (0.1 + 0.2 * i), ty = i => P.gy - 50 - ts * 0.62, sz = Math.max(22, Math.min(40, P.u * 0.07));
+    const hr = this.hour(), L5 = this.flockLay(P), ts = L5.ts, tyB = L5.base, tx = i => L5.x[i], ty = i => L5.y[i] - L5.sz[i] * 0.62, sz = Math.max(22, Math.min(40, P.u * 0.07));
+    const bg = this.bake('fl', w, h, (cc, W, H) => { const hy = L5.hor; this.hills(cc, W, hy, '#857F92', 20, 7); const r = rng(29); for (let x = -10; x < W + 10; x += 14) this.leafBlob(cc, x, hy + 16 + r() * 6, 16 + r() * 8, r() < 0.5 ? '#5E6A55' : '#66735C', r); cc.fillStyle = '#5E6A42'; cc.fillRect(0, hy + 20, W, H); cc.fillStyle = '#56603A'; cc.fillRect(0, P.gy, W, H - P.gy); for (const i of L5.order) this.tree(cc, L5.x[i], L5.y[i], L5.sz[i], 0, 31 + i); });
+    this.skyLive(c, P, L5.hor, hr); c.drawImage(bg, 0, 0, w, h); this.castLive(c, P, hr, 0);
+    if (!v.birds) this.birdsInit(); void ts; void tyB;
     v.birds.forEach((b, j) => {
-      let x, y; const sl = (j * 5 + b.tree * 3) % 8, ang = sl / 8 * TAU, jx = Det.cos(ang) * ts * 0.3, jy = Det.sin(ang) * ts * 0.2;
+      let x, y; const sl = (j * 5 + b.tree * 3) % 8, ang = sl / 8 * TAU, jx = Det.cos(ang) * L5.sz[b.tree] * 0.3, jy = Det.sin(ang) * L5.sz[b.tree] * 0.2;
       if (b.fl > 0) { const f = 1 - b.fl / 0.45; x = tx(b.tree) + (tx(b.to) - tx(b.tree)) * f + jx; y = ty(b.tree) - 28 * Det.sin(Math.PI * f) + jy; }
       else { x = tx(b.tree) + jx; y = ty(b.tree) + jy; }
       this.titDraw(c, x, y, sz, { flip: b.fl > 0 && b.to < b.tree, id: j });
-      if (b.lin === 0) { c.beginPath(); c.arc(x, y, sz * 0.52, 0, TAU); c.lineWidth = 3; c.strokeStyle = '#1B1612'; c.stroke(); c.lineWidth = 1.6; c.strokeStyle = '#E8DFC9'; c.stroke(); }   // the you-halo, thin enough for a crowd
+      if (b.lin === 0) { const my = y - sz * 0.62, r0 = Math.max(4, sz * 0.15); c.beginPath(); c.moveTo(x, my - r0); c.lineTo(x + r0, my); c.lineTo(x, my + r0); c.lineTo(x - r0, my); c.closePath(); c.fillStyle = '#F4EEDD'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke(); }   // your lineage: a small cream diamond over the head (shape, not hue), light enough for a crowd
     });
     this.drawHist(c, P);
     if (typeof Lbl !== 'undefined') { Lbl.put('fg-year', Txt.f(L.gen, { n: s.gen || 0 }), 14, P.top + 18, { align: 'left', size: 15, c, mono: true }); Lbl.put('fg-xnf', L.xn, 14, P.top + 44, { align: 'left', size: 12, c }); }
     if (s.phase === 'ask') { c.fillStyle = 'rgba(20,28,26,0.15)'; c.fillRect(0, 0, w, h); }
   },
+  flockLay(P) {   // five trees: one row on a wide screen; on a tall phone three behind and two in front, so the crowd fills the scene
+    const w = P.W, base = P.gy - 30, tall = (P.gy - P.top) > w * 0.75;
+    if (!tall) { const ts = Math.min(w / 3.9, (P.gy - P.top) * 0.62); return { ts, base, hor: base - ts * 0.45, x: [0, 1, 2, 3, 4].map(i => w * (0.1 + 0.2 * i)), y: [base, base, base, base, base], sz: [ts, ts, ts, ts, ts], order: [0, 1, 2, 3, 4] }; }
+    const ts = Math.min(w / 2.5, (P.gy - P.top) * 0.42), back = base - ts * 0.62, tb = ts * 0.82;
+    return { ts, base, hor: back - tb * 0.4, x: [w * 0.17, w * 0.5, w * 0.83, w * 0.32, w * 0.68], y: [back, back, back, base, base], sz: [tb, tb, tb, ts, ts], order: [0, 1, 2, 3, 4] };
+  },
   drawHist(c, P) {   // the flock's leaving times as a dot histogram on the ground: one dot per 5 birds; yours filled, others hollow
-    const s = this.sim.s, v = this.v; if (!s.fc) return; const x0 = 16, x1 = P.W - 16, NB = this.sim.NB, bw = (x1 - x0) / NB, r = Math.max(2.4, Math.min(4.2, bw * 0.34)), base = P.H - 10;
+    const s = this.sim.s, v = this.v; if (!s.fc) return; const x0 = 16, x1 = P.W - 16, NB = this.sim.NB, bw = (x1 - x0) / NB, r = Math.max(2.4, Math.min(4.2, bw * 0.34)), base = P.H - 24;
     const X = t => x0 + (t - 0.25) / 14 * (x1 - x0);
     for (let k = 0; k < NB; k++) { let n = 0; for (let l = 0; l < 3; l++) { const d = Math.round(s.fc[l][k] / 5); for (let i = 0; i < d; i++) { const y = base - n * (2 * r + 1); n++; if (y < P.gy + 4) continue; c.beginPath(); c.arc(x0 + (k + 0.5) * bw, y, r, 0, TAU); if (l === 0) { c.fillStyle = '#1B1612'; c.fill(); } else { c.lineWidth = 1.2; c.strokeStyle = '#1B1612'; c.stroke(); } } } }
     c.strokeStyle = 'rgba(27,22,18,0.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, base + 4); c.lineTo(x1, base + 4); c.stroke();
@@ -1007,7 +1153,7 @@ const CH_FORAGER_V2 = {
   /* ---------- the winter night ---------- */
   drawNight(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels, calm = typeof Fx !== 'undefined' && Fx.calm;
-    const bg = this.bake('nt', w, h, (cc, W, H) => { this.sky(cc, W, H, 0, P.gy, 4); this.hills(cc, W, P.gy - 20, '#5A6077', 22, 13); cc.fillStyle = '#E4E8EC'; cc.fillRect(0, P.gy, W, H - P.gy); const r = rng(21); for (let i = 0; i < W / 4; i++) { cc.fillStyle = 'rgba(160,172,190,0.4)'; cc.beginPath(); cc.arc(r() * W, P.gy + r() * (H - P.gy), 1 + r() * 2, 0, TAU); cc.fill(); }
+    const bg = this.bake('nt', w, h, (cc, W, H) => { this.sky(cc, W, H, 0, P.gy, 4); this.hills(cc, W, P.gy - 34, '#7A7090', 22, 13); { const r0 = rng(31); for (let x = -8; x < W + 8; x += 9) { cc.strokeStyle = '#3A3245'; cc.lineWidth = 1.2; cc.beginPath(); cc.moveTo(x, P.gy); cc.lineTo(x + (r0() - 0.5) * 10, P.gy - 14 - r0() * 16); cc.stroke(); } cc.fillStyle = '#3A3245'; cc.fillRect(0, P.gy - 12, W, 12); }   /* a bare winter hedge on the skyline */ cc.fillStyle = '#E4E8EC'; cc.fillRect(0, P.gy, W, H - P.gy); const r = rng(21); for (let i = 0; i < W / 4; i++) { cc.fillStyle = 'rgba(160,172,190,0.4)'; cc.beginPath(); cc.arc(r() * W, P.gy + r() * (H - P.gy), 1 + r() * 2, 0, TAU); cc.fill(); }
       cc.strokeStyle = '#3E3428'; cc.lineWidth = 6; cc.beginPath(); cc.moveTo(0, P.top + (P.gy - P.top) * 0.22); cc.quadraticCurveTo(W * 0.4, P.top + (P.gy - P.top) * 0.3, W * 0.78, P.top + (P.gy - P.top) * 0.18); cc.stroke(); });
     c.drawImage(bg, 0, 0, w, h);
     const sunK = Math.min(1, (10 - s.v) / 10), sy = P.top + 30 + (P.gy - P.top - 30) * sunK; c.save(); c.beginPath(); c.rect(0, 0, w, P.gy - 34); c.clip(); c.fillStyle = '#F2B57A'; c.beginPath(); c.arc(w * 0.1, sy, Math.max(12, P.u * 0.035), 0, TAU); c.fill(); c.restore();   // the sun sinks with each visit

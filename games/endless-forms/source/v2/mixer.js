@@ -21,6 +21,11 @@
 /* ================= words (API_v2 §9.2; D4 budgets; British spelling; tests/lint_text.js) ================= */
 const EQ_C = {
   firstWords: 'Each beetle carries two copies of a colour gene. Tap one to open it.',
+  intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
+    game: 'You are a field geneticist studying beetles, and later rats. Count gene copies, crank the gamete tumbler, sample the field and diagnose what is happening to each population.',
+    biology: 'Hardy–Weinberg is the null model: random mating with no forces gives genotype shares p², 2pq and q². Inbreeding, structure and selection each leave their own departure; drift can shift p while the fit holds.',
+    how: 'Tap beetles, crank the tumbler and drag the quadrat; the ghost hand shows each new control. Drag a marker to predict, then press Lock in.'
+  },
   hud: {
     sort: 'Sort its copies: tap the A jar or the a jar.',
     guess: 'Half look blue. What share of all copies are A? Drag p, then tap it.',
@@ -939,7 +944,7 @@ const EQV = {
 /* ================= the chapter ================= */
 const CH_HWE_V2 = {
   id: 'census', v2: true, plan: ['Equilibrium', 'Hardy–Weinberg and what breaks it'],
-  role: 'investigator', place: 'beetle',
+  role: 'investigator', place: 'beetle', accent: '#7D5BA6',   // the chapter's chrome tint (D6 decision 7)
   intro: { goal: 'Find what keeps genotypes in balance, and what breaks it.' },
   content: EQ_C,
   P: {

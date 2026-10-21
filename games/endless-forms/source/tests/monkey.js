@@ -44,12 +44,14 @@
       if (v2) TB.App.playLevel(ch, opts.level || 0, { seed: (seedv * 2654435761) >>> 0 || 1 }); else TB.App.play(ch);
     };
     start();
+    // D6 decision 8: a v2 chapter opens on its description card (00_entry.js Intro); the monkey reads it and presses Play
+    if (v2 && TB.Intro && TB.Intro.on() && !document.querySelector('#cards.on .card.ef-intro')) return { status: 'no-intro', id };
     const cv = document.getElementById('scene'); const rc = () => cv.getBoundingClientRect();
     const ptr = (el, type, x, y) => { const r = el.getBoundingClientRect(); el.dispatchEvent(new PointerEvent(type, { clientX: r.left + x, clientY: r.top + y, pointerId: 1, bubbles: true, cancelable: true })); };
     const key = k => document.body.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
     const keyList = v2 ? Object.keys(ch.keys || {}).map(k => k === 'Space' ? ' ' : k).concat(['Enter', 'ArrowLeft', 'ArrowRight', 'l', 'p']) : [];
-    let played = 0, lastSig = '', same = 0, holdUntil = 0, holding = false, cards = 0, levels = 0, whatifs = 0, strip = 0, keys = 0, maxWords = 0;
-    const extra = () => v2 ? { levels, whatifs, strip, keys, maxWords, notes: notesOpened } : {};
+    let played = 0, lastSig = '', same = 0, holdUntil = 0, holding = false, cards = 0, levels = 0, whatifs = 0, strip = 0, keys = 0, maxWords = 0, intros = 0;
+    const extra = () => v2 ? { levels, whatifs, strip, keys, maxWords, notes: notesOpened, intros } : {};
     for (let s = 0; s < steps; s++) {
       const card = document.querySelector('#cards.on .card');
       if (card) {
@@ -73,7 +75,11 @@
           }
           return Object.assign({ status: 'end', played, step: s, t: Math.round(window.__vt() / 1000), stars, title: (card.querySelector('h3') || {}).textContent }, extra());
         }
-        if (card.dataset.armed === '1') {
+        if (card.dataset.armed === '1' && card.classList.contains('ef-intro')) {   // the description card (opening, or reopened by "?"): check it, then Play
+          const m = card.innerText.match(BAD); if (m) return { status: 'badtext', step: s, ctx: card.innerText.slice(0, 200), where: 'intro card' };
+          const play = card.querySelector('[data-play]'); if (!play) return { status: 'error', step: s, errs: ['intro card without a Play button'] };
+          if (rnd() < 0.2) key('Enter'); else play.click(); intros++;
+        } else if (card.dataset.armed === '1') {
           if (v2 && card.classList.contains('lvl')) {
             const chips = [...card.querySelectorAll('.chips button, button.chip')].filter(vis);
             const btns = [...card.querySelectorAll('.card-btns button')];
@@ -96,7 +102,7 @@
       if (holding) { if (window.__vt() >= holdUntil) { ptr(cv, 'pointerup', W / 2, H / 2); holding = false; } }
       else if (!v2 && u < 0.03) { TB.Notes.tab = ['idea', 'num', 'gra'][Math.floor(rnd() * 3)]; TB.Notes.open(); window.__advance(60); if (window.__errs.length) return { status: 'notes-error', errs: window.__errs.slice(0, 2) }; const t = document.getElementById('sh-body').innerText; const m = t.match(BAD); if (m) return { status: 'notes-badtext', tab: TB.Notes.tab, ctx: t.slice(Math.max(0, t.indexOf(m[0]) - 120), t.indexOf(m[0]) + 40) }; TB.Notes.close(); }
       else if (v2 && u < 0.05) { if (keyList.length) { key(keyList[Math.floor(rnd() * keyList.length)]); keys++; } }
-      else if (u < 0.4) { const bs = buttons(v2 ? '#hud button, #dock button' : '#hud button'); if (bs.length) bs[Math.floor(rnd() * bs.length)].click(); }
+      else if (u < 0.4) { const bs = buttons(v2 ? (rnd() < 0.08 ? '#hud button, #dock button' : '#hud button, #dock button:not(.ef-q)') : '#hud button'); if (bs.length) bs[Math.floor(rnd() * bs.length)].click(); }   // the dock's "?" (reopens the intro card) now and then
       else if (u < 0.47) { const ins = [...document.querySelectorAll(v2 ? '#hud input[type=range], #dock input[type=range]' : '#hud input[type=range]')]; if (ins.length) { const el = ins[Math.floor(rnd() * ins.length)]; el.value = +el.min + rnd() * (el.max - el.min); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); } }
       else if (v2 && u < 0.52) {   // the strip: a Predict drag or tap on a chart canvas
         const cs = [...document.querySelectorAll('#strip canvas')].filter(vis);

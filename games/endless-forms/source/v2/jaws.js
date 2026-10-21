@@ -19,6 +19,11 @@
 
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const JW_TEXT = {
+  intro: {   // the opening card (D6 addendum, decision 8), drawn by 00_entry.js
+    game: 'You keep watch over a school of cichlids in the shallows of Lake Tanganyika. Scale-eaters dart in from behind and rip scales off a flank.',
+    biology: 'Each scale-eater’s jaw bends to one side, so it mostly bites one flank. The rarer jaw meets fewer guards and leaves more young, so neither form wins for long.',
+    how: 'Tap a fish’s left or right flank to raise a guard plate for a moment. Block what you can, then predict where the jaws will swing.'
+  },
   firstWords: 'Scale-eaters dart in from behind and bite a flank. Tap the flank you expect them to bite.',
   hud: {
     swim0: 'Tap a flank to guard it. A guard lasts a moment.',
@@ -46,7 +51,7 @@ const JW_TEXT = {
     left: 'Left', right: 'Right', lp: 'Left {p}%', rp: 'Right {p}%', season: 'Season {n}', strike: 'Strike', lock: 'Lock in',
     fed: 'Fed', hungry: 'Hungry', young: 'Young', parents: 'Parents', plain: 'Plain', striped: 'Striped', twist: 'jaw twist', share: 'right-strikers',
     half: '50:50', exp: 'expected', xn: 'Selection ×N', xnL: 'Strength ×N', seasons: 'season', blocked: '{p}% blocked',
-    O: 'O', B: 'B', Y: 'Y', you: 'you', kept: '{n} kept', ff: 'Tap: faster', now: 'now'
+    O: 'O', B: 'B', Y: 'Y', you: 'you', kept: '{n} kept', ff: 'Tap: faster', now: 'now', streak: 'Streak {n}', flipL: 'Left-strikers lead', flipR: 'Right-strikers lead'
   },
   interesting: {
     flat: 'The share stayed near where it began. Did your guards follow the commoner side, or fall at random?',
@@ -72,13 +77,21 @@ const JW_TEXT = {
     h2: ['h²', 'The inherited share of twist variation.'], morphs: ['Orange, blue, yellow', 'Shares of the three throat morphs.'],
     b: ['Sneakers blocked', 'This season. Above half, blue beats yellow.'],
     titles: { trace: 'Right-strikers', hist: 'Jaw twist', tri: 'Three morphs', liz: 'Morph shares' },
-    gen: 'season {n} of {m}', genAuto: 'what if: season {n}'
+    gen: 'season {n} of {m}', genAuto: 'what if: season {n}',
+    cross: ['', ', crossing 50:50 once', ', crossing 50:50 twice', ', crossing 50:50 {n} times'],
+    takeNo: [   // the card's take when the run did not show the level's lesson
+      'No full swing this time. The rare side feeds only when your guards follow the commoner side.',
+      'No full swing this time. The rare type rises only when scarce guards cover the common side.',
+      'Chance swamped the response this time. With heritability this low, the young barely track the fed group.',
+      'The two species did not move together this time. Chance in who bred outweighed the shared push.'
+    ],
+    takeBig: 'The young tracked the fed group more than heritability predicts this time. That was chance; it rarely repeats.'
   },
   levers: { equal: 'Guard evenly', noinherit: 'No inheritance', always: 'Always right', nofloor: 'No arrivals', poor: 'Weak blocking', perfect: 'Block all' },
   take: 'When the rare type does better, neither type wins for long. When each beats another, they chase round.',
   body: 'You blocked {b}% of sneakers. The leading morph went {seq}. Blue beat yellow only while you blocked over half.',
   whatifBody: [
-    'Eight seasons with one change. Right-strikers went {p0}% → {p1}%, crossing 50:50 {x} times.',
+    'Eight seasons with one change. Right-strikers went {p0}% → {p1}%{x}.',
     'Twelve seasons with one change. The leading morph went {seq}.'
   ],
   law: { title: 'Rare does better' },
@@ -95,44 +108,44 @@ const JW_TEXT = {
     { discover: 'Block half the bites and keep both species moving together.', predict: 'Land two of three predictions inside the band.' },
     { discover: 'Keep the wheel turning: blue, orange, yellow, then blue again.', transfer: 'Land two of three triangle predictions inside the band.' }
   ],
-  levelTake: [
+  levelTake: [   // shown only when the run did it (the level's Discover); otherwise levelTakeNo (lessons rule 6)
     'Your guards made the common side go hungry. The rare side fed, bred and became common.',
     'Scarce guards protect the common side. So the rare type rises, and the young overshoot.',
-    'Little heritability, little response. Hard selection moved the young only a quarter of the way.',
+    'Little heritability, little response. Hard selection moved the young only part of the way.',
     'One defender selects both species, so their swings line up.'
   ],
   levelBody: [
-    'Right-strikers went {p0}% → {p1}%, crossing 50:50 {x} times. You blocked {b}% of bites. The side you guarded less fed better and left more young.',
-    'Right-strikers went {p0}% → {p1}%, crossing 50:50 {x} times. You guarded the commoner side {t}% of the time. Young answer last season’s guards, so the swing overshoots.',
-    'Each season your guards fed a group whose twist differed by {s} on average. Their young differed by only {r}. Most twist variation here comes from development.',
+    'Right-strikers went {p0}% → {p1}%{x}. You blocked {b}% of bites. Bites on the rarer side landed {u}% of the time, on the commoner side {c}%.',
+    'Right-strikers went {p0}% → {p1}%{x}. You guarded the commoner side {t}% of the time. Each season’s young answer the guards their parents met.',
+    'Each season your guards fed a group whose mean twist differed by {s}. Their young moved {r} the same way on average. Most twist variation here comes from development.',
     'Plain right-strikers went {a0}% → {a1}%; striped went {b0}% → {b1}%. They moved the same way in {k} of {n} seasons, because one guard blocks both.'
   ],
   model: [
     { level: 0, simulated: 'Forty scale-eaters. Each strikes the right flank with a chance set by its jaw twist: four additive genes plus development. Young come in proportion to scales eaten.',
       simplification: 'A season is a generation. You stand in for the prey’s vigilance. The jaw shows only at the strike.',
       params: [{ name: 'heritability h²', value: 0.9, tag: 'xN', real: 'about 0.2 in Perissodus' }, { name: 'scale-eaters', value: 40, tag: 'designed' }, { name: 'young per scale eaten', value: 'about 20 to 1 against the hungry', tag: 'xN', real: 'much weaker selection in the lake' }, { name: 'guard length', value: '1.2 s', tag: 'designed' }, { name: 'seasons', value: 6, tag: 'xN', real: 'years per swing' }],
-      cannot: 'Prey that remember attacks, or scale-eaters that switch sides.',
-      nature: 'Hori followed Perissodus for about a decade. The share swung around 50:50, with a period of about five years.', contested: false, refs: ['hori1993', 'takeuchi2012'] },
+      cannot: 'Prey that remember attacks, scale-eaters that switch sides, or jaws shaped by use.',
+      nature: 'Hori followed Perissodus for about a decade. The share swung around 50:50, with a period of about five years. He read the jaw as one gene; later work finds a continuous, partly inherited trait.', contested: false, refs: ['hori1993', 'takeuchi2012', 'kusche2012'] },
     { level: 1, simulated: 'Three prey fish and two guard plates. Each plate covers one flank of one fish. The young answer last season’s guards.',
       simplification: 'Each attack picks a fish at random. Twist is the only trait that matters for feeding.',
       params: [{ name: 'heritability h²', value: 0.9, tag: 'xN', real: 'about 0.2' }, { name: 'prey fish', value: 3, tag: 'designed' }, { name: 'guards', value: 2, tag: 'designed' }],
       cannot: 'Years of overlap between generations, which stretch real swings to about five years.',
-      nature: 'Prey are bitten more on the flank they guard less. Nobody computes: guarding follows experience.', contested: false, refs: ['hori1993'] },
+      nature: 'Hori proposed that prey watch the flank they are attacked on most, so the commoner jaw feeds less. Nobody computes: guarding follows experience.', contested: false, refs: ['hori1993'] },
     { level: 2, simulated: 'The same lake, but development adds most of the twist variation. Heritability is about 0.25.',
-      simplification: 'Development is random and never passed on.',
+      simplification: 'Development adds random twist that is never passed on.',
       params: [{ name: 'heritability h²', value: 0.25, tag: 'realistic' }, { name: 'scale-eaters', value: 40, tag: 'designed' }],
-      cannot: 'Learning by the scale-eaters, which may sharpen their side preference.',
-      nature: 'Twist heritability is about 0.2, with a large developmental part. Whether twist has one mode or two is debated.', contested: false, refs: ['lee2015', 'raffini2019'] },
+      cannot: 'Plasticity: in the lake, a diet of scales and practice at striking make jaws more lopsided.',
+      nature: 'Twist heritability is about 0.2. Diet and experience shape much of the rest. Whether twist has one mode or two is debated.', contested: false, refs: ['lee2015', 'kusche2012', 'raffini2019'] },
     { level: 3, simulated: 'Two scale-eater species, forty each, share the prey. Your guards block both alike.',
       simplification: 'This synchrony is a model prediction: one defender selects both species.',
       params: [{ name: 'heritability h²', value: 0.9, tag: 'xN', real: 'about 0.2' }, { name: 'species', value: 2, tag: 'designed' }],
       cannot: 'Competition between the two species for prey.',
-      nature: 'Several Tanganyika scale-eaters strike mostly one flank. Whether their swings line up in the lake is not settled here.', contested: false, refs: ['hori1993'] },
+      nature: 'Several Tanganyika scale-eaters strike mostly one flank. Whether their swings line up in the lake is not settled here.', contested: false, refs: ['hori1993', 'boileau2015'] },
     { level: 4, simulated: '150 male side-blotched lizards. Orange usurps blue, blue guards against yellow, yellow sneaks past orange. Three of each morph arrive from other rocks each season.',
       simplification: 'Your block rate sets how well blue does against yellow. Each morph’s young depend on whom it beats.',
       params: [{ name: 'males', value: 150, tag: 'designed' }, { name: 'strength of selection', value: 5, tag: 'xN', real: 'weaker in the field' }, { name: 'arrivals per morph', value: 3, tag: 'designed' }],
       cannot: 'Females, whose own morphs cycle too, and the yearly turnover of real lizards.',
-      nature: 'Sinervo and Lively saw the morphs cycle blue, orange, yellow over about four to five years.', contested: false, refs: ['sinervo1996'] }
+      nature: 'Over several years of counts, Sinervo and Lively saw the morphs take turns: blue, then orange, then yellow.', contested: false, refs: ['sinervo1996'] }
   ],
   why: {
     real: ['Side-blotched lizards near Los Baños, California: orange males hold big territories and take blue males’ females. Yellow males sneak past orange. Blue males guard against yellow.'],
@@ -141,11 +154,11 @@ const JW_TEXT = {
   levelWhy: [
     { real: ['Michio Hori watched Perissodus in Lake Tanganyika for about ten years. Whichever jaw was common did worse, and the share swung around 50:50.'],
       maths: ['Call p the share striking the right flank. When p is high, prey guard the right more, so right-strikers feed less. Fitness falls as p rises.'] },
-    { real: ['Prey cannot see a scale-eater coming from behind. They watch the flank they are bitten on most, so the commoner side meets more resistance.'],
+    { real: ['Prey cannot see a scale-eater coming from behind. Hori proposed that they watch the flank attacked most, so the commoner jaw meets more resistance.'],
       maths: ['The young reflect last season’s feeding, not this season’s. Strong selection plus that lag makes the share overshoot 50:50, then swing back.'] },
-    { real: ['Studies of Perissodus find twist heritability near 0.2. Much of the twist comes from development, which is not passed on.'],
+    { real: ['Studies of Perissodus find twist heritability near 0.2. Young reared on scales grow more lopsided jaws than young reared on other food.'],
       maths: ['Breeders write R = h²S. With h² near 0.25, the young keep about a quarter of the twist difference you selected.'] },
-    { real: ['Lake Tanganyika holds several scale-eating cichlids. A striped one mimics the fish it feeds on.'],
+    { real: ['Lake Tanganyika holds several scale-eating cichlids. A striped one, Plecodus straeleni, looks like the striped fish it feeds on.'],
       maths: ['Both species meet the same guards. When most strikes come from the right, right-strikers of both species go hungry.'] }
   ]
 };
@@ -162,6 +175,7 @@ const JW_T = { lead: 0.12, veer: 0.16, guard: 1.2, dawn: 0.7, dusk: 1.3, breed: 
 
 const CH_JAWS_V2 = {
   id: 'jaws', v2: true, role: 'environment', place: 'lake',
+  accent: '#E2725B',   // coral: the chapter's chrome tint (D6 addendum, decision 7); never a data ink
   intro: { goal: 'Guard the school; watch the rare jaw do better.' },
   content: JW_TEXT,
   P: {
@@ -467,6 +481,18 @@ const CH_JAWS_V2 = {
       const st = CH_JAWS_V2.stars, n = s.level, mask = (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
       return { mask, interesting: this.interesting(s) };
     },
+    lesson(s, n) {   // did this run show the level's lesson? (picks the card's take; lessons rule 6)
+      if (n <= 1) return this.crossings(s.ps[0]) >= 2;   // a full swing: past 50:50 and back
+      if (n === 2) { const g = this.pooledRS(s); return g > 0 && g <= 0.6; }
+      if (n === 3) { const al = this.aligned(s); return al.same >= 4 && al.opp <= 1; }
+      return false;
+    },
+    take(s, n) { if (this.lesson(s, n)) return 'yes'; return n === 2 && this.pooledRS(s) > 0.6 ? 'big' : 'no'; },   // which card take this run earned
+    pooledRS(s) { let S = 0, R0 = 0; for (const r of s.hist) { const q = r.sp && r.sp[0]; if (q && q.R != null && q.S) { S += Math.abs(q.S); R0 += q.R * (q.S > 0 ? 1 : -1); } } return S > 0 ? R0 / S : 0; },   // realised R/S, pooled over seasons
+    rareCommon(s) {   // bite success on the rarer and on the commoner side, pooled over the level's seasons
+      const a = [0, 0], b = [0, 0]; for (const r of s.hist) { if (!r.tally || !r.sp) continue; const rare = r.sp[0].p >= 0.5 ? 0 : 1; a[0] += r.tally[rare * 2]; b[0] += r.tally[rare * 2 + 1]; a[1] += r.tally[(1 - rare) * 2]; b[1] += r.tally[(1 - rare) * 2 + 1]; }
+      return [a[0] ? b[0] / a[0] : 0, a[1] ? b[1] / a[1] : 0];
+    },
     crossings(d) { let k = 0; for (let i = 1; i < d.length; i++) if ((d[i] - 0.5) * (d[i - 1] - 0.5) < 0) k++; return k; },
     aligned(s) { const A = s.ps[0], B = s.ps[1]; let same = 0, opp = 0; for (let i = 1; i < A.length; i++) { const da = A[i] - A[i - 1], db = B[i] - B[i - 1]; if (Math.max(Math.abs(da), Math.abs(db)) < 0.03) continue; if (da * db > 0) same++; else opp++; } return { same, opp, n: A.length - 1 }; },
     interesting(s) {   // chosen from what happened (failure is data, D1 G9)
@@ -575,7 +601,7 @@ const CH_JAWS_V2 = {
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
   startLevel(n, o) {
     o = o || {}; this.level = n; this._ended = false; this._pend = false; this._asking = null;
-    this.v = { t: 0, hold: -1, ff: false, focus: -1, banner: null, scars: [], flash: {}, recoil: [], fry: null, lunge: null, intr: [], gone: [], said: {}, bg: null, bgk: '', crowd: null, crowdK: '', fly: [], slide: {}, off: [], thaw: !!o.thaw };
+    this.v = { t: 0, hold: -1, ff: false, focus: -1, banner: null, scars: [], flash: {}, recoil: [], fry: null, lunge: null, intr: [], gone: [], said: {}, bg: null, bgk: '', crowd: null, crowdK: '', fly: [], slide: {}, off: [], flecks: [], knock: {}, streak: 0, streakT: 0, thaw: !!o.thaw };
     Sim.start(this, n, o);
     const ui = Save.d && Save.d.ui;
     if (!o.thaw && !o.replay && ui && ui.unt) Sim.act(this, { k: 'unt', on: true });   // a setting enters the run as a logged action (lessons §1.6)
@@ -616,6 +642,8 @@ const CH_JAWS_V2 = {
     for (const k in v.flash) { v.flash[k] -= dt; if (v.flash[k] <= 0) delete v.flash[k]; }
     v.recoil = v.recoil.filter(r => (r.t += dt) < 0.9); v.off = v.off.filter(q => (q.t += dt) < 0.12); v.gone = v.gone.filter(g => (g.t += dt) < 0.8); v.fly = v.fly.filter(f => (f.t += dt) < f.d);
     if (v.lunge) { v.lunge.t += dt; if (v.lunge.t > 0.4) v.lunge = null; }
+    for (const f in v.knock) { v.knock[f].t += dt; if (v.knock[f].t > 0.3) delete v.knock[f]; }
+    if (v.flecks.length) { const calm = typeof Fx !== 'undefined' && Fx.calm; for (const q of v.flecks) { if (q.land) { q.land += dt; continue; } q.vx *= 1 - 2.2 * dt; q.vy += (40 - q.vy) * 1.6 * dt; q.x += q.vx * dt + (calm ? 0 : 8 * Det.sin(v.t * 3 + q.ph) * dt); q.y += q.vy * dt; q.rot += q.vr * dt; if (q.y >= q.fl) { q.y = q.fl; q.land = 1e-3; } } v.flecks = v.flecks.filter(q => !q.land || q.land < 1.2); }
     if (v.fry && v.hold < 0 && (typeof Predict === 'undefined' || !Predict.opened)) v.fry.t += dt * ff;   // the young hatch once the phone strip has folded, in view
     if (s.ask && this._asking !== s.ask.id) this.openAsk();
     if (!s.ask && this._asking) { this._asking = null; v.fold = 1; }
@@ -662,7 +690,7 @@ const CH_JAWS_V2 = {
   finish(r) {
     const s = this.sim.s, n = this.level, C = this.content, o = { level: n, mask: r.mask, final: n === 4, interesting: r.interesting }, V = this.bodyVars();
     if (s.whatif) { o.body = Txt.f(C.whatifBody[s.boss ? 1 : 0], V); o.take = null; }
-    else if (n < 4) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
+    else if (n < 4) { const tk = this.sim.take(s, n); o.take = tk === 'yes' ? C.levelTake[n] : tk === 'big' ? C.data.takeBig : C.data.takeNo[n]; o.body = Txt.f(C.levelBody[n], V); }
     else { o.take = C.boss.inverts; o.body = Txt.f(C.body, V); o.bodyFirst = true; }
     const last = typeof Freezer !== 'undefined' ? Freezer.list(this.id).slice(-1)[0] : null;
     if (last && !s.whatif) o.whatIf = { gen: last.gen, levers: n === 4 ? ['nofloor', 'poor', 'perfect'] : ['equal', 'noinherit', 'always'] };
@@ -680,9 +708,11 @@ const CH_JAWS_V2 = {
   bodyVars() {
     const s = this.sim.s, pc = v => Math.round(100 * v), sim = this.sim, f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
     if (s.boss) { const L = s.whatif ? s.wlead : s.lead; let q = ''; for (const l of L) if (q.slice(-1) !== 'OBY'[l]) q += 'OBY'[l]; const sat = s.bs.length ? s.bs.reduce((a, b) => a + b, 0) / s.bs.length : 0; return { b: pc(sat), seq: q.split('').join(' → ') }; }
-    if (s.whatif) { const d = s.wps[0]; return { p0: pc(d[0]), p1: pc(d[d.length - 1]), x: sim.crossings(d) }; }
-    const d = s.ps[0], V = { p0: pc(d[0]), p1: pc(d[d.length - 1]), x: sim.crossings(d), b: pc(s.blk / Math.max(1, s.att)), t: pc(s.reach ? s.onCommon / s.reach : 0) };
-    if (s.level === 2) { let S = 0, R0 = 0, k = 0; for (const r of s.hist) if (r.sp[0].R != null) { S += Math.abs(r.sp[0].S); R0 += Math.abs(r.sp[0].R); k++; } V.s = f2(k ? S / k : 0); V.r = f2(k ? R0 / k : 0); }
+    const X = this.content.data.cross, xw = k => Txt.f(X[Math.min(3, k)], { n: k });   // "crossing 50:50 once / twice / 3 times"
+    if (s.whatif) { const d = s.wps[0]; return { p0: pc(d[0]), p1: pc(d[d.length - 1]), x: xw(sim.crossings(d)) }; }
+    const d = s.ps[0], V = { p0: pc(d[0]), p1: pc(d[d.length - 1]), x: xw(sim.crossings(d)), b: pc(s.blk / Math.max(1, s.att)), t: pc(s.reach ? s.onCommon / s.reach : 0) };
+    if (s.level === 0) { const rc = sim.rareCommon(s); V.u = pc(rc[0]); V.c = pc(rc[1]); }
+    if (s.level === 2) { let S = 0, R0 = 0, k = 0; for (const r of s.hist) if (r.sp[0].R != null && r.sp[0].S) { S += Math.abs(r.sp[0].S); R0 += r.sp[0].R * (r.sp[0].S > 0 ? 1 : -1); k++; } V.s = f2(k ? S / k : 0); V.r = f2(k ? R0 / k : 0); }
     if (s.level === 3) { const B = s.ps[1], al = sim.aligned(s); V.a0 = pc(d[0]); V.a1 = pc(d[d.length - 1]); V.b0 = pc(B[0]); V.b1 = pc(B[B.length - 1]); V.k = al.same; V.n = al.n; }
     return V;
   },
@@ -693,7 +723,7 @@ const CH_JAWS_V2 = {
     const G = s.boss ? null : this.geo();
     switch (e.k) {
       case 'dawn':
-        v.scars = []; v.fry = null; v.intr = [];
+        v.scars = []; v.fry = null; v.intr = []; v.streak = 0;
         if (e.season > 1 || v.thaw) { if (typeof Snd !== 'undefined' && Snd.dawn) Snd.dawn(); v.banner = { text: Txt.f(C.labels.season, { n: e.season }), t: 0, ms: 900 }; }
         if (typeof Live !== 'undefined') Live.say(s.boss ? Txt.f(C.live.liz, { n: e.season, o: Math.round(100 * s.trail[s.trail.length - 1][0]), b: Math.round(100 * s.trail[s.trail.length - 1][1]), y: Math.round(100 * s.trail[s.trail.length - 1][2]) }) : Txt.f(C.live.season, { n: e.season, p: Math.round(100 * s.ps[0][s.ps[0].length - 1]) }));
         return;
@@ -704,11 +734,16 @@ const CH_JAWS_V2 = {
       case 'block': {
         const p = this.flank(G, e.f, e.side); v.flash[e.f + ':' + e.side] = 0.09; v.recoil.push({ f: e.f, side: e.side, z: e.z, sp: e.sp, t: 0, ok: true });
         if (F) { F.ring(p[0], p[1], 14, { ms: 200 }); F.pop('+1', p[0] + (e.side ? 18 : -18), p[1] - 22, 1); }
+        v.streak++; v.streakT = v.t; if (v.streak >= 3 && F) F.ring(p[0], p[1], 20 + 2 * Math.min(8, v.streak), { ms: 260 });
         if (S2) S2.play('tock', { x: p[0], y: p[1] }); return;
       }
       case 'bite': {
         const p = this.flank(G, e.f, e.side); v.scars.push({ f: e.f, side: e.side, y: (this.hash(s.att + ':' + e.f) % 100) / 100 }); v.recoil.push({ f: e.f, side: e.side, z: e.z, sp: e.sp, t: 0, ok: false });
-        if (F) { F.hitstop(50); F.shake(5, 180); F.burst('scale', p[0], p[1], 6); F.pop('−1', p[0] + (e.side ? 18 : -18), p[1] - 22, -1); }
+        if (F) { F.hitstop(50); F.shake(5, 180); F.pop('−1', p[0] + (e.side ? 18 : -18), p[1] - 22, -1); }
+        v.streak = 0; v.knock[e.f] = { t: 0, side: e.side };
+        for (let i = 0; i < 7; i++) { const h1 = this.hash(s.att + ':' + i + ':' + e.f), u = (h1 % 1000) / 1000, u2 = ((h1 >>> 10) % 1000) / 1000, sd = e.side ? 1 : -1;   // torn scales burst off the flank and sink
+          v.flecks.push({ x: p[0], y: p[1], vx: sd * (40 + 120 * u), vy: -30 - 90 * u2, rot: u * 6, vr: (u2 - 0.5) * 18, r: 1.8 + 1.4 * u2, ph: u * 6, fl: G.fy + 8 + 10 * u2, land: 0 }); }
+        if (v.flecks.length > 90) v.flecks.splice(0, v.flecks.length - 90);
         if (S2) S2.play('scale', { x: p[0], y: p[1] });
         if (!e.guarded && this.level > 0 && !v.said.rare && s.att > 6) { v.said.rare = 1; this.whisper('rare'); }
         return;
@@ -723,6 +758,8 @@ const CH_JAWS_V2 = {
       case 'commit': if (this.phoneStrip()) v.hold = 0; return;
       case 'breed':
         v.fry = { t: 0 }; if (F) F.tier(2); if (S2) S2.play('count', { x: W / 2, y: Stage.h - 40, twin: false });
+        if (!s.boss && s.ps) { const d = s.ps[0], n = d.length; if (n >= 2 && (d[n - 1] - 0.5) * (d[n - 2] - 0.5) < 0) {   // the swing made visible: the rare side has become the common one
+          v.banner = { text: d[n - 1] > 0.5 ? C.labels.flipR : C.labels.flipL, t: 0, ms: 1500 }; if (F) F.ring(d[n - 1] > 0.5 ? W * 0.75 : W * 0.25, G.fy + 26, 34, { ms: 600 }); } }
         if (e.reveal) this.reveal(e.reveal);
         if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw();
         return;
@@ -771,52 +808,108 @@ const CH_JAWS_V2 = {
     if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('jw-banner', b.text, w / 2, this.hudH() + 30, { size: 22, c, weight: 700 }); c.restore(); }
     if (/dusk|breed/.test(s.phase) && s.season > 1 && !v.ff) Lbl.put('jw-ff', this.content.labels.ff, w - 14, this.hudH() + 58, { align: 'right', size: 12, c });
   },
-  bake(w, h) {   // the lake: water, light shafts, weed, sand; baked once per size (never in the frame loop)
-    const k = Math.round(w) + 'x' + Math.round(h); if (this.v.bgk === k && this.v.bg) return this.v.bg; this.v.bgk = k;
+  bake(w, h) {   // Lake Tanganyika shallows: turquoise water, sun shafts, rock piles furred with algae, a sand floor with snail shells; baked once per size
+    const k = Math.round(w) + 'x' + Math.round(h) + ':' + Math.round(this.geo().fy); if (this.v.bgk === k && this.v.bg) return this.v.bg; this.v.bgk = k;
     const d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, cv = mkCanvas(Math.round(w * d), Math.round(h * d)), c = cv.getContext('2d'); c.scale(d, d);
-    const G = this.geo(), g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3F8AA0'); g.addColorStop(0.55, '#2E6F86'); g.addColorStop(1, '#1D4E60'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    const r = rng(7);
-    for (let i = 0; i < 5; i++) { const x = w * (0.1 + 0.2 * i) + 30 * (r() - 0.5); c.beginPath(); c.moveTo(x - 18, 0); c.lineTo(x + 18, 0); c.lineTo(x + 70, h * 0.8); c.lineTo(x + 10, h * 0.8); c.closePath(); c.fillStyle = 'rgba(232,243,240,0.05)'; c.fill(); }
-    const fy = G.fy; c.fillStyle = '#B8A983'; c.beginPath(); c.moveTo(0, fy + 8); for (let x = 0; x <= w; x += 24) c.lineTo(x, fy + 4 * Det.sin(x * 0.03) + 6); c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
-    for (let i = 0; i < w / 6; i++) { c.fillStyle = r() < 0.5 ? 'rgba(90,80,60,0.25)' : 'rgba(240,232,210,0.25)'; c.beginPath(); c.arc(r() * w, fy + 12 + r() * (h - fy - 12), 0.8 + r() * 1.6, 0, TAU); c.fill(); }
-    for (const side of [0, 1]) for (let i = 0; i < 4; i++) { const x0 = side ? w - 8 - i * 9 - r() * 6 : 8 + i * 9 + r() * 6, ht = h * (0.18 + 0.2 * r()); c.beginPath(); c.moveTo(x0, fy + 10); c.quadraticCurveTo(x0 + (side ? -16 : 16) * r(), fy - ht / 2, x0 + (side ? -10 : 10) * (r() - 0.3), fy - ht); c.lineWidth = 3; c.strokeStyle = 'rgba(46,72,52,0.75)'; c.stroke(); }
-    c.fillStyle = 'rgba(0,0,0,0.12)'; c.fillRect(0, fy + 8, w, 2);
+    const G = this.geo(), fy = G.fy, r = rng(7), g = c.createLinearGradient(0, 0, 0, fy + 10);
+    g.addColorStop(0, '#62CFC6'); g.addColorStop(0.32, '#2EAAB0'); g.addColorStop(0.72, '#178291'); g.addColorStop(1, '#0F6170'); c.fillStyle = g; c.fillRect(0, 0, w, fy + 12);
+    for (let i = 0; i < 6; i++) {   // sun shafts slanting down from the surface
+      const x = w * (0.04 + 0.19 * i) + 40 * (r() - 0.5), sw = 16 + 26 * r(), sg = c.createLinearGradient(0, 0, 0, fy); sg.addColorStop(0, 'rgba(255,252,228,0.16)'); sg.addColorStop(1, 'rgba(255,252,228,0)');
+      c.beginPath(); c.moveTo(x - sw, 0); c.lineTo(x + sw, 0); c.lineTo(x + sw + 0.32 * fy, fy); c.lineTo(x - sw * 0.4 + 0.32 * fy, fy); c.closePath(); c.fillStyle = sg; c.fill();
+    }
+    c.fillStyle = 'rgba(12,84,96,0.45)'; c.beginPath(); c.moveTo(0, fy);   // far reef in the haze
+    for (let x = 0; x <= w + 30; x += 30) c.lineTo(x, fy - (0.07 + 0.06 * Det.sin(x * 0.011 + 1.3) + 0.04 * r()) * (fy - G.top)); c.lineTo(w, fy + 10); c.lineTo(0, fy + 10); c.closePath(); c.fill();
+    const sand = c.createLinearGradient(0, fy, 0, h); sand.addColorStop(0, '#E3D3A6'); sand.addColorStop(1, '#C9B484'); c.fillStyle = sand;
+    c.beginPath(); c.moveTo(0, fy + 8); for (let x = 0; x <= w; x += 24) c.lineTo(x, fy + 4 * Det.sin(x * 0.03) + 6); c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
+    c.lineWidth = 1.2; for (let i = 0; i < w / 40; i++) { const x = r() * w, y = fy + 18 + r() * (h - fy - 22); c.beginPath(); c.moveTo(x - 14, y); c.quadraticCurveTo(x, y - 4, x + 14, y); c.strokeStyle = 'rgba(150,128,86,0.35)'; c.stroke(); }   // ripples
+    for (let i = 0; i < w / 5; i++) { c.fillStyle = r() < 0.5 ? 'rgba(120,98,64,0.28)' : 'rgba(255,248,226,0.4)'; c.beginPath(); c.arc(r() * w, fy + 12 + r() * (h - fy - 12), 0.7 + r() * 1.4, 0, TAU); c.fill(); }
+    const boulder = (x, y, rad, flat) => {   // a rounded rock with a fur of algae on top and a contact shadow
+      c.save(); c.beginPath(); c.ellipse(x, y + rad * 0.12, rad * 1.05, rad * 0.22, 0, 0, TAU); c.fillStyle = 'rgba(20,40,40,0.28)'; c.fill();
+      c.beginPath(); for (let j = 0; j <= 12; j++) { const t = Math.PI + j / 12 * Math.PI, rr = rad * (0.82 + 0.22 * r()); c.lineTo(x + rr * Det.cos(t), y + rr * flat * Det.sin(t)); } c.closePath();
+      const bg = c.createLinearGradient(0, y - rad * flat, 0, y); bg.addColorStop(0, '#B5AA8C'); bg.addColorStop(0.55, '#8E8670'); bg.addColorStop(1, '#5D5A4B'); c.fillStyle = bg; c.fill();
+      c.lineWidth = 1.5; c.strokeStyle = 'rgba(27,22,18,0.55)'; c.stroke(); c.clip();
+      c.fillStyle = 'rgba(104,128,66,0.55)'; c.beginPath(); c.ellipse(x - rad * 0.1, y - rad * flat * 0.95, rad * 0.95, rad * flat * 0.42, 0, 0, TAU); c.fill();
+      c.strokeStyle = 'rgba(78,104,52,0.8)'; c.lineWidth = 1; for (let j = 0; j < rad / 2; j++) { const t = Math.PI * (1.08 + 0.84 * r()), bx = x + rad * 0.86 * Det.cos(t), by = y + rad * flat * 0.86 * Det.sin(t); c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 2 * (r() - 0.5), by - 3 - 3 * r()); c.stroke(); }
+      c.fillStyle = 'rgba(255,250,230,0.16)'; c.beginPath(); c.ellipse(x - rad * 0.3, y - rad * flat * 0.6, rad * 0.32, rad * flat * 0.16, -0.3, 0, TAU); c.fill(); c.restore();
+    };
+    const wr = Math.min(w * 0.14, 110), sc = Math.max(0.6, Math.min(1.3, w / 700));
+    for (const side of [0, 1]) {   // rock piles on both shores, clear of the fish and of the floor histogram
+      const sx = side ? w : 0, dir = side ? -1 : 1;
+      boulder(sx + dir * wr * 0.35, fy + 6, 62 * sc, 1.25); boulder(sx + dir * wr * 0.95, fy + 8, 40 * sc, 1.0); boulder(sx + dir * wr * 0.15, fy - 62 * sc, 36 * sc, 0.9);
+      boulder(sx + dir * wr * 1.45, fy + 8, 22 * sc, 0.9);
+    }
+    for (let i = 0; i < 7; i++) boulder(w * (0.2 + 0.6 * r()), fy + 8, (8 + 9 * r()) * sc, 0.8);   // pebbles along the shore line
+    for (const side of [0, 1]) for (let i = 0; i < 3; i++) { const x0 = side ? w - wr * 1.2 - i * 10 - r() * 8 : wr * 1.2 + i * 10 + r() * 8, ht = (fy - G.top) * (0.14 + 0.16 * r()); c.beginPath(); c.moveTo(x0, fy + 8); c.quadraticCurveTo(x0 + (side ? -14 : 14) * r(), fy - ht / 2, x0 + (side ? -9 : 9) * (r() - 0.3), fy - ht); c.lineWidth = 2.6; c.strokeStyle = 'rgba(52,96,70,0.75)'; c.stroke(); }
+    for (let i = 0; i < 6; i++) {   // empty snail shells on the sand (the lake's shell beds)
+      const x = w * (0.06 + 0.88 * r()), y = fy + 16 + r() * 8, sr = 4 + 2 * r(); c.save(); c.translate(x, y); c.rotate(r() * TAU);
+      c.beginPath(); c.ellipse(0, 0, sr, sr * 0.7, 0, 0, TAU); c.fillStyle = '#EFE4CC'; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(27,22,18,0.6)'; c.stroke();
+      c.beginPath(); c.arc(sr * 0.15, 0, sr * 0.45, 0, 1.6 * Math.PI); c.stroke(); c.restore();
+    }
+    const vg = c.createRadialGradient(w / 2, h * 0.42, Math.min(w, h) * 0.35, w / 2, h * 0.42, Math.max(w, h) * 0.8); vg.addColorStop(0, 'rgba(6,30,40,0)'); vg.addColorStop(1, 'rgba(6,30,40,0.35)'); c.fillStyle = vg; c.fillRect(0, 0, w, h);
     this.v.bg = cv; return cv;
+  },
+  caustics() {   // a tiling net of sun caustics (cell edges of a jittered grid), made once; drawn as two drifting layers
+    if (CH_JAWS_V2._caus) return CH_JAWS_V2._caus;
+    const T = 160, n = 5, cv = mkCanvas(T, T), c = cv.getContext('2d'), img = c.createImageData(T, T), r = rng(5), pts = [];
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) pts.push([(i + 0.15 + 0.7 * r()) / n, (j + 0.15 + 0.7 * r()) / n]);
+    for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+      const u = x / T, v = y / T; let d1 = 9, d2 = 9;
+      for (const q of pts) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) { const dx = q[0] + ox - u, dy = q[1] + oy - v, dd = dx * dx + dy * dy; if (dd < d1) { d2 = d1; d1 = dd; } else if (dd < d2) d2 = dd; }
+      const e = Math.sqrt(d2) - Math.sqrt(d1), a = Math.max(0, 1 - e * n * 5), o = (y * T + x) * 4;
+      img.data[o] = 255; img.data[o + 1] = 253; img.data[o + 2] = 232; img.data[o + 3] = Math.round(235 * a * a * a);
+    }
+    c.putImageData(img, 0, 0); CH_JAWS_V2._caus = cv; return cv;
+  },
+  drawCaustics(c, w, G, k) {   // cosmetic: frozen under Calm; fades at dusk (k)
+    const v = this.v, calm = typeof Fx !== 'undefined' && Fx.calm, t = calm ? 0 : v.t; if (k <= 0.02) return;
+    if (!v.cpat) { const cv = this.caustics(); try { v.cpat = c.createPattern(cv, 'repeat'); } catch (e) { v.cpat = null; } } if (!v.cpat) return;
+    const band = (y0, y1, a) => { c.save(); c.beginPath(); c.rect(0, y0, w, y1 - y0); c.clip(); c.globalAlpha = a * k; c.fillStyle = v.cpat;
+      for (const L of [[1.7, 7, 4], [2.3, -5, 6]]) { c.save(); c.scale(L[0], L[0]); const ox = (t * L[1]) % 160, oy = (t * L[2]) % 160; c.translate(ox, oy); c.fillRect(-ox - 160, y0 / L[0] - oy - 160, w / L[0] + 320, (y1 - y0) / L[0] + 320); c.restore(); }
+      c.restore(); };
+    band(0, G.top + (G.fy - G.top) * 0.35, 0.13); band(G.top + (G.fy - G.top) * 0.35, G.fy, 0.07); band(G.fy + 6, G.H, 0.2);
   },
   drawLake(c, w, h) {
     const s = this.sim.s, v = this.v, G = this.geo(), bg = this.bake(w, h); c.drawImage(bg, 0, 0, w, h);
-    const calm = typeof Fx !== 'undefined' && Fx.calm;
-    c.save(); c.globalAlpha = 0.07; c.strokeStyle = '#E8F3F0'; c.lineWidth = 2;   // drifting caustics (cosmetic)
-    for (let i = 0; i < 6; i++) { const y = (i * 71 + (calm ? 0 : v.t * 9)) % (G.fy - 20) + 10; c.beginPath(); c.moveTo(0, y); for (let x = 0; x <= w; x += 30) c.lineTo(x, y + 5 * Det.sin(x * 0.02 + i + v.t * 0.7)); c.stroke(); }
-    c.restore();
-    c.save(); c.fillStyle = '#16323C';   // a distant school drifting in the murk, and bubbles (cosmetic)
-    for (let i = 0; i < 6; i++) { const dir = i % 2 ? 1 : -1, sp = 10 + 5 * (i % 3), span = w + 120, x = (((v.t * sp * dir + i * 173) % span) + span) % span - 60, y = G.top + 30 + (i * 67) % Math.max(40, G.fy - G.top - 90), r0 = 9 + (i % 3) * 3;
-      c.globalAlpha = 0.16; c.beginPath(); c.ellipse(x, y, r0, r0 * 0.38, 0, 0, TAU); c.moveTo(x - dir * r0 * 0.9, y); c.lineTo(x - dir * r0 * 1.5, y - r0 * 0.35); c.lineTo(x - dir * r0 * 1.5, y + r0 * 0.35); c.closePath(); c.fill(); }
-    c.globalAlpha = 0.35; c.strokeStyle = '#E8F3F0'; c.lineWidth = 1;
+    const calm = typeof Fx !== 'undefined' && Fx.calm, dim = /dusk|ask|breed/.test(s.phase) ? (s.phase === 'dusk' ? Math.min(1, s.t / 0.4) : s.phase === 'breed' ? Math.max(0, 1 - s.t / JW_T.breed) : 1) : 0;
+    this.drawCaustics(c, w, G, 1 - 0.8 * dim);
+    c.save(); c.fillStyle = '#0D4A57';   // a distant school drifting in the haze, and bubbles (cosmetic)
+    for (let i = 0; i < 7; i++) { const dir = i % 2 ? 1 : -1, sp = calm ? 0 : 10 + 5 * (i % 3), span = w + 120, x = (((v.t * sp * dir + i * 173) % span) + span) % span - 60, y = G.top + 30 + (i * 67) % Math.max(40, G.fy - G.top - 90), r0 = 9 + (i % 3) * 3;
+      c.globalAlpha = 0.22; c.beginPath(); c.ellipse(x, y, r0, r0 * 0.38, 0, 0, TAU); c.moveTo(x - dir * r0 * 0.9, y); c.lineTo(x - dir * r0 * 1.5, y - r0 * 0.35); c.lineTo(x - dir * r0 * 1.5, y + r0 * 0.35); c.closePath(); c.fill(); }
+    c.globalAlpha = 0.45; c.strokeStyle = '#F2FFFA'; c.lineWidth = 1;
     for (let i = 0; i < 7; i++) { const x = w * ((i * 0.137 + 0.06) % 1), y = G.fy - ((v.t * (14 + i * 3) + i * 61) % Math.max(60, G.fy - G.top)); c.beginPath(); c.arc(x + 3 * Det.sin(v.t * 2 + i), y, 1.5 + (i % 3), 0, TAU); c.stroke(); }
     c.restore();
     this.drawFloor(c, G);
-    if (/dusk|ask|breed/.test(s.phase)) { const k = s.phase === 'dusk' ? Math.min(1, s.t / 0.4) : s.phase === 'breed' ? Math.max(0, 1 - s.t / JW_T.breed) : 1; c.fillStyle = 'rgba(10,22,40,' + (0.28 * k).toFixed(3) + ')'; c.fillRect(0, 0, w, G.fy + 8); }
-    if (v.fry && s.phase === 'breed') for (let i = 0; i < 16; i++) {   // the young: pale fry rise from the weed and scatter
+    if (dim > 0) { c.fillStyle = 'rgba(8,26,46,' + (0.32 * dim).toFixed(3) + ')'; c.fillRect(0, 0, w, G.fy + 8); }
+    if (v.fry && s.phase === 'breed') for (let i = 0; i < 16; i++) {   // the young: pale fry rise from the rocks and scatter
       const k = Math.min(1, Math.max(0, (v.fry.t - i * 0.03) / 1.0)); if (k <= 0 || k >= 1) continue;
       const x = w * (0.08 + 0.84 * ((i * 0.618) % 1)) + 10 * Det.sin(k * 6 + i), y = G.fy + 10 - k * (G.fy - G.top) * 0.55, r0 = 5;
-      c.save(); c.globalAlpha = 0.9 * (1 - k * k); c.beginPath(); c.ellipse(x, y, r0 * 0.45, r0, 0, 0, TAU); c.moveTo(x, y + r0); c.lineTo(x - 3, y + r0 + 4); c.lineTo(x + 3, y + r0 + 4); c.closePath(); c.fillStyle = '#E8DFC9'; c.fill(); c.lineWidth = 1; c.strokeStyle = '#1B1612'; c.stroke(); c.restore();
+      c.save(); c.globalAlpha = 0.9 * (1 - k * k); c.beginPath(); c.ellipse(x, y, r0 * 0.45, r0, 0, 0, TAU); c.moveTo(x, y + r0); c.lineTo(x - 3, y + r0 + 4); c.lineTo(x + 3, y + r0 + 4); c.closePath(); c.fillStyle = '#F4EEDD'; c.fill(); c.lineWidth = 1; c.strokeStyle = '#1B1612'; c.stroke(); c.restore();
     }
     const auto = s.phase === 'auto';
     for (let f = 0; f < G.nf; f++) this.drawPrey(c, G, f);
     if (!auto) this.drawAttackers(c, G);
+    this.drawFlecks(c, G);
     for (const fl of v.fly) {   // scars slide into the histogram at dusk (D4)
       const k = Math.min(1, fl.t / fl.d), e = k * k * (3 - 2 * k), tx = fl.side ? w * 0.72 : w * 0.28, ty = G.fy + 22;
-      c.beginPath(); c.arc(fl.x0 + (tx - fl.x0) * e, fl.y0 + (ty - fl.y0) * e - 40 * Det.sin(Math.PI * k), 3, 0, TAU); c.fillStyle = '#E8DFC9'; c.fill(); c.lineWidth = 1; c.strokeStyle = '#1B1612'; c.stroke();
+      c.beginPath(); c.arc(fl.x0 + (tx - fl.x0) * e, fl.y0 + (ty - fl.y0) * e - 40 * Det.sin(Math.PI * k), 3, 0, TAU); c.fillStyle = '#F4EEDD'; c.fill(); c.lineWidth = 1; c.strokeStyle = '#1B1612'; c.stroke();
     }
     this.drawPips(c, G);
     if (typeof Lbl !== 'undefined') {
       Lbl.put('jw-xn', this.content.labels.xn, 12, G.fy - 14, { align: 'left', size: 12, c });
+      if (v.streak >= 3 && s.phase === 'swim') { const pk = Math.max(0, 1 - (v.t - v.streakT) / 0.25); Lbl.put('jw-streak', Txt.f(this.content.labels.streak, { n: v.streak }), G.W - 14, this.hudH() + 46, { align: 'right', size: Math.round(13 + 3 * pk), c, mono: true }); }
+    }
+  },
+  drawFlecks(c, G) {   // torn scales: silver flakes that spin, glint and sink to the sand (from bite events)
+    const v = this.v; if (!v.flecks || !v.flecks.length) return;
+    for (const q of v.flecks) {
+      const glint = Math.abs(Det.sin(q.rot)), a = q.land ? Math.max(0, 1 - q.land / 1.2) : 1; if (a <= 0) continue;
+      c.save(); c.globalAlpha = a; c.translate(q.x, q.y); c.rotate(q.rot); c.scale(1, 0.35 + 0.65 * glint);
+      c.beginPath(); c.ellipse(0, 0, q.r, q.r * 0.75, 0, 0, TAU); c.fillStyle = glint > 0.85 ? '#FFFFFF' : 'rgba(220,234,232,0.85)'; c.fill(); c.lineWidth = 0.7; c.strokeStyle = 'rgba(27,22,18,0.55)'; c.stroke(); c.restore();
     }
   },
   drawPips(c, G) {   // guard plates available: filled while a plate is up (D4: two guard pips)
     const s = this.sim.s, n = this.sim.cfg(this.level).plates || 1, up = s.plates ? s.plates.length : 0, y = this.hudH() + 20;
-    for (let i = 0; i < n; i++) { const x = G.W - 20 - i * 20, ready = i >= up; c.beginPath(); c.moveTo(x, y - 10); c.quadraticCurveTo(x + 12, y, x, y + 10); c.quadraticCurveTo(x + 4, y, x, y - 10); c.closePath(); c.fillStyle = ready ? '#E8DFC9' : 'rgba(27,22,18,0.3)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke(); }
+    for (let i = 0; i < n; i++) { const x = G.W - 20 - i * 20, ready = i >= up; c.beginPath(); c.moveTo(x, y - 10); c.quadraticCurveTo(x + 12, y, x, y + 10); c.quadraticCurveTo(x + 4, y, x, y - 10); c.closePath(); c.fillStyle = ready ? '#E2725B' : 'rgba(27,22,18,0.3)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke(); }
   },
   drawFloor(c, G) {   // the twist histogram on the lake floor: one dot per scale-eater, left-strikers left of the line, right-strikers right
     const s = this.sim.s, v = this.v, W = G.W, x0 = 18, x1 = W - 18, nb = 25, bw = (x1 - x0) / nb, r = Math.max(2.2, Math.min(4, bw * 0.32)), base = G.H - 8;
@@ -842,7 +935,8 @@ const CH_JAWS_V2 = {
     }
   },
   drawPrey(c, G, f) {
-    const s = this.sim.s, v = this.v, x = G.xs[f], y = G.y, len = G.len, wid = G.wid, calm = typeof Fx !== 'undefined' && Fx.calm, sway = calm ? 0 : Det.sin(v.t * 2.2 + f * 1.7) * 0.03;
+    const s = this.sim.s, v = this.v, kn = v.knock[f], kk = kn ? Det.sin(Math.PI * Math.min(1, kn.t / 0.3)) : 0, ksd = kn && kn.side ? -1 : 1;   // a bitten fish jolts away from the bite
+    const x = G.xs[f] + ksd * 7 * kk, y = G.y, len = G.len, wid = G.wid, calm = typeof Fx !== 'undefined' && Fx.calm, sway = (calm ? 0 : Det.sin(v.t * 2.2 + f * 1.7) * 0.03) + ksd * 0.12 * kk;
     if (typeof Rig !== 'undefined' && Rig.has('jwprey')) Rig.draw(c, 'jwprey', { k: 0 }, x, y, { size: len, rot: sway });
     for (const sc of v.scars) if (sc.f === f) { const sx = x + (sc.side ? 1 : -1) * wid * 0.36, sy = y - len * 0.1 + sc.y * len * 0.35; c.beginPath(); c.ellipse(sx, sy, 4, 6, 0, 0, TAU); c.fillStyle = '#D9D4C0'; c.fill(); c.lineWidth = 1; c.strokeStyle = '#1B1612'; c.stroke(); }
     const crescent = (px, sd, top, bot) => { c.beginPath(); c.moveTo(px, top); c.quadraticCurveTo(px + sd * wid * 0.42, (top + bot) / 2, px, bot); c.quadraticCurveTo(px + sd * wid * 0.14, (top + bot) / 2, px, top); c.closePath(); };
@@ -854,24 +948,24 @@ const CH_JAWS_V2 = {
       c.save(); c.globalAlpha = calm ? 1 : Math.min(1, 0.3 + ov);
       crescent(px, sd, top, bot);
       c.fillStyle = fl ? '#FFFFFF' : '#E8DFC9'; c.fill(); c.lineWidth = fl && calm ? 3 : 1.5; c.strokeStyle = '#1B1612'; c.stroke(); c.restore();
-      if (!s.unt && pl.t1 < 1e8) { const left = Math.max(0, (pl.t1 - s.T) / CH_JAWS_V2.P.guard.v); c.beginPath(); c.arc(x, y, len * 0.56, -Math.PI / 2, -Math.PI / 2 + TAU * left); c.lineWidth = 3; c.strokeStyle = 'rgba(244,238,221,0.7)'; c.stroke(); }
+      if (!s.unt && pl.t1 < 1e8) { const left = Math.max(0, (pl.t1 - s.T) / CH_JAWS_V2.P.guard.v); c.beginPath(); c.arc(x, y, len * 0.56, -Math.PI / 2, -Math.PI / 2 + TAU * left); c.lineWidth = 3.5; c.strokeStyle = 'rgba(226,114,91,0.9)'; c.lineCap = 'round'; c.stroke(); c.lineCap = 'butt'; }
     }
     if (v.focus === f) { c.save(); c.setLineDash([4, 4]); c.beginPath(); c.arc(x, y, len * 0.6, 0, TAU); c.lineWidth = 2; c.strokeStyle = '#F4EEDD'; c.stroke(); c.restore(); }
   },
   drawAttackers(c, G) {   // scale-eaters lurk behind their target, then veer to a flank in the last 0.16 s; the twisted jaw shows only then
-    const s = this.sim.s, v = this.v, len = G.len * 0.62, calm = typeof Fx !== 'undefined' && Fx.calm, has = typeof Rig !== 'undefined' && Rig.has('jwscaler');
+    const s = this.sim.s, v = this.v, len = G.len * 0.68, calm = typeof Fx !== 'undefined' && Fx.calm, has = typeof Rig !== 'undefined' && Rig.has('jwscaler');
     if (s.wave && s.phase === 'swim') {
       const w = s.wave, wait = w.tb >= 1e8;
       for (const a of w.att) {
         const fx = G.xs[a.f], start = G.H + len * 0.3, lurk = G.y + G.len * 0.62 + len * 0.45, tA = wait ? 1 : Math.min(1, (s.T - w.t0) / Math.max(0.2, w.tb - w.t0 - JW_T.veer));
         let x = fx + (calm ? 0 : Det.sin(v.t * 7 + a.f) * 4), y = start + (lurk - start) * (1 - (1 - tA) * (1 - tA)), rot = 0, tw = 0;
         if (w.veered && a.side >= 0) { const k = Math.min(1, (s.T - (w.tb - JW_T.veer)) / JW_T.veer), p = this.flank(G, a.f, a.side), sd = a.side ? 1 : -1; x = fx + (p[0] + sd * len * 0.2 - fx) * k; y = lurk + (p[1] + len * 0.42 - lurk) * k; rot = -sd * 0.5 * k; tw = this.tw(s.pop[a.sp][a.i].z); }
-        if (has) Rig.draw(c, 'jwscaler', { tw, st: a.sp === 1 }, x, y, { size: len, rot, alpha: wait ? 0.85 : Math.min(1, 0.4 + tA) });
+        if (has) Rig.draw(c, 'jwscaler', { tq: (tw + 1) / 2, st: a.sp === 1 }, x, y, { size: len, rot, alpha: wait ? 0.85 : Math.min(1, 0.4 + tA) });
       }
     }
     for (const r of v.recoil) {   // after the strike: a block recoils 6 px and flees; a bite darts off with its scale
       const p = this.flank(G, r.f, r.side), sd = r.side ? 1 : -1, k = r.t / 0.9, back = r.ok ? 6 + 160 * k * k : 30 * k + 200 * k * k;
-      if (has) Rig.draw(c, 'jwscaler', { tw: this.tw(r.z), st: r.sp === 1 }, p[0] + sd * (len * 0.2 + back * 0.3), p[1] + len * 0.42 + back, { size: len, rot: -sd * 0.5 + sd * k * 0.8, alpha: Math.max(0, 1 - k) });
+      if (has) Rig.draw(c, 'jwscaler', { tq: (this.tw(r.z) + 1) / 2, st: r.sp === 1 }, p[0] + sd * (len * 0.2 + back * 0.3), p[1] + len * 0.42 + back, { size: len, rot: -sd * 0.5 + sd * k * 0.8, alpha: Math.max(0, 1 - k) });
     }
   },
   tw(z) { return Math.round(Math.max(-1, Math.min(1, z / 1.4)) * 2) / 2; },
@@ -880,7 +974,7 @@ const CH_JAWS_V2 = {
   lizPos(side, k) { const W = Stage.w, H = Stage.h, cy = H * 0.55; return [W / 2 + (side ? 1 : -1) * (W * 0.42 - (W * 0.42 - 54) * k), cy + 10]; },
   drawRocks(c, w, h) {
     const s = this.sim.s, v = this.v, u = Stage.u || 390, k = Math.round(w) + 'x' + Math.round(h), has = typeof Rig !== 'undefined';
-    if (v.bgk !== k || !v.bg) { v.bgk = k; v.bg = has && Rig.grounds().indexOf('rocks') >= 0 ? Rig.ground('rocks', w, h, (Stage.dpr || 1), 3).cv : null; v.crowdK = ''; }
+    if (v.bgk !== k || !v.bg) { v.bgk = k; v.bg = this.bakeRocks(w, h, has); v.crowdK = ''; }
     if (v.bg) c.drawImage(v.bg, 0, 0, w, h); else { c.fillStyle = '#A79A82'; c.fillRect(0, 0, w, h); }
     const x = s.phase === 'auto' ? s.wtrail[s.wtrail.length - 1] : s.trail[s.trail.length - 1], ck = k + ':' + x.map(q => Math.round(q * 24)).join(',');
     if (v.crowdK !== ck && has && typeof Layer === 'function') {   // 24 lizards stand for the 150: the morph mix, redrawn once a season
@@ -918,6 +1012,18 @@ const CH_JAWS_V2 = {
     }
   },
 
+  bakeRocks(w, h, has) {   // a new world for the boss: a sun-baked California hillside (warm sandstone, coastal sage, long afternoon light); baked once per size
+    const d = Stage.dpr || 1, cv = mkCanvas(Math.round(w * d), Math.round(h * d)), c = cv.getContext('2d'), r = rng(19);
+    const g0 = has && Rig.grounds().indexOf('rocks') >= 0 ? Rig.ground('rocks', w, h, d, 3).cv : null;
+    if (g0) c.drawImage(g0, 0, 0); c.scale(d, d); if (!g0) { c.fillStyle = '#B8A585'; c.fillRect(0, 0, w, h); }
+    const sun = c.createLinearGradient(0, 0, w, h); sun.addColorStop(0, 'rgba(255,190,110,0.30)'); sun.addColorStop(0.6, 'rgba(240,170,100,0.12)'); sun.addColorStop(1, 'rgba(120,70,40,0.18)'); c.fillStyle = sun; c.fillRect(0, 0, w, h);
+    const sage = (x, y, rad) => { for (let i = 0; i < 9; i++) { const a = r() * TAU, q = rad * (0.3 + 0.6 * r()); c.beginPath(); c.arc(x + q * Det.cos(a), y + q * 0.6 * Det.sin(a), rad * (0.3 + 0.25 * r()), 0, TAU); c.fillStyle = i % 3 ? 'rgba(122,140,104,0.9)' : 'rgba(156,170,132,0.9)'; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(27,22,18,0.45)'; c.stroke(); } };
+    const top = this.hudH() + 10, sc = Math.max(0.7, Math.min(1.3, w / 700));
+    for (let i = 0; i < 5; i++) { sage(r() * w * 0.12, top + r() * (h - top), 18 * sc); sage(w - r() * w * 0.12, top + r() * (h - top), 18 * sc); }
+    const vg = c.createRadialGradient(w / 2, h * 0.55, Math.min(w, h) * 0.3, w / 2, h * 0.55, Math.max(w, h) * 0.75); vg.addColorStop(0, 'rgba(60,30,10,0)'); vg.addColorStop(1, 'rgba(60,30,10,0.32)'); c.fillStyle = vg; c.fillRect(0, 0, w, h);
+    return cv;
+  },
+
   /* ---------- the live strip (notes() is the LiveGraph data provider) ---------- */
   notes() {
     const s = this.sim.s, D = this.content.data, L = this.content.labels, pc = v => Math.round(100 * v) + '%'; if (!s) return { stats: [], charts: [] };
@@ -952,44 +1058,52 @@ V2.push(CH_JAWS_V2);
 
 /* ---------- a trace with a marker at every season (disc, square, triangle by series), so two species or three morphs read without hue ---------- */
 if (typeof LiveGraph !== 'undefined' && LiveGraph.T && LiveGraph.T.trace && !LiveGraph.T.jw_trace) LiveGraph.T.jw_trace = Object.assign({}, LiveGraph.T.trace, {
-  draw(c, G, spec, T) {
-    LiveGraph.T.trace.draw.call(this, c, G, spec, T);
-    const p = G.plot, I = T.I, r = 3.2 * (T.k || 1);
+  draw(c, G, spec, T) {   // the engine trace without its end labels; then a marker at every season and end labels whose marker matches each line's shape
+    const bare = Object.assign({}, spec, { series: (spec.series || []).map(q => Object.assign({}, q, { label: null })), ghost: (spec.ghost || []).map(q => Object.assign({}, q, { label: null })) });
+    LiveGraph.T.trace.draw.call(this, c, G, bare, T);
+    const p = G.plot, I = T.I, r = 3.2 * (T.k || 1), ends = [];
     (spec.series || []).forEach((s, k) => {
+      let last = null;
       for (const q of this.pts(s.d, G.x0, G.st)) {
-        if (q[1] == null) continue; const x = G.X(q[0]), y = G.Y(q[1]); if (x < p.x - 1 || x > p.x + p.w + 1) continue;
+        if (q[1] == null) continue; const x = G.X(q[0]), y = G.Y(q[1]); last = y; if (x < p.x - 1 || x > p.x + p.w + 1) continue;
         c.beginPath(); if (k === 1) c.rect(x - r, y - r, 2 * r, 2 * r); else if (k === 2) { c.moveTo(x, y - r * 1.2); c.lineTo(x + r, y + r * 0.8); c.lineTo(x - r, y + r * 0.8); c.closePath(); } else c.arc(x, y, r, 0, TAU);
-        c.fillStyle = k === 1 ? I.surface : I.text; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I.text; c.stroke();
+        c.fillStyle = I.text; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I.text; c.stroke();
       }
+      if (s.label && last != null) ends.push({ y: last, text: s.label, col: I.text, role: k === 1 ? 'a' : k === 2 ? 'sel' : 'ink' });   // wgMark: square, triangle, disc
     });
+    for (const g of spec.ghost || []) { const l = this.pts(g.d, G.x0, G.st).filter(q => q[1] != null).pop(); if (l && g.label) ends.push({ y: G.Y(l[1]), text: g.label, col: I.text, dash: true }); }
+    if (typeof wgEnds === 'function') wgEnds(c, G, ends, T);
   }
 });
 
 /* ---------- rigs: the prey cichlid and the scale-eater seen from above (dorsal view, head up), and a plain female lizard ---------- */
 if (typeof Rig !== 'undefined') {
   const { E, P, D, OL, eye, INK } = Rig._, ol = o => Object.assign({}, OL, o);
-  Rig.def('jwprey', {   // a deep-bodied Tanganyika cichlid from above: natural olive-grey paint, dark saddles, spread pectorals
-    tier: 'hero', pose: 0, paints: ['#9AA58C', '#5E6B55', '#7D8A6E'],
+  Rig.def('jwprey', {   // a deep-bodied Tanganyika cichlid from above: sand-silver flanks, dark saddles, coral-edged fins
+    tier: 'hero', pose: 0, paints: ['#CDC4A2', '#7E7458', '#E08E74'],
     row: { scene: 'lake', squint: 'spindle fish from above with spread fins', channels: ['flank plates and scars (position)'] },
     recipe() {
       const body = [['M', 0, -50], ['C', 15, -44, 18, -18, 15, 2], ['C', 13, 20, 7, 32, 0, 38], ['C', -7, 32, -13, 20, -15, 2], ['C', -18, -18, -15, -44, 0, -50], ['Z']];
       return { w: 48, h: 104, parts: [
-        P([-3, 33, -17, 51, 0, 45, 17, 51, 3, 33], '#7D8A6E', ol({ lw: 1.2 })), E(-15, -16, 10, 4, '#7D8A6E', ol({ rot: -0.5, lw: 1.2 })), E(15, -16, 10, 4, '#7D8A6E', ol({ rot: 0.5, lw: 1.2 })),
-        D(body, '#9AA58C', ol({ kids: [E(0, -22, 16, 4, 'rgba(70,80,62,0.45)'), E(0, -4, 16, 4.5, 'rgba(70,80,62,0.45)'), E(0, 14, 13, 4, 'rgba(70,80,62,0.45)'), E(-5, -20, 4, 18, 'rgba(255,255,255,0.18)'), E(6, 4, 5, 22, 'rgba(0,0,0,0.1)')] })),
-        P([0, -46, 0, 30], null, { stroke: '#5E6B55', lw: 2.2, close: false }), ...eye(-8.5, -39, 2.6), ...eye(8.5, -39, 2.6)] };
+        P([-3, 33, -17, 52, -6, 47, 0, 50, 6, 47, 17, 52, 3, 33], '#E08E74', ol({ lw: 1.2 })), E(-15, -16, 10, 4, '#E08E74', ol({ rot: -0.5, lw: 1.2 })), E(15, -16, 10, 4, '#E08E74', ol({ rot: 0.5, lw: 1.2 })),
+        D(body, '#CDC4A2', ol({ kids: [E(0, -24, 16, 3.6, 'rgba(96,86,62,0.5)'), E(0, -7, 16, 4.2, 'rgba(96,86,62,0.5)'), E(0, 10, 13, 3.8, 'rgba(96,86,62,0.5)'), E(0, 24, 9, 3, 'rgba(96,86,62,0.45)'), E(-5, -18, 4, 20, 'rgba(255,255,255,0.3)'), E(7, 4, 5, 24, 'rgba(0,0,0,0.1)')] })),
+        P([0, -44, 0, 30], null, { stroke: '#8A6A52', lw: 2.4, close: false }), P([0, -38, 0, 22], null, { stroke: '#E08E74', lw: 1, close: false }), ...eye(-8.5, -39, 2.8), ...eye(8.5, -39, 2.8)] };
     }
   });
-  Rig.def('jwscaler', {   // Perissodus from above: slender, dark; ph.tw bends the head (−1 left-striker … 1 right-striker); ph.st the striped species
-    tier: 'actor', pose: 0, quant: { tw: 5, '*': 4 }, paints: ['#4F4B40', '#3D3A31', '#262420'],
-    row: { scene: 'lake', squint: 'slender fish with a bent snout', channels: ['jaw bend (shape)', 'stripes: second species (pattern)'] },
+  Rig.def('jwscaler', {   // Perissodus from above: slender, tawny with dark bars; ph.tq bends the head and jaw (0 left-striker … 1 right-striker); ph.st the striped species
+    tier: 'actor', pose: 0, quant: { tq: 5, '*': 4 }, paints: ['#8A8064', '#5E5744', '#2E2A22'],
+    row: { scene: 'lake', squint: 'slender fish with a hooked, bent jaw', channels: ['jaw bend (shape)', 'stripes: second species (pattern)'] },
     recipe(ph) {
-      const tw = Math.max(-1, Math.min(1, +ph.tw || 0)), body = [['M', 0, -24], ['C', 7, -21, 8, -6, 7, 6], ['C', 6, 18, 3, 24, 0, 26], ['C', -3, 24, -6, 18, -7, 6], ['C', -8, -6, -7, -21, 0, -24], ['Z']];
-      const stripes = ph.st ? [E(0, -12, 7.5, 1.6, '#262420'), E(0, -2, 8, 1.6, '#262420'), E(0, 8, 7, 1.6, '#262420'), E(0, 17, 5, 1.4, '#262420')] : [E(0, -4, 2, 18, 'rgba(0,0,0,0.25)')];
+      const tw = Math.max(-1, Math.min(1, 2 * (ph.tq == null ? 0.5 : +ph.tq) - 1)), body = [['M', 0, -23], ['C', 7, -20, 8, -6, 7, 6], ['C', 6, 18, 3, 24, 0, 26], ['C', -3, 24, -6, 18, -7, 6], ['C', -8, -6, -7, -20, 0, -23], ['Z']];
+      const marks = ph.st ? [E(0, -12, 7.5, 1.7, '#2E2A22'), E(0, -3, 8, 1.7, '#2E2A22'), E(0, 6, 7.5, 1.7, '#2E2A22'), E(0, 15, 5.5, 1.5, '#2E2A22')] : [E(0, -6, 1.8, 16, 'rgba(40,34,26,0.45)'), E(-4, 2, 1.2, 1.2, 'rgba(40,34,26,0.5)'), E(4, 9, 1.2, 1.2, 'rgba(40,34,26,0.5)')];
       return { w: 26, h: 72, parts: [
-        P([-2, 24, -10, 36, 0, 32, 10, 36, 2, 24], '#3D3A31', ol({ lw: 1 })),
-        D(body, '#4F4B40', ol({ kids: stripes.concat([E(-2.5, -8, 2, 12, 'rgba(255,255,255,0.15)')]) })),
-        { op: 'g', x: 0, y: -21, rot: -tw * 0.45, parts: [P([-5, 0, -2.2, -14, 0, -15.5, 2.2, -14, 5, 0], '#4F4B40', ol({ lw: 1.2 })), P([0, -15.5, tw * 3, -11], null, { stroke: '#E8DFC9', lw: 1.2, close: false })] },
-        ...eye(-4.2, -20, 1.7), ...eye(4.2, -20, 1.7)] };
+        P([-2, 24, -10, 36, 0, 31, 10, 36, 2, 24], '#5E5744', ol({ lw: 1 })), E(-7, -8, 5, 2, '#5E5744', ol({ rot: -0.6, lw: 1 })), E(7, -8, 5, 2, '#5E5744', ol({ rot: 0.6, lw: 1 })),
+        D(body, '#8A8064', ol({ kids: marks.concat([E(-2.5, -8, 2, 12, 'rgba(255,255,255,0.2)')]) })),
+        { op: 'g', x: 0, y: -19, rot: -tw * 0.72, parts: [   // the head, bent to one side; the jaw opens further that way (a hook with pale lips and a dark gape)
+          P([-5.5, 0, -3, -12, -tw * 1.6, -16.5, 3, -12, 5.5, 0], '#8A8064', ol({ lw: 1.2 })),
+          E(-tw * 3.4, -14.2, 3, 1.9, '#3A1F1A', { rot: tw * 0.5 }),
+          P([-tw * 1.6, -16.5, -tw * 5, -16, -tw * 6.4, -11.5], null, { stroke: '#F3E8CF', lw: 2.2, close: false }),
+          ...eye(-3.7, -3, 1.8), ...eye(3.7, -3, 1.8)] }] };
     }
   });
   Rig.def('jwfem', {   // the blue male's female: the lizard rig with its throat painted plain (females are drawn without a male morph)
