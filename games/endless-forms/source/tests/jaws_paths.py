@@ -34,8 +34,8 @@ def page(b, w=390, h=780, q='', calm=False):
 
 def play(pg, lv, seed=7):
     pg.evaluate("([lv, sd])=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.jaws, lv, {seed: sd}); window.__advance(200); }", [lv, seed])
-    if pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"):   # the opening card (D6 decision 8): Play closes it
-        pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(300)")
+    if pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"):   # the opening card (D6 decision 8): Play closes it (the card ignores taps in its first moments)
+        pg.evaluate("()=>window.__advance(800)"); pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(300)")
 
 
 def flank_xy(pg, f, side):
@@ -51,11 +51,11 @@ def main():
         pg.evaluate("()=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.jaws, 0, {seed: 7}); window.__advance(300); }")
         card = pg.evaluate("()=>{ const c = document.querySelector('#cards.on .card.ef-intro'); return c ? {n: c.querySelectorAll('.ef-in-part').length, text: c.innerText} : null; }")
         check(bool(card) and card['n'] == 3 and 'Lake Tanganyika' in card['text'], 'the opening card shows the game, the biology and how to play')
-        pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(400)")
+        pg.evaluate("()=>window.__advance(800)"); pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(400)")
         check(not pg.evaluate("()=>!!document.querySelector('#cards.on .card')"), 'Play closes the opening card')
         q = pg.query_selector('.ef-q')
         if q:
-            q.click(); pg.evaluate("()=>window.__advance(300)")
+            q.click(); pg.evaluate("()=>window.__advance(900)")
             check(pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"), 'the dock "?" reopens the card during play')
             pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(300)")
         check(not errs, 'no page errors on the opening card: %s' % errs[:2])
@@ -144,6 +144,7 @@ def main():
         # ---- Calm, a deep link, teacher step ----
         ctx, pg, errs = page(b, 390, 780, '?unit=jaws&level=2&seed=5', calm=True)
         pg.evaluate("()=>window.__advance(3000)")
+        if pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"): pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(400)")
         st = pg.evaluate("()=>({lv: TB.REG.jaws.level, calm: !!(TB.Fx && TB.Fx.calm), v2: TB.REG.jaws.v2 === true})")
         check(st['lv'] == 2 and st['calm'] and st['v2'], 'a deep link opens L3 in Calm mode')
         pg.evaluate("""()=>{ const ch = TB.REG.jaws; for (let i = 0; i < 600; i++) { const s = ch.sim.s; if (s.ask) TB.Sim.act(ch, {k: 'predict', id: s.ask.id, v: 0.4}); else { const a = ch.sim.bots.greedy(s, ch.sim.actions()); if (a) TB.Sim.act(ch, a); } window.__advance(100); } }""")
@@ -151,6 +152,7 @@ def main():
         ctx.close()
         ctx, pg, errs = page(b, 1280, 720, '?teacher=1&unit=jaws&level=1&seed=3')
         pg.evaluate("()=>window.__advance(2500)")
+        if pg.evaluate("()=>!!document.querySelector('#cards.on .card.ef-intro')"): pg.click('#cards.on .card.ef-intro .btn.primary'); pg.evaluate("()=>window.__advance(400)")
         st = pg.evaluate("()=>{ const ch = TB.REG.jaws, s0 = ch.sim.s.season; TB.Sim.act(ch, {k: 'guard', f: 0, side: 1}); window.__advance(100); TB.Teacher && TB.Teacher.step && TB.Teacher.step(); window.__advance(200); return [s0, ch.sim.s.phase, ch.sim.s.att, ch.sim.cfg(1).att]; }")
         check(st[1] in ('dusk', 'ask', 'breed') and st[2] >= st[3], 'teacher step resolves the rest of the season (%s)' % st)
         check(not errs, 'teacher mode shows no errors (%s)' % (errs[:2],))

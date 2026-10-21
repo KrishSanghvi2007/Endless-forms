@@ -34,7 +34,7 @@ const TP_TEXT = {
     bal: 'Many generations on. Dive again: how many unsteady chicks are left?',
     askA1: 'Your catch rate was {s}%. Drag where the a share will settle.',
     askB1: 'Now a is recessive. Catch rate {s}%. Drag where the a share settles.',
-    askC1: 'No gull can dive under the net. Drag when the a share will double.',
+    askC1: 'Under the net no gull dives. When will the a share, now {q}, double?',
     askT1: 'Two more gulls hunt with you. Drag where the load will settle.',
     lapse: 'The colony runs on at your catch rate. Watch drip against leak.',
     net: 'The warden’s net keeps gulls off the ledges. Selection is relaxed.',
@@ -44,6 +44,7 @@ const TP_TEXT = {
     purge: 'The purge: the colony runs on at your catch rate.',
     boss: 'The keeper wants the load halved: chicks lost to the allele, per 1,000.',
     twist: 'Hunt harder: two more black-backs join you.',
+    bossDusk: 'Dive. Your catches add to the other gulls’ hunting.',
     season: 'Five generations pass. Watch the load.',
     hint: 'The load is back on its line. What else fills the pool?',
     plugged: 'The drum is shut. Half the drip is gone.',
@@ -118,7 +119,7 @@ const TP_TEXT = {
   levelBody: [
     'You caught {c} of {n} unsteady chicks: a catch rate of {s}%. The a share settled near {q}; μ ÷ s gives {e}. At balance you caught {b} in a dusk; the drip adds about {d} copies to your stretch.',
     'Your catch rate was {s}%. The a share settled near {q}, against √(μ ÷ s) = {e}. At balance {k} chicks in 100 carried a, but only {a} in 100 were unsteady.',
-    'Under the net the a share rose from {q0} to {q1} in 30 generations; it doubled after about {d}. At a real drip near 10⁻⁵, doubling from balance takes about 450 generations.'
+    'Under the net the a share rose from {q0} to {q1} in 30 generations. It doubled after about {d}. At a real drip near 10⁻⁵, doubling from balance takes about 450 generations.'
   ],
   model: [
     { level: 0, simulated: 'A kittiwake colony of 2,000 chicks a generation. One gene has a harmful allele, a; affected chicks totter at the ledge edge.',
@@ -147,23 +148,23 @@ const TP_TEXT = {
       contested: false, refs: ['haldane1937', 'muller1950', 'yauk1996'] }
   ],
   why: {
-    real: ['Muller called this our load of mutations. Each of thousands of genes has its own drip, so the total load is large, whatever the strength of selection.'],
+    real: ['Muller called this our load of mutations. Thousands of genes each have their own drip. So the total load is large, whatever the strength of selection.'],
     maths: ['Recessive: at balance s·q² = μ, so the share of chicks lost, s·q², is μ. Dominant: each loss removes one copy, not two, so twice as many die: 2μ. Neither contains s.']
   },
   levelWhy: [
     { real: ['J. B. S. Haldane used this balance in 1935 to estimate how often the haemophilia gene mutates. The copies lost each generation must be replaced by new mutations.'],
       maths: ['Each generation selection removes about s·q copies per copy and mutation adds μ. They balance when s·q = μ, so q ≈ μ ÷ s. With partial dominance h, q ≈ μ ÷ (h·s).'] },
-    { real: ['A rare recessive allele sits almost entirely in carriers, out of selection’s reach. At a real μ of 10⁻⁵ and s = 1, √(μ ÷ s) is about 300 times μ ÷ s.'],
+    { real: ['A rare recessive allele sits almost entirely in carriers, out of selection’s reach. With a real μ of 10⁻⁵ and s = 1, √(μ ÷ s) is 316 times μ ÷ s.'],
       maths: ['Only aa chicks are removed, a share q², so selection removes about s·q² copies a generation. Balance: s·q² = μ, so q ≈ √(μ ÷ s).'] },
     { real: ['Selection relaxes when a predator vanishes, or when medicine treats a condition. The allele then creeps up by new mutation alone, about one in 100,000 copies a generation or fewer.'],
-      maths: ['With s = 0, q grows by μ(1 − q) a generation. Doubling from balance takes roughly q ÷ μ generations: 15 here, about 450 at a real μ of 10⁻⁵.'] }
+      maths: ['With s = 0, q grows by μ(1 − q) a generation. Doubling from balance takes roughly q ÷ μ generations. That is 15 here, and 450 at a real μ of 10⁻⁵.'] }
   ]
 };
 /* ---------- levels: plain-JSON scripts the sim steps through ---------- */
 const TP_LV = [
   { h: 1, q0: 0.2, mu: 0.02, steps: [{ k: 'season', n: 4, dives: 6, quota: 8 }, { k: 'ask', id: 'a1' }, { k: 'lapse', g: 30 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
-  { h: 0, q0: 0.35, mu: 0.02, lens: 1, steps: [{ k: 'season', n: 4, dives: 6, quota: 4 }, { k: 'ask', id: 'b1' }, { k: 'lapse', g: 40 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
-  { h: 0, q0: 0.2, mu: 0.02, lens: 1, steps: [{ k: 'pause', note: 'net', t: 2.2 }, { k: 'ask', id: 'c1' }, { k: 'lapse', g: 30, s0: 1 }, { k: 'pause', note: 'lift', t: 1.8 }, { k: 'season', n: 2, dives: 6, quota: 6, feast: 1 }, { k: 'lapse', g: 25 }] },
+  { h: 0, q0: 0.4, mu: 0.02, lens: 1, steps: [{ k: 'season', n: 4, dives: 6, quota: 4 }, { k: 'ask', id: 'b1' }, { k: 'lapse', g: 40 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
+  { h: 0, q0: -1, mu: 0.02, lens: 1, steps: [{ k: 'pause', note: 'net', t: 2.2 }, { k: 'ask', id: 'c1' }, { k: 'lapse', g: 30, s0: 1 }, { k: 'pause', note: 'lift', t: 1.8 }, { k: 'season', n: 2, dives: 6, quota: 6, feast: 1 }, { k: 'lapse', g: 25 }] },
   { h: 0, q0: 0, mu: 0, boss: 1, lens: 1, steps: [] }   // filled in reset: six seasons of 5 generations, the gulls join before season 2
 ];
 const TP_T = { dt: 1 / 30, dusk: 12, bossDusk: 8, dawn: 1.2, arrive: 8, busy: 15, gen: 0.16, bossGen: 0.3, askMax: 30, untMax: 60, V: 48, N: 2000 };
@@ -186,7 +187,7 @@ const CH_TAP_V2 = {
   keys: { Space: 'dive or speed up', ArrowLeft: 'previous nest', ArrowRight: 'next nest', L: 'lens', D: 'shut the drum', E: 'end dusk', P: 'predict' },
   untimed: true,
   teacher: { prompts: ['Why does a recessive harmful allele settle at a higher frequency than a dominant one?', 'Medicine lets people with a recessive condition have children. How fast does that raise the allele’s frequency?', 'This model has one gene and one predator. What would many harmful genes, each with its own drip, change?'], pool: 'trace' },
-  starTraits: ['posture'],
+  starTraits: ['unsteady'],
   encodings: [   // the phenotype is posture and motion (tottering at the lip); allele inks appear only in genotype read-outs, with letters
     { k: 'unsteady', rgb: [236, 232, 226], channels: ['shape', 'position'] }, { k: 'steady', rgb: [214, 210, 206], channels: ['shape', 'position'] }
   ],
@@ -218,9 +219,10 @@ const CH_TAP_V2 = {
       let q0 = L.q0;
       if (L.boss) {   // the drip varies by seed so no fixed answer fits every run; rain and drum each give half
         const mt = [0.014, 0.02, 0.026][Math.floor(R() * 3)]; s.mu = mt / 2; s.muD = mt / 2; s.drum = true; q0 = Math.sqrt(mt / 0.5);
-        const st = []; for (let k = 0; k < 6; k++) { if (k === 1) st.push({ k: 'pause', note: 'twist', t: 2 }); st.push({ k: 'season', n: 1, dives: 6, boss: 1 }); if (k === 1) st.push({ k: 'ask', id: 't1' }); st.push({ k: 'lapse', g: 4 }); }
+        const st = []; for (let k = 0; k < 6; k++) { if (k === 1) st.push({ k: 'pause', note: 'twist', t: 2 }); st.push({ k: 'season', n: 1, dives: 6, boss: 1 }); if (k === 1) st.push({ k: 'ask', id: 't1' }); st.push({ k: 'lapse', g: 5 }); }
         s.steps = st; s.mt = mt;
       }
+      if (q0 < 0) { s.sPrev = [0.3, 0.5, 0.8][Math.floor(R() * 3)]; q0 = this.r5(this.qhat(s.sPrev, L.h, L.mu)); }   // L3 opens at the balance of an earlier catch rate, so no fixed answer fits every run
       s.q0 = q0; s.q = q0; s.qE = q0; s.c = this.hw(q0, N);
       s.hist.push({ g: 0, q: this.r5(q0), qE: this.r5(q0) });
       this.next(s, []);
@@ -233,7 +235,10 @@ const CH_TAP_V2 = {
       if (!st) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
       if (st.k === 'season') this.seasonStart(s, ev, st);
       else if (st.k === 'ask') { if (s.auto) { this.next(s, ev); return; } this.openAsk(s, ev, st.id); }
-      else if (st.k === 'lapse') { s.phase = 'lapse'; s.lg = 0; s.lapseS = st.s0 ? 0 : s.sCol; if (st.s0) s.net = true; ev.push({ k: 'lapse', g: st.g }); }
+      else if (st.k === 'lapse') {
+        if (!s.auto) (s.l0s || (s.l0s = [])).push({ c: s.c.slice(), q: s.q, qE: s.qE, gen: s.gen, hn: s.hist.length, si: s.si });   // where a What if? rewinds to
+        s.phase = 'lapse'; s.lg = 0; s.lapseS = st.s0 ? 0 : s.sCol; if (st.s0) s.net = true; ev.push({ k: 'lapse', g: st.g });
+      }
       else if (st.k === 'pause') { s.phase = 'pause'; s.note = st.note; if (st.note === 'net') s.net = true; if (st.note === 'lift') s.net = false; if (st.note === 'twist') s.gulls = true; ev.push({ k: 'note', note: st.note }); }
     },
     step(dt) {
@@ -282,11 +287,10 @@ const CH_TAP_V2 = {
       const sy = auto ? (s.whatifS != null ? s.whatifS : 0.5) : s.seen > 0 ? s.caught / s.seen : 0.5;
       if (st.bal) { if (!auto) { s.balDone = true; s.balC = s.caught; s.balN = s.seen; } this.next(s, ev); return; }
       s.sYou = Math.round(sy * 1000) / 1000;
-      s.sCol = st.boss ? Math.round((s.gulls ? 0.6 + 0.35 * sy : 0.3 + 0.4 * sy) * 1000) / 1000 : this.clampS(s.sYou);
+      s.sCol = st.boss ? Math.round((s.gulls ? 0.75 + 0.2 * sy : 0.3 + 0.4 * sy) * 1000) / 1000 : this.clampS(s.sYou);
       if (!auto) { s.cTot += s.caught; s.nTot += s.seen; }
       s.seasons.push({ g: s.gen, sYou: s.sYou, sCol: s.sCol, c: auto ? 0 : s.caught, n: s.seen });
-      ev.push({ k: 'seasonend', s: s.sYou, sc: s.sCol });
-      this.generation(s, ev, s.sCol);
+      ev.push({ k: 'seasonend', s: s.sYou, sc: s.sCol });   // the season's own generation runs first in the next time-lapse, so an ask sees the colony before it responds
       this.next(s, ev);
     },
     canDive(s) { return s.phase === 'dusk' && s.busy === 0 && s.dives > 0 && !s.lens && !s.auto; },
@@ -299,7 +303,7 @@ const CH_TAP_V2 = {
     diveTick(s, ev) {
       s.busy--; if (!s.dv) return; s.dv.at--;
       if (s.dv.at > 0) return; const i = s.dv.i, c = s.vis[i]; s.dv = null;
-      if (c && c.alive && c.aff && (c.ex || s.unt && c.ex)) {
+      if (c && c.alive && c.aff && c.ex) {
         c.alive = false; s.caught++; const st = s.steps[s.si] || {};
         if (!st.bal) s.meals++;
         ev.push({ k: 'catch', i, g: c.g, meals: s.meals, fed: s.quota > 0 && s.meals === s.quota });
@@ -307,6 +311,7 @@ const CH_TAP_V2 = {
     },
     /* ---------- one colony generation: selection at sc, mutation, Wright–Fisher sampling of N chicks ---------- */
     generation(s, ev, sc) {
+      if (s.auto && s.wiPlug != null && s.drum && s.gen >= s.wiPlug) { s.drum = false; s.plugGen = s.gen; }
       const [AA, Aa, aa] = s.c, h = s.h, N = s.N, mu = this.muNow(s);
       const kAa = h ? WF.binom(Aa, sc) : 0, kaa = WF.binom(aa, sc), Aa2 = Aa - kAa, aa2 = aa - kaa;
       const Ac = 2 * AA + Aa2, ac = Aa2 + 2 * aa2, tot = Ac + ac, m = mu > 0 ? WF.binom(Ac, mu) : 0, q2 = tot > 0 ? (ac + m) / tot : 0;
@@ -320,29 +325,31 @@ const CH_TAP_V2 = {
     openAsk(s, ev, id) {
       const h = s.h, mu = this.muNow(s); let A, e, now = null, tol;
       if (id === 'a1' || id === 'b1') { e = this.qhat(s.sCol, h, mu); now = s.qE; tol = Math.max(0.006, 0.3 * e); A = { kind: 'y', chart: 0, lo: 0, hi: id === 'a1' ? 0.25 : 0.5 }; A.start = A.hi; }
-      else if (id === 'c1') { e = this.doubling(s.qE, h, mu); tol = 0.3 * e; A = { kind: 'x', chart: 0, lo: 0, hi: 50, start: 50 }; }
+      else if (id === 'c1') { e = this.doubling(s.qE, h, mu); tol = 0.3 * e; A = { kind: 'x', chart: 0, lo: 0, hi: 60, start: 60 }; }
       else { e = 1000 * this.eqLoad(s.sCol, h, mu); now = 1000 * this.load(s.qE, s.sCol, h); tol = 0.2 * e; A = { kind: 'y', chart: 0, lo: 0, hi: 60, start: 60 }; }
-      A.id = id; s.ask = A; s.exp[id] = e; s.tol[id] = tol; if (now != null) s.now[id] = now; s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
+      A.id = id; s.ask = A; s.exp[id] = e; s.tol[id] = tol; if (now != null) s.now[id] = now; s.cnt = s.cnt || {}; s.cnt[id] = now == null || Math.abs(e - now) >= tol;   // an ask counts only when "no change" would miss s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
     },
     commit(s, ev, id, v) {
       if (!s.ask || s.ask.id !== id) return; const A = s.ask, e = s.exp[id], tol = s.tol[id], now = s.now[id]; let hit = false;
-      if (v != null && isFinite(+v)) { v = Math.max(A.lo, Math.min(A.hi, +v)); const d = Math.abs(v - e); hit = d <= tol && (now == null || d < Math.abs(v - now)); } else v = null;   // also nearer the answer than "no change"
+      if (v != null && isFinite(+v)) { v = Math.max(A.lo, Math.min(A.hi, +v)); const d = Math.abs(v - e); hit = !!s.cnt[id] && d <= tol && (now == null || d < Math.abs(v - now)); } else v = null;   // also nearer the answer than "no change"
       s.pred[id] = v; s.hits[id] = hit; s.ask = null; ev.push({ k: 'commit', id }); this.next(s, ev);
     },
     /* ---------- What if? (D1 G9): the frozen state reruns automatically with one lever changed ---------- */
     lever(k) {
-      const s = this.s; s.whatif = k; s.auto = true; s.ask = null; s.t = 0; s.lens = false;
-      if (k === 'halfs') { s.sCol = this.clampS(s.sCol / 2); s.lapseS = s.sCol; }
-      else if (k === 'real1' || k === 'real2' || k === 'slow') s.mu = 1e-5;
-      else if (k === 'dom') s.h = 1;
-      if (s.phase === 'lapse') { s.lapseS = s.steps[s.si].s0 ? 0 : s.sCol; }
-      if (k === 'long') s.steps = s.steps.map((x, i) => i === s.si ? Object.assign({}, x, { g: 90 }) : x);
-      if (k === 'long' || k === 'slow') s.steps = s.steps.slice(0, s.si + 1);   // the net run alone
-      else if (s.level < 2) s.steps = s.steps.slice(0, s.si + 1);   // the balance run alone, no balance dusk
-      if (s.level === 3) {   // the boss from its start, at an average catch: the gulls and the drum by the lever
-        s.whatifS = 0.5; s.wiPlug = k === 'early' ? 5 : 10; s.noGulls = k === 'nogulls';
-        s.steps = s.steps.filter(x => !(x.k === 'pause' && x.note === 'twist' && s.noGulls)); s.si = -1; this.next(s, []);
+      const s = this.s; s.whatif = k; s.auto = true; s.ask = null; s.t = 0; s.lens = false; s.busy = 0; s.dv = null;
+      const back = r => { s.c = r.c.slice(); s.q = r.q; s.qE = r.qE; s.gen = r.gen; s.hist.length = r.hn; };
+      if (s.level < 3) {   // the first time-lapse again (the balance run, or the net), with one lever changed; no dusk after it
+        const r = s.l0s[0]; back(r); s.wiQ0 = r.q;
+        if (k === 'halfs') s.sCol = this.clampS(s.sCol / 2);
+        if (k === 'real1' || k === 'real2' || k === 'slow') s.mu = 1e-5;
+        if (k === 'dom') s.h = 1;
+        s.steps = s.steps.slice(0, r.si + 1).map((x, i) => i === r.si && k === 'long' ? Object.assign({}, x, { g: 90 }) : x);
+        s.si = r.si - 1; s.net = false; this.next(s, []); return;
       }
+      back({ c: this.hw(s.q0, s.N), q: s.q0, qE: s.q0, gen: 0, hn: 1 });   // the boss from its start at an average catch; the lever sets the gulls and the drum
+      s.drum = true; s.gulls = false; s.plugGen = null; s.seasons = []; s.whatifS = 0.5; s.wiPlug = k === 'early' ? 5 : 10;
+      if (k === 'nogulls') s.steps = s.steps.filter(x => !(x.k === 'pause' && x.note === 'twist'));
+      s.si = -1; this.next(s, []);
     },
     /* ---------- actions ---------- */
     act(a) {
@@ -396,7 +403,7 @@ const CH_TAP_V2 = {
         if (pred === 'still') return { k: 'predict', id: A.id, v: A.start, moved: false };
         if (pred === 'exact') return { k: 'predict', id: A.id, v: s.exp[A.id] };
         if (pred === 'nochange') return near(A.id === 't1' ? 20 : A.id === 'c1' ? 25 : s.qE);
-        if (pred === 'half') return near(A.id === 't1' ? 500 * this.load(s.qE, s.sCol, s.h) : A.id === 'c1' ? 12 : s.qE / 2);
+        if (pred === 'half') return near(A.id === 't1' ? 500 * this.load(s.qE, s.sCol, s.h) : A.id === 'c1' ? s.qE / this.muNow(s) : s.qE / 2);
         return near(pred === 'lo' ? A.lo : pred === 'hi' ? A.hi : (A.lo + A.hi) / 2);
       }
       if (s.drum && (drum === 'now' || (drum === 'g5' && s.gen >= 5 && s.gulls))) return { k: 'plug' };
@@ -435,7 +442,7 @@ const CH_TAP_V2 = {
   /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 catch rate %, 14–20 prediction ×100 of its axis span (127 none), 21–27 the a share ×200 at the end */
   resultBits(s, level) {
     if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
-    const id = ['a1', 'b1', 'c1', 't1'][n], span = { a1: 0.25, b1: 0.5, c1: 50, t1: 60 }[id], pv = s.pred[id] == null ? 127 : c(100 * s.pred[id] / span, 126);
+    const id = ['a1', 'b1', 'c1', 't1'][n], span = { a1: 0.25, b1: 0.5, c1: 60, t1: 60 }[id], pv = s.pred[id] == null ? 127 : c(100 * s.pred[id] / span, 126);
     return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(100 * s.sYou, 255) << 6 | pv << 14 | c(200 * s.q, 127) << 21) >>> 0;
   },
 
@@ -448,7 +455,6 @@ const CH_TAP_V2 = {
     const ui = Save.d && Save.d.ui;
     if (!o.thaw && !o.replay && ui && ui.unt) Sim.act(this, { k: 'unt', on: true });   // a setting enters the run as a logged action (lessons §1.6)
     const s = this.sim.s;
-    if (!o.thaw && n === 3 && typeof Freezer !== 'undefined') Freezer.put(this.id, 1, this.sim.snapshot(), { force: true });   // the boss reruns from its start
     this.dock(); this.hud();
     if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw();
     const name = this.levels[n] && this.levels[n].name;
@@ -497,11 +503,11 @@ const CH_TAP_V2 = {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     const st = s.steps[s.si] || {}; let t, num = '';
     if (s.auto) t = C.auto;
-    else if (s.phase === 'ask') t = Txt.f({ a1: C.askA1, b1: C.askB1, c1: C.askC1, t1: C.askT1 }[s.ask.id], { s: Math.round(100 * s.sYou) });
+    else if (s.phase === 'ask') t = Txt.f({ a1: C.askA1, b1: C.askB1, c1: C.askC1, t1: C.askT1 }[s.ask.id], { s: Math.round(100 * s.sYou), q: s.q.toFixed(2) });
     else if (s.phase === 'pause') t = C[s.note] || C.lapse;
     else if (s.phase === 'dawn') t = C.dawn;
     else if (s.phase === 'lapse') t = s.level === 3 ? (s.plugGen != null ? C.plugged : s.gen >= 15 && s.drum ? C.hint : C.season) : s.net ? C.netLapse : s.level === 2 ? C.purge : C.lapse;
-    else if (s.phase === 'dusk') t = s.lens ? C.lens : st.bal ? C.bal : st.feast ? C.feast : st.boss ? (s.gen === 0 ? C.boss : s.plugGen == null && s.gen >= 15 ? C.hint : C.twist) : this.level === 0 && s.caught === 0 && s.dusk === 1 ? this.content.firstWords : s.unt ? C.duskU : C.dusk;
+    else if (s.phase === 'dusk') t = s.lens ? C.lens : st.bal ? C.bal : st.feast ? C.feast : st.boss ? (s.gen === 0 ? C.boss : s.plugGen == null && s.gen >= 15 ? C.hint : s.gen === 5 ? C.twist : C.bossDusk) : this.level === 0 && s.caught === 0 && s.dusk === 1 ? this.content.firstWords : s.unt ? C.duskU : C.dusk;
     else t = C.over;
     if (s.phase === 'over' && !s.auto) t = C.over;
     if (s.phase === 'dusk' && !st.boss) num = st.bal ? Txt.f(L.divesN, { d: s.dives }) : Txt.f(L.fedN, { m: s.meals, need: s.quota }) + ' · ' + Txt.f(L.divesN, { d: s.dives });
@@ -546,7 +552,7 @@ const CH_TAP_V2 = {
     if (s.whatif) { o.body = Txt.f(C.whatifBody[s.whatif], V); o.take = null; o.interesting = null; }
     else if (n < 3) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
     else { o.take = C.take; o.body = Txt.f(C.body, V); o.bodyFirst = true; }
-    if (!s.whatif && typeof Freezer !== 'undefined') { if (n < 3 && this.v.lapseSnap) Freezer.put(this.id, 1, this.v.lapseSnap, { force: true }); o.whatIf = { gen: 1, levers: [['halfs', 'real1'], ['dom', 'real2'], ['long', 'slow'], ['nogulls', 'early']][n] }; }
+    if (!s.whatif && typeof Freezer !== 'undefined') { Freezer.put(this.id, 1, this.sim.snapshot(), { force: true }); o.whatIf = { gen: 1, levers: [['halfs', 'real1'], ['dom', 'real2'], ['long', 'slow'], ['nogulls', 'early']][n] }; }
     o.why = n < 3 ? C.levelWhy[n] : C.why;
     const spec = this.cardSpec(); if (spec) { o.chart = cv => LiveGraph.draw(cv, spec, 'paper'); o.chartLabel = spec.title; }
     End.show(this, o);
@@ -557,8 +563,7 @@ const CH_TAP_V2 = {
     const V = { c: s.cTot, n: s.nTot, s: Math.round(100 * s.sCol), q: f3(qm), b: s.balC, d: (mu * 96).toFixed(1), l: (sim.lastLE(s)).toFixed(0) };
     V.e = f3(sim.qhat(s.sCol, s.h, mu)); V.r = f3(sim.qhat(s.sCol, 0, mu)); V.x = Math.round(Math.sqrt(s.sCol / Math.max(1e-9, mu)));
     if (n === 1) { const q = qm; V.k = Math.round(200 * q * (1 - q)); V.a = Math.round(100 * q * q); }
-    if (n === 2) { const q0 = H[0] ? H[0].q : s.q0, q30 = H[Math.min(30, H.length - 1)].q; V.q0 = f3(q0); V.q1 = f3(q30); V.d = Math.round(sim.doubling(q0, s.h, 0.02)) + ' generations'; V.q = f3(last.q); V.e = (30 * mu * (1 - q0)).toFixed(4); }
-    if (s.whatif === 'long' || s.whatif === 'slow') { V.q0 = f3(s.wiQ0 != null ? s.wiQ0 : H[0].q); }
+    if (n === 2) { const q0 = s.wiQ0 != null ? s.wiQ0 : H[0] ? H[0].q : s.q0, q30 = H[Math.min(30, H.length - 1)].q; V.q0 = f3(q0); V.q1 = f3(q30); V.d = Math.round(s.exp.c1 != null ? s.exp.c1 : sim.doubling(q0, s.h, 0.02)) + ' generations'; V.q = f3(last.q); V.e = (30 * mu * (1 - q0)).toFixed(4); }
     return V;
   },
 
@@ -582,10 +587,10 @@ const CH_TAP_V2 = {
       case 'busy': this.whisper('busy'); return;
       case 'nodives': this.whisper('nodives'); return;
       case 'lensblock': this.whisper('lensblock'); return;
-      case 'lens': if (F) F.flash && !e.on ? 0 : F && F.ring(P.poolX, P.poolY, 30, { ms: 220 }); snd('scale', P.poolX, P.poolY); this._dockSig = ''; return;
+      case 'lens': if (F) F.ring(P.poolX, P.poolY, 30, { ms: 220 }); snd('scale', P.poolX, P.poolY); this._dockSig = ''; return;
       case 'duskend': if (e.gone) this.whisper('gone'); return;
       case 'seasonend': if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); return;
-      case 'lapse': if (this.level < 3 && !s.auto && !v.lapseSnap) v.lapseSnap = this.sim.snapshot(); if (this.level === 2 && s.net && s.auto) s.wiQ0 = s.q; return;
+      case 'lapse': return;
       case 'gen': {
         const nd = Math.min(5, Math.max(e.m > 0 ? 1 : 0, Math.round(e.m / 12))); for (let i = 0; i < nd; i++) v.drops.push({ t: -i * 0.03, d: 0.45, x: (this.hash('d' + e.g + i) % 100) / 100 });
         const nl = Math.min(5, Math.round(e.kc / 12)); if (nl > 0) v.leaks.push({ t: 0, d: 0.6, n: nl });
@@ -744,8 +749,8 @@ const CH_TAP_V2 = {
     c.restore();
   },
   colony(c, P, t) {   // the 48 nests: chicks drawn from the sim's stretch in a season, else from the colony's shares (view only, no draws)
-    const s = this.sim.s, v = this.v, live = s.phase === 'dusk' || s.phase === 'dawn' || (s.phase === 'over' && s.vis.length && this.sim.s.steps[s.si - 1] && s.steps[s.si - 1].k === 'season');
-    let show; if (live) show = s.vis.map(c0 => ({ alive: c0.alive, aff: c0.aff, ex: c0.ex, g: c0.g }));
+    const s = this.sim.s, v = this.v, live = s.phase === 'dusk' || s.phase === 'dawn';
+    let show; if (s.phase === 'dusk' || s.phase === 'dawn') show = s.vis.map(c0 => ({ alive: c0.alive, aff: c0.aff, ex: c0.ex, g: c0.g }));
     else {   // the colony's genotype shares, laid out by a fixed nest order so the cliff fills and empties as q moves
       const N = s.N, nAff = Math.round(48 * (s.h ? (s.c[1] + s.c[2]) / N : s.c[2] / N)), nC = Math.round(48 * s.c[1] / N), nA = Math.round(48 * s.c[2] / N);
       const ord = this.order || (this.order = Array.from({ length: 48 }, (_, i) => i).sort((a, b) => (this.hash('n' + a) % 997) - (this.hash('n' + b) % 997)));
@@ -847,11 +852,11 @@ const CH_TAP_V2 = {
     if (this.level === 3) { row(D.load, { l: this.loadNow().toFixed(1) }); return { stats, charts: [this.loadSpec(), this.qSpec(true)] }; }
     return { stats, charts: [this.qSpec(false), this.cpSpec()] };
   },
-  gens() { return this.level === 0 ? 31 : this.level === 1 ? 41 : this.level === 2 ? 56 : 30; },
+  gens() { return this.level === 0 ? 30 : this.level === 1 ? 40 : this.level === 2 ? 55 : 30; },
   qSpec(second) {   // the a share against generation: realised solid; the expected path dashed only after the ask is answered
     const s = this.sim.s, D = this.content.data, id = ['a1', 'b1', 'c1', 't1'][this.level], shown = s.hits[id] !== undefined || s.whatif;
     const hi = this.level === 0 ? 0.25 : this.level === 1 ? 0.5 : this.level === 2 ? 0.8 : 0.4;
-    const sp = { type: 'trace', title: D.titles.q, x: { lo: 0, hi: this.gens(), label: D.ax.gen }, y: { lo: 0, hi, label: D.ax.q }, frame: 'designed',
+    const sp = { type: 'trace', title: D.titles.q, x: { lo: 0, hi: Math.max(this.gens(), s.gen), label: D.ax.gen }, y: { lo: 0, hi, label: D.ax.q }, frame: 'designed',
       series: [{ d: s.hist.map(r => [r.g, r.q]), ink: 'a', label: D.lines.real }], ghost: shown ? [{ d: s.hist.map(r => [r.g, r.qE]), label: D.lines.exp }] : [] };
     if (second) sp.fold = false;
     return sp;

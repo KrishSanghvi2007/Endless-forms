@@ -62,7 +62,7 @@ const SC_TEXT = {
     A: 'Drug A', B: 'Drug B', C: 'Drug C', master: 'Master', m2: 'Your pick', velvet: 'velvet', sugar: 'new sugar', glucose: 'glucose',
     p0: 'share empty', m: 'mutations a tube', yourP: 'your plates', ff: 'Tap: faster', xn: '×N', drug: 'streptomycin', phage: 'phage',
     nFates: '{n} fates', nPlated: '{n} of 20', nFlag: '{n} flagged', nTag: '{n} tagged', nStamp: '{n} stamps', nWin: '{n} won', nPat: '{n} of 10',
-    resYes: 'grew', resNo: 'did not grow', jackpot: 'jackpot', patients: 'patients', win: 'won'
+    resYes: 'grew', resNo: 'did not grow', sparkN: 'sparks ×N', oddsN: 'odds ×N', resN: 'resistance ×N', jackpot: 'jackpot', patients: 'patients', win: 'won'
   },
   interesting: {
     few: 'Fewer than 30 fates. Sparks came faster as the colony grew, so most flashed near the edge late on.',
@@ -468,9 +468,9 @@ const CH_SCRIBE_V2 = {
     predict: (s, n) => { if (s.whatif || n > 2) return false; return n === 0 ? !!s.hits.d1 : n === 1 ? !!(s.hits.z1 && s.hits.u1) : !!s.hits.c1; },
     transfer: (s, n) => !s.whatif && n === 3 && !!(s.hits.b1 && s.hits.b2)
   },
-  unitStars(lv) {   // Discover in three of four levels; Predict in two of L0–L2 (D5: two of three); Transfer = the boss
+  unitStars(lv) {   // Discover in two of four levels; Predict in two of L0–L2 (D5: two of three); Transfer = the boss
     const m = i => lv[i] | 0; let d = 0, p = 0; for (let i = 0; i < 4; i++) if (m(i) & 1) d++; for (let i = 0; i < 3; i++) if (m(i) & 2) p++;
-    return (d >= 3 ? 1 : 0) | (p >= 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
+    return (d >= 2 ? 1 : 0) | (p >= 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
   /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 a level number (L0 fates, L1 empty plates ×10, L2 1 if the pick was resistant,
      L3 winners), 14–20 first prediction as % of its axis, 21–27 second */
@@ -704,8 +704,8 @@ const CH_SCRIBE_V2 = {
     } else if (s.kind === 'tubes') {
       const rul = s.phase === 'end' || s.phase === 'over' || (s.ask && s.ask.id === 'u1') ? Math.min(78, H * 0.13) : 0, t2 = top + 6, avail = H - t2 - 8 - rul;
       const cw = Math.max(48, Math.min(W / 5, avail / 4, 128)), x0 = W / 2 - cw * 2.5, y0 = t2 + (avail - cw * 4) / 2;
-      P.cells = []; for (let i = 0; i < 20; i++) P.cells.push({ x: x0 + (i % 5 + 0.5) * cw, y: y0 + (Math.floor(i / 5) + 0.5) * cw, w: cw, r: cw * 0.34 });
-      P.ry = H - rul / 2 - 4; P.rh = rul; P.rx0 = Math.max(24, W * 0.08); P.rx1 = W - Math.max(24, W * 0.08);
+      P.cells = []; for (let i = 0; i < 20; i++) P.cells.push({ x: x0 + (i % 5 + 0.5) * cw, y: y0 + (Math.floor(i / 5) + 0.5) * cw, w: cw, r: cw * 0.38 });
+      P.ry = H - rul / 2 - 4; P.rh = rul; P.rx0 = Math.max(30, W * 0.1); P.rx1 = W - Math.max(34, W * 0.1);
     } else {
       const land = W > H * 1.05, avail = H - top - 8;
       if (land) { P.mr = Math.min(avail * 0.34, W * 0.2); P.mx = W * 0.3; P.my = top + avail * 0.5; P.rd = Math.min(avail * 0.2, W * 0.12); P.ax = W * 0.72; P.ay = top + avail * 0.26; P.bx = W * 0.72; P.by = top + avail * 0.74; P.vx = W * 0.52; P.vy = H - 46; }
@@ -734,7 +734,7 @@ const CH_SCRIBE_V2 = {
     const bg = this.bake('bg', w, h, (cc, W, H) => this.bench(cc, W, H)); if (bg) bg.blit(c, 0, 0); else this.bench(c, w, h);
     if (s.kind === 'dish') this.drawDishLevel(c, P); else if (s.kind === 'tubes') this.drawTubes(c, P); else this.drawVelvet(c, P);
     for (const p of this.v.pops) { const k = p.t / 1.6; c.save(); c.globalAlpha = 1 - k * k; Lbl.put('sc-pop', p.text, p.x, p.y - 18 - 16 * k, { c, size: 13 }); c.restore(); }
-    if (this.v.banner) { const b = this.v.banner, k = b.t / b.ms, a = k < 0.15 ? k / 0.15 : k > 0.8 ? (1 - k) / 0.2 : 1; c.save(); c.globalAlpha = Math.max(0, a); Lbl.put('sc-banner', b.text, w / 2, P.top + 30, { c, size: 20, weight: 700 }); c.restore(); }
+    if (this.v.banner) { const b = this.v.banner, k = b.t / b.ms, a = k < 0.15 ? k / 0.15 : k > 0.8 ? (1 - k) / 0.2 : 1; c.save(); c.globalAlpha = Math.max(0, a); Lbl.put('sc-banner', b.text, w / 2, s.kind === 'dish' ? P.cy - P.R * 0.55 : P.top + 30, { c, size: 20, weight: 700 }); c.restore(); }
   },
   bench(c, W, H) {   // baked: dark wood planks with grain, a warm lamp pool, a brass lamp rim at the top, a vignette
     c.fillStyle = SC_INK.bench; c.fillRect(0, 0, W, H);
@@ -769,7 +769,7 @@ const CH_SCRIBE_V2 = {
     });
   },
   wedge(p, rho) {   // a tagged lineage's wedge: half-width grows (or shrinks) with the log of radius, as sectors do in expanding colonies
-    if (p.cls === 0) return null; const k = 2 * Math.sqrt(2 * Math.abs(p.sv)), w0 = 0.09, r1 = Math.max(p.r0, rho), pts = [];
+    if (p.cls === 0) return null; const k = (p.cls === 1 ? 1 : 2) * Math.sqrt(2 * Math.abs(p.sv)), w0 = 0.16, r1 = Math.max(p.r0, rho), pts = [];
     let rEnd = r1; if (p.cls === 1) { const pin = p.r0 * Det.exp(w0 / Math.max(1e-6, k)); rEnd = Math.min(r1, pin); }
     for (let j = 0; j <= 10; j++) { const r = p.r0 + (rEnd - p.r0) * j / 10, l = Det.log(r / p.r0), w = Math.min(1.4, Math.max(0, p.cls === 2 ? w0 : p.cls === 3 ? w0 + k * l : w0 - k * l)); pts.push([r, w]); }
     return pts;
@@ -791,21 +791,22 @@ const CH_SCRIBE_V2 = {
     if (moved) this.drawPatches(c, P, mk);
     for (const l of v.links) if (l.k === 'zip' && l.t < 0.35) { const fx = this.forkX(P); c.save(); c.globalAlpha = 1 - l.t / 0.35; c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.8)'; c.lineWidth = 1.5; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(fx, P.zy + 6); c.lineTo(l.x, l.y); c.stroke(); c.restore(); }
     if (s.pt) this.drawPatients(c, P);
+    Lbl.put('sc-xn', this.content.labels[moved ? 'oddsN' : 'sparkN'], P.cx + P.R * 0.78, P.cy + P.R * 0.92, { c, size: 12 });
   },
   drawLineage(c, P, p, rho) {
     const rr = P.R * 0.94, at = (r, a) => [P.cx + rr * r * Det.cos(a), P.cy + rr * r * Det.sin(a)];
     if (p.cls === 0) {
-      const q = at(p.r0, p.th); c.fillStyle = p.fate ? SC_INK.grey : SC_INK.tag; c.beginPath(); c.arc(q[0], q[1], 4.5, 0, TAU); c.fill(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 1.5; c.stroke();
-      if (p.fate) this.glyph(c, q[0], q[1] - 12, 0); return;
+      const q = at(p.r0, p.th); c.fillStyle = p.fate ? SC_INK.grey : SC_INK.tag; c.beginPath(); c.arc(q[0], q[1], 4, 0, TAU); c.fill(); c.strokeStyle = p.fate ? 'rgba(40,30,25,.7)' : SC_INK.tagL; c.lineWidth = 1.2; c.stroke();
+      if (p.fate) { c.strokeStyle = 'rgba(40,30,25,.85)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(q[0] - 2.5, q[1] - 2.5); c.lineTo(q[0] + 2.5, q[1] + 2.5); c.moveTo(q[0] + 2.5, q[1] - 2.5); c.lineTo(q[0] - 2.5, q[1] + 2.5); c.stroke(); } return;
     }
     const pts = this.wedge(p, rho); if (!pts) return;
     c.beginPath(); pts.forEach((q, j) => { const xy = at(q[0], p.th - q[1] / 2); if (j) c.lineTo(xy[0], xy[1]); else c.moveTo(xy[0], xy[1]); });
     for (let j = pts.length - 1; j >= 0; j--) { const xy = at(pts[j][0], p.th + pts[j][1] / 2); c.lineTo(xy[0], xy[1]); }
     c.closePath(); c.fillStyle = 'rgba(143,92,194,.62)'; c.fill(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 1.5; c.stroke();
-    if (p.fate) { const e = pts[pts.length - 1], q = at(Math.min(rho, e[0]) + 0.05, p.th); this.glyph(c, q[0], q[1], p.cls); }
+    if (p.fate) { const e = pts[pts.length - 1], q = at(Math.min(rho, e[0]) + (p.cls === 1 ? 0.03 : 0.05), p.th); this.glyph(c, q[0], q[1], p.cls); }
   },
   glyph(c, x, y, cls) {   // fate by shape (mono-safe): × stopped, ▼ slowed, = kept pace, ▲ raced ahead, on a paper disc
-    c.save(); c.fillStyle = 'rgba(244,238,221,.92)'; c.beginPath(); c.arc(x, y, 8, 0, TAU); c.fill(); c.strokeStyle = SC_INK.ink; c.fillStyle = SC_INK.ink; c.lineWidth = 2; c.beginPath();
+    c.save(); c.fillStyle = 'rgba(244,238,221,.92)'; c.beginPath(); c.arc(x, y, 7, 0, TAU); c.fill(); c.strokeStyle = SC_INK.ink; c.fillStyle = SC_INK.ink; c.lineWidth = 2; c.beginPath();
     if (cls === 0) { c.moveTo(x - 4, y - 4); c.lineTo(x + 4, y + 4); c.moveTo(x + 4, y - 4); c.lineTo(x - 4, y + 4); c.stroke(); }
     else if (cls === 1) { c.moveTo(x - 5, y - 3); c.lineTo(x + 5, y - 3); c.lineTo(x, y + 5); c.closePath(); c.fill(); }
     else if (cls === 2) { c.moveTo(x - 5, y - 2.5); c.lineTo(x + 5, y - 2.5); c.moveTo(x - 5, y + 2.5); c.lineTo(x + 5, y + 2.5); c.stroke(); }
@@ -911,6 +912,7 @@ const CH_SCRIBE_V2 = {
     if (!r2) { s.m1.forEach((q, i) => { const xy = mc([q.x, q.y], P.mx, P.my, P.mr); col(xy[0], xy[1], cs(P.mr), SC_INK.col); }); }
     else { const k = Math.min(1, (s.phase === 'm2' ? s.t / SC_T.m2 : 1)); for (const q of s.m2) { const xy = mc(q, P.mx, P.my, P.mr); col(xy[0], xy[1], cs(P.mr) * (0.3 + 0.7 * k), SC_INK.col); } }
     Lbl.put('sc-mlab', r2 ? L.m2 : L.master, P.mx, P.my + P.mr + 16, { c, size: 12 });
+    if (!r2) Lbl.put('sc-xn', L.resN, P.mx + P.mr * 0.8, P.my - P.mr * 0.92, { c, size: 12 });
     // drug plates
     const plates = r2 ? [['C', P.cxp, P.cyp]] : [['A', P.ax, P.ay], ['B', P.bx, P.by]];
     for (const [k, x, y] of plates) {
@@ -953,15 +955,15 @@ const CH_SCRIBE_V2 = {
   },
   triSpec() {
     const s = this.sim.s, D = this.content.data, L = this.content.labels, pts = [], done = s.hits.d1 !== undefined;
-    if (done && s.fates >= 3) pts.push({ f: this.sim.shares(s), kind: 'dusk', label: D.lines.yours });
-    if (done) pts.push({ f: [SC_VSV[0] + SC_VSV[1], SC_VSV[2], SC_VSV[3]], kind: 'dawn', label: D.lines.virus });
+    const small = typeof Strip !== 'undefined' && typeof Strip.phone === 'function' && Strip.phone() && !Strip.isOpen;
+    if (done && s.fates >= 3) pts.push({ f: this.sim.shares(s), kind: 'dusk', label: small ? '' : D.lines.yours });
     return { type: 'tri', variant: 'simplex', title: D.titles.tri, corners: [L.harm, L.none, L.help], trail: done ? s.trail.slice() : [], pts, frame: 'designed' };
   },
   dfeSpec() {
     const s = this.sim.s, D = this.content.data, L = this.content.labels, n = Math.max(1, s.fates), done = s.hits.d1 !== undefined;
     const bars = s.cnt.map((k, i) => ({ x: i, y: s.fates ? k / n : 0 }));
     const ticks = done ? SC_DFE.map((y, i) => ({ x: i, y, label: i === 3 ? D.lines.model : null })).concat(SC_VSV.map((y, i) => ({ x: i, y, dot: true, label: i === 3 ? D.lines.virus : null }))) : [];
-    return { type: 'sc_xy', title: D.titles.dfe, fold: false, x: { lo: -0.5, hi: 3.5 }, xcat: [L.lethal, L.harmful, L.neutral, L.helps], xticks: [0, 1, 2, 3], y: { lo: 0, hi: 0.8, fmt: 'pct' }, frame: 'designed', bars, ticks, note: done ? { x: 3, y: 0.3, text: D.lines.real } : null };
+    return { type: 'sc_xy', title: D.titles.dfe, fold: false, x: { lo: -0.5, hi: 3.5 }, xcat: [L.lethal, L.harmful, L.neutral, L.helps], xticks: [0, 1, 2, 3], y: { lo: 0, hi: 0.8, fmt: 'pct' }, frame: 'designed', bars, ticks, note: done ? { x: 3.45, y: 0.7, text: D.lines.real } : null };
   },
   countSpec() {
     const s = this.sim.s, sim = this.sim, D = this.content.data, l = sim.ldMean(), bars = SC_BINS.map((b, i) => ({ x: i, y: s.n.filter(n => n >= b[0] && n <= b[1]).length }));
@@ -988,7 +990,12 @@ const CH_SCRIBE_V2 = {
     if (s.pt && this.v.patT > 2.6) vl.push({ x: s.pt.filter(x => x).length, label: D.lines.yours });
     return { type: 'sc_xy', title: D.titles.pat, fold: false, x: { lo: 0, hi: 10, label: D.ax.pats, fmt: 'int' }, xticks: [0, 2, 4, 6, 8, 10], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
   },
-  cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return s.whatif ? this.dfeSpec() : this.triSpec(); if (n === 1) return this.countSpec(); if (n === 2) return this.shareSpec(); return this.winSpec(); }
+  classSpec() {   // the boss card: share of each glucose class that won on the new sugar, against the model's designed odds (×N)
+    const s = this.sim.s, D = this.content.data, L = this.content.labels, g = this.sim.gxe(), bars = [], ticks = [];
+    [1, 2, 3].forEach((c, i) => { const a = (s.pa || []).filter(q => q.cls === c); if (a.length) bars.push({ x: i, y: a.filter(q => q.win).length / a.length }); ticks.push({ x: i, y: g[c], label: i === 2 ? D.lines.model : null }); });
+    return { type: 'sc_xy', title: D.titles.win, x: { lo: -0.5, hi: 2.5 }, xcat: [L.harmful, L.neutral, L.helps], xticks: [0, 1, 2], y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', bars, ticks };
+  },
+  cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return s.whatif ? this.dfeSpec() : this.triSpec(); if (n === 1) return this.countSpec(); if (n === 2) return this.shareSpec(); return s.pa ? this.classSpec() : this.winSpec(); }
 };
 V2.push(CH_SCRIBE_V2);
 
@@ -1008,7 +1015,7 @@ if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.sc_xy) LiveG
     c.setLineDash([]);
     (spec.vlines || []).forEach((l, i) => { const x = G.X(l.x); c.lineWidth = (l.dash ? 2 : 3) * T.k; c.strokeStyle = I.text; c.setLineDash(l.dash ? [6, 4] : []); c.beginPath(); c.moveTo(x, p.y); c.lineTo(x, p.y + p.h); c.stroke(); c.setLineDash([]); if (!l.dash) wgMark(c, 'ink', x, p.y + p.h * 0.5, 4 * T.k, I.text, I.surface); if (l.label) ends.push({ y: p.y + p.h * (0.3 + 0.4 * i), text: l.label, col: I.text, dash: !!l.dash }); });
     c.restore();
-    if (spec.note && !T.compact) wgText(c, spec.note.text, G.X(spec.note.x) - 4, G.Y(spec.note.y), G.tk, I.text2, { align: 'right', fam: 'b', wt: 600, halo: I.surface });
+    if (spec.note && !T.compact) wgText(c, spec.note.text, G.X(spec.note.x), G.Y(spec.note.y), G.tk, I.text2, { align: 'right', fam: 'b', wt: 600, halo: I.surface });
     wgEnds(c, G, ends, T);
   },
   rows(spec) {

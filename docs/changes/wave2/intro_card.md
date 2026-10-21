@@ -65,4 +65,11 @@ Each part is checked by `tests/lint_text.js`: ≤ 35 words, sentences ≤ 18 wor
 - `tests/monkey.js`: fails a v2 run that does not open on the card (`no-intro`), checks the card text, presses Play (or Enter), now and then presses "?" mid-level and resumes, and reports `intros`.
 - `tests/lint_text.js`: `content.intro.{game, biology, how}` is required, with budget 35 (`BUDGET.intro`). More than two sentences is a warning.
 - `tests/selftest_e4.js`: its old checks said "no intro card for a v2 unit" and "Begin … with no card". They now expect the description card and press Play. Its dock clicks use `Dock.items[0]` (the "?" sits first in `#dock`). Result: 162 passed.
-- The results of the gate run are in the hand-off report: monkey, lint, oracles, golden check and screenshots for lichen, soot, hawks, census and casino.
+- `tests/selftest_e2.js`, `selftest_e5.js` and `selftest_e6.js` drive levels directly, so they set `TB.Intro.off`. `selftest_e4.py` and `selftest_integ.py` now expect the card on entry and on Begin, and press Play. The skeleton (`docs/design/v2_chapter_skeleton.js`) and the E7 and integration fixtures gained `content.intro`. The five units' shot and path scripts and `tests/shots.py` turn the card off after loading. In `hawks_paths.py`, the dock check reads the neutral Hawk button.
+- **Gate run** (build `V2_ONLY='0*,zz_*,lichen.js,soot.js,hawks.js,mixer.js,casino.js'`):
+  - monkey: 10/10 at seeds 1 and 2 (390 × 780) and 5/5 at 1280 × 720, all reaching the end card through the card, with no warnings; `all` at seed 1 gave 46/48, the only misses being the known `cross` and `landscape`.
+  - lint: 0 errors, 0 warnings.
+  - oracles: lichen 75, soot 46, hawks 70, census 119 and casino 301, all passing.
+  - golden: 43 ok and 5 replaced; under `--v1`, 48 ok.
+  - self-tests: b1 55, e2 pass, e3 156, e4 162, e4 browser 65, e5 282, e6 386, e7 78, integration 70.
+  - paths scripts: hawks 40, census 36, soot ok.
