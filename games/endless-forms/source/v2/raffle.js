@@ -4,7 +4,7 @@
    (role: a behaving animal). The second: HOLD to pour your tickets into her drum against one season's supply (or, on the
    dung pat, hold to mate). The minute: one female, ending in the draw, where each egg pulls one ticket and takes its father's
    pattern. Levels add one variable each: rivals already in her (the fair raffle); the chance of a male after you; last-male
-   precedence and mating time (the loaded raffle, a marginal-value tangent); and a boss where she decides which tickets
+   precedence and mating time (the loaded raffle, a marginal-value tangent); and a boss where her storage sets which tickets
    count (cryptic female choice), which inverts the unit's lesson.
    Headless sim (R(), Det only), stars against the expectation, juice from Sim.run's events only (API_v2 §6.1).
    Reuses the legacy ch3.js optimum() (s = √(R/λ) − R by bisection on λ), generalised to risk and to her storage. */
@@ -12,7 +12,7 @@
 const RF_E = 20, RF_X = 20, RF_B = 100;   // eggs per female, a later male's ejaculate, your supply (all designed)
 // timers (s); rate: units a second while held (rateU in untimed mode); mins: copula minutes a second of holding (×N)
 const RF_T = { arrive: 0.75, grace: 0.45, graceM: 0.3, egg: 0.085, leave: 0.6, later: 1.6, search: 1.6, pm: 1.9, end: 1.5, dry: 0.9, rate: 14, rateU: 6, delay: 0.25, mins: 10, minsU: 5, cap: 120 };
-const RF_L1 = [0, 40, 20, 0];   // rival units for three of females 1, 2, 3, 5, 6 (shuffled by seed); female 4 holds 100 (five rivals), female 5 or 6 holds 60 (the call)
+const RF_L1 = [0, 40, 20, 0];   // rival units for four of females 1, 2, 3, 5, 6 (shuffled by seed); female 4 holds 100 (five rivals), female 5 or 6 holds 60, so a call is always due
 const RF_L2 = [[0, 0.1, 2], [0, 0.9, 2], [20, 0.1, 1], [20, 0.9, 1], [60, 0.1, 1], [60, 0.9, 1]];   // [rival units, chance of a later male, weight]
 const RF_Q = RF_L2.map(a => ({ R: a[0], q: a[1], p: a[2] / 8 }));   // the hidden queue's distribution (what the planner knows)
 // L3 displacement curve share(t) = a(1 − e^(−kt)): a and k fitted so share(36 min) = 0.80 (Parker 1970) and the tangent from
@@ -45,7 +45,7 @@ const RF_TEXT = {
     draw: 'Her eggs draw their tickets. Tap to hurry.',
     later: 'Will another male mate with her after you?',
     search: 'You guard her while she lays, then search: {T} minutes.',
-    pm: 'Afternoon: the pat is crowded, so searching takes only 40 minutes.',
+    pm: 'Afternoon: females arrive fast, so searching takes only 40 minutes.',
     p1: 'Before the draw: how many of her 20 eggs will be yours?',
     p2: 'On average, how many of her 20 eggs will be yours?',
     p3: 'Drag the marker: which mating time wins most eggs per hour?',
@@ -61,7 +61,7 @@ const RF_TEXT = {
   labels: {
     yours: 'yours {n}', rivals: 'rivals {n}', supply: 'supply', pocket: 'her pocket', reach: 'out of reach', virgin: 'virgin', risk: '{q} after', mins: '{m} min',
     search: 'search {T} min', eggsAx: 'eggs', hidden: '?', morning: 'morning', afternoon: 'afternoon', pour: 'Pour', stop: 'Stop', done: 'Done', mate: 'Mate',
-    leave: 'Leave', faster: 'Faster', rate: '{r} eggs/h', lock: 'Lock in', jackpot: 'Jackpot!', pm: 'Afternoon', new4: 'New female',
+    leave: 'Leave', faster: 'Faster', rate: '{r} eggs/h', xN: '×600', lock: 'Lock in', jackpot: 'Jackpot!', pm: 'Afternoon', new4: 'New female',
     tEggs: 'Eggs won', tUnits: 'Units poured', tShare: 'Your share', tHalf: 'Half her eggs', tLaid: 'Eggs per female',
     female: 'female', units: 'units', minutes: 'minutes', share: 'share', you: 'you', best: 'best plan', planner: 'planner', expected: 'expected', tangent: 'best rate',
     half: 'half', searchM: 'search', sSupply: 'Supply left', sEggs: 'Eggs so far', sExp: 'Expected eggs', sRate: 'Eggs per hour', sMins: 'Last mating', sBest: 'Best plan'
@@ -77,7 +77,7 @@ const RF_TEXT = {
     short: 'Your morning matings averaged {m} minutes. Leaving early wastes the long search it took to find her.',
     long: 'Your morning matings averaged {m} minutes. Late minutes mostly flushed out your own tickets.',
     same: 'Your morning matings all lasted about {m} minutes. Varying them maps the curve better.',
-    pocket: 'You poured {u} units into a female who set most of them aside. Her pocket, not your supply, decided.',
+    pocket: 'You poured {u} units into a female who set most of them aside. Her storage, not your supply, set your share.',
     favoured: 'One female set the rivals’ tickets aside. There a modest pour won most of her eggs.'
   },
   levers: { later: 'Males follow', many: 'Triple rivals', norisk: 'No later males', sure: 'Males always follow', scarce: 'Scarce females', quick: 'Quick search', fair: 'She keeps all', choosy: 'Very choosy' },
@@ -92,18 +92,18 @@ const RF_TEXT = {
     choosy: 'If every female kept one of your tickets in ten, the best plan would win {e} eggs.'
   },
   take: 'Paternity is a raffle of tickets, but the raffle may be loaded, and the drum may be hers.',
-  body: 'In a fair raffle your share is your tickets ÷ all tickets. Rivals to come make virgins worth sperm. Dung flies are a loaded raffle: the last male wins most eggs. When she decides which tickets count, the best pour follows her, not the rivals. You won {e} expected eggs; the best plan won {b}.',
+  body: 'In a fair raffle your share is your tickets ÷ all tickets. Rivals to come make virgins worth sperm. Dung flies are a loaded raffle: the last male wins most eggs. When her storage sets which tickets count, the best pour follows her, not the rivals. You won {e} expected eggs; the best plan won {b}.',
   law: { title: 'The sperm raffle' },
-  boss: { inverts: 'Until now more tickets meant more eggs. Here she decides which tickets count.' },
+  boss: { inverts: 'Until now more tickets meant more eggs. Here her storage sets which tickets count.' },
   stars: {
     discover: 'Win nearly the best plan’s eggs, in the raffle and in her drum.',
     predict: 'Call her eggs, or the best mating time, inside the band twice.',
-    transfer: 'Solve a crowded afternoon and a choosy new female.'
+    transfer: 'Solve a busy afternoon and a choosy new female.'
   },
   levelStars: [
     { discover: 'Win within one egg of the best plan’s expected eggs.', predict: 'Call her eggs within two of the expected number.' },
     { discover: 'Win 96% of the planner’s eggs, giving the risky virgin more.', predict: 'Call the risky virgin’s average eggs within two.' },
-    { predict: 'Call the best mating time within six minutes.', transfer: 'Mate near the new best time in the crowded afternoon.' },
+    { predict: 'Call the best mating time within six minutes.', transfer: 'Mate near the new best time in the busy afternoon.' },
     { discover: 'Win 97% of the best plan’s eggs, following what each female keeps.', transfer: 'Find the units that win half the new female’s eggs.' }
   ],
   levelTake: [
@@ -123,10 +123,10 @@ const RF_TEXT = {
     mBest: 'Expected eggs of the best plan, shown after the level.'
   },
   model: [
-    { level: 0, simulated: 'Six females, each already holding 0 to 5 rivals’ ejaculates of 20 units. Every unit is one ticket. Each of her 20 eggs draws a ticket at random. Your expected share is your tickets ÷ all tickets.', simplification: 'A fair raffle: every sperm has the same chance. Your supply is a fixed 100 units for the season. No male mates after you. Yellow dung flies are not a fair raffle; see level 3.', params: [{ name: 'eggs per female', value: 20, tag: 'designed' }, { name: 'a rival’s ejaculate', value: '20 units', tag: 'designed' }, { name: 'your supply', value: '100 units', tag: 'designed' }], cannot: 'Sperm that differ in quality, females that mate again, or a supply that refills.', nature: 'Parker’s raffle models ask how a male should share a limited supply (Parker 1990). Males of many species spend more when rivals are present. Spending less when a drum is very crowded is predicted but weakly supported (Kelly and Jennions 2011).', contested: false, refs: ['parker1970', 'parker1990', 'kj2011'] },
+    { level: 0, simulated: 'Six females, each already holding 0 to 5 rivals’ ejaculates of 20 units. Every unit is one ticket. Each of her 20 eggs draws a ticket at random. Your expected share is your tickets ÷ all tickets.', simplification: 'A fair raffle: every sperm has the same chance. Rivals are fixed, so this is one male’s best plan, not an evolutionarily stable one. No male mates after you. Dung flies are not a fair raffle; see level 3.', params: [{ name: 'eggs per female', value: 20, tag: 'designed' }, { name: 'a rival’s ejaculate', value: '20 units', tag: 'designed' }, { name: 'your supply', value: '100 units', tag: 'designed' }], cannot: 'Sperm-limited females, sperm that differ in quality, or a supply that refills.', nature: 'Parker’s raffle models ask how a male should share a limited supply (Parker 1990). Males of many species spend more when rivals are present. Spending less when a drum is very crowded is predicted but weakly supported (Kelly and Jennions 2011).', contested: false, refs: ['parker1970', 'parker1990', 'kj2011'] },
     { level: 1, simulated: 'Eight females. Each card shows the rivals before you. It also shows the chance that a later male adds 20 units. You see three cards ahead. Half the queue are virgins.', simplification: 'The chance of a later male is known exactly, and he always brings 20 units. You are scored against a planner that sees the same three cards. It knows how often each kind of female turns up.', params: [{ name: 'chance of a later male', value: '1 or 9 in 10', tag: 'designed' }, { name: 'later male’s ejaculate', value: '20 units', tag: 'designed' }, { name: 'cards visible', value: 3, tag: 'designed' }, { name: 'your supply', value: '100 units', tag: 'designed' }], cannot: 'How a male could sense the risk, or a female who controls remating.', nature: 'In Parker’s risk models, males spend more as rivals become likelier (Parker 1990; Parker and colleagues 1997). This rise is well supported across species (Kelly and Jennions 2011). Prudent males can leave females short of sperm (Wedell and colleagues 2002).', contested: false, refs: ['parker1990', 'pbsg1997', 'kj2011', 'wgp2002'] },
     { level: 2, simulated: 'Each female arrives carrying an earlier male’s sperm. While you mate, your sperm displace stored sperm at random, yours included. Your share rises ever more slowly. After mating you guard her while she lays, then search.', simplification: 'The curve is fitted to two published numbers (≈). A 36-minute mating wins about 80% of eggs. With 156 minutes of guarding and searching, the best time is near 41. One earlier sperm in nine stays out of reach (designed).', params: [{ name: 'search and guarding', value: '156 min', tag: 'realistic', real: 'about 156 min (Parker 1978)' }, { name: 'last male’s share at 36 min', value: '80%', tag: 'realistic', real: 'about 80% (Parker 1970)' }, { name: 'afternoon search', value: '40 min', tag: 'designed' }, { name: 'minutes per second held', value: 10, tag: 'xN', real: 'one minute a minute' }], cannot: 'Takeovers by bigger males, or females that resist mating.', nature: 'Dung fly males mate for about 36 minutes. Parker’s model predicted about 41 (Parker 1978; Parker and Stuart 1976). Random displacement fits his sperm data (Parker and Simmons 1991). Later work asked how much of the displacement females control (Simmons and colleagues 1999).', contested: false, refs: ['parker1970b', 'ps1976', 'parker1978', 'psim1991', 'sps1999', 'charnov1976'] },
-    { level: 3, simulated: 'Each female keeps a share of every male’s tickets in her drum. The rest go to a pocket she does not use for these eggs. Her card shows both shares.', simplification: 'Her bias is a fixed share per female (designed). In dung flies, female control works through how sperm are spread among her sperm stores, not a pocket.', params: [{ name: 'share of your tickets kept', value: '5% to 100%', tag: 'designed' }, { name: 'share of rivals’ tickets kept', value: '5% to 100%', tag: 'designed' }, { name: 'your supply', value: '100 units', tag: 'designed' }], cannot: 'Why a female might favour some males, or what it costs her.', nature: 'Female yellow dung flies influence how sperm are stored and used (Ward 1993, 2000; Hellriegel and Ward 1998). Female feral fowl eject the sperm of low-ranking males (Pizzari and Birkhead 2000). How common such cryptic female choice is remains debated (Birkhead 1998).', contested: true, refs: ['ward1993', 'ward2000', 'hw1998', 'pb2000', 'eberhard1996', 'birkhead1998'] }
+    { level: 3, simulated: 'Each female keeps a share of every male’s tickets in her drum. The rest go to a pocket she does not use for these eggs. Her card shows both shares.', simplification: 'Her bias is a fixed share per female (designed). In dung flies, female control works through how sperm are spread among her sperm stores, not a pocket.', params: [{ name: 'share of your tickets kept', value: '5% to 100%', tag: 'designed' }, { name: 'share of rivals’ tickets kept', value: '5% to 100%', tag: 'designed' }, { name: 'your supply', value: '100 units', tag: 'designed' }], cannot: 'Why a female might favour some males, or what it costs her.', nature: 'Female yellow dung flies influence how sperm are stored and used (Ward 1993, 2000; Hellriegel and Ward 1998). Female feral fowl eject the sperm of low-ranking males (Pizzari and Birkhead 2000). How common such cryptic female choice is remains debated (Birkhead 1998).', contested: true, refs: ['ward1993', 'ward2000', 'hw1998', 'hb2000', 'pb2000', 'eberhard1996', 'birkhead1998'] }
   ],
   why: {
     real: [
@@ -262,9 +262,11 @@ const CH_RAFFLE_V2 = {
       if (!s.auto && ((s.level === 0 && this.askHere(s)) || (s.level === 1 && s.i === s.risky))) { this.openAsk(s, ev, s.level === 0 ? 'p1' : 'p2'); return; }
       this.afterShut(s, ev);
     },
-    askHere(s) {   // L1 asks once, at the female with three rivals (60 units), when the answer is not trivial (3 to 17 of her 20 eggs)
-      if (s.asks.length) return false; const F = this.cur(s), e = RF_E * RF.share(F, F.s); return F.R === 60 && e >= 3 && e <= RF_E - 3;
+    askHere(s) {   // L1 asks once, from female 4 on, at the first mated female whose answer is neither near-certain nor half, else at the last mated one
+      if (s.asks.length || s.i < 3) return false; const F = this.cur(s); if (!(F.R > 0)) return false;
+      return this.real1(F) || !s.fem.slice(s.i + 1).some(G => G.R > 0);
     },
+    real1(F) { const e = RF_E * RF.share(F, F.s); return e >= 3 && e <= RF_E - 3 && Math.abs(e - RF_E / 2) > RF_ASK.p1.tol; },   // a near-certain answer (one ticket against 100), or one a lazy 'half' would hit, counts for nothing
     afterShut(s, ev) {
       if (s.level === 1) { const F = this.cur(s); F.later = R() < F.q; s.phase = 'later'; s.pt = 0; ev.push({ k: 'latergo', came: F.later }); }
       else this.startDraw(s, ev);
@@ -472,7 +474,7 @@ const CH_RAFFLE_V2 = {
       if (n === 3) return e >= 0.97 * S.bestEggs(s);   // her card shows what she keeps, so the best plan is what you could see; the fair-raffle rule wins 93%
       return false;
     },
-    predict: (s, n) => { const S = CH_RAFFLE_V2.sim; return (n === 0 && S.hit(s, 'p1')) || (n === 1 && S.hit(s, 'p2') && S.realP2(s)) || (n === 2 && S.hit(s, 'p3')); },
+    predict: (s, n) => { const S = CH_RAFFLE_V2.sim; return (n === 0 && S.hit(s, 'p1') && S.real1(s.fem[s.p1i])) || (n === 1 && S.hit(s, 'p2') && S.realP2(s)) || (n === 2 && S.hit(s, 'p3')); },
     transfer: (s, n) => { const S = CH_RAFFLE_V2.sim; if (n === 2) { const m = S.pmMean(s), a = S.amMean(s); return m != null && a != null && a - m >= 6 && Math.abs(m - RF.tstar(RF_D.Tpm)) <= 6; } return n === 3 && S.hit(s, 'p4'); }   // the afternoon: shorter than your mornings, and near the new best time
   },
   // assignment links (API_v2 §13.5): bits 0–2 mask · 3–12 expected eggs ×4 · 13–19 the call (scaled to 0–127) · 20–29 the best plan's eggs ×4
@@ -501,7 +503,7 @@ const CH_RAFFLE_V2 = {
     }
   },
   once(k) { if (this._said[k]) return false; this._said[k] = 1; return true; },
-  resetEggs() { this.v.eggs = new Array(RF_E).fill(-1); this.v.eggT = new Array(RF_E).fill(0); },
+  resetEggs() { this.v.eggs = new Array(RF_E).fill(-1); this.v.eggT = new Array(RF_E).fill(0); this.v.nMine = 0; this.v.nRiv = 0; },
   onResize() { if (this.v) this.layout(); },
 
   /* ---------- geometry (canvas px), recomputed when the stage changes size ---------- */
@@ -604,8 +606,8 @@ const CH_RAFFLE_V2 = {
     const ev = Sim.run(this, dt), v = this.v, s = this.sim.s;
     for (const e of ev) this.juice(e);
     v.t += dt; v.pairT += dt;
-    const spinning = s.phase === 'draw' || (s.phase === 'later' && v.laterCame && v.laterT > 0.55);
-    v.spinV += ((spinning ? 6 : 0) - v.spinV) * Math.min(1, dt * 4); v.spin += v.spinV * dt; v.lit += dt * (spinning ? 9 : 1.2);
+    const calm = typeof Fx !== 'undefined' && Fx.calm, spinning = !calm && (s.phase === 'draw' || (s.phase === 'later' && v.laterCame && v.laterT > 0.55));
+    v.spinV += ((spinning ? 6 : 0) - v.spinV) * Math.min(1, dt * 4); v.spin += v.spinV * dt; v.lit += calm ? 0 : dt * (spinning ? 9 : 1.2);
     if (v.laterT >= 0) v.laterT += dt;
     if (s.phase === 'search') v.clock += dt * (s.ff || 1); else if (s.phase === 'arrive') v.clock = 0;
     for (let i = v.fly.length - 1; i >= 0; i--) { const f = v.fly[i]; f.t += dt * (s.ff > 1 ? 2.5 : 1); if (f.t >= f.d) { this.v.eggs[f.j] = f.o; this.v.eggT[f.j] = 0.3; if (f.o === 0 && typeof Fx !== 'undefined') Fx.burst('spark', f.x1, f.y1, 4, { ink: RF_C.brassD }); v.fly.splice(i, 1); } }
@@ -676,8 +678,8 @@ const CH_RAFFLE_V2 = {
     else if (e.k === 'later') { this.whisper(e.came ? 'came' : 'nocame'); if (typeof Live !== 'undefined') Live.say(e.came ? C.captions.liveCame : C.captions.liveNo); if (e.came && F) F.burst('dust', g.hatch.x, g.hatch.y, 6); }
     else if (e.k === 'draw') { this.resetEggs(); v.laterT = -1; if (F) F.tier(1, () => { }); snd('sieve', g.cx, g.cy); }
     else if (e.k === 'egg') {
-      const [x1, y1] = this.eggXY(e.j, g), o = e.m ? 0 : this.rivalOwner(cur, e.j);
-      v.fly.push({ j: e.j, o, x0: g.gate.x, y0: g.gate.y, x1, y1, t: 0, d: 0.22 });
+      const slot = e.m ? v.nMine++ : RF_E - 1 - v.nRiv++, [x1, y1] = this.eggXY(slot, g), o = e.m ? 0 : this.rivalOwner(cur, e.j);   // yours fill from the first egg, rivals' from the last
+      v.fly.push({ j: slot, o, x0: g.gate.x, y0: g.gate.y, x1, y1, t: 0, d: 0.22 });
       snd(e.m ? 'count' : 'tick', x1, y1, { i: e.j });
     }
     else if (e.k === 'laid') {
@@ -690,7 +692,7 @@ const CH_RAFFLE_V2 = {
     else if (e.k === 'leave') { snd('swish', g.pair.x, g.pair.y); }
     else if (e.k === 'arrive') { this.resetEggs(); v.pairT = 0; snd('wing', g.W, g.pair.y); }
     else if (e.k === 'ready') { if (RF_LV[s.level].her && cur.z < 0.5) this.whisper('favour'); }
-    else if (e.k === 'pm') { if (F) F.tier(3, ms => { v.banner = { text: C.labels.pm, t: 0, ms: Math.max(1100, ms + 300) }; }); }
+    else if (e.k === 'pm') { if (F) F.tier(3, ms => { v.banner = { text: C.labels.pm, t: 0, ms: Math.max(1700, ms + 500) }; }); }
     else if (e.k === 'ff') { if (F) F.ring(g.cx, g.cy, g.Rd * 0.7, { ms: 220 }); }
     else if (e.k === 'over') { if (F) F.tier(2, () => { }); }
   },
@@ -853,7 +855,7 @@ const CH_RAFFLE_V2 = {
     c.fillStyle = C.red; c.beginPath(); c.arc(hx + hl * Det.cos(ca), hy + hl * Det.sin(ca), 5, 0, TAU); c.fill();
     c.fillStyle = C.brass; c.beginPath(); c.moveTo(g.gate.x - 9, g.gate.y - 8); c.lineTo(g.gate.x + 9, g.gate.y - 8); c.lineTo(g.gate.x + 5, g.gate.y + 6); c.lineTo(g.gate.x - 5, g.gate.y + 6); c.closePath(); c.fill(); c.stroke();
     // counts under the drum: the raffle's two numbers (in L4 only the tickets she kept in the drum count)
-    if (s.phase !== 'arrive' && s.phase !== 'leave' && s.phase !== 'end' && s.phase !== 'over' && !(s.ask && (s.ask.id === 'p3' || s.ask.id === 'p4'))) {
+    if (s.phase !== 'arrive' && s.phase !== 'leave' && s.phase !== 'end' && s.phase !== 'over' && s.phase !== 'pm' && !(s.ask && (s.ask.id === 'p3' || s.ask.id === 'p4'))) {
       let me = 0, them = 0; for (const t of v.tk) if (t.w === 'dr') { if (t.o === 0) me++; else them++; }
       const lab = this.content.labels, y = g.cy - R0 * 0.6;   // a scoreboard in the empty top of the drum
       Lbl.put('rf-yours', Txt.f(lab.yours, { n: me }), g.cx - R0 * 0.36, y, { size: 13 });
@@ -880,6 +882,13 @@ const CH_RAFFLE_V2 = {
       if (o > 0 && this.style(o) === 2) { c.fillStyle = RF_C.dot; for (const [dx, dy] of [[-0.3, -0.4], [0.25, 0], [-0.2, 0.45]]) { c.beginPath(); c.arc(dx * r, dy * r, 1.1, 0, TAU); c.fill(); } }
       c.strokeStyle = 'rgba(30,24,16,.7)'; c.lineWidth = 1; c.beginPath(); c.ellipse(0, 0, r * 0.75, r, 0, 0, TAU); c.stroke(); c.restore();
     }
+    const s = this.sim.s, F = this.sim.cur(s);
+    if ((s.phase === 'draw' || s.phase === 'search' || s.phase === 'leave') && F && F.draws) {   // the expected boundary, dashed: yours fill from the first egg
+      const ex = RF_E * (RF_LV[s.level].dung ? F.x : RF.share(F, F.s)), k = Math.max(0, Math.min(RF_E, ex)), row = k >= 10 && k < 20 ? 1 : 0, col = row ? k - 10 : Math.min(10, k);
+      const E = g.eggs, x = E.x0 + (E.x1 - E.x0) * col / 10, y = row ? E.y1 : E.y0;
+      c.save(); c.setLineDash([4, 3]); c.lineWidth = 2; c.strokeStyle = RF_C.ink; c.beginPath(); c.moveTo(x, y - r * 1.8); c.lineTo(x, y + r * 1.8); c.stroke(); c.restore();
+      Lbl.put('rf-expect', this.content.labels.expected, Math.max(E.x0 + 30, Math.min(E.x1 - 30, x)), (row ? E.y1 : E.y0) - r * 1.8 - 9, { size: 12 });
+    }
     for (const f of v.fly) {   // a ticket on its thread, from the gate to its egg
       const u = Math.min(1, f.t / f.d), x = f.x0 + (f.x1 - f.x0) * u, y = f.y0 + (f.y1 - f.y0) * u - 30 * u * (1 - u) * 4, im = sp && sp[this.style(f.o)];
       c.strokeStyle = 'rgba(30,24,16,.45)'; c.lineWidth = 1; c.beginPath(); c.moveTo(f.x0, f.y0); c.quadraticCurveTo((f.x0 + x) / 2, Math.min(f.y0, y) - 10, x, y); c.stroke();
@@ -900,8 +909,12 @@ const CH_RAFFLE_V2 = {
       else if (ph === 'draw' || ph === 'search' || ph === 'later') Rig.draw(c, 'dungfly', { sex: 'm', size: 0.75 }, fx + S * 0.15, fy - S * 0.8, { size: S * 1.08, rot: TAU / 4 + 0.25 });   // guarding beside her
     }
     if (ph === 'later' && v.laterT >= 0) {   // a later male: he lands on her and adds his tickets, or flies on past
-      const u = Math.min(1, v.laterT / 0.55), x = v.laterCame ? g.W + S - (g.W + S - (g.pair.x + S * 0.1)) * u : g.W + S - (g.W + 2 * S) * Math.min(1, v.laterT / RF_T.later), y = v.laterCame ? g.pair.y - S * 0.15 - S * (1 - u) : g.patY - S * 0.35;
-      Rig.draw(c, 'dungfly', { sex: 'm', size: 0.9 }, x, y, { size: S * 1.12, rot: v.laterCame ? TAU / 4 : TAU * 0.75, alpha: 0.95 });
+      const u = Math.min(1, v.laterT / 0.55), w = Math.min(1, v.laterT / RF_T.later);
+      let x, y, rot;
+      if (v.laterCame) { x = g.W + S - (g.W + S - (g.pair.x + S * 0.1)) * u; y = g.pair.y - S * 0.15 - S * (1 - u); rot = TAU / 4; }
+      else if (w < 0.5) { const k = w / 0.5; x = g.W + S - (g.W * 0.3 + S) * k; y = g.patY - S * 0.3 - S * 0.6 * (1 - k); rot = TAU * 0.75; }   // he looks her over from above the eggs…
+      else { const k = (w - 0.5) / 0.5; x = g.W * 0.7 + (g.W * 0.3 + S) * k; y = g.patY - S * 0.3 - S * 1.2 * k; rot = TAU / 4 - 0.3; }   // …and flies on
+      Rig.draw(c, 'dungfly', { sex: 'm', size: 0.9 }, x, y, { size: S * 1.12, rot, alpha: 0.95 });
     }
     if (RF_LV[s.level].dung && (ph === 'pour' || ph === 'close') && !calm) for (let k = 0; k < 2; k++) {   // rival males circling the pat
       const a = v.t * (1.1 + k * 0.4) + k * 2.2, x = g.pair.x + S * (1.4 + k * 0.5) * Det.cos(a), y = g.pair.y - S * 0.9 + S * 0.35 * Det.sin(a * 1.3);
@@ -918,6 +931,7 @@ const CH_RAFFLE_V2 = {
     c.fillStyle = RF_C.cream; c.strokeStyle = RF_C.brassD; c.lineWidth = 3; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.stroke();
     if (s.phase !== 'search') { c.fillStyle = 'rgba(178,58,46,.35)'; c.beginPath(); c.moveTo(x, y); c.arc(x, y, r - 3, -TAU / 4, -TAU / 4 + TAU * Math.min(1, m / 60)); c.closePath(); c.fill(); }
     const a = -TAU / 4 + TAU * (m % 60) / 60; c.strokeStyle = RF_C.ink; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.lineTo(x + (r - 4) * Det.cos(a), y + (r - 4) * Det.sin(a)); c.stroke();
+    Lbl.put('rf-x600', this.content.labels.xN, x - r - 4, y - r + 4, { size: 12 });   // the time compression, tagged (D0 §3)
     Lbl.put('rf-clock', s.phase === 'search' ? Txt.f(lab.search, { T: Math.floor(F.T) }) : Txt.f(lab.mins, { m: Math.floor(m) }), x, y + r + 13, { size: 12 });
   },
 

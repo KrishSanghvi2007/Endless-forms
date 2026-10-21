@@ -29,7 +29,7 @@
     };
     return T;
   }
-  const TBx = () => window.TB;
+  const TBx = () => { const T = window.TB; if (T && T.Intro) T.Intro.off = true; return T; };   // shell checks drive v2 levels directly; the description card and the dock's "?" (D6 decision 8) are tested in selftest_e4
   // a chapter that is still legacy in this build: lichen until v2/lichen.js is in it, else an appendix chapter (never rebuilt, D6)
   const legacyCh = REG => ['lichen', 'web', 'islands', 'fire', 'nest'].map(id => REG[id]).find(c => c && c.v2 !== true);
 

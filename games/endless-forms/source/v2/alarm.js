@@ -22,7 +22,9 @@ const AL_ASK = {   // the prediction gestures: axis, start (off every plausible 
   wh: { chart: 1, lo: -0.5, hi: 0.5, start: 0.5, tol: 0.2, step: 0.02 },
   f4: { chart: 0, lo: 0, hi: 1, start: 0, tol: 0.1, step: 0.02 },
   m4: { chart: 1, lo: 0, hi: 1, start: 1, tol: 0.1, step: 0.02 },
-  sw: { chart: 2, lo: 0, hi: 1, start: 0, tol: 0.1, step: 0.02 }
+  sw: { chart: 2, lo: 0, hi: 1, start: 0, tol: 0.1, step: 0.02 },
+  lm: { chart: 1, lo: 0, hi: 0.6, start: 0, tol: 0.05, step: 0.0125 },
+  eg: { chart: 1, lo: 0, hi: 0.6, start: 0, tol: 0.05, step: 0.0125, practice: true }
 };
 // L4, the colony: two sex-limited calling loci; neighbourhood relatedness set by dispersal; selection strength ×N
 const AL_C4 = { N: 200, T: 15, vig: 8, sigma: 2.6, Rf: 0.9, Rm: 0.05, M: 200 };
@@ -43,7 +45,7 @@ const AL_LV = [   // per level: attacks, predators, tags known, asks
 const AL_TEXT = {
   intro: {
     game: 'You are a Belding’s ground squirrel in a high Sierra meadow, where coyotes and hawks hunt. Each attack, you call a warning or stay silent.',
-    biology: 'A call puts the caller at risk but saves the neighbours it warns. Hamilton’s rule: a call pays your genes when relatedness times benefit beats the cost, rB > C.',
+    biology: 'Calling can put the caller at risk while it saves the neighbours it warns. Hamilton’s rule: a call pays your genes when relatedness times benefit beats the cost, rB > C.',
     how: 'Read each neighbour’s ear flag, then tap Call or Stay silent before the predator strikes. Later you tag kin on a burrow map, and help or breed as a warbler.'
   },
   firstWords: 'A coyote! Ear flags show each neighbour’s relatedness to you. Tap yourself to trill a warning, or tap your burrow to stay silent.',
@@ -58,6 +60,8 @@ const AL_TEXT = {
     be: 'Drag the line: above what total relatedness does a trill pay?',
     tr: 'Drag the marker: what does a trill cost the caller?',
     wh: 'Drag the marker: what does a whistle cost? Below zero means it saves you.',
+    lm: 'Your litter has two fathers. Drag your average relatedness to your littermates.',
+    eg: '40% of young have extra-group fathers. Drag: your r to mum and dad’s chick?',
     f4: 'Drag: what share of females will carry calling at season 15?',
     m4: 'Drag: and what share of males will carry calling at season 15?',
     vigF: 'Season {t}: you are a daughter at home. Coyote!',
@@ -78,7 +82,7 @@ const AL_TEXT = {
     caught: 'Caught! You go on as a sister.', killed: 'A neighbour was caught.', none: 'Nobody was caught.',
     good: 'Good call for your genes.', bad: 'Your genes lost out.', tagged: 'Tagged.', you: 'That is you.', drag: 'Drag the marker first.',
     miss: 'Tap yourself to call, your burrow for silence.', missW: 'Tap home to help, far tree to breed.',
-    coop: 'You laid an egg in the nest!', nocoop: 'No egg of yours this spring.', bred: 'You raised your own chick.', floated: 'No territory: you waited.'
+    practice: 'Practice call: off by {d}.', coop: 'You laid an egg in the nest!', nocoop: 'No egg of yours this spring.', bred: 'You raised your own chick.', floated: 'No territory: you waited.'
   },
   labels: {
     you: 'you', cost: 'cost', costQ: 'cost ?', pays: 'call pays', silentPays: 'silence pays', burrow: 'your burrow', designed: 'blaze: designed',
@@ -88,7 +92,7 @@ const AL_TEXT = {
     daughters: 'daughters stay', sons: 'sons leave', dLeave: 'daughters leave', sStay: 'sons stay', season: 'season {n}/{m}', attack: 'attack {n}/{m}',
     spring: 'spring {n}/{m}', tags: 'tags {n}/{m}', lock: 'Lock in', call: 'Call', silentB: 'Stay silent', done: 'Done', help: 'Help', breed: 'Breed',
     notEq: '≠', ledger: 'kin vs cost', rich: 'rich', fair: 'fair', poor: 'poor', trueR: 'r {r}', sr: 'Σr {v}', xN: 'selection ×N', island: 'Cousin Island',
-    tKin: 'Kin nearby', tTrill: 'Trill cost', tWhistle: 'Whistle cost', tFem: 'Females calling', tMale: 'Males calling', tSwap: 'Swapped meadow', tGenes: 'Gene copies',
+    tKin: 'Kin nearby', tTrill: 'Trill cost', tWhistle: 'Whistle cost', tFem: 'Females calling', tMale: 'Males calling', tSwap: 'Swapped meadow', tGenes: 'Gene copies', tLitter: 'Littermates', tChick: 'Chick relatedness', rbar: 'mean r', oneFather: 'one father', keyA: 'A: calling copy', keya: 'a: silent copy',
     sAtk: 'Attack', sOk: 'Good calls', sTags: 'Tags right', sSeason: 'Season', sF: 'Females calling', sM: 'Males calling', sVigF: 'You, as daughter',
     sVigM: 'You, as son', sSpring: 'Spring', sTot: 'Gene copies', sDir: 'Own young', sInd: 'Kin raised',
     called: 'called', silent: 'silent', est: 'from data', attackAx: 'attack', seasonAx: 'season', springAx: 'spring', sumR: 'Σr', costAx: 'risk',
@@ -126,7 +130,7 @@ const AL_TEXT = {
   ],
   levelStars: [
     { discover: 'Make 7 of 8 calls the way Hamilton’s rule says.', predict: 'Drag the break-even relatedness inside the band.' },
-    { discover: 'Tag 4 in 5 squirrels right, then make 6 good calls.' },
+    { discover: 'Tag 4 in 5 squirrels right, then make 6 good calls.', predict: 'Drag your mean relatedness to your littermates inside the band.' },
     { discover: 'Make 7 of 8 good calls, whistling once with few kin near.', predict: 'Place both call costs inside their bands.' },
     { predict: 'Call both calling shares at season 15 inside the bands.', transfer: 'Call male calling in the swapped meadow inside the band.' },
     { discover: 'Gain nearly the most gene copies possible over eight springs.', transfer: 'Help where only co-breeding pays, yet leave for rich vacancies.' }
@@ -144,15 +148,15 @@ const AL_TEXT = {
   model: [
     { level: 0, simulated: 'A colony of about 14 squirrels with a known pedigree. Each coyote attack, you and two to five neighbours are in view. A trill raises your risk by 0.22; each warned neighbour avoids 0.4.', simplification: 'Costs and benefits are fixed. At most one squirrel is caught an attack, with chance 0.3 × its risk. If caught, you play on as a full sister.', params: [{ name: 'benefit to a warned neighbour B', value: 0.4, tag: 'designed' }, { name: 'trill cost C', value: 0.22, tag: 'designed' }, { name: 'catch chance per risk unit', value: 0.3, tag: 'designed' }], cannot: 'Learning, age, or calls that change how predators hunt.', nature: 'Sherman found females with kin nearby trilled more, and trillers were stalked and chased more than silent squirrels.', contested: false, refs: ['ham1964', 'sh1977'] },
     { level: 1, simulated: 'A new spring. Litters come up with their mothers; fathers are unseen. Each pup wears its father’s face blaze. Your tags, not the truth, are what you read in the attacks.', simplification: 'The face blaze is a designed cue: real squirrels carry no such mark. Each litter has one or two sires.', params: [{ name: 'father’s face blaze', value: 'one per sire', tag: 'designed' }, { name: 'sires per litter', value: '1–2', tag: 'designed' }], cannot: 'How squirrels themselves tell kin apart.', nature: 'Hanken and Sherman found 78% of 27 litters had two or more fathers. Full sisters fought less than half-sisters (Holmes and Sherman 1982).', contested: false, refs: ['hs1981', 'hol1982'] },
-    { level: 2, simulated: 'Hawks arrive. A whistle warns neighbours too. But the whistler bolts for cover, so its risk falls by 0.26. A notebook tallies catches of callers and silent squirrels by predator.', simplification: 'The whistle’s cost is set from the direction of Sherman’s finding; its size is designed. Each notebook entry is 40 encounters.', params: [{ name: 'whistle cost', value: -0.26, tag: 'designed' }, { name: 'trill cost', value: 0.22, tag: 'designed' }, { name: 'encounters a notebook entry', value: 40, tag: 'designed' }], cannot: 'Why some squirrels call before bolting and others after.', nature: 'In 664 hawk encounters at Tioga Pass, fewer whistlers than silent squirrels were killed (Sherman 1985). Whistles look largely selfish.', contested: false, refs: ['sh1985'] },
-    { level: 3, simulated: 'Two calling alleles: one acts in females, one in males. Each season a copy’s fitness moves by Σr × 0.4 − 0.22 near its carrier. Then 400 copies are drawn.', simplification: 'Neighbours’ relatedness is set by dispersal, not counted. Daughters live among Σr ≈ 0.9 of kin; sons among 0.05.', params: [{ name: 'copies per locus', value: 400, tag: 'designed' }, { name: 'Σr near daughters', value: 0.9, tag: 'designed' }, { name: 'Σr near sons', value: 0.05, tag: 'designed' }, { name: 'selection a season', value: 2.6, tag: 'xN', real: 'calls cost far less a season' }], cannot: 'Kin structure building up from births and deaths.', nature: 'Belding’s males leave home before they breed; females settle near their mothers (Holekamp 1984). Females called far more than males (Sherman 1977).', contested: false, refs: ['sh1977', 'hol1984'] },
-    { level: 4, simulated: 'Eight springs on Cousin Island. A young female warbler helps at home or breeds on a vacancy. Gene copies count own young × ½ plus extra kin raised × r.', simplification: 'Helping adds 0.6 × home quality young; a helper lays her own egg with chance 0.44. Extra-group fathers sire 40% of young.', params: [{ name: 'helpers that co-breed', value: 0.44, tag: 'realistic', real: '44% of female helpers bred' }, { name: 'extra-group young', value: 0.4, tag: 'realistic', real: '40% of young' }, { name: 'young from helping', value: '0.6 × quality', tag: 'designed' }], cannot: 'Helpers that hinder on poor territories, or sex ratios set by breeders.', nature: 'Moved to empty islands, helpers left to breed (Komdeur 1992). Helpers that bred made 15% of young (Richardson and colleagues 2001).', contested: false, refs: ['kom1992', 'ric2001', 'ric2002', 'ric2003'] }
+    { level: 2, simulated: 'Hawks arrive. A whistle warns neighbours too. But the whistler bolts for cover, so its risk falls by 0.26. A notebook tallies catches of callers and silent squirrels by predator.', simplification: 'The whistle’s cost is set from the direction of Sherman’s finding; its size is designed. Each notebook entry is 40 encounters.', params: [{ name: 'whistle cost', value: -0.26, tag: 'designed' }, { name: 'trill cost', value: 0.22, tag: 'designed' }, { name: 'encounters a notebook entry', value: 40, tag: 'designed' }], cannot: 'Why some squirrels call before bolting and others after.', nature: 'Sherman watched 664 hawk encounters at Tioga Pass, most staged with trained raptors. Fewer whistlers than silent squirrels were killed (Sherman 1985).', contested: false, refs: ['sh1985'] },
+    { level: 3, simulated: 'Two calling alleles: one acts in females, one in males. Each season a copy’s fitness moves by Σr × 0.4 − 0.22 near its carrier. Then 400 copies are drawn.', simplification: 'Neighbours’ relatedness is set by dispersal, not counted. Daughters live among Σr ≈ 0.9 of kin; sons among 0.05.', params: [{ name: 'copies per locus', value: 400, tag: 'designed' }, { name: 'Σr near daughters', value: 0.9, tag: 'designed' }, { name: 'Σr near sons', value: 0.05, tag: 'designed' }, { name: 'selection a season', value: 2.6, tag: 'xN', real: 'calls cost far less a season' }], cannot: 'Kin structure built up from births and deaths. Real calling has no known single gene.', nature: 'Belding’s males leave home before they breed; females settle near their mothers (Holekamp 1984). Females called far more than males (Sherman 1977).', contested: false, refs: ['sh1977', 'hol1984'] },
+    { level: 4, simulated: 'Eight springs on Cousin Island. A young female warbler helps at home or breeds on a vacancy. Gene copies count own young × ½ plus extra kin raised × r.', simplification: 'Helping adds 0.6 × home quality young; a helper lays her own egg with chance 0.44. Extra-group fathers sire 40% of young.', params: [{ name: 'helpers that co-breed', value: 0.44, tag: 'realistic', real: '44% of female helpers bred' }, { name: 'extra-group young', value: 0.4, tag: 'realistic', real: '40% of young' }, { name: 'young from helping', value: '0.6 × quality', tag: 'designed' }], cannot: 'Helpers that hinder on poor territories, or sex ratios set by breeders.', nature: 'When moved birds freed territories, helpers left to breed (Komdeur 1992). Helpers fed more when the breeder was their mother (Richardson and colleagues 2003).', contested: false, refs: ['kom1992', 'ric2001', 'ric2002', 'ric2003'] }
   ],
   why: {
     real: [
       'Paul Sherman watched Belding’s ground squirrels at Tioga Pass. Females with mothers, sisters or daughters nearby trilled at coyotes more. Males, which leave home, rarely called. Trillers were stalked and chased more than silent squirrels (Sherman 1977).',
       'Litters often have several fathers (Hanken and Sherman 1981). Hawk whistles differ: fewer whistlers than silent squirrels were killed, so whistles look selfish (Sherman 1985).',
-      'Seychelles warbler helpers left home when Komdeur moved birds to islands with empty territories (Komdeur 1992). Many female helpers lay eggs in the nest they help at (Richardson and colleagues 2001).'
+      'Seychelles warbler helpers left home when territories were freed (Komdeur 1992). Of female helpers, 44% laid eggs in the nest they helped at. They made 15% of young (Richardson and colleagues 2001).'
     ],
     maths: [
       'Hamilton’s rule: a gene for helping spreads when rB > C. Here each warned neighbour avoids B = 0.4 risk. A trill costs C = 0.22. So call when Σr × 0.4 > 0.22, that is Σr > 0.55.',
@@ -242,7 +246,7 @@ const CH_ALARM_V2 = {
       s.tally = { coyote: [0, 0, 0, 0], hawk: [0, 0, 0, 0] };   // [callers seen, callers caught, silent seen, silent caught]
       if (L.truth) for (const m of s.col) s.tags[m.id] = this.tagOf(m.rel);
       s.plan = this.plan(level);
-      if (L.peace) { s.phase = 'peace'; return; }
+      if (L.peace) { s.phase = 'peace'; this.openAsk(s, [], 'lm'); return; }
       this.newAttack(s, []);
     },
     // ---- attacks ----
@@ -255,7 +259,7 @@ const CH_ALARM_V2 = {
     decideT(s) { return AL_T.decide[Math.min(s.level, 3)]; },
     first(s) { return s.level !== 3 && s.ai === 0; },   // the first attack of a level waits for you
     choose(s, a, ev) {
-      const A = s.atk; if (!A || A.st !== 'decide' || A.a != null) return;
+      const A = s.atk; if (!A || (A.st !== 'decide' && A.st !== 'tell') || A.a != null) return;   // a call as the predator appears counts too
       A.a = a ? 1 : 0; A.st = 'strike'; A.t = 0;
       ev.push({ k: 'call', a: A.a, pred: A.pred, slow: A.slow });
       this.strike(s, ev);
@@ -299,9 +303,11 @@ const CH_ALARM_V2 = {
       const A = AL_ASK[id]; s.ask = { id, kind: 'y', lo: A.lo, hi: A.hi, tol: A.tol }; s.asks.push(id); s.at0[id] = this.now(s, id);
       s.phase = 'ask'; s.pt = 0; ev.push({ k: 'ask', id });
     },
-    now(s, id) { if (id === 'f4') return s.c4.p0[0]; if (id === 'm4') return s.c4.p0[1]; if (id === 'sw') return s.c4.sw0[1]; return 0; },
+    now(s, id) { if (id === 'lm' || id === 'eg') return 0.5; if (id === 'f4') return s.c4.p0[0]; if (id === 'm4') return s.c4.p0[1]; if (id === 'sw') return s.c4.sw0[1]; return 0; },
     askDone(s, ev) {
       const id = s.ask.id; s.ask = null;
+      if (id === 'lm') { s.phase = 'peace'; return; }
+      if (id === 'eg') { s.phase = 'spring'; s.pt = 0; ev.push({ k: 'spring', i: 0 }); return; }
       if (s.qq && s.qq.length) { this.openAsk(s, ev, s.qq.shift()); return; }
       if (s.level === 3) { if (id === 'sw') { s.phase = 'swap'; s.pt = 0; ev.push({ k: 'swap' }); } else this.nextSeason(s, ev); return; }
       this.newAttack(s, ev);
@@ -325,7 +331,11 @@ const CH_ALARM_V2 = {
     },
     wf4(p, a, rnd) { const q = p * (1 + a) / (1 + a * p), n = 2 * AL_C4.N; return this.binom(n, q, rnd) / n; },
     gen4(p, swap, rnd) { const Rf = swap ? AL_C4.Rm : AL_C4.Rf, Rm = swap ? AL_C4.Rf : AL_C4.Rm; return [this.wf4(p[0], this.a4(Rf), rnd), this.wf4(p[1], this.a4(Rm), rnd)]; },
-    exp4(p0, swap, seedv) { const r = rng(seedv), M = AL_C4.M, out = [0, 0]; for (let m = 0; m < M; m++) { let p = p0.slice(); for (let t = 0; t < AL_C4.T; t++) p = this.gen4(p, swap, r); out[0] += p[0]; out[1] += p[1]; } return [out[0] / M, out[1] / M]; },
+    exp4(p0, swap, seedv, path) {   // the mean of M replays on a private PRNG; path (optional) receives the mean trajectory [[t, f, m]…]
+      const r = rng(seedv), M = AL_C4.M, T = AL_C4.T, acc = []; for (let t = 0; t <= T; t++) acc.push([t, 0, 0]);
+      for (let m = 0; m < M; m++) { let p = p0.slice(); acc[0][1] += p[0]; acc[0][2] += p[1]; for (let t = 1; t <= T; t++) { p = this.gen4(p, swap, r); acc[t][1] += p[0]; acc[t][2] += p[1]; } }
+      for (const q of acc) { q[1] /= M; q[2] /= M; } if (path) path.push(...acc); return [acc[T][1], acc[T][2]];
+    },
     vigNb(s, female) {   // the vignette: a daughter's neighbours are mostly kin; a son's are strangers
       const n = 3 + (R() < 0.5 ? 1 : 0), nb = [], tab = female ? [['mo', 0.2], ['fs', 0.2], ['hs', 0.2], ['co', 0.15], ['un', 0.25]] : [['br', 0.03], ['un', 0.97]];
       for (let k = 0; k < n; k++) { let u = R(), rel = tab[tab.length - 1][0]; for (const [r, w] of tab) { if (u < w) { rel = r; break; } u -= w; } nb.push({ id: 'v' + s.c4.t + '_' + k, rel, sex: rel === 'un' && !female ? 'm' : 'f', alive: true }); }
@@ -355,7 +365,7 @@ const CH_ALARM_V2 = {
     reset5(s) {
       const order = AL_SPRINGS.map((x, i) => i); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const t = order[i]; order[i] = order[j]; order[j] = t; }
       s.sp = order.map(i => { const [q, br, sire, vac] = AL_SPRINGS[i], sp = { q, br, sire, vac }, V = this.vals(sp); return Object.assign(sp, { r: V.r, kin: V.kin, own: V.own, vH: V.vH, vB: V.vB, inv: V.vH > V.vB && V.kin < V.vB, a: null, coop: false }); });
-      s.si = 0; s.phase = 'spring'; s.pt = 0; s.tot = 0; s.dir = 0; s.ind = 0;
+      s.si = 0; s.phase = 'spring'; s.pt = 0; s.tot = 0; s.dir = 0; s.ind = 0; this.openAsk(s, [], 'eg');
     },
     best5(s) { let b = 0; for (const sp of s.sp) b += Math.max(sp.vH, sp.vB); return b; },
     springStep(s, dt, ev) {
@@ -378,8 +388,10 @@ const CH_ALARM_V2 = {
       if (id === 'be') return AL_C.coyote / AL_B;
       if (id === 'tr') return AL_C.coyote;
       if (id === 'wh') return AL_C.hawk;
+      if (id === 'lm') { let t = 0, n = 0; for (const m of s.col) if (m.rel === 'fs' || m.rel === 'hs') { t += AL_REL[m.rel]; n++; } return n ? t / n : null; }
+      if (id === 'eg') return this.rNest('mum', 'dad');
       const sd = (Math.round(s.c4.p0[0] * 100) * 131 + Math.round(s.c4.p0[1] * 100) * 7 + Math.round(s.c4.sw0[1] * 100) * 3) >>> 0;   // a private PRNG: R() and the run stay untouched
-      if (id === 'f4' || id === 'm4') { const e = s.exp4 || this.exp4(s.c4.p0, false, sd + 11); s.exp4 = e; return id === 'f4' ? e[0] : e[1]; }
+      if (id === 'f4' || id === 'm4') { if (!s.exp4) { const P = []; s.exp4 = this.exp4(s.c4.p0, false, sd + 11, P); s.exp4path = P; } return id === 'f4' ? s.exp4[0] : s.exp4[1]; }
       if (id === 'sw') return this.exp4(s.c4.sw0, true, sd + 23)[1];
       return null;
     },
@@ -487,7 +499,7 @@ const CH_ALARM_V2 = {
       if (n === 4) return s.sp && s.sp.every(sp => sp.a) && s.tot >= CH_ALARM_V2.sim.best5(s) - 0.07 - 1e-9;
       return false;
     },
-    predict: (s, n) => (n === 0 && AL_hit(s, 'be')) || (n === 2 && AL_hit(s, 'tr') && AL_hit(s, 'wh')) || (n === 3 && AL_hit(s, 'f4') && AL_hit(s, 'm4') && AL_real(s, 'f4') && AL_real(s, 'm4')),
+    predict: (s, n) => (n === 0 && AL_hit(s, 'be')) || (n === 1 && AL_hit(s, 'lm')) || (n === 2 && AL_hit(s, 'tr') && AL_hit(s, 'wh')) || (n === 3 && AL_hit(s, 'f4') && AL_hit(s, 'm4') && AL_real(s, 'f4') && AL_real(s, 'm4')),
     transfer: (s, n) => (n === 3 && AL_hit(s, 'sw') && AL_real(s, 'sw')) || (n === 4 && !!s.sp && s.sp.filter(sp => sp.inv && sp.a === 'help').length >= 3 && s.sp.every(sp => !(sp.vac >= 0.9) || sp.a === 'breed'))
   },
   // assignment links: bits 0–2 level, 3–5 mask, 6–9 good calls, 10–13 tags right ×10 (L2) or gene copies ×5 (L5), 14–20 first prediction ×100 (clamped)
@@ -601,7 +613,10 @@ const CH_ALARM_V2 = {
     } else if (e.k === 'tagged') {
       const p = this.nodeAt(e.id); if (F) { F.ring(p[0], p[1], 20, { ms: 220 }); F.pop(PedigreeView.GLYPH[e.t], p[0], p[1] - 30, 0); } snd('tick', p[0], p[1]); v.lastTag = e.id;
     } else if (e.k === 'ask') { snd('interesting', Stage.w / 2, 80); }
-    else if (e.k === 'predicted') { if (typeof Predict !== 'undefined' && Predict.fold) setTimeout(() => Predict.fold(), 650); }
+    else if (e.k === 'predicted') {
+      if (e.id === 'eg' && typeof Predict !== 'undefined') { const ex = this.sim.expect(s, 'eg'); Predict.reveal('eg', ex, AL_ASK.eg.tol); if (typeof Whisper !== 'undefined') Whisper.say(Txt.f(C.whispers.practice, { d: Math.abs(s.pred.eg - ex).toFixed(2) }), 'al-practice'); }
+      if (typeof Predict !== 'undefined' && Predict.fold) setTimeout(() => Predict.fold(), e.id === 'eg' ? 1600 : 650);
+    }
     else if (e.k === 'season' || e.k === 'swtick') {
       v.mapT = 0; if (F) F.tier(e.auto || e.k === 'swtick' ? 1 : 2, () => { }); snd('swish', Stage.w / 2, 120);
       if (typeof Live !== 'undefined' && s.c4) { const p = e.k === 'swtick' ? s.c4.sw : s.c4.p; Live.say(Txt.f(C.captions.liveSeason, { t: e.t, f: Math.round(100 * p[0]), m: Math.round(100 * p[1]) })); }
@@ -632,7 +647,7 @@ const CH_ALARM_V2 = {
       else if (this.once('missW')) this.whisper('missW');
       return;
     }
-    if (s.phase !== 'attack' || !s.atk || s.atk.st !== 'decide') return;
+    if (s.phase !== 'attack' || !s.atk || (s.atk.st !== 'decide' && s.atk.st !== 'tell')) return;
     const G = this.geo(), dx = x - G.yx, dy = y - G.yy;
     const rr = Math.max(30, G.hero * 0.62); if (dx * dx + dy * dy <= rr * rr) { this.call(1); return; }
     const bx = x - (G.yx + G.hero * 0.85), by = y - G.by; if (bx * bx + by * by <= 34 * 34) { this.call(0); return; }
@@ -684,7 +699,7 @@ const CH_ALARM_V2 = {
   draw(c, W, H) {
     const s = this.sim.s, v = this.v, n = this.level;
     if (n === 4) this.drawIsland(c);
-    else if (s.phase === 'peace') this.drawPeace(c);
+    else if (s.phase === 'peace' || (n === 1 && s.ask && s.ask.id === 'lm')) this.drawPeace(c);
     else if (n === 3 && s.phase !== 'attack') this.drawMap(c);
     else this.drawMeadow(c);
     if (v.banner) { const p = v.banner.t / v.banner.ms, a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1; c.save(); c.globalAlpha = Math.max(0, a); Lbl.put('al-banner', v.banner.text, W / 2, this.hudH() + 60, { size: 22 }); c.restore(); }
@@ -891,7 +906,7 @@ const CH_ALARM_V2 = {
         const mobile = swap ? !male : male;
         if (mobile && mover < 1) { const fromK = (k + 1 + (i % 5)) % 6, [fx, fy] = cen[fromK]; px = lerp(fx, px, mover); py = lerp(fy, py, mover); }
         const loc = male ? 1 : 0, a1 = this.hrand(k * 9 + i, t * 2 + loc * 101) < p[loc] ? 0 : 1, a2 = this.hrand(k * 9 + i, t * 2 + 1 + loc * 101) < p[loc] ? 0 : 1;
-        if (typeof Pal !== 'undefined') Pal.genotype(c, px, py, r, a1, a2, { letter: '' });
+        if (typeof Pal !== 'undefined') Pal.genotype(c, px, py, r, a1, a2);   // A = calling copy, a = silent copy (letters, for colour-blind players)
         c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.beginPath(); if (male) c.rect(px - r - 2, py - r - 2, 2 * r + 4, 2 * r + 4); else c.arc(px, py, r + 1.5, 0, TAU); c.stroke();
       }
     }
@@ -899,6 +914,7 @@ const CH_ALARM_V2 = {
     Lbl.put('al-maps', swap ? L.sStay : L.sons, G.W - 10, G.top + 12, { size: 12, align: 'right' });
     Lbl.put('al-mapt', Txt.f(L.season, { n: t, m: AL_C4.T }), G.W / 2, G.ledY + 4, { size: 13, mono: true });
     Lbl.put('al-mapx', L.xN, G.W / 2, G.ledY - 22, { size: 12, bg: 'rgba(244,238,221,.8)' });
+    Lbl.put('al-keyA', L.keyA, 10, G.ledY + 4, { size: 12, align: 'left' }); Lbl.put('al-keya', L.keya, G.W - 10, G.ledY + 4, { size: 12, align: 'right' });
   },
   /* L5 boss: Cousin Island, Seychelles; home territory left, a vacancy right, you on a branch between */
   drawIsland(c) {
@@ -960,7 +976,8 @@ const CH_ALARM_V2 = {
         const S = [{ label: L.called, shape: 'disc', ink: 'ink', pts: R.map((r, i) => r.a === 1 ? [i + 1, r.sr] : null).filter(Boolean) }, { label: L.silent, shape: 'square', pts: R.map((r, i) => r.a === 0 ? [i + 1, r.sr] : null).filter(Boolean) }];
         const sp = { type: 'scatter', title: L.tKin, x: xs, y: { lo: 0, hi: 2, label: L.sumR }, series: S, frame: 'designed' };
         if (n === 1 || over) sp.ghost = [[0, 0.55], [s.n + 1, 0.55]];
-        return { stats, charts: [sp] };
+        if (n === 0) return { stats, charts: [sp] };
+        return { stats, charts: [sp, this.rChart(L.tLitter, s.pred.lm != null ? [{ d: [[0, 0.5], [1, 0.5]], label: L.oneFather }] : [])] };
       }
       const hidden = s.pred.wh == null;
       const tr = { type: 'scatter', title: L.tTrill, x: xs, y: { lo: -0.5, hi: 0.5, label: L.costAx }, series: [{ label: L.est, shape: 'disc', ink: 'ink', pts: hidden ? [] : (s.estH || []).filter(q => q[1] != null).map(q => [q[0], q[1]]) }], ref: 'zero', frame: 'designed' };
@@ -973,7 +990,7 @@ const CH_ALARM_V2 = {
       stats.push([L.sSeason, C.t + ' / ' + AL_C4.T, ''], [L.sF, Math.round(100 * C.p[0]) + '%', cap.mF], [L.sM, Math.round(100 * C.p[1]) + '%', cap.mM]);
       const R = s.recs || [], vF = R.filter(r => r.vig === 'f'), vM = R.filter(r => r.vig === 'm');
       if (vF.length) stats.push([L.sVigF, vF.filter(r => r.a).length + ' / ' + vF.length, '']); if (vM.length) stats.push([L.sVigM, vM.filter(r => r.a).length + ' / ' + vM.length, '']);
-      const ghost = (i) => over && s.exp4 ? [{ d: [[0, C.p0[i]], [AL_C4.T, s.exp4[i]]], label: L.model }] : [];
+      const ghost = (i) => over && s.exp4path ? [{ d: s.exp4path.map(q => [q[0], q[i + 1]]), label: L.model }] : [];
       const f = { type: 'trace', title: L.tFem, x: xs, y: ys, series: [{ d: C.hist.map(q => [q[0], q[1]]), ink: 'A', label: L.females }], ghost: ghost(0), frame: 'designed' };
       const m = { type: 'trace', title: L.tMale, x: xs, y: ys, series: [{ d: C.hist.map(q => [q[0], q[2]]), ink: 'A', label: L.males }], ghost: ghost(1), frame: 'designed' };
       const charts = [f, m];
@@ -982,8 +999,9 @@ const CH_ALARM_V2 = {
     }
     const sp = s.sp || [], cum = []; let t = 0, b = 0, bc = []; sp.forEach((q, i) => { if (q.a) { t += q.a === 'help' ? q.vH : q.vB; cum.push([i + 1, t]); } b += Math.max(q.vH, q.vB); bc.push([i + 1, b]); });
     stats.push([L.sSpring, Math.min(sp.length, s.si + 1) + ' / ' + sp.length, ''], [L.sTot, (s.tot || 0).toFixed(2), cap.mTot], [L.sDir, (s.dir || 0).toFixed(2), ''], [L.sInd, (s.ind || 0).toFixed(2), '']);
-    return { stats, charts: [{ type: 'trace', title: L.tGenes, x: { lo: 0, hi: sp.length, label: L.springAx }, y: { lo: 0, hi: 3.2 }, series: [{ d: [[0, 0]].concat(cum), ink: 'ink', label: L.yours, you: true }], ghost: over ? [{ d: [[0, 0]].concat(bc), label: L.best }] : [], frame: 'designed' }] };
+    return { stats, charts: [this.rChart(L.tChick, s.pred.eg != null ? [{ d: [[0, 0.5], [1, 0.5]], label: L.oneFather }] : []), { type: 'trace', title: L.tGenes, x: { lo: 0, hi: sp.length, label: L.springAx }, y: { lo: 0, hi: 3.2 }, series: [{ d: [[0, 0]].concat(cum), ink: 'ink', label: L.yours, you: true }], ghost: over ? [{ d: [[0, 0]].concat(bc), label: L.best }] : [], frame: 'designed' }].reverse() };
   },
+  rChart(title, ghost) { return { type: 'trace', title, x: { lo: 0, hi: 1, fmt: () => '' }, y: { lo: 0, hi: 0.6, label: this.content.labels.rbar }, series: [], ghost, frame: 'designed' }; },
   debrief() {
     const s = this.sim.s, spec = this.notes().charts[0]; if (!spec) return null;
     const id = s.asks && s.asks[0];
@@ -999,6 +1017,6 @@ if (!Url.v1) {
   TAKE.alarm = AL_TEXT.take;
   MODEL.alarm = 'Belding’s ground squirrels in a meadow: a call costs the caller risk C and saves each warned neighbour risk B = 0.4, so it pays when Σr × B > C. The trill costs 0.22; the whistle saves its caller. Calling alleles act in one sex each; dispersal sets who lives among kin. Warbler helpers can co-breed.';
   RECALL.alarm = { q: 'A trill costs 0.22 and saves each neighbour 0.4. Beside one sister and one cousin, should you trill?', opts: [['yes', 'Yes: ½ + ⅛ = 0.625'], ['no', 'No: it costs you'], ['half', 'Only for the sister']], ans: 'yes', why: 'Σr × 0.4 = 0.25, more than the cost of 0.22.' };
-  BRIDGE.alarm = 'In The Raffle every male was alone against rivals. Here your relatives share your genes, so helping them can pay.';
+  BRIDGE.alarm = 'So far each animal served only its own young. Here relatives share your genes by descent, so helping them can pay.';
   if (TRANSFER.alarm) delete TRANSFER.alarm;
 }

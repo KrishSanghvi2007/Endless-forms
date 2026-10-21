@@ -1549,7 +1549,7 @@ const CH_CASINO_V2 = {
   },
   crowd(c, G) {   // 240 anoles in natural paint, baked once into a cached layer (D4 §1.4)
     const Is = G.isle, key = G.W + 'x' + G.H, v = this.v;
-    const paint = (cc) => { for (let i = 0; i < 240; i++) { const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = (((i + 11) * 40503 * 2246822519) >>> 0) / 4294967296, x = Is.x + 30 + (Is.w - 60) * h1, y = Is.y + Is.h * 0.5 + (Is.h * 0.42) * h2; this.lizard(cc, x, y, i % 3 ? 17 : 21, (h1 - 0.5) * 6, { male: i % 3 === 0, dark: h2 > 0.55 ? 0.3 : 0 }); } };
+    const paint = (cc) => { for (let i = 0; i < 240; i++) { const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = (((i + 11) * 40503 * 2246822519) >>> 0) / 4294967296, x = Is.x + 30 + (Is.w - 60) * h1, y = Is.y + Is.h * 0.5 + (Is.h * 0.42) * h2; this.lizard(cc, x, y, i % 3 ? 14 : 17, (h1 - 0.5) * 6, { male: i % 3 === 0, dark: h2 > 0.55 ? 0.3 : 0 }); } };
     if (typeof Layer === 'undefined') { paint(c); return; }
     if (!v.crowd || v.crowd.key !== key) v.crowd = { key, L: Layer(G.W, G.H).redraw(cc => paint(cc)) };
     v.crowd.L.blit(c, 0, 0);

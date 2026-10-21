@@ -226,3 +226,8 @@ Files touched: `v2/casino.js`, `tests/oracle_casino.js`, `tests/casino_shots.py`
 ### Screenshots (review round)
 
 `/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/wave2/casino/review/` (126 shots, every level and phase at both sizes, with What if? runs and cards) and `…/casino/r4cvd/` (greyscale). Worth a look: `L1_bet5_t1` and `L1_run_t1` (pay pills, folded strip), `L2_crashes_t2` (cones), `L3_bet5_t1` (brood dots), `L3_settle_t1_side2` (cue, formula pill, fit ± spread), `L5_zoo_t1` (letters on beetles, tag row), `L5_card` (the inversion take), `L1_whatif_card` and `L2_whatif_card` (one table only).
+
+## 21 October 2026: its own world (D6 decisions 7 and 8)
+
+After playing Batch 1 the designer found every chapter too alike: beetles, blue and yellow. The casino is now a riverboat saloon. It has burgundy damask walls, mahogany and brass, a green baize table with brass rims, burgundy chips, and glass-marble beads in brass-collared jars. Buri's bottles and the Ne side tables sit on a parchment bench board. **The castaways and the volcano and zoo are brown anoles on sandy, scrubby islets in a teal sea**, so beetles now belong to Equilibrium alone. Blue and amber stay only on gene copies: marbles, founders' badges, vials and outcome icons. The opening description card (`content.intro`) and the accent `#8C2438` were added. The model, stars, oracle (301 checks) and bots are unchanged. Details, references (Kolbe et al. 2012; Censky et al. 1998) and the word changes are in `intro_card.md` §4–5.
+

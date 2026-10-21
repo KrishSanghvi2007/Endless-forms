@@ -46,6 +46,13 @@ module.exports = function (G, t) {
     t.ok(blz, 'the face blaze: full sisters wear your father’s blaze, half-sisters another; strangers none');
   }
 
+  { // multiple paternity lowers mean relatedness among littermates below ½; "one father" (½) never passes the L2 ask
+    let ok = true, lo = 1, hi = 0; for (let sd = 1; sd <= 60; sd++) { const s = G.reset(1, sd), e = sim.expect(s, 'lm'); lo = Math.min(lo, e); hi = Math.max(hi, e); if (!(e < 0.5 - 0.05 - 1e-9)) ok = false; }
+    t.ok(ok, `L2: mean r to littermates ranges ${lo.toFixed(3)}–${hi.toFixed(3)}, always more than the band below ½`);
+    const s = G.reset(1, 3); t.ok(s.phase === 'ask' && s.ask.id === 'lm', 'L2 opens with the littermate ask, before any tagging');
+    t.near(sim.expect(G.reset(4, 1), 'eg'), 0.4, 1e-12, 'boss practice ask: a chick of mum and dad is r = 0.6 × ½ + 0.4 × ¼ = 0.4');
+  }
+
   /* ---------- catch chances: k × risk, at most one victim ---------- */
   {
     const runs = N(20000), cnt = { me: 0, n0: 0, two: 0 }, cases = [['coyote', 1, 0.52, 0.1], ['coyote', 0, 0.30, 0.5], ['hawk', 1, 0.04, 0.1]];
@@ -128,13 +135,13 @@ module.exports = function (G, t) {
   /* ---------- the expert earns every star offered; no bot reaches three ---------- */
   const expert = (s, acts) => {
     if (!acts.length) return null;
-    if (acts[0].k === 'predict') { const id = s.ask.id, e = id === 'be' ? 0.55 : id === 'tr' ? Ct : id === 'wh' ? Cw : id === 'sw' ? sim.exp4(s.c4.sw0, true, 1)[1] : sim.exp4(s.c4.p0, false, 1)[id === 'f4' ? 0 : 1]; return sim.near(acts, e); }
+    if (acts[0].k === 'predict') { const id = s.ask.id, e = id === 'lm' || id === 'eg' ? sim.expect(s, id) : id === 'be' ? 0.55 : id === 'tr' ? Ct : id === 'wh' ? Cw : id === 'sw' ? sim.exp4(s.c4.sw0, true, 1)[1] : sim.exp4(s.c4.p0, false, 1)[id === 'f4' ? 0 : 1]; return sim.near(acts, e); }
     if (s.phase === 'peace') { const m = s.col.find(q => s.tags[q.id] !== sim.tagOf(q.rel)); return m ? { k: 'tag', id: m.id, t: sim.tagOf(m.rel) } : { k: 'done' }; }
     if (s.phase === 'attack') return { k: 'call', a: s.atk.pred === 'hawk' || s.atk.sr * B > Ct ? 1 : 0 };
     if (s.phase === 'spring') { const q = s.sp[s.si]; return { k: 'choose', a: q.vH > q.vB ? 'help' : 'breed' }; }
     return null;
   };
-  const want = [3, 1, 3, 6, 5];
+  const want = [3, 3, 3, 6, 5];
   for (let lv = 0; lv < 5; lv++) { let ok = 0; const n = N(20); for (let sd = 1; sd <= n; sd++) { const r = G.run(lv, { seed: sd, policy: expert }); if (r.result && (r.result.mask & want[lv]) === want[lv]) ok++; } t.ok(ok >= n - (lv === 3 ? 2 : 0), `expert: L${lv + 1} earns its stars (mask ${want[lv]}) on ${ok} of ${n} seeds`); }
   {
     const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'whistler']; let worst = 0, who = '';

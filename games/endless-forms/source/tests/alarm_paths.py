@@ -18,7 +18,9 @@ def check(c, msg):
     if not c: fails.append(msg)
 
 def open_level(pg, lv, seed=5):
-    pg.evaluate("(o)=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.alarm, o.lv, {seed: o.seed}); window.__advance(300); const b = document.querySelector('#cards.on [data-play]'); if (b) b.click(); window.__advance(300); }", {'lv': lv, 'seed': seed})
+    pg.evaluate("(o)=>{ TB.Cards.close && TB.Cards.close(); TB.App.playLevel(TB.REG.alarm, o.lv, {seed: o.seed}); window.__advance(300); }", {'lv': lv, 'seed': seed})
+    for _ in range(20):
+        if not pg.evaluate("()=>{ const b = document.querySelector('#cards.on .card.ef-intro [data-play]'); if (b) b.click(); window.__advance(200); return !!document.querySelector('#cards.on .card'); }"): break
 
 def canvas_xy(pg, expr):
     return pg.evaluate("()=>{ const ch = TB.REG.alarm, p = (" + expr + "), r = document.getElementById('scene').getBoundingClientRect(); return [r.x + p[0], r.y + p[1]]; }")
@@ -40,7 +42,15 @@ def main():
             check(pg.evaluate("()=>{ const r = TB.REG.alarm.sim.s.recs; return r.length === 2 && r[1].a === 0 && !r[1].slow; }"), 'L1: a tap on your burrow stays silent')
             pg.evaluate("()=>window.__advance(3300)"); pg.keyboard.press('c'); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>{ const r = TB.REG.alarm.sim.s.recs; return r.length === 3 && r[2].a === 1; }"), 'L1: the C key calls')
-            pg.evaluate("()=>window.__advance(3300)"); pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(100)")
+            pg.evaluate("()=>window.__advance(3400)")
+            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return !!s.ask && s.ask.id === 'be'; }"), 'L1: after three attacks the break-even ask opens')
+            pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(200)")
+            check(pg.evaluate("()=>TB.REG.alarm.sim.s.pred.be == null"), 'L1: Lock in on an untouched ghost is no prediction (needMove)')
+            pg.keyboard.press('p')
+            for _ in range(6): pg.keyboard.press('Shift+ArrowDown')
+            pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(300)")
+            check(pg.evaluate("()=>{ const v = TB.REG.alarm.sim.s.pred.be; return v != null && v < 2; }"), 'L1: P, arrows and Enter commit a prediction from the keyboard')
+            pg.evaluate("()=>window.__advance(1200)"); pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>{ const r = TB.REG.alarm.sim.s.recs; return r.length === 4 && r[3].a === 0; }"), 'L1: the S key stays silent')
             lat = pg.evaluate("()=>TB.Events && TB.Events.lat ? TB.Events.lat().filter(v => v != null) : []")
             check(len(lat) > 0 and max(lat) <= 200, 'act-to-juice latency ≤ 200 ms (%s)' % lat[:6])

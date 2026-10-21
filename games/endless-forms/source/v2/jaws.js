@@ -723,7 +723,7 @@ const CH_JAWS_V2 = {
     const G = s.boss ? null : this.geo();
     switch (e.k) {
       case 'dawn':
-        v.scars = []; v.fry = null; v.intr = []; v.streak = 0;
+        v.scars = []; v.fry = null; v.intr = []; v.streak = 0; if (v.flip && v.t - v.flip.t0 > 1.5) v.flip = null;
         if (e.season > 1 || v.thaw) { if (typeof Snd !== 'undefined' && Snd.dawn) Snd.dawn(); v.banner = { text: Txt.f(C.labels.season, { n: e.season }), t: 0, ms: 900 }; }
         if (typeof Live !== 'undefined') Live.say(s.boss ? Txt.f(C.live.liz, { n: e.season, o: Math.round(100 * s.trail[s.trail.length - 1][0]), b: Math.round(100 * s.trail[s.trail.length - 1][1]), y: Math.round(100 * s.trail[s.trail.length - 1][2]) }) : Txt.f(C.live.season, { n: e.season, p: Math.round(100 * s.ps[0][s.ps[0].length - 1]) }));
         return;
@@ -759,7 +759,7 @@ const CH_JAWS_V2 = {
       case 'breed':
         v.fry = { t: 0 }; if (F) F.tier(2); if (S2) S2.play('count', { x: W / 2, y: Stage.h - 40, twin: false });
         if (!s.boss && s.ps) { const d = s.ps[0], n = d.length; if (n >= 2 && (d[n - 1] - 0.5) * (d[n - 2] - 0.5) < 0) {   // the swing made visible: the rare side has become the common one
-          v.banner = { text: d[n - 1] > 0.5 ? C.labels.flipR : C.labels.flipL, t: 0, ms: 1500 }; if (F) F.ring(d[n - 1] > 0.5 ? W * 0.75 : W * 0.25, G.fy + 26, 34, { ms: 600 }); } }
+          v.flip = { right: d[n - 1] > 0.5, t0: v.t }; if (F) F.ring(d[n - 1] > 0.5 ? W * 0.75 : W * 0.25, G.fy + 26, 34, { ms: 600 }); } }
         if (e.reveal) this.reveal(e.reveal);
         if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw();
         return;
@@ -860,25 +860,27 @@ const CH_JAWS_V2 = {
     }
     c.putImageData(img, 0, 0); CH_JAWS_V2._caus = cv; return cv;
   },
-  drawCaustics(c, w, G, k) {   // cosmetic: composed at half resolution about 15 times a second, then one blit per frame; frozen under Calm; fades at dusk (k)
-    const v = this.v, calm = typeof Fx !== 'undefined' && Fx.calm; if (k <= 0.02) return;
-    const sw = Math.ceil(w / 2), sh = Math.ceil(G.H / 2); let L = v.caus;
-    if (!L || L.w !== sw || L.h !== sh) { const cv = mkCanvas(sw, sh), cc = cv.getContext('2d'); let pat = null; try { pat = cc.createPattern(this.caustics(), 'repeat'); } catch (e) { } L = v.caus = { cv, cc, pat, w: sw, h: sh, t: -1 }; }
-    if (!L.pat) return;
-    if (L.t < 0 || (!calm && v.t - L.t >= 0.1)) {
-      const t = calm ? 0 : v.t, cc = L.cc; L.t = v.t; cc.setTransform(1, 0, 0, 1, 0, 0); cc.clearRect(0, 0, sw, sh); cc.scale(0.5, 0.5); cc.fillStyle = L.pat;
-      const band = (y0, y1, a) => { cc.save(); cc.beginPath(); cc.rect(0, y0, w, y1 - y0); cc.clip(); cc.globalAlpha = a;
-        for (const q of [[1.7, 7, 4], [2.3, -5, 6]]) { cc.save(); cc.scale(q[0], q[0]); const ox = (t * q[1]) % 160, oy = (t * q[2]) % 160; cc.translate(ox, oy); cc.fillRect(-ox - 160, y0 / q[0] - oy - 160, w / q[0] + 320, (y1 - y0) / q[0] + 320); cc.restore(); }
-        cc.restore(); };
-      const mid = G.top + (G.fy - G.top) * 0.35; band(0, mid, 0.13); band(mid, G.fy, 0.07); band(G.fy + 6, G.H, 0.2);
-    }
-    c.save(); c.globalAlpha = k; c.drawImage(L.cv, 0, 0, w, G.H); c.restore();
+  causLayer(w, G) {   // the caustics composed at half resolution (two drifting copies of the net); remade on request
+    const v = this.v, calm = typeof Fx !== 'undefined' && Fx.calm, sw = Math.ceil(w / 2), sh = Math.ceil(G.H / 2); let L = v.caus;
+    if (!L || L.w !== sw || L.h !== sh) { const cv = mkCanvas(sw, sh), cc = cv.getContext('2d'); let pat = null; try { pat = cc.createPattern(this.caustics(), 'repeat'); } catch (e) { } L = v.caus = { cv, cc, pat, w: sw, h: sh }; }
+    if (!L.pat) return L;
+    const t = calm ? 0 : v.t, cc = L.cc; cc.setTransform(1, 0, 0, 1, 0, 0); cc.clearRect(0, 0, sw, sh); cc.scale(0.5, 0.5); cc.fillStyle = L.pat;
+    const band = (y0, y1, a) => { cc.save(); cc.beginPath(); cc.rect(0, y0, w, y1 - y0); cc.clip(); cc.globalAlpha = a;
+      for (const q of [[1.7, 7, 4], [2.3, -5, 6]]) { cc.save(); cc.scale(q[0], q[0]); const ox = (t * q[1]) % 160, oy = (t * q[2]) % 160; cc.translate(ox, oy); cc.fillRect(-ox - 160, y0 / q[0] - oy - 160, w / q[0] + 320, (y1 - y0) / q[0] + 320); cc.restore(); }
+      cc.restore(); };
+    const mid = G.top + (G.fy - G.top) * 0.35; band(0, mid, 0.13); band(mid, G.fy, 0.07); band(G.fy + 6, G.H, 0.2);
+    return L;
   },
-  drawWater(c, w, h, G, k) {   // the baked lake plus its caustics, recomposed into one full-size layer ten times a second (one blit per frame)
-    const v = this.v, bg = this.bake(w, h), d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, calm = typeof Fx !== 'undefined' && Fx.calm;
-    let W = v.water; if (!W || W.bg !== bg || W.cv.width !== bg.width || W.cv.height !== bg.height) { const cv = mkCanvas(bg.width, bg.height); W = v.water = { cv, cc: cv.getContext('2d'), bg, t: -1, k: -1 }; }
-    if (W.t < 0 || Math.abs(k - W.k) > 0.04 || (!calm && v.t - W.t >= 0.1)) {
-      W.t = v.t; W.k = k; const cc = W.cc; cc.setTransform(1, 0, 0, 1, 0, 0); cc.drawImage(bg, 0, 0); cc.setTransform(d, 0, 0, d, 0, 0); this.drawCaustics(cc, w, G, k);
+  drawWater(c, w, h, G, k) {   // the baked lake plus its sun caustics in one full-size layer, refreshed about eight times a second
+    const v = this.v, bg = this.bake(w, h), d = (typeof Stage !== 'undefined' && Stage.dpr) || 1, calm = typeof Fx !== 'undefined' && Fx.calm;   // (two frames per refresh: caustics, then the composite, so no frame pays for both)
+    let W = v.water; if (!W || W.bg !== bg) { const cv = mkCanvas(bg.width, bg.height); W = v.water = { cv, cc: cv.getContext('2d'), bg, t: -1, k: -1, st: 0, L: null }; }
+    const due = W.t < 0 || Math.abs(k - W.k) > 0.04 || (!calm && v.t - W.t >= 0.12);
+    if (due && W.st === 0 && W.t >= 0) { W.L = this.causLayer(w, G); W.st = 1; }
+    else if (due) {
+      if (!W.L) W.L = this.causLayer(w, G);
+      const cc = W.cc; cc.setTransform(1, 0, 0, 1, 0, 0); cc.drawImage(bg, 0, 0); cc.setTransform(d, 0, 0, d, 0, 0);
+      if (k > 0.02 && W.L.pat) { cc.globalAlpha = k; cc.drawImage(W.L.cv, 0, 0, w, G.H); cc.globalAlpha = 1; }
+      W.t = v.t; W.k = k; W.st = 0;
     }
     c.drawImage(W.cv, 0, 0, w, h);
   },
@@ -910,6 +912,7 @@ const CH_JAWS_V2 = {
     this.drawPips(c, G);
     if (typeof Lbl !== 'undefined') {
       Lbl.put('jw-xn', this.content.labels.xn, 12, G.fy - 14, { align: 'left', size: 12, c });
+      if (v.flip && v.t - v.flip.t0 < 2.2) { const k = Math.min(1, (v.t - v.flip.t0) / 0.25), a = Math.min(1, (2.2 - (v.t - v.flip.t0)) / 0.3); c.save(); c.globalAlpha = a; Lbl.put('jw-flip', v.flip.right ? this.content.labels.flipR : this.content.labels.flipL, v.flip.right ? w * 0.75 : w * 0.25, G.fy - 44 - 8 * k, { size: 15, c, weight: 700 }); c.restore(); }   // the swing made visible, over the side that now leads
       if (v.streak >= 3 && s.phase === 'swim') { const pk = Math.max(0, 1 - (v.t - v.streakT) / 0.25); Lbl.put('jw-streak', Txt.f(this.content.labels.streak, { n: v.streak }), G.W - 14, this.hudH() + 46, { align: 'right', size: Math.round(13 + 3 * pk), c, mono: true }); }
     }
   },

@@ -55,7 +55,7 @@ const CL_LV = [
   { kind: 'kpc', beds: 6, days: 20, tpd: 45, ask: 'sl', fev: 0.1, dis: 0.04, imp: 0.08, iso: 2, levers: ['noRub', 'noIso'] },
   { kind: 'kpc', beds: 12, days: 90, tpd: 36, tpd2: 24, restrict: 30, ask: 'ward', fev: 0.12, fev2: 0.05, dis: 0.045, imp: 0.08, iso: 3, comp: true, levers: ['costly'] }
 ];
-const CL_T = { ask: 14, dish: 1.2 };   // seconds: an ask closes unanswered; a lab-dish day
+const CL_T = { ask: 14, dish: 1.4, dishDays: 2 };   // seconds: an unanswered ask closes; a lab-dish day; the dish runs two days
 
 const CL_TEXT = {
   intro: {
@@ -66,7 +66,7 @@ const CL_TEXT = {
   firstWords: 'A lab dish of TB cells, a few already resistant. Drag the diamond: where will the resistant share be?',
   hud: {
     dish: 'A lab dish holds a low dose in the window. Drag the diamond.',
-    dishRun: 'Three days in the window. Watch the magenta cells.',
+    dishRun: 'Two days in the window. Watch the magenta cells.',
     run0: 'Tap the dish: low dose. Hold it: high dose.',
     run1: 'At weekends this patient is home and takes no pills.',
     weekend: 'Weekend at home: no doses today.',
@@ -97,7 +97,7 @@ const CL_TEXT = {
     day: 'day {d}/{n}', dayB: 'day {d}', budget: 'budget {n}', tox: 'doses', drugA: 'drug A', drugB: 'drug B', both: 'both', low: 'low', high: 'high',
     resistant: '{n} resistant', res1: '1 resistant', none: 'none left', noRes: 'no resistant cells', aboveMpc: 'above MPC', immuneS: 'immune', home: 'at home', icuBox: 'ICU', icuN: 'ICU {n}', hands: 'hands {n}%',
     staff: 'staff {n}', iso: 'isolated', fever: 'fever', kpc: 'KPC {n}%', share: '{n}% resistant', cells: '10^{n} cells', nowL: 'now',
-    xMic: '×{n}', lock: 'Lock in', next: 'Next day', lowDose: 'Low dose', highDose: 'High dose', drugA2: 'Drug A', drugB2: 'Drug B', rub: 'Hand rub', dose: 'Dose', isolate: 'Isolate',
+    xMic: '×{n}', lock: 'Lock in', next: 'Next day', lowDose: 'Low dose', highDose: 'High dose', drugA2: 'Drug A', drugB2: 'Drug B', both2: 'Both', rub: 'Hand rub', dose: 'Dose', isolate: 'Isolate',
     restrict: 'restricted', costly: 'costly plasmid', comp: 'compensated', expected: 'expected', call: 'your call', ward: 'ward share',
     tConc: 'Drug level', tLoad: 'Cells', tShare: 'Resistant share', tBed: 'Bed carriers', tWard: 'Ward plasmid', tRes: 'Bed 2 resistant',
     sDay: 'Day', sLoad: 'Cells', sRes: 'Resistant', sBudget: 'Dose budget', sWin: 'Days in window', sIcu: 'Intensive care', sWard: 'Ward share',
@@ -135,8 +135,8 @@ const CL_TEXT = {
   },
   levers: { lowOnly: 'Low doses only', stop: 'Stop all drug', noWeekend: 'Weekend doses', onlyA: 'Drug A only', swap: 'Swap strategies', noRub: 'No hand rubs', noIso: 'No isolation', costly: 'Costly plasmid' },
   take: 'Drugs mostly select resistance that already exists. Doses inside the window enrich it; transfer spreads it.',
-  body: 'Restriction alone (the upper dashed line) fell far less than a costly plasmid would have (the lower line): compensation left little to push it out. Stopping transfer with hands and isolation let turnover replace carriers. The ward went from {a} to {b} percent.',
-  whatifBody: { alone: 'Restriction alone fell far less than a costly plasmid would have: compensation left little to push it out. Without more control of transfer the ward went from {a} to {b} percent.' },
+  body: 'Restriction alone (the upper dashed line) fell far less than a costly plasmid would have. Compensation left little to push it out. Stopping transfer with hands and isolation let turnover replace carriers. The ward went from {a} to {b} percent.',
+  whatifBody: { alone: 'Restriction alone fell far less than a costly plasmid would have. Compensation left little to push it out. Without more control of transfer the ward went from {a} to {b} percent.' },
   law: { title: 'The mutant selection window' },
   boss: { inverts: 'Stopping the drug no longer removes resistance: its cost has been compensated.' },
   stars: {
@@ -272,13 +272,13 @@ const CH_CLINIC_V2 = {
       if (L.kind === 'kpc') {
         const W = { hyg: CL_W.base, staff: CL_W.staff, icu: 0, restricted: false, seen: 0, max: 0, adm: 0 };
         for (let i = 0; i < L.beds; i++) s.beds.push(this.kpcBed(0, CL_W.c0));
-        if (level === 4) { s.beds[0].p = 0.7; s.beds[0].seeded = true; s.beds[0].calm = 6; }
+        if (level === 4) { s.beds[0].p = 0.7; s.beds[0].seeded = true; s.beds[0].calm = 8; }
         else { for (const i of [0, 2, 3, 5, 8, 10]) { s.beds[i].p = 0.6; s.beds[i].seeded = true; } }
         s.ward = W; W.seen = s.beds.filter(b => b.seeded).length; W.max = W.seen;
         if (L.restrict) {   // the boss opens on day 30: an autumn of colleagues treating every fever with the drug, pre-run from the seed
-          this.record(s); s.whatif = 'colleagues'; const ev = [];
+          this.record(s); s.whatif = 'colleagues'; W.reserve = true; const ev = [];   // colleagues reach for a reserve drug when KPC causes the fever
           while (s.day < L.restrict) this.tickDay(s, ev);
-          s.whatif = null; s.hist.pop(); s.w30 = this.wardShare(s); s.c30 = this.meanCost(s); W.icu0 = W.icu;
+          s.whatif = null; W.reserve = false; s.hist.pop(); s.w30 = this.wardShare(s); s.c30 = this.meanCost(s); W.icu0 = W.icu;
         }
       } else {
         for (let i = 0; i < L.beds; i++) s.beds.push(this.tbBed(L.kind, L.kind === 'tb3' && i === 1 ? { x: 0.03 } : null));
@@ -342,7 +342,7 @@ const CH_CLINIC_V2 = {
         if (b.C > 0) { const f = this._decW || (this._decW = {}); if (f.k !== D) { f.k = D; f.v = ClinicPK.decay(M.kel, D); } b.C *= f.v; if (b.C < 1e-3) b.C = 0; }
         if (b.fev && !o.proj) {
           b.fev.t += D;
-          const works = b.C >= 1 && (W.restricted || !b.fev.res);
+          const works = b.C >= 1 && (W.restricted || W.reserve || !b.fev.res);
           if (works) b.fev.prog += D;
           if (b.fev.prog >= CL_W.heal) { b.fev = null; ev.push({ k: 'healed', bed: i }); }
           else if (b.fev.t >= CL_W.fevMax) { W.icu++; b.icu++; ev.push({ k: 'icu', bed: i }); this.admit(s, i, true); }
@@ -376,7 +376,7 @@ const CH_CLINIC_V2 = {
       if (s.phase === 'dish') return ev;   // waits for the call (or its time-out)
       if (s.phase === 'dishRun') {
         s.dish.t += dt;
-        if (s.dish.t >= CL_T.dish) { s.dish.t = 0; s.dish.day++; this.dishDay(s.dish.n, false); s.dish.hist.push(this.dishShare(s.dish.n)); ev.push({ k: 'dishDay', d: s.dish.day }); if (s.dish.day >= 3) { s.phase = 'dishEnd'; s.dish.t = 0; s.exp.a0 = this.expect(s, 'a0'); ev.push({ k: 'dishDone' }); } }
+        if (s.dish.t >= CL_T.dish) { s.dish.t = 0; s.dish.day++; this.dishDay(s.dish.n, false); s.dish.hist.push(this.dishShare(s.dish.n)); ev.push({ k: 'dishDay', d: s.dish.day }); if (s.dish.day >= CL_T.dishDays) { s.phase = 'dishEnd'; s.dish.t = 0; s.exp.a0 = this.expect(s, 'a0'); ev.push({ k: 'dishDone' }); } }
         return ev;
       }
       if (s.phase === 'dishEnd') { s.dish.t += dt; if (s.dish.t >= 2.5) { s.phase = 'run'; ev.push({ k: 'patient' }); } return ev; }
@@ -425,7 +425,7 @@ const CH_CLINIC_V2 = {
         if (L.restrict && s.whatif && s.day >= L.restrict) W.restricted = true;
         const fr = W.restricted && L.fev2 ? L.fev2 : L.fev;
         for (let i = 0; i < s.beds.length; i++) { const b = s.beds[i]; if (!b.fev && R() < fr && !(b.calm > s.day)) { b.fev = { t: 0, prog: 0, res: R() < b.p }; ev.push({ k: 'fever', bed: i }); } }
-        for (let i = 0; i < s.beds.length; i++) { const b = s.beds[i]; if (!b.fev && R() < L.dis) { const imp = this.admit(s, i); ev.push({ k: 'admit', bed: i, imp }); } }
+        for (let i = 0; i < s.beds.length; i++) { const b = s.beds[i]; if (!b.fev && R() < L.dis && !(b.calm > s.day)) { const imp = this.admit(s, i); ev.push({ k: 'admit', bed: i, imp }); } }
         if (s.level === 4 && s.day === 1 && !s.whatif && !s.asks.length) this.openAsk(s, ev, 'sl');
         return;
       }
@@ -465,7 +465,7 @@ const CH_CLINIC_V2 = {
     expect(s, id) {
       const q = s.askQ[id], st = s.askAt[id]; if (!st) return null;
       const L = CL_LV[s.level], tr = [];
-      if (q === 'dish') { const n = s.beds[0].n0.slice(); tr.push(CL_l10(this.dishShare(n))); for (let d = 0; d < 3; d++) { this.dishDay(n, true); tr.push(CL_l10(this.dishShare(n))); } s.expTr[id] = tr; return tr[3]; }
+      if (q === 'dish') { const n = s.beds[0].n0.slice(); tr.push(CL_l10(this.dishShare(n))); for (let d = 0; d < CL_T.dishDays; d++) { this.dishDay(n, true); tr.push(CL_l10(this.dishShare(n))); } s.expTr[id] = tr; return tr[tr.length - 1]; }
       if (q === 'ab') { const e = this.ldExp(); s.expTr[id] = [CL_l10(e.ab)]; return CL_l10(e.ab); }
       if (q === 'wk' || q === 'rel') {
         const b = JSON.parse(JSON.stringify(st.beds[q === 'rel' ? 1 : 0])), tpd = L.tpd, days = q === 'wk' ? 2 : 3;
@@ -720,7 +720,7 @@ const CH_CLINIC_V2 = {
     if (wide) {
       const R = two ? Math.min(W * 0.13, room * 0.2) : Math.min(W * 0.2, room * 0.36);
       G.dish = two ? [{ x: W * 0.17, y: top + R + 26, r: R }, { x: W * 0.17, y: top + 3 * R + 100, r: R }] : [{ x: W * 0.29, y: top + room * 0.46, r: R }];
-      const mx = two ? W * 0.36 : W * 0.56;
+      const mx = two ? W * 0.36 : W * 0.62;
       G.mon = two ? [{ x: mx, y: G.dish[0].y - R, w: W - mx - 14, h: 2 * R }, { x: mx, y: G.dish[1].y - R, w: W - mx - 14, h: 2 * R }] : [{ x: mx, y: top + room * 0.14, w: W - mx - 14, h: room * 0.64 }];
     } else if (two) {
       const R = Math.min(W * 0.2, room * 0.16);
@@ -781,7 +781,7 @@ const CH_CLINIC_V2 = {
   },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; this._dockSig = ''; if (typeof Predict === 'undefined') return;
-    const q = A.q, at = q === 'wk' ? s.day + 2 : q === 'rel' ? 3 : q === 'sl' ? s.day + 5 : q === 'ward' ? CL_LV[s.level].days : q === 'ab' ? 0 : 3;
+    const q = A.q, at = q === 'wk' ? s.day + 2 : q === 'rel' ? 3 : q === 'sl' ? s.day + 5 : q === 'ward' ? CL_LV[s.level].days : q === 'ab' ? 0 : CL_T.dishDays;
     // the ghost starts on "no change" for a moving quantity, and the call needs a move (an untouched ghost is no prediction)
     const start = q === 'ward' || q === 'sl' ? Math.max(A.lo, this.sim.now(s, q) - 0.25) : q === 'rel' ? 0.03 : this.sim.now(s, q);
     Predict.ask({ id: A.id, chart: 0, kind: 'y', axis: { lo: A.lo, hi: A.hi }, start, at, tol: A.tol, soft: null, needMove: true, linger: 0,
@@ -906,7 +906,7 @@ const CH_CLINIC_V2 = {
     if (ask || s.phase === 'dish') { Dock.set([{ id: 'lock', label: Lb.lock, key: 'Enter', primary: true, fn: () => { if (typeof Predict !== 'undefined') Predict.commit(); } }]); return; }
     const b = () => this.sim.s.sel || 0, act = a => () => Sim.act(this, a()), B = [];
     if (L.kind === 'kpc') B.push({ id: 'cl-rub', label: Lb.rub, key: 'R', fn: act(() => ({ k: 'rub' })) }, { id: 'cl-dose', label: Lb.dose, key: 'D', fn: act(() => ({ k: 'dose', bed: b() })) }, { id: 'cl-iso', label: Lb.isolate, key: 'I', fn: act(() => ({ k: 'iso', bed: b() })) });
-    else if (L.kind === 'tb2') B.push({ id: 'cl-a', label: Lb.drugA2, key: 'A', fn: act(() => ({ k: 'dose', bed: 0, d: 0 })) }, { id: 'cl-b', label: Lb.drugB2, key: 'B', fn: act(() => ({ k: 'dose', bed: 0, d: 1 })) }, { id: 'cl-ab', label: 'A + B', key: 'L', fn: act(() => ({ k: 'dose', bed: 0, d: 2 })) });
+    else if (L.kind === 'tb2') B.push({ id: 'cl-a', label: Lb.drugA2, key: 'A', fn: act(() => ({ k: 'dose', bed: 0, d: 0 })) }, { id: 'cl-b', label: Lb.drugB2, key: 'B', fn: act(() => ({ k: 'dose', bed: 0, d: 1 })) }, { id: 'cl-ab', label: Lb.both2, key: 'L', fn: act(() => ({ k: 'dose', bed: 0, d: 2 })) });
     else B.push({ id: 'cl-lo', label: Lb.lowDose, key: 'L', fn: act(() => ({ k: 'dose', bed: b(), d: 0, hi: false })) }, { id: 'cl-hi', label: Lb.highDose, key: 'H', fn: act(() => ({ k: 'dose', bed: b(), d: 0, hi: true })) });
     if (s.unt) B.push({ id: 'cl-next', label: Lb.next, key: 'N', primary: s.phase === 'wait', fn: act(() => ({ k: 'next' })) });
     Dock.set(B);
@@ -1145,14 +1145,14 @@ const CH_CLINIC_V2 = {
     for (let k = 0; k < s.beds.length; k++) for (let g = 0; g < s.beds[k].C.length; g++) conc.series.push({ d: s.conc.map(q => [q[0], q[k + 1][g]]), col: g ? 'drugB' : 'drug', dash: g === 1 || k === 1, label: s.beds.length > 1 ? Txt.f(Lb.bed, { n: k + 1 }) : g ? Lb.drugB : L.kind === 'tb2' ? Lb.drugA : null });
     if (s.phase === 'dish' || s.phase === 'dishRun' || s.phase === 'dishEnd') {
       const dh = s.dish.hist.map((v, k) => [k, CL_l10(v)]), g = s.phase === 'dishEnd' && s.expTr.a0 ? [{ d: s.expTr.a0.map((v, k) => [k, v]), label: Lb.expected }] : [];
-      return { stats, charts: [this.spec({ title: Lb.tShare, x: { lo: 0, hi: 3, label: Lb.axDay }, y: logY(-8, 0), series: [{ d: dh, col: 'res', label: Lb.resistant.replace('{n} ', '') }], ghost: g })] };
+      return { stats, charts: [this.spec({ title: Lb.tShare, x: { lo: 0, hi: CL_T.dishDays, label: Lb.axDay }, y: logY(-8, 0), series: [{ d: dh, col: 'res', label: Lb.resistant.replace('{n} ', '') }], ghost: g })] };
     }
     const lines = [{ v: 5, label: Lb.immune }].concat(L.kind === 'tb3' ? [{ v: CL_l10(CL_M.icu), label: Lb.icu }] : []);
     if (L.kind === 'tb3') {
       const share = this.spec({ title: Lb.tRes, x: xs, y: { lo: 0, hi: 1, fmt: 'pct' }, series: [{ d: H.map(r => [r.t, r.b[1].r]), col: 'res', label: Txt.f(Lb.bed, { n: 2 }) }] });
       const g = s.expTr.a3; if (g && (s.pred.a3 != null || over)) share.ghost = [{ d: g.map((v, k) => [k, v]), label: Lb.hit }];
       const cells = this.spec({ title: Lb.tLoad, x: xs, y: logY(0, 10), lines, series: [0, 1].map(k => ({ d: H.map(r => [r.t, this.tot(r.b[k])]), col: k ? 'res' : 'sus', label: Txt.f(Lb.bed, { n: k + 1 }) })) });
-      cells.fold = false; conc.fold = false; return { stats, charts: [share, cells, conc] };
+      cells.fold = false; return { stats, charts: [share, cells] };
     }
     const lo = L.kind === 'tb2' ? -8 : 0, fl = v => v < lo ? lo : v;
     const cells = this.spec({ title: Lb.tLoad, x: xs, y: logY(lo, 10, true), lines, series: [{ d: tr(0, q => fl(q.n[0])), col: 'sus', label: Lb.susc }] });
@@ -1168,8 +1168,8 @@ const CH_CLINIC_V2 = {
     const s = this.sim.s, n = s.level, Lb = this.content.labels, ch = this.notes().charts, spec = ch[0]; if (!spec) return null;
     const id = 'a' + n, q = s.askQ[id], st = s.askAt[id];
     if (q && s.pred[id] != null && !s.whatif) {
-      const x = q === 'ab' ? 0 : q === 'rel' ? 3 : q === 'dish' ? 3 : q === 'wk' ? st.day + 2 : q === 'sl' ? st.day + 5 : CL_LV[n].days;
-      if (q === 'dish') { spec.title = Lb.tShare; spec.lines = []; spec.x = { lo: 0, hi: 3, label: Lb.axDay }; spec.series = [{ d: s.dish.hist.map((v, k) => [k, CL_l10(v)]), col: 'res', label: Lb.dish }]; spec.y = { lo: -8, hi: 0, fmt: v => '10' + this.sup(Math.round(v)) }; spec.ghost = s.expTr.a0 ? [{ d: s.expTr.a0.map((v, k) => [k, v]), label: Lb.expected }] : []; }
+      const x = q === 'ab' ? 0 : q === 'rel' ? 3 : q === 'dish' ? CL_T.dishDays : q === 'wk' ? st.day + 2 : q === 'sl' ? st.day + 5 : CL_LV[n].days;
+      if (q === 'dish') { spec.title = Lb.tShare; spec.lines = []; spec.x = { lo: 0, hi: CL_T.dishDays, label: Lb.axDay }; spec.series = [{ d: s.dish.hist.map((v, k) => [k, CL_l10(v)]), col: 'res', label: Lb.dish }]; spec.y = { lo: -8, hi: 0, fmt: v => '10' + this.sup(Math.round(v)) }; spec.ghost = s.expTr.a0 ? [{ d: s.expTr.a0.map((v, k) => [k, v]), label: Lb.expected }] : []; }
       if (q === 'ab') spec.ghost = [{ d: [[0, s.exp[id]], [1, s.exp[id]]], label: Lb.expected }];
       spec.series = spec.series.concat([{ d: [[x, s.pred[id]]], col: 'ink', label: Lb.call, you: true }]);
     }

@@ -34,7 +34,7 @@ def main():
 
         def page(query='', calm=False):
             ctx = b.new_context(viewport={'width': 390, 'height': 780}, device_scale_factor=1, reduced_motion='reduce' if calm else 'no-preference')
-            pg = ctx.new_page(); pg.add_init_script(script=vclock); pg.goto('file://' + html + query); pg.evaluate("()=>window.__advance(1500)")
+            pg = ctx.new_page(); pg.add_init_script(script=vclock); pg.goto('file://' + html + query); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }"); pg.evaluate("()=>window.__advance(1500)")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
             return ctx, pg
 
         ctx, pg = page()

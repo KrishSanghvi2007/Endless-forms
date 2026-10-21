@@ -50,7 +50,7 @@ def main():
             pg.on('pageerror', lambda e: errs.append(str(e)))
             pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
             q = a.query
-            pg.goto('file://' + html + q)
+            pg.goto('file://' + html + q); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
             pg.evaluate("()=>window.__advance(600)")
             tag = '%dx%d' % (w, h) + ('_calm' if a.calm else '') + (('_' + q.strip('?').replace('=', '-').replace('&', '_')) if q else '')
             for lv in [int(x) for x in a.levels.split(',')]:

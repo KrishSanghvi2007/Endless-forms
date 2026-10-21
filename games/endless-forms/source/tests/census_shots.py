@@ -45,7 +45,7 @@ def main():
             logs = []
             pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
             pg.add_init_script(script=vclock)
-            pg.goto('file://' + os.path.abspath(a.html) + a.query)
+            pg.goto('file://' + os.path.abspath(a.html) + a.query); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
             pg.evaluate("()=>window.__advance(1500)")
             if a.untimed: pg.evaluate("()=>{ TB.Save.d.ui.unt = 1; }")
             adv = lambda ms: pg.evaluate("ms=>window.__advance(ms)", ms)

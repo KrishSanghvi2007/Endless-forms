@@ -33,7 +33,7 @@ def main():
             pg.on('pageerror', lambda e: errs.append(str(e)))
             pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
             q = a.query
-            pg.goto('file://' + html + q)
+            pg.goto('file://' + html + q); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
             pg.evaluate("()=>window.__advance(600)")
             tag = '%dx%d' % (w, h) + ('_calm' if a.calm else '') + (('_' + q.strip('?').replace('=', '-').replace('&', '_')) if q else '')
             for lv in [int(x) for x in a.levels.split(',')]:
@@ -83,7 +83,7 @@ def main():
                 shot('why')
             if a.cvd:
                 for kind in ('mono', 'deut'):
-                    pg.goto('file://' + html + '?cvd=' + kind); pg.evaluate("()=>window.__advance(600)")
+                    pg.goto('file://' + html + '?cvd=' + kind); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }"); pg.evaluate("()=>window.__advance(600)")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
                     for lv in (0, 1, 4, 5):
                         pg.evaluate("(lv)=>{ TB.App.playLevel(TB.REG.hawks, lv, {seed: 7}); window.__advance(5000); }", lv)
                         pg.screenshot(path=os.path.join(a.out, 'L%d_cvd-%s_%s.png' % (lv + 1, kind, tag)))

@@ -57,7 +57,7 @@ def main():
                         pg.evaluate("()=>window.__advance(1500)"); shot('card'); break
                     if 'ask' in st:
                         pg.evaluate("()=>window.__advance(300)"); shot('ask_' + st['ask'])
-                        box = pg.evaluate("(i)=>{ const c = TB.Strip.canvas(i); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }", {'be': 0, 'tr': 0, 'wh': 1, 'f4': 0, 'm4': 1, 'sw': 2}[st['ask']])
+                        box = pg.evaluate("(i)=>{ const c = TB.Strip.canvas(i); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }", {'be': 0, 'tr': 0, 'wh': 1, 'f4': 0, 'm4': 1, 'sw': 2, 'lm': 1, 'eg': 1}[st['ask']])
                         if box:
                             x, y, bw, bh = box
                             pg.mouse.move(x + bw * 0.6, y + bh * 0.3); pg.mouse.down(); pg.mouse.move(x + bw * 0.6, y + bh * 0.62, steps=5); pg.mouse.up()

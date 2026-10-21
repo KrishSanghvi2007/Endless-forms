@@ -59,7 +59,7 @@ def main():
             ctx.route('**/*', lambda r: r.continue_() if r.request.url.startswith(('file:', 'data:')) else (ext.append(r.request.url), r.abort()))
             pg = ctx.new_page()
             pg.add_init_script(script=init)
-            pg.goto('file://' + html + f'?unit=soot&level=0&seed={a.seed}')
+            pg.goto('file://' + html + f'?unit=soot&level=0&seed={a.seed}'); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
             pg.evaluate(HELP)
             ev = lambda js: pg.evaluate(js)
 

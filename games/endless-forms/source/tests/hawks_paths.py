@@ -27,7 +27,7 @@ def page(b, w=390, h=780, q='', calm=False):
     errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
-    pg.goto('file://' + HTML + q)
+    pg.goto('file://' + HTML + q); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
     pg.evaluate("()=>window.__advance(600)")
     return ctx, pg, errs
 
@@ -163,8 +163,8 @@ def main():
         check(pg.evaluate("()=>TB.REG.hawks.sim.s.duel.a") == 0, 'a tap on the sand on your side plays Dove (the arena is two halves)')
         pg.evaluate("()=>window.__advance(1700)")
         info = pg.evaluate("""()=>{ const h = document.querySelector('#dock [data-id="hk-hawk"]'), d = document.querySelector('#dock [data-id="hk-dove"]');
-          const rgb = x => getComputedStyle(x).backgroundColor; return {h: h && rgb(h), d: d && rgb(d), A: TB.Pal.INK[TB.Pal.theme].A, prim: h && h.classList.contains('primary'), glyph: !!(h && h.querySelector('svg'))}; }""")
-        check(info['h'] == 'rgb(107, 151, 255)' and not info['prim'] and info['glyph'], 'the Hawk button wears the Hawk blue with a claws-up glyph, not the crimson primary (%s)' % info['h'])
+          const rgb = x => getComputedStyle(x).boxShadow + '|' + getComputedStyle(x.querySelector('svg')).color; return {h: h && rgb(h), d: d && rgb(d), A: TB.Pal.INK[TB.Pal.theme].A, prim: h && h.classList.contains('primary'), glyph: !!(h && h.querySelector('svg'))}; }""")
+        check(info['h'] and info['h'].count('rgb(107, 151, 255)') == 2 and not info['prim'] and info['glyph'], 'the Hawk button is neutral chrome keyed by the Hawk blue (side bar and claws-up glyph), not the crimson primary (%s)' % info['h'])   # D6 decision 7
         pg.evaluate("()=>window.__advance(6000)")
         st = pg.evaluate("()=>{ const s = TB.REG.hawks.sim.s; return {dn: s.dn, slow: s.dl[1] && s.dl[1][0] === 0, log: TB.Whisper.log.slice(-3).map(x => x.text)}; }")
         check(st['dn'] >= 2 and st['slow'] and any('Too slow' in t for t in st['log']) and 'Too slow' in st['log'][-1], 'a later rival waits 5.5 s, then "Too slow, so you displayed." stays the last word (%s)' % st['log'])

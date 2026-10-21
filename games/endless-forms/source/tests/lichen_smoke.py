@@ -26,7 +26,7 @@ def page(b, query='', vp=(390, 780), calm=False):
     ext = []
     ctx.route('**/*', lambda r: r.continue_() if r.request.url.startswith(('file:', 'data:')) else (ext.append(r.request.url), r.abort()))
     pg = ctx.new_page(); pg.add_init_script(script=vclock)
-    pg.goto('file://' + html + query); pg.evaluate("()=>window.__advance(1200)")
+    pg.goto('file://' + html + query); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }"); pg.evaluate("()=>window.__advance(1200)")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
     return ctx, pg, ext
 
 

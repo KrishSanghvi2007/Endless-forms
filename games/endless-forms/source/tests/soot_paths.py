@@ -9,7 +9,7 @@ from playwright.sync_api import sync_playwright
 res = {}
 def page(b, q='', w=390, h=780, calm=False):
     ctx = b.new_context(viewport={'width': w, 'height': h}, reduced_motion='reduce' if calm else 'no-preference')
-    pg = ctx.new_page(); pg.add_init_script(script=vclock); pg.goto('file://' + html + q); pg.evaluate("()=>window.__advance(500)"); return ctx, pg
+    pg = ctx.new_page(); pg.add_init_script(script=vclock); pg.goto('file://' + html + q); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }"); pg.evaluate("()=>window.__advance(500)"); return ctx, pg   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
 with sync_playwright() as p:
     b = p.chromium.launch(**CHROME)
     # 1. peck latency: Events act → fx within 200 ms; screenshot of the peck at 40 and 150 ms

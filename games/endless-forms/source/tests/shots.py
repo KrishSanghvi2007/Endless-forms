@@ -100,7 +100,7 @@ def main():
             ctx.route('**/*', lambda r: r.continue_() if r.request.url.startswith(('file:', 'data:')) else (ext.append(r.request.url), r.abort()))
             pg = ctx.new_page()
             pg.add_init_script(script=init)
-            pg.goto(url)
+            pg.goto(url); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
             if a.id == 'menu':
                 pg.evaluate("()=>{ window.__advance(200); TB.App.go('menu'); }")
             elif a.id != 'title' and not pg.evaluate(f"()=>!!(window.TB && TB.REG[{json.dumps(a.id)}])"):

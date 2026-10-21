@@ -451,6 +451,7 @@ const CH_X_V2 = {
   plan: ['Title', 'Concept'],           // optional retitle applied by zz_v1switch (§6.2)
   role: 'environment' | 'animal' | 'investigator' | 'experimenter',
   place: 'wood',                        // Pal.place id
+  accent: '#6F8A45',                    // the chapter's chrome tint (D6 decision 7, §15)
   mode: undefined | 'hunt',             // 'hunt' → run by Hunt + 02_hunt_ext
   intro: {goal},                        // ≤ 15 words; boot.js requires it; the map caption
   content: {…},                         // all words (9.2)
@@ -478,6 +479,7 @@ Hunt-mode v2 chapters keep the legacy Hunt config fields (`traits, N, cap, round
 ### 9.2 `content`
 ```js
 content = {
+  intro: {game, biology, how},   // required: the opening description card, 1–2 sentences ≤ 35 words each (D6 decision 8, §15)
   firstWords,                    // ≤ 40 words: HUD before the first action (with the ghost hand)
   hud: {key: '≤ 15 words, {n} placeholders'},
   whispers: {key: '≤ 8 words'},
