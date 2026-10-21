@@ -92,6 +92,7 @@ Agency and wording: the drug "selects", plasmids "move", populations of bacteria
 | `node tests/oracle.js BUILD clinic` | **154 passed, 0 failed** (5.6 s; `CL_FAST=1` 106 checks in 2.8 s) |
 | `python3 tests/bots.py BUILD clinic --seeds 1-40 --bots alwaysA,alwaysB,random,greedy,threshold,noChange` | PASS: no bot earns three stars in a level; best cells D or DP or T |
 | same `--seeds 1-20 --untimed` | PASS |
+| full build (every v2 file): lint, oracle, paths | clean; 154 passed; 28 ok |
 | `GAME_HTML=BUILD python3 tests/monkey.py clinic 1,2,3 --vp 390x780,1280x720` | **6 of 6 runs reach the end card**, no errors, warnings or NaN |
 | `GAME_HTML=BUILD python3 tests/clinic_paths.py` | **28 ok, 0 failed** (latency 20–40 ms act → juice) |
 | `GAME_HTML=BUILD python3 tests/clinic_shots.py OUT --vp 390x780,1280x720 [--cvd]` | every level and phase, 0 page errors |
@@ -100,7 +101,7 @@ Oracle highlights: untreated ×7.99 a day (×8 less 0.02% crowding), resistant �
 
 ## Screenshots
 
-`/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/clinic/final_shots/` (every level: start, intro, ask, moved, committed, day 2/5/9/40, card, why, at 390 × 780 and 1280 × 720) and `.../clinic/cvd/` (`?cvd=mono`, `?cvd=deut` for L1, L3, L5). Fixes found by looking: gauge labels clipped at the right edge (moved, shortened); "10⁸" shown for 10⁹ (a floating floor); the phone strip stayed open over the dish run (folds on commit now); the strip stayed open when the sim timed an ask out, hiding the pumps (Predict cancelled and folded); two-bed gauges collided (horizontal bars under each dish); HUD lines wrapped to three lines (all cut to two); droplet particles read as eggs (sparks); a hold on a bed was swallowed (isolation fires while pressed); resistant rods hard to tell in monochrome (a size larger with a dark core); the index patient was discharged on day 4 in some runs, emptying the bay (eight calm days); the debrief chart kept the wrong title.
+`/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/clinic/final_shots/` (every level: start, intro, ask, moved, committed, day 2/5/9/40, card, why, at 390 × 780 and 1280 × 720) and `.../clinic/cvd/` (`?cvd=mono`, `?cvd=deut` for L1, L3, L5). Fixes found by looking: gauge labels clipped at the right edge (moved, shortened); "10⁸" shown for 10⁹ (a floating floor); the phone strip stayed open over the dish run (folds on commit now); the strip stayed open when the sim timed an ask out, hiding the pumps (Predict cancelled and folded); two-bed gauges collided (horizontal bars under each dish); HUD lines wrapped to three lines (all cut to two); droplet particles read as eggs (sparks); a hold on a bed was swallowed (isolation fires while pressed); resistant rods hard to tell in monochrome (a size larger with a dark core); the index patient was discharged on day 4 in some runs, emptying the bay (eight calm days); the debrief chart kept the wrong title; the engine's sound twins for "pour" and "scale" drew cream eggs and scales in the dish (this unit now twins those sounds with its own ripple and ring); the lab dish showed an immune line it does not have.
 
 ## Self-review (playtester and art director, adversarial scientist, D5 §3)
 
