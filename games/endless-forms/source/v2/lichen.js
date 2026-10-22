@@ -1,14 +1,16 @@
 /* ================= v2/lichen.js: The Lichen Wood (Act 0, the template pilot; D1 §3.1, D2 §9, D5 §4 item 1) =================
    You are a bird with four hungry chicks. Each morning you peck the moths you can see on the bark; the moths you miss lay
    their eggs at dusk, winter culls the eggs at random down to the room the wood has, and the young take their places.
-   Evolution is the by-product you watch, predict and explain. Four levels in a 15-minute box:
-     L0 Too many moths  overproduction and a random winter cull; pin a moth: it never changes, its young vary around it.
-     L1 The Lichen Wood one pale bark, polygenic shade, h² 0.8: drag where the young will land (R = h²S).
-     L2 Mixed diets     larval diet adds environmental variance, h² 0.3: predictions must shrink.
+   Evolution is the by-product you watch and explain. One verb throughout: tap a moth to eat it. Four levels (D6 decision 9):
+     L0 Too many moths  overproduction: 300 eggs for 30 places, and a random winter cull.
+     L1 The Lichen Wood one pale bark, polygenic shade, h² 0.8: watch S and R; the key number is R = h²S.
+     L2 Mixed diets     larval diet adds environmental variance, h² 0.3. The chapter's one prediction: tap where the young
+                        will land (the aha: they keep only about a third of S).
      L3 Two barks       boss: 120 moths, four trunks, three looks; a search image; ghost jays copy your fitted rule.
                         Hunting the common look keeps all three alive (apostatic selection): it inverts L1's one best form.
-   What if? (the freezer) reruns the last generation with one lever: no variation, no inheritance, eat at random; in L3
-   the jays run fourteen generations with no search image, eating the rare, or one look hiding better.
+   What if? (the freezer) reruns the last generation with one lever: no variation, no inheritance (the same "where will the
+   young land?" tap), eat at random; in L3 the jays run fourteen generations with no search image, eating the rare, or one
+   look hiding better, and you watch the result.
    Code shape (D5 decision 23, API_v2 §9): a headless sim (plain JSON state, R()/Det/Gen only, a run is (seed, level,
    actions)); all words in LW_TEXT; the view juices from Sim.run's events only. Not a Hunt-mode chapter: Hunt has no replay,
    Freezer or bot sweep (engine_integration.md, risk 1), so the Wood keeps its own sim and reuses Rig, Pin, Predict,
@@ -22,30 +24,26 @@ const LW_TEXT = {
   intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
     game: 'You are a bird feeding four chicks in a lichen-covered wood. Each morning you eat the moths you spot; the moths you miss breed at dusk.',
     biology: 'Natural selection: moths vary in shade, and young resemble their parents. The moths you miss leave the young, so the population evolves towards the bark.',
-    how: 'Tap a moth you can see to eat it, or use the arrows and Enter. Feed your chicks, then drag the diamond to predict where the young will land.'
+    how: 'Tap a moth you can see to eat it, or use the arrows and Enter. Feed your four chicks each morning, then watch where the young land.'
   },
   hud: {
     hunt0: 'Each moth you eat feeds a chick.',
     hunt: 'Eat {n} more before the light goes flat.',
     huntHide: 'Hidden moths take longer to find. Eat {n} more before the light goes flat.',
     huntU: 'Eat {n} more. Each look costs one.',
-    pin: 'Press and hold a moth to pin it.',
     dusk: 'Dusk. The moths you missed lay their eggs.',
     duskHungry: 'Dusk. A chick went hungry. The moths you missed lay their eggs.',
     jays: 'Dusk. Three jays hunt the other trunks by your rule.',
-    eggs: '{e} eggs, and room in the wood for {k}.',
-    eggsOnly: '{e} eggs laid.',
-    ask0: 'How many eggs will see spring? Drag the line, then press Lock in.',
+    eggs: '{e} eggs, room for {k}. Most young must die, whatever you do.',
     cull: 'Winter. Most young die, whatever you did.',
-    ask: 'Drag the diamond to where you expect the young to land, then press Lock in.',
-    askTri: 'Tap the triangle where the wood will be after generation 6, then Lock in.',
+    ask: 'Survivors sit at the S arrow. Tap where their young will land, then Lock in.',
     hatch: 'The young take their places.',
+    rule: 'R = h²S: the young keep only the inherited part of S.',
     hatchDiet: 'The young land. Each leaf they fed on shifted their shade.',
-    named: 'The young kept {r}% of the shift. That is the realised h².',
+    named: 'The young kept {r}% of S. That is the realised h²: R = h²S.',
     namedOver: 'The young moved further than the survivors’ edge: chance added to it this time.',
     namedNone: 'Chance swamped the response this time.',
     auto: 'The bird hunts by your rule.',
-    wask: 'What if? Tap where fourteen more generations leave the wood, then Lock in.',
     wrun: 'Fourteen generations, run fast.',
     over: 'Season over.'
   },
@@ -56,8 +54,7 @@ const LW_TEXT = {
     hit: 'Inside the band.',
     out: 'Outside the band.',
     none: 'No prediction: the diamond never moved.',
-    drag: 'Drag the diamond first.',
-    pinned: 'Pinned. Its look never changes.',
+    drag: 'Tap where the young will land.',
     random: 'Your beak lands at random.',
     untimed: 'Mornings are untimed now.',
     jays: 'The jays copy your rule.'
@@ -65,7 +62,7 @@ const LW_TEXT = {
   labels: {
     bark: 'Bark', eggs: 'Eggs', spring: 'Spring', eaten: 'Eaten', spared: 'Spared', young: 'Young', camo: 'Camouflage',
     band: 'Band', mottle: 'Mottle', speck: 'Speck', trunk: 'Trunk {n}', birch: 'Birch', oak: 'Oak', dot: 'Dot = {n} eggs',
-    xn0: 'Eggs: ×N fewer', xn1: 'Selection: ×N stronger', xn3: 'Years: ×N faster', gen: 'Generation {g}', pinned: 'Pinned', h2: 'h² {h}', rule: 'Detect at', auto: 'Auto-hunt', untimed: 'Untimed',
+    xn0: 'Eggs: ×N fewer', xn1: 'Selection: ×N stronger', xn3: 'Years: ×N faster', gen: 'Generation {g}', h2: 'h² {h}', rule: 'Detect at', auto: 'Auto-hunt', untimed: 'Untimed',
     commit: 'Lock in', looks: '{n} looks', secs: '{n} s', places: '{k} places', b: 'b = {b}', diet: 'Your catch',
     avail: 'On trunk', common: 'Common first', ff: 'Tap: faster', mean: 'Mean', you: 'you', shift: 'R {r}', sel: 'S {s}', start: 'Start', jay: 'Jays', streak: 'Same look ×{n}'
   },
@@ -86,7 +83,7 @@ const LW_TEXT = {
     hiddenMixed: 'All three looks persisted, though chance kept the better-hidden look from leading this time.',
     hiddenWon: 'The better-hidden look took over. Your rule did not take the common look often enough to protect the others.'
   },
-  live: { gen: 'Generation {g}. {n} moths on the bark.', dusk: 'Dusk. You ate {n}. The rest lay eggs.', tri: 'Prediction open: tap the triangle. Press P for arrows.' },
+  live: { gen: 'Generation {g}. {n} moths on the bark.', dusk: 'Dusk. You ate {n}. The rest lay eggs.' },
   data: {
     gen: ['Generation', '{g} of {n}', 'Each morning is one generation.'], bar: 'gen {g} of {n} ≈', barAuto: 'gen {g} ≈',
     shares: ['Band, mottle, speck', 'Shares of the three looks in the whole wood.'], b: ['Fitted rule b', 'Above 1, you take the common look more than its share.'],
@@ -108,14 +105,14 @@ const LW_TEXT = {
   boss: { inverts: 'Hunting the common look keeps every look alive: no single best form wins.' },
   stars: {
     discover: 'Feed your chicks and keep all three looks alive in the boss.',
-    predict: 'In Mixed diets, land two of three predictions inside the band.',
-    transfer: 'Predict the boss triangle, or the young under No inheritance, inside the band.'
+    predict: 'In Mixed diets, predict where the young land, inside the band.',
+    transfer: 'Try What if? No inheritance, and predict the young inside the band.'
   },
   levelStars: [   // the unmet-star hint on each level card names only the stars that level can give
-    { discover: 'Feed your chicks on two of three mornings, and pin a moth.' },
+    { discover: 'Feed your chicks on two of three mornings.' },
     { discover: 'Feed your chicks on four of five mornings, and raise camouflage 15 points.', transfer: 'On this card, try What if? No inheritance and predict the young.' },
-    { discover: 'Feed your chicks on three of four mornings, selecting at least 8 points.', predict: 'Land two of three predictions inside the band.', transfer: 'On this card, try What if? No inheritance and predict the young.' },
-    { discover: 'Feed your chicks on four of six mornings, and keep all three looks above 10%.', transfer: 'Tap the triangle inside the band at dusk 3.' }
+    { discover: 'Feed your chicks on three of four mornings, selecting at least 8 points.', predict: 'Predict where the young land, inside the band.' },
+    { discover: 'Feed your chicks on four of six mornings, and keep all three looks above 10%.' }
   ],
   levelTake: [
     'Far more eggs are laid than the wood can hold. You only tilt which ones die.',
@@ -123,10 +120,9 @@ const LW_TEXT = {
     'Selection moves only what is inherited. When h² is low, a big S gives a small R.'
   ],
   levelBody: [
-    'You ate {n} moths in three mornings. Each dusk the survivors laid about {e} eggs, and winter left {k}. Your pinned moth never changed.',
+    'You ate {n} moths in three mornings. Each dusk the survivors laid about {e} eggs, and winter left {k}.',
     'Camouflage went from {c0}% to {c1}%. Each generation your survivors were {s} points better hidden on average; their young kept {r}.',
-    'Each generation your survivors were {s} points better hidden on average, but their young kept only {r}. Here larval diet sets much of a moth’s shade.',
-    'You ate {n} moths in three mornings. Each dusk the survivors laid about {e} eggs, and winter left {k}.'
+    'Each generation your survivors were {s} points better hidden on average, but their young kept only {r}. Here larval diet sets much of a moth’s shade.'
   ],
   model: [
     { level: 0, simulated: 'Moths on one trunk. However many survive, they lay 300 eggs between them, ten for every place in the wood. A random winter cull keeps 30.',
@@ -166,10 +162,10 @@ const LW_TEXT = {
 
 /* ---------- the four levels (sim parameters; P below holds the tunable, tagged values) ---------- */
 const LW_LEVELS = [
-  { gens: 3, first: { N: 8, quota: 4, time: 20 }, m0: 0.30, s0: 0.13, ask: { 2: 'count' } },   // ve follows P.h2; K and N follow P.K
-  { gens: 5, m0: 0.30, s0: 0.13, ask: { 1: 'x', 2: 'x', 3: 'x' }, time: 14 },   // 14 s mornings: hidden moths cost search time (P.find)
-  { gens: 4, m0: 0.32, s0: 0.10, ask: { 1: 'x', 2: 'x', 3: 'x' }, time: 14 },   // ve follows P.h2diet
-  { gens: 6, trunks: 4, ve: 0.03, m0: 0.55, s0: 0.04, ask: { 3: 'tri' } }   // K = 4 × P.K; gens = P.gens
+  { gens: 3, first: { N: 8, quota: 4, time: 20 }, m0: 0.30, s0: 0.13, ask: {} },   // ve follows P.h2; K and N follow P.K
+  { gens: 5, m0: 0.30, s0: 0.13, ask: {}, time: 14 },   // 14 s mornings: hidden moths cost search time (P.find); no asks: watch S and R
+  { gens: 4, m0: 0.32, s0: 0.10, ask: { 1: 'x', 2: 'x', 3: 'x' }, time: 14 },   // ve follows P.h2diet; ONE ask, at the first of these dusks where "no change" would miss (wantAsk)
+  { gens: 6, trunks: 4, ve: 0.03, m0: 0.55, s0: 0.04, ask: {} }   // K = 4 × P.K; gens = P.gens
 ];
 const LW_T = { dawn: 0.8, fall: 0.5, eggs: 0.9, cull: 0.7, hatch: 0.9, askMax: 30, auto: 0.7, autoGens: 14 };
 const LW_D = [1, 1, 1];   // detectability of band, mottle, speck: the looks differ only in pattern (D1), so they hide equally well
@@ -286,8 +282,7 @@ const CH_LICHEN_V2 = {
       if (s.level === 3) {   // the vial is the final hatch: finish it, then the jays run fourteen generations by the lever's rule
         if (s.next) { s.moths = s.next; s.next = null; s.brood = null; s.gen++; }
         s.d = LW_D.slice(); s.wb = k === 'nosearch' ? 1 : k === 'rare' ? 0.5 : (s.b || 1); if (k === 'hidden') s.d[1] = 0.6;
-        s.wgen = 0; s.trail = [this.shares(s.moths)]; s.phase = 'ask'; s.t = 0;
-        this.openAsk([], 'wtri');
+        s.wgen = 0; s.trail = [this.shares(s.moths)]; s.phase = 'auto'; s.t = 0;   // no prediction: you watch fourteen generations run (D6 decision 9)
         return;
       }
       s.gens = s.gen;   // L0–L2: replay the last generation only
@@ -332,14 +327,21 @@ const CH_LICHEN_V2 = {
     duskStep(ev) {
       const s = this.s, c = this.cfg(s.level);
       if (s.dk === 'fall' && s.t >= this.fallT(s)) { s.dk = 'eggs'; s.t = 0; ev.push({ k: 'eggs', E: s.brood.E, K: s.brood.K }); }
-      else if (s.dk === 'eggs' && s.t >= LW_T.eggs) {
-        if (!s.whatif && c.ask[s.gen] === 'count') { this.openAsk(ev, 'count'); return; }
-        s.dk = 'cull'; s.t = 0; ev.push({ k: 'cull' });
-      } else if (s.dk === 'cull' && s.t >= LW_T.cull) {
+      else if (s.dk === 'eggs' && s.t >= LW_T.eggs) { s.dk = 'cull'; s.t = 0; ev.push({ k: 'cull' }); }
+      else if (s.dk === 'cull' && s.t >= LW_T.cull) {
         const kind = s.whatif ? (s.whatif === 'noinherit' ? 'x' : null) : c.ask[s.gen];
-        if (kind && kind !== 'count') { this.openAsk(ev, kind); return; }
+        if (kind === 'x' && this.wantAsk()) { this.openAsk(ev, kind); return; }
         this.hatch(ev);
       }
+    },
+    xAsk(rec, ni) {   // the expectation for "where will the young land?" (R = h²S; 0 under No inheritance) and its band
+      const h2 = ni ? 0 : rec.h2, e = Math.max(0, Math.min(1, rec.mAll + h2 * rec.S));
+      return { e, tol: ni ? Math.max(0.4 * Math.abs(rec.S), 0.01) : Math.max(0.5 * Math.abs(h2 * rec.S), 0.015) };
+    },
+    wantAsk() {   // Mixed diets asks once (D6 decision 9: one prediction a chapter), at the first dusk where "no change" would miss
+      const s = this.s; if (s.whatif) return true;
+      if (s.asks.length) return false;
+      const rec = s.hist[s.hist.length - 1], q = this.xAsk(rec, false); return Math.abs(q.e - rec.mAll) > q.tol;
     },
 
     /* ---------- the morning: pecks, misses, the search image, the bird's rule ---------- */
@@ -360,7 +362,7 @@ const CH_LICHEN_V2 = {
       else if (a.k === 'void' && s.pred[a.id] != null) { s.pred[a.id] = null; s.hits[a.id] = false; ev.push({ k: 'void', id: a.id }); }   // the view's follow-up when the widget committed an unmoved ghost (soft timer, re-tap)
       return ev;
     },
-    canPin(s) { return s.level === 0 && s.gen > 1 && !s.whatif && (s.phase === 'hunt' || s.phase === 'dawn'); },   // pinning is taught (and needed) only in L0's later mornings
+    canPin() { return false; },   // pinning was removed (D6 decision 9: one verb); the action stays inert so old replay logs still run
     untimed(ev, on) {   // the player's untimed switch (offered after two hungry mornings): a number of looks replaces the clock, from now on
       const s = this.s; if (s.unt === on) return; s.unt = on;
       if (s.phase === 'hunt' || s.phase === 'dawn') s.looks = on ? Math.max(6, Math.round(Math.max(1, s.quota - s.eaten) * 4 / 3)) : null;
@@ -482,16 +484,11 @@ const CH_LICHEN_V2 = {
     openAsk(ev, kind) {
       const s = this.s, rec = s.hist[s.hist.length - 1], id = 'L' + s.level + 'g' + s.gen + (s.whatif ? 'w' : '');
       let ask;
-      if (kind === 'count') { ask = { id, kind: 'y', lo: 0, hi: s.brood.E, tol: Math.max(6, Math.round(s.brood.K / 4)), start: s.brood.E }; s.exp[id] = s.brood.K; }
-      else if (kind === 'x') {   // the ghost starts off the data, at the axis's left end: leaving it there never scores, and a tap anywhere on the data places it
-        const ni = s.whatif === 'noinherit', h2 = ni ? 0 : rec.h2, e = rec.mAll + h2 * rec.S;
-        ask = { id, kind: 'x', lo: 0, hi: 1, tol: ni ? Math.max(0.4 * Math.abs(rec.S), 0.01) : Math.max(0.5 * Math.abs(h2 * rec.S), 0.015), start: 0, base: rec.mAll };
-        s.exp[id] = Math.max(0, Math.min(1, e)); s.test[id] = Math.abs(s.exp[id] - rec.mAll) > ask.tol;   // a test only when "no change" would miss (weak selection makes it a free answer)
-      } else if (kind === 'tri') {   // the wood after generation 6, from 200 replays of your fitted rule on all four trunks
-        ask = { id, kind: 'tri', tol: 0.1, start: [0.5, 0.5, 0] }; s.exp[id] = this.replay(s.next, s.gens - s.gen, s.b || 1, s.d, 200, 9001 + s.gen);   // the ghost starts on the band–mottle edge ("no speck at all"), far from every plausible answer
-      } else if (kind === 'wtri') {   // What if?: fourteen generations under the lever's rule (shown, never starred)
-        ask = { id, kind: 'tri', tol: 0.12, start: [0.5, 0.5, 0] }; s.exp[id] = this.replay(s.moths, LW_T.autoGens, s.wb, s.d, 200, 7777);
-      }
+      if (kind === 'x') {   // the ghost starts off the data, at the axis's left end: leaving it there never scores, and a tap anywhere on the data places it
+        const q = this.xAsk(rec, s.whatif === 'noinherit');
+        ask = { id, kind: 'x', lo: 0, hi: 1, tol: q.tol, start: 0, base: rec.mAll };
+        s.exp[id] = q.e; s.test[id] = Math.abs(s.exp[id] - rec.mAll) > ask.tol;   // a test only when "no change" would miss (weak selection makes it a free answer)
+      } else return;
       s.ask = ask; s.asks.push(id); s.tol[id] = ask.tol; s.askAt = s.phase === 'dusk' ? s.dk : s.phase; s.phase = 'ask'; s.t = 0;
       ev.push({ k: 'ask', id, kind: ask.kind });
     },
@@ -502,8 +499,6 @@ const CH_LICHEN_V2 = {
       s.hits[id] = err <= ask.tol;
       if (s.hits[id] && ask.base != null && !s.whatif) { const d = e - ask.base; s.hits[id] = (s.pred[id] - ask.base) * Math.sign(d) >= 0.5 * Math.abs(d) - 1e-9; }   // at least halfway from "no change" to the expectation (the band's own edge unless it is floored)
       ev.push({ k: 'commit', id, v: s.pred[id], none: v == null });
-      if (ask.kind === 'tri' && s.whatif) { s.phase = 'auto'; s.t = 0; ev.push({ k: 'auto' }); return; }
-      if (s.askAt === 'eggs') { s.phase = 'dusk'; s.dk = 'cull'; s.t = 0; ev.push({ k: 'cull', reveal: id }); return; }
       s.reveal = id; this.hatch(ev);
     },
     norm3(v) { const a = v.map(x => Math.max(0, +x || 0)), t = a[0] + a[1] + a[2] || 1; return [a[0] / t, a[1] / t, a[2] / t]; },
@@ -594,7 +589,7 @@ const CH_LICHEN_V2 = {
     actions() {
       const s = this.s, out = []; if (!s) return out;
       if (s.phase === 'hunt' || s.phase === 'dawn') {
-        for (const i of this.live(s)) { out.push({ k: 'peck', i }); if (s.level === 0 && s.gen > 1 && !s.pins.length) out.push({ k: 'pin', i }); }
+        for (const i of this.live(s)) out.push({ k: 'peck', i });
         out.push({ k: 'miss', x: 0.5, y: 0.5 });
       } else if (s.ask) {
         const A = s.ask;
@@ -656,19 +651,18 @@ const CH_LICHEN_V2 = {
   stars: {
     discover: (s, n) => {
       if (s.whatif) return false;
-      if (n === 0) return s.fedMorn >= 2 && s.pins.length > 0;
+      if (n === 0) return s.fedMorn >= 2;
       if (n === 1) return s.fedMorn >= 4 && s.camo[s.camo.length - 1] - s.camo[0] >= 0.15;
       if (n === 2) { let t = 0; for (const r of s.hist) t += r.S || 0; return s.fedMorn >= 3 && t / Math.max(1, s.hist.length) >= 0.08; }
       const f = s.trail[s.trail.length - 1]; return s.fedMorn >= 4 && Math.min(f[0], f[1], f[2]) >= 0.1;
     },
-    predict: (s, n) => {   // only Mixed diets, where both naive answers ("no change", "the young match the survivors") miss; L1's asks are practice
+    predict: (s, n) => {   // only Mixed diets' one ask, where both naive answers ("no change", "the young match the survivors") miss
       if (s.whatif || n !== 2) return false;
-      let k = 0; for (const id of s.asks) if (s.hits[id] && s.test[id] !== false) k++; return k >= 2;
+      return s.asks.some(id => s.hits[id] && s.test[id] !== false);
     },
-    transfer: (s, n) => {
-      if (s.whatif) { const id = s.asks[s.asks.length - 1]; return s.whatif === 'noinherit' && !!(id && s.hits[id]); }   // D1's "What if h² = 0?"; the boss levers are shown, never starred
-      if (n !== 3) return false;
-      const id = s.asks.find(a => /^L3g/.test(a)); return !!(id && s.hits[id]);
+    transfer: (s) => {   // D1's "What if h² = 0?": predict the young under No inheritance (the boss levers are watched, never starred)
+      if (!s.whatif) return false;
+      const id = s.asks[s.asks.length - 1]; return s.whatif === 'noinherit' && !!(id && s.hits[id]);
     }
   },
 
@@ -777,13 +771,12 @@ const CH_LICHEN_V2 = {
   finish(r) {
     const s = this.sim.s, n = this.level, C = this.content, last = Freezer.list(this.id).slice(-1)[0], o = { level: n, mask: r.mask, final: n === 3, interesting: r.interesting };
     const V = this.bodyVars();
-    if (n < 3 && !s.whatif) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n === 0 && !s.pins.length ? 3 : n], V); }
+    if (n < 3 && !s.whatif) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
     if (n === 3 && !s.whatif) { o.take = C.boss.inverts; o.body = Txt.f(C.body, V); this.resident(); }   // the boss's own headline: it inverts L1's one best form
     if (s.whatif) o.body = Txt.f(C.whatifBody[n === 3 ? 1 : s.whatif === 'noinherit' ? 2 : s.whatif === 'novar' ? 3 : 0], V);   // the replayed generation itself, never the level's averages
     if (n >= 1 && last) o.whatIf = { gen: last.gen, levers: n === 3 ? ['nosearch', 'rare', 'hidden'] : ['novar', 'noinherit', 'random'] };
     o.why = n < 3 ? C.levelWhy[n] : C.why;   // each level's Why? opens on its own story
-    const spec = this.notes().charts[n === 0 ? 0 : n === 3 ? 0 : 1], aid = n === 3 ? s.asks[s.asks.length - 1] : null;
-    if (spec && aid && s.exp[aid] && s.pred[aid]) { spec.ghost = s.exp[aid]; spec.you = s.pred[aid]; if (spec.pts) spec.pts.forEach(p => { p.label = ''; }); }   // the debrief: your call, the expectation and the trail ("now" would sit on "you")
+    const spec = this.notes().charts[n === 0 ? 0 : n === 3 ? 0 : 1];
     if (spec) { o.chart = cv => LiveGraph.draw(cv, spec, 'paper'); o.chartLabel = spec.title; }
     const box = End.show(this, o);   // the unmet-star hint names only stars this level can give: Entry.show reads content.levelStars[n]
     this.chipsInView(box);
@@ -831,7 +824,6 @@ const CH_LICHEN_V2 = {
       if (s.gen > 1 || v.thaw) { if (typeof Snd !== 'undefined') Snd.dawn(); v.banner = { text: Txt.f(C.labels.gen, { g: s.gen }), t: 0, ms: 1000 }; }
       if (s.level < 3 && typeof Freezer !== 'undefined' && !s.whatif) Freezer.put(this.id, e.gen, this.sim.snapshot());
       if (typeof Live !== 'undefined') Live.say(Txt.f(C.live.gen, { g: s.gen, n: this.visible().length }));
-      if (s.level === 0 && s.gen === 2 && !s.whatif && typeof Ghost !== 'undefined') Ghost.show({ verb: 'hold', key: 'Enter', at: () => this.ghostAt(), until: () => { const q = this.sim.s; return q.pins.length > 0 || q.phase === 'dusk' || q.phase === 'ask' || q.phase === 'over'; } });   // shown at dawn: it must outlive the dawn
       return;
     }
     if (e.k === 'peck') {
@@ -964,15 +956,14 @@ const CH_LICHEN_V2 = {
     if (typeof Lbl !== 'undefined') {
       c.save(); c.globalAlpha = fade;   // the tray's labels fade with it at the hatch
       const C = this.content.labels, B = s.brood, label = T.per > 1 ? Txt.f(C.dot, { n: T.per }) : Txt.f(C.places, { k: this.sim.cfg(s.level).K });
-      const preAsk = !s.whatif && this.sim.cfg(s.level).ask[s.gen] === 'count' && (s.dk === 'eggs' || s.phase === 'ask' && s.askAt === 'eggs');   // the egg question: room in the wood stays unsaid
-      if (!preAsk || T.per > 1) Lbl.put('lw-tray', label, T.x + T.w, T.y - 22, { align: 'right', size: 13, c });
-      if (B && (s.dk === 'eggs' || s.phase === 'ask' && s.askAt === 'eggs')) Lbl.put('lw-eggs', B.E + ' ' + C.eggs.toLowerCase(), T.x, T.y - 22, { align: 'left', size: 13, c, mono: true });
+      Lbl.put('lw-tray', label, T.x + T.w, T.y - 22, { align: 'right', size: 13, c });
+      if (B && s.dk === 'eggs') Lbl.put('lw-eggs', B.E + ' ' + C.eggs.toLowerCase(), T.x, T.y - 22, { align: 'left', size: 13, c, mono: true });
       else if (B) Lbl.put('lw-spring', B.K + ' ' + C.spring.toLowerCase(), T.x, T.y - 22, { align: 'left', size: 13, c, mono: true });
       c.restore();
     }
   },
 
-  /* ---------- input: a tap pecks; a 450 ms hold pins only where pinning is taught (L0, mornings 2–3), elsewhere a hold is a peck ---------- */
+  /* ---------- input: a tap (or a hold) pecks; one verb throughout (D6 decision 9) ---------- */
   hitTest(x, y) {
     const s = this.sim.s, sz = this.size(), L = this.sim.live(s), pts = L.map(i => { const p = this.pos(s.moths[i]); return { x: p[0], y: p[1], r: sz * 0.55 }; });
     const first = s.level === 0 && s.gen === 1 && !s.whatif, magnet = first ? (s.eaten === 0 ? 1e5 : 90) : 22, k = Stage.hit(x, y, pts, magnet);   // the first tap of the game always lands
@@ -981,13 +972,10 @@ const CH_LICHEN_V2 = {
   down(x, y) {
     const s = this.sim.s; if (this.canFF(s)) { this.v.ff = true; return; } if (s.phase !== 'hunt' && s.phase !== 'dawn') return;
     const i = this.hitTest(x, y); this.v.press = { x, y, i, t: this.v.t, moved: false };
-    if (i >= 0 && typeof Pin !== 'undefined' && this.sim.canPin(s)) { const m = s.moths[i]; Pin.press({ id: m.id, ph: this.ph(m) }, x, y); }
   },
-  move(x, y) { const p = this.v.press; if (p && !p.moved && Math.abs(x - p.x) + Math.abs(y - p.y) > 14) { p.moved = true; if (typeof Pin !== 'undefined') Pin.release(); } },
+  move(x, y) { const p = this.v.press; if (p && !p.moved && Math.abs(x - p.x) + Math.abs(y - p.y) > 14) p.moved = true; },
   up() {
     const p = this.v.press; this.v.press = null; if (!p) return;
-    const pinned = typeof Pin !== 'undefined' && Pin.release();
-    if (pinned && p.i >= 0) { Sim.act(this, { k: 'pin', i: p.i }); this.whisper('pinned'); return; }
     if (p.moved) return;
     this.peckAt(p.x, p.y, p.i);
   },
@@ -1011,7 +999,6 @@ const CH_LICHEN_V2 = {
       for (const i of L) { if (i === cur) continue; const m = s.moths[i], dx = m.x - a.x, dy = m.y - a.y, along = dx * D[0] + dy * D[1]; if (along <= 0.005) continue; const sc = along + 2 * Math.abs(dx * D[1] - dy * D[0]); if (sc < bs) { bs = sc; best = i; } }
       if (best >= 0) v.focus = best; return;
     }
-    if ((k === 'Enter' || k === ' ') && e && e.shiftKey && cur >= 0 && this.sim.canPin(s)) { Sim.act(this, { k: 'pin', i: cur }); if (typeof Pin !== 'undefined') { const m = s.moths[cur], p = this.pos(m); Pin.press({ id: m.id, ph: this.ph(m) }, p[0], p[1]); if (Pin.hold) { Pin.hold.t = Pin.HOLD; Pin.update(0); } Pin.release(); } this.whisper('pinned'); return; }
     if (k === 'Enter' || k === ' ') { if (cur < 0) { v.focus = centre(); return; } const p = this.pos(s.moths[cur]); this.peckAt(p[0], p[1], cur); }
   },
   toggleAuto() { const s = this.sim.s; Sim.act(this, { k: 'auto', on: !s.auto }); this._dockSig = ''; this.dock(); },
@@ -1026,22 +1013,21 @@ const CH_LICHEN_V2 = {
     else if (s.phase === 'hunt' || s.phase === 'dawn') {
       if (this.level === 0 && s.gen === 1 && s.eaten === 0 && !s.whatif) text = this.content.firstWords;
       else if (s.auto) text = H.auto;
-      else if (this.level === 0 && s.gen === 2 && !s.pins.length) text = H.pin;
       else if (this.level === 0 && s.gen === 1) text = H.hunt0;
       else text = Txt.f(s.looks != null ? H.huntU : this.level === 1 && s.gen === 1 && !s.whatif ? H.huntHide : H.hunt, { n: left });
       num = s.looks != null ? Txt.f(L.looks, { n: Math.max(0, s.looks) }) : Txt.f(L.secs, { n: (Math.round(Math.max(0, s.time) * 10) / 10).toFixed(1) });
     } else if (s.phase === 'dusk') {
-      const r0 = s.hist[s.hist.length - 1], hungry = r0 && r0.starved > 0, hideK = !s.whatif && this.sim.cfg(s.level).ask[s.gen] === 'count';   // the egg question: K stays unsaid until the reveal
-      text = s.dk === 'fall' ? (s.level === 3 && s.jays ? H.jays : hungry ? H.duskHungry : H.dusk) : s.dk === 'eggs' ? Txt.f(hideK ? H.eggsOnly : H.eggs, { e: s.brood ? s.brood.E : 0, k: s.brood ? s.brood.K : 0 }) : H.cull;
-    } else if (s.phase === 'ask') text = s.whatif && s.level === 3 ? H.wask : s.ask && s.ask.kind === 'tri' ? H.askTri : s.ask && s.ask.kind === 'y' ? H.ask0 : H.ask;
-    else if (s.phase === 'hatch') {
-      const named = this.level === 1 && s.gen === 3 && !s.whatif, np = named ? this.namedPct() : null;
-      text = named ? (np == null ? H.namedNone : np > 100 ? H.namedOver : Txt.f(H.named, { r: np })) : this.level === 2 && s.gen === 1 ? H.hatchDiet : H.hatch;   // Wave 1 G2 #4: the share is named only when 0 ≤ R/S ≤ 1
-      if ((named || (this.level === 2 && s.gen === 1)) && !(this.v.holdHud && this.v.holdHud.gen === s.gen)) this.v.holdHud = { gen: s.gen, text };
+      const r0 = s.hist[s.hist.length - 1], hungry = r0 && r0.starved > 0;
+      text = s.dk === 'fall' ? (s.level === 3 && s.jays ? H.jays : hungry ? H.duskHungry : H.dusk) : s.dk === 'eggs' ? Txt.f(H.eggs, { e: s.brood ? s.brood.E : 0, k: s.brood ? s.brood.K : 0 }) : H.cull;
+    } else if (s.phase === 'ask') text = H.ask;
+    else if (s.phase === 'hatch') {   // the key number, plainly (D6 decision 9): R = h²S at L1's first hatch, the realised share at its third
+      const named = this.level === 1 && s.gen === 3 && !s.whatif, rule = this.level === 1 && s.gen === 1 && !s.whatif, np = named ? this.namedPct() : null;
+      text = named ? (np == null ? H.namedNone : np > 100 ? H.namedOver : Txt.f(H.named, { r: np })) : rule ? H.rule : this.level === 2 && s.gen === 1 ? H.hatchDiet : H.hatch;   // Wave 1 G2 #4: the share is named only when 0 ≤ R/S ≤ 1
+      if ((named || rule || (this.level === 2 && s.gen === 1)) && !(this.v.holdHud && this.v.holdHud.gen === s.gen)) this.v.holdHud = { gen: s.gen, text };
     }
     else if (s.phase === 'auto') { text = H.wrun; num = s.wgen + ' / ' + LW_T.autoGens; }
     else text = H.over;
-    if (!num && s.hist.length && (this.level === 2 || (this.level === 1 && s.named)) && s.phase !== 'auto') { const r = s.hist[s.hist.length - 1]; if (r.h2 != null) num = Txt.f(L.h2, { h: (Math.round(r.h2 * 100) / 100).toFixed(2) }); }
+    if (!num && s.hist.length && (this.level === 1 || this.level === 2) && s.phase !== 'auto') { const r = s.hist[s.hist.length - 1]; if (r.h2 != null) num = Txt.f(L.h2, { h: (Math.round(r.h2 * 100) / 100).toFixed(2) }); }
     HUD.say(text, num);
     const D = this.content.data, g = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null, gt = s.phase === 'auto' ? Txt.f(D.barAuto, { g: s.gen }) : Txt.f(D.bar, { g: Math.min(s.gen, s.gens), n: s.gens });
     if (g && g.textContent !== gt) g.textContent = gt;
@@ -1320,17 +1306,14 @@ const CH_LICHEN_V2 = {
     if (last && last.S != null) {
       stats.push([D.S[0], Txt.f(D.S[1], { v: sgn(last.S) }), D.S[2]]);
       if (last.R != null) stats.push([D.R[0], Txt.f(D.R[1], { v: sgn(last.R) }), D.R[2]]);
-      if (s.level !== 1 || s.named || s.whatif) stats.push([D.h2[0], last.h2.toFixed(2), D.h2[1]]);   // L1 names h² only after the third prediction
+      stats.push([D.h2[0], last.h2.toFixed(2), D.h2[1]]);   // the key number's h², shown from the first dusk (D6 decision 9)
       if (last.R != null && Math.abs(last.S) > 0.01 && s.level > 0) stats.push([D.rs[0], (last.R / last.S).toFixed(2), D.rs[1]]);   // realised, after the reveal (teacher prompt 2)
     }
     if (s.level === 0) {
       const B = s.brood || (s.hist.length ? { E: Math.round(this.P.eggs.v * 30), K: 30 } : null), eaten = last ? last.eaten : s.eaten;
-      const preK = (s.phase === 'dusk' && s.dk !== 'cull') || (s.phase === 'ask' && s.askAt === 'eggs');
+      const preK = s.phase === 'dusk' && s.dk !== 'cull';
       const bars = { type: 'lw_bars', title: Tt.bars, y: { lo: 0, hi: B ? B.E : 300, fmt: 'int' }, bars: [{ v: B ? B.E : 0, label: L.eggs, style: 'hatched' }, { v: B && !preK ? B.K : 0, label: L.spring, style: 'solid' }, { v: eaten, label: L.eaten, style: 'hollow' }], frame: 'designed' };
-      const pin = typeof Pin !== 'undefined' ? Pin.list.filter(p => s.pins.indexOf(p.id) >= 0).pop() : null;
-      if (pin && pin.ph) dots.marker = { v: pin.ph.tone / 0.85, label: L.pinned };
-      const hideK = preK && !s.whatif && this.sim.cfg(0).ask[s.gen] === 'count';   // the egg question: no K in the table either
-      stats.push([D.eggs[0], B ? (hideK ? String(B.E) : Txt.f(D.eggs[1], { e: B.E, k: B.K })) : '—', D.eggs[2]]);
+      stats.push([D.eggs[0], B ? Txt.f(D.eggs[1], { e: B.E, k: B.K }) : '—', D.eggs[2]]);
       return { stats, charts: [bars, dots] };
     }
     const ghost = [s.camo[0]]; for (const r of s.hist) if (r.h2 != null && r.R != null) ghost.push(r.mAll + (s.whatif === 'noinherit' && r === last ? 0 : r.h2) * r.S);   // No inheritance: the replayed generation's expectation is the old mean   // an expected point appears only once its generation is revealed: never the answer while you predict

@@ -1,6 +1,6 @@
 # START HERE: handoff for the next session
 
-*Updated 21 October 2026 at the end of session 2 (first written 15 October at the end of session 1). Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
+*Updated 22 October 2026 at the end of session 3; session 2 ended 21 October (first written 15 October at the end of session 1). Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
 
 ---
 
@@ -88,6 +88,22 @@ Still open (ask the designer when they have played the build):
 
 **Shipped:** `games/endless-forms/Endless_Forms_v2.html`, rebuilt from all v2 files. Monkey, seed 1: 18 of 18 reach the end card (17 v2 units plus Mendel).
 
+### Session 3 (22 Oct): simplicity and real biology
+**The designer's verdict:** the new worlds and UI are great; make every chapter unique like this. Some gameplay is uninteresting, confusing or too complicated. Recorded as D6 decisions 9 and 10 (binding):
+- **9. Simple beats clever.** Remove the "drag the diamond/marker" prediction interludes unless one is the aha (at most one, trivial to grasp). One verb per chapter, normally 3–4 levels. Show the key number or equation plainly, with a one-line meaning. No unexplained controls.
+- **10. Real biology, not symbols.** Show real organisms, cells, gametes and processes, not chips, tickets, marbles or dots. Abstract read-outs sit only beside the biology.
+
+**Simplification pass:**
+
+| Units | Status |
+|---|---|
+| lichen, soot, hawks, census (Equilibrium), casino, bitter, jaws, forager | **Done** (decision 9; casino and census also got decision-10 notes). Each unit's log has a "Simplification (D6 decision 9)" section |
+| raffle, alarm, switch | Simplification **started but interrupted** at the 2-hour stop. The partial edits still pass oracle and monkey, so they are kept. **Finish them, including decision 10 for the raffle: show sperm in the spermathecae, not a drum.** Snapshots of the partial files: `source/v2_wip/*_simplify_partial.js.txt` |
+| scribe | Partial edit broke its oracle, so it was **reverted** to the session-2 version. The partial is kept in `v2_wip/scribe_simplify_partial.js.txt` |
+| clinic, royal, tap, swamp, dig | **Not simplified yet.** The royal review findings are still pending (`royal_review_pending.md`); tap, swamp and dig still need external review |
+
+**New chapters planned but NOT started:** Mendel's Garden, Why Sex?, Tree Thinking, The Commons, The River, The Archipelago. Their worlds, science guard-rails and full prompts are in `tools/workflows/6_simplify_and_build_wave_a.js` (the `NEW` array). The machine has 4 CPUs, so a workflow runs only about 2–3 agents at once; budget about 60–90 minutes per unit.
+
 ## 4. What is NOT done
 
 1. **Reviews for the four new games.** Apply `royal_review_pending.md`. Then run the playtest and science review and a fix round for `tap`, `swamp` and `dig`; `tools/workflows/5_units_tap_royal_swamp_dig.js` has the review and fix prompts. All four still need the D5 §3 release gate on the full build.
@@ -110,6 +126,15 @@ Still open (ask the designer when they have played the build):
 7. **Ask the designer** after they play: do the favourites keep what they loved? Are the ghost jays honest? Should the guessable prediction questions be replaced (Bitter Wings island C, Switches L6)? Where should it be hosted?
 
 ## 5. How to continue (recommended)
+
+**Session 4 plan (in order):**
+1. Finish simplifying raffle, alarm and switch (decision 10 for the raffle). Then simplify clinic, scribe, royal (apply the pending review), tap, swamp and dig, with external review for the last three.
+2. Build the six new chapters from the `NEW` array in workflow script 6, applying decisions 9 and 10 from the start.
+3. Write `docs/PLAYTEST_GUIDE.md`, ship `Endless_Forms_v2.html`, and send it to the designer.
+
+You can rerun `tools/workflows/6_simplify_and_build_wave_a.js`. Edit its `SIMPLIFY` list to drop the groups already done (lichen/soot, hawks/census/casino, bitter/jaws/forager), and keep the decision-10 notes on raffle.
+
+**Older guidance (still valid):**
 
 1. **Bring the branch in** (§0). Build, then run `sh tests/dup_globals.sh` and the monkey on the 17 v2 ids.
 2. **Finish item 1 of §4.** It is cheapest per unit; use parallel agents, one per unit, each with a playtest/art reviewer, a science reviewer and a fix round.

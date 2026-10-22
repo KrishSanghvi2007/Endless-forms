@@ -2,10 +2,11 @@
 
   GAME_HTML=/abs/build.html python3 tests/hawks_paths.py
 
-Checks: real canvas taps (rival = Hawk, your crab = Dove); keys (arrows, H, D, Enter, Space); the Hawk and Dove buttons
-are never both disabled (D5 §4 item 3); act-to-juice latency <= 200 ms (Events.lat); untimed mode waits (duel, ask,
-boss); the boss's hold (press and hold, or tap to start and tap to stop); What if? thaws a frozen tide and shows its
-Interesting result; Calm mode; a deep link; ?v1=1 plays the legacy chapter; the learning layer. Exit 1 on any failure."""
+Checks: real canvas taps (rival = Hawk, your crab = Dove); keys (arrows, H, D, Enter); the Hawk and Dove buttons are
+never both disabled (D5 §4 item 3); act-to-juice latency <= 200 ms (Events.lat); only Big shells has a prediction (the new
+beach, D6 decision 9), placed with P, arrows and Enter; untimed mode waits (duel, ask); What if? thaws a frozen tide and
+shows its Interesting result; Calm mode; a deep link; the key number V/C on the posts; the last level's card; ?v1=1 plays
+the legacy chapter; the learning layer. Exit 1 on any failure."""
 import os, sys, json
 from playwright.sync_api import sync_playwright
 
@@ -81,7 +82,7 @@ def main():
             pg.evaluate("()=>window.__advance(150)")
         check(both_off == 0, 'the Hawk and Dove buttons are never both disabled (%d samples)' % steps)
         pred = pg.evaluate("()=>TB.REG.hawks.sim.s.pred")
-        check(saw_ask and pred.get('a0') is not None, 'the prediction is placed and locked with P, arrows and Enter')
+        check(not saw_ask and not pred, 'the tide pool has no prediction interlude (D6 decision 9)')
         card = pg.evaluate("()=>{ const c = document.querySelector('#cards.on .card'); return c ? {cls: c.className, stars: c.dataset.stars, txt: c.innerText.slice(0, 300)} : null; }")
         check(card is not None and 'lvl' in card['cls'], 'L1 ends on a v2 level card')
         # What if? on the level card: thaw the last frozen tide with one lever changed
@@ -100,39 +101,33 @@ def main():
         # ---- untimed mode: nothing happens for you ----
         ctx, pg, errs = page(b)
         pg.evaluate("()=>{ TB.Save.d.ui.unt = 1; }")
-        play(pg, 1)
+        play(pg, 2)
         pg.evaluate("()=>window.__advance(9000)")
         st = pg.evaluate("()=>{ const s = TB.REG.hawks.sim.s; return [s.dn, s.duel.st, s.duel.a]; }")
         check(st[0] == 0 and st[1] == 'face', 'untimed: the rival waits 9 s for your choice (no default Dove)')
-        pg.evaluate("""()=>{ const ch = TB.REG.hawks; for (let i = 0; i < 400 && !ch.sim.s.ask; i++) { const s = ch.sim.s; if (s.duel && s.duel.a == null && (s.duel.st === 'face' || s.duel.st === 'walk')) TB.Sim.act(ch, {k: 'pick', a: 1}); window.__advance(100); } }""")
+        pg.evaluate("""()=>{ const ch = TB.REG.hawks; for (let i = 0; i < 600 && !ch.sim.s.ask; i++) { const s = ch.sim.s; if (s.duel && s.duel.a == null && (s.duel.st === 'face' || s.duel.st === 'walk')) TB.Sim.act(ch, {k: 'pick', a: 1}); window.__advance(100); } }""")
         pg.evaluate("()=>window.__advance(20000)")
         st = pg.evaluate("()=>{ const s = TB.REG.hawks.sim.s; return [s.phase, !!s.ask]; }")
-        check(st[0] == 'ask' and st[1], 'untimed: the prediction waits 20 s (no soft timer)')
-        play(pg, 5)
-        pg.evaluate("()=>window.__advance(9000)")
-        st = pg.evaluate("()=>{ const s = TB.REG.hawks.sim.s; return [s.dn, s.duel.st]; }")
-        check(st[0] == 0 and st[1] == 'face', 'untimed: the boss rival waits for your first rap')
+        check(st[0] == 'nb' and st[1], 'untimed: the new-beach call waits 20 s (no soft timer)')
         ctx.close()
 
-        # ---- the boss's hold: press and hold, or tap to start and tap to stop ----
-        ctx, pg, errs = page(b, 1280, 720)
-        play(pg, 5)
-        pg.evaluate("()=>window.__advance(900)")
-        x, y = canvas_xy(pg, 'arena')
-        pg.mouse.move(x, y); pg.mouse.down(); pg.evaluate("()=>window.__advance(2050)"); pg.mouse.up(); pg.evaluate("()=>window.__advance(50)")
-        h = pg.evaluate("()=>TB.REG.hawks.sim.s.holds.slice()")
-        check(len(h) == 1 and 4 <= h[0] <= 6, 'press and hold for 2 s raps %s times (2.5 raps a second)' % h)
-        pg.evaluate("()=>window.__advance(2400)")
-        pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(1250)")
-        mid = pg.evaluate("()=>TB.REG.hawks.sim.s.duel.st")
-        pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(50)")
-        h = pg.evaluate("()=>TB.REG.hawks.sim.s.holds.slice()")
-        check(mid == 'hold' and len(h) == 2 and 2 <= h[1] <= 4, 'a quick tap starts rapping, a second tap stops it (%s raps)' % (h[1:] or ''))
-        pg.evaluate("()=>window.__advance(2400)")
-        pg.keyboard.press(' '); pg.evaluate("()=>window.__advance(1650)"); pg.keyboard.press(' '); pg.evaluate("()=>window.__advance(50)")
-        h = pg.evaluate("()=>TB.REG.hawks.sim.s.holds.slice()")
-        check(len(h) == 3 and 3 <= h[2] <= 5, 'Space starts and stops rapping (%s raps)' % (h[2:] or ''))
-        check(not errs, 'no page errors in the boss (%s)' % (errs[:2],))
+        # ---- the one prediction: Big shells' new beach, placed with P, arrows and Enter ----
+        ctx, pg, errs = page(b)
+        play(pg, 2)
+        for _ in range(600):
+            if pg.evaluate("()=>!!TB.REG.hawks.sim.s.ask"): break
+            pg.evaluate("()=>{ const ch = TB.REG.hawks, s = ch.sim.s; if (s.duel && s.duel.a == null && (s.duel.st === 'face' || s.duel.st === 'walk')) TB.Sim.act(ch, {k: 'pick', a: 1}); window.__advance(150); }")
+        pg.evaluate("()=>window.__advance(300)")
+        ids = pg.evaluate("()=>[...document.querySelectorAll('#dock button')].map(b => b.dataset.id)")
+        check(ids == ['lock'], 'during the call the dock holds only Lock in (%s)' % ids)
+        hud = pg.evaluate("()=>document.querySelector('#hud') ? document.querySelector('#hud').innerText : ''")
+        check('shell 6' in hud and 'injury 8' in hud, 'the call names the new beach\'s shell and injury (%s)' % hud[:80])
+        pg.keyboard.press('p')
+        for _ in range(10): pg.keyboard.press('ArrowUp')
+        pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(400)")
+        pred = pg.evaluate("()=>TB.REG.hawks.sim.s.pred")
+        check(pred.get('nb') is not None and pred['nb'] > 0.5, 'the new-beach call is placed and locked with P, arrows and Enter (%s)' % pred)
+        check(not errs, 'no page errors in the call (%s)' % (errs[:2],))
         ctx.close()
 
         # ---- Calm mode, a deep link, teacher mode ----
@@ -168,14 +163,6 @@ def main():
         pg.evaluate("()=>window.__advance(6000)")
         st = pg.evaluate("()=>{ const s = TB.REG.hawks.sim.s; return {dn: s.dn, slow: s.dl[1] && s.dl[1][0] === 0, log: TB.Whisper.log.slice(-3).map(x => x.text)}; }")
         check(st['dn'] >= 2 and st['slow'] and any('Too slow' in t for t in st['log']) and 'Too slow' in st['log'][-1], 'a later rival waits 5.5 s, then "Too slow, so you displayed." stays the last word (%s)' % st['log'])
-        for _ in range(80):
-            if pg.evaluate("()=>!!TB.REG.hawks.sim.s.ask"): break
-            pg.evaluate("()=>{ const ch = TB.REG.hawks, s = ch.sim.s; if (s.duel && s.duel.a == null && (s.duel.st === 'face' || s.duel.st === 'walk')) TB.Sim.act(ch, {k: 'pick', a: 1}); window.__advance(150); }")
-        pg.evaluate("()=>window.__advance(100)")
-        ids = pg.evaluate("()=>[...document.querySelectorAll('#dock button')].map(b => b.dataset.id)")
-        check(ids == ['lock'], 'during a call the dock holds only Lock in (%s)' % ids)
-        hud = pg.evaluate("()=>document.querySelector('#hud') ? document.querySelector('#hud').innerText : ''")
-        check('Practice' in hud, 'the tide pool\'s call is labelled practice')
         check(not errs, 'no page errors in the review checks (%s)' % (errs[:2],))
         ctx.close()
 
@@ -186,7 +173,7 @@ def main():
         ctx.close()
 
         ctx, pg, errs = page(b, 1280, 720)
-        play(pg, 4)
+        play(pg, 3)
         pg.evaluate("()=>{ TB.Sim.act(TB.REG.hawks, {k: 'pick', a: 1}); window.__advance(1100); }")
         pg.keyboard.press('ArrowRight'); w = pg.evaluate("()=>{ window.__advance(60); return TB.Whisper.log.slice(-1)[0].text; }"); pg.evaluate("()=>window.__advance(700)")
         st = pg.evaluate("()=>{ const s = TB.REG.hawks.sim.s; return [s.q, s.duel.a, s.duel.st, '%s', s.dn]; }" % w)
@@ -196,22 +183,22 @@ def main():
         ctx.close()
 
         ctx, pg, errs = page(b, 1280, 720)
-        play(pg, 5)
-        pg.evaluate("()=>window.__advance(900)")
-        pg.keyboard.down(' ')
-        for _ in range(8):   # OS key repeat while Space is held
-            pg.evaluate("()=>{ window.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', code: 'Space', repeat: true, bubbles: true})); document.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', code: 'Space', repeat: true, bubbles: true})); window.__advance(250); }")
-        pg.keyboard.up(' '); pg.evaluate("()=>window.__advance(60)")
-        h = pg.evaluate("()=>TB.REG.hawks.sim.s.holds.slice()")
-        check(len(h) == 1 and 4 <= h[0] <= 6, 'holding Space (with key repeats) is one hold: %s raps in 2 s' % h)
-        pg.evaluate("""()=>{ const ch = TB.REG.hawks; for (let i = 0; i < 4000 && !document.querySelector('#cards.on .card'); i++) { const s = ch.sim.s, D = s.duel; if (s.ask) TB.Sim.act(ch, {k: 'predict', id: s.ask.id, v: 10}); else if (D && D.st === 'face') TB.Sim.act(ch, {k: 'hold', on: true}); else if (D && D.st === 'hold' && D.raps >= 3 + (s.dn * 7) % 17) TB.Sim.act(ch, {k: 'hold', on: false}); window.__advance(100); } window.__advance(1500); }""")
-        card = pg.evaluate("()=>{ const c = document.querySelector('#cards.on .card'); return c ? {btns: [...c.querySelectorAll('.card-btns button')].map(b => b.textContent), take: (c.querySelector('.take') || c.querySelector('.interesting') || {}).textContent || ''} : null; }")
-        check(card is not None and 'Replay level' in card['btns'], 'the boss card offers Replay level (%s)' % (card and card['btns']))
-        check(card is not None and ('habit' in card['take'] or 'quitting' in card['take'] or 'Interesting' in card['take']), 'the boss card leads with the boss lesson (%s)' % (card and card['take'][:60]))
+        play(pg, 1)
+        pg.evaluate(r"""()=>{ const ch = TB.REG.hawks; for (let i = 0; i < 4000 && !document.querySelector('#cards.on .card'); i++) { const s = ch.sim.s, D = s.duel; if (D && D.a == null && (D.st === 'face' || D.st === 'walk')) TB.Sim.act(ch, {k: 'pick', a: 1}); if (s.tide >= 3 && !ch._vc) ch._vc = TB.Lbl.list.filter(l => /V\/C = 4\/10/.test(l.text)).length; window.__advance(100); } window.__advance(1500); }""")
+        st = pg.evaluate(r"()=>({vc: TB.REG.hawks._vc, w: TB.Whisper.log.map(x => x.text).filter(t => /V\/C/.test(t))})")
+        check(st['vc'] and st['w'], 'The mutant shows the key number on the posts (V/C = 4/10) with a one-line meaning (%s)' % st)
+        ctx.close()
+
+        ctx, pg, errs = page(b, 1280, 720)
+        play(pg, 3)
+        pg.evaluate("""()=>{ const ch = TB.REG.hawks; for (let i = 0; i < 4000 && !document.querySelector('#cards.on .card'); i++) { const s = ch.sim.s, D = s.duel; if (D && D.a == null && (D.st === 'face' || D.st === 'walk')) TB.Sim.act(ch, {k: 'pick', a: D.d < 0 ? 1 : 0}); window.__advance(100); } window.__advance(1500); }""")
+        card = pg.evaluate("()=>{ const c = document.querySelector('#cards.on .card'); return c ? {btns: [...c.querySelectorAll('.card-btns button')].map(b => b.textContent), txt: c.innerText} : null; }")
+        check(card is not None and 'Replay level' in card['btns'], 'the last level\'s card offers Replay level (%s)' % (card and card['btns']))
+        check(card is not None and ('convention' in card['txt'] or 'Owning' in card['txt']), 'the last card leads with the Owners lesson')
         pg.evaluate("()=>{ const b = [...document.querySelectorAll('#cards.on .card-btns button')].find(x => x.textContent === 'Replay level'); b && b.click(); window.__advance(600); }")
         st = pg.evaluate("()=>({card: !!document.querySelector('#cards.on .card'), lv: TB.REG.hawks.level, dn: TB.REG.hawks.sim.s.dn})")
-        check(not st['card'] and st['lv'] == 5 and st['dn'] == 0, 'Replay level restarts the boss')
-        check(not errs, 'no page errors in the boss checks (%s)' % (errs[:2],))
+        check(not st['card'] and st['lv'] == 3 and st['dn'] == 0, 'Replay level restarts Owners')
+        check(not errs, 'no page errors in the last-level checks (%s)' % (errs[:2],))
         ctx.close()
 
         # ---- ?v1=1 keeps the legacy chapter; the learning layer is v2 otherwise ----

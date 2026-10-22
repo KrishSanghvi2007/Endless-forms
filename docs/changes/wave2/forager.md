@@ -285,3 +285,45 @@ Rechecked and left as they were: the diet rule bE ÷ (1 + bt) with its switch at
 - axe-core (offline).
 - The engine requests from session 1 (a flying-tit pose and a sparrowhawk rig in `01_rig.js`; the HUD's real height).
 - The boss card's y-axis title overlaps the "100%" tick (engine `wgXY`).
+
+---
+
+## Simplification (D6 decision 9), 22 October 2026
+
+I played all five levels at 390 × 780 first (screenshots in the session scratchpad: `s3/simp_bitter_jaws_forager/before/forager/`, then `after_forager/`). The day from dawn mist to rose dusk, the great tit, the nest box, the orchard, the sparrowhawk and the winter feeders all stayed. What did not help was the asking: seven drag-the-line predictions (two switch points, two leaving times, a danger level, the flock and the night's odds). There was also a fifth level, the evening flock, with a second orchard run, a 30-year selection sim and a skip button. The verb is now **take it or move on**: take or pass a caterpillar, stay or fly on to the next tree, the steady or the lucky feeder.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| a1 and a2, "where is the switch?" | L1 hedgerow | The key rule is now **shown**. Each stretch the HUD reads "Big ones: 36 a minute. Small ones pay only below 15: pass them." Before the swarm it says "Small ones swarm next. The switch stays at 15 big ones a minute." The strip draws the take-all and big-only lines from the start, so you can see them cross at 15. |
+| b0, the near orchard's leaving time | L2 orchard | The near orchard now **shows** its tangent and the HUD's key line ("Best stay: 3.4 s, where a line from the 2 s flight meets the curve") from the first departure. That is the method. |
+| **Kept: b1**, "the trees stand far apart now: drag the best time to leave" | L2 orchard | **The chapter's one prediction**: you transfer the method you just saw to the far trees, and the aha is that farther trees mean longer stays. To keep a lazy mid-axis guess from scoring, the axis is 0–16 s, so mid-axis (8 s) misses the 6.5 s tangent. The band is ±1.2 s, and the guess must also be closer to the far answer than to the near one. |
+| c1, "when are field caterpillars worth the risk?" | L3 hawk | Shown instead: "Danger per field trip: 50%. Field pays only below about 20%: stay in the hedge." Both rules' expected food lines are on the strip from the start. |
+| Level "Your rule" (the evening flock, old L4) | — | It was a second idea (a rule competing as a gene), a second orchard run and a skip control. Its point survives as one line in the orchard's Why? maths ("No tit computes this tangent. Selection on leaving rules, and learning within a life, bring birds near it") and in the chapter take. The flock sim, flock drawing, its What if? levers and its MODEL card were removed. |
+| e1 and e3, "your chance of surviving tonight" | L4 winter night | Shown instead: "Steady reaches 24 by nightfall; the line is 22. Play steady." (or "Gamble on lucky."). |
+
+The levels are now **L1 The hedgerow, L2 The orchard, L3 The hawk, L4 Winter night**. Internally each level runs a model kind (`FG_KIND = [0, 1, 2, 4]`, `s.kd`). The hawk's afternoon now runs on into rose dusk. The intro card's "How to play" reads "Tap a caterpillar to carry it home, or the hedge to let it pass. Later, tap the next tree or a feeder; once, drag a line to predict."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 The hedgerow | fed, zero–one rule followed | — (was a1 + a2) | — |
+| L2 The orchard | 36 eaten, stay longer in far trees | **b1 inside ±1.2 s** (was b0 + b1) | — |
+| L3 The hawk | 10 food, field only while the hawk is rare | — (was c1) | — |
+| L4 Winter night | both safe nights and a short one survived | — | give up under 10 points of dawn chance (no odds ask any more) |
+
+Unit stars: Discover in two daytime levels plus the night, Predict = L2, Transfer = L4. No level offers all three. The level card's "still to earn" line names the unit's requirement when the level already earned that star.
+
+### Science
+No claim changed. Removed with the flock: its MODEL card (strength ×10, mutation 30%, 30 years) and the flock oracle check. All other checks stand: the tangent stays 3.4 s and 6.5 s, the switch at 15 a minute whatever the small rate, the hawk round's exact expectation (the rules tie at 18.8% danger, so the HUD says "about 20%"), and the night's dynamic programme. New checks: each key line agrees with the model.
+
+### Real biology (D6 decision 10)
+Already met: the tit, real caterpillars, apple trees, a sparrowhawk and real feeders. The take/pass dot ledger and the strip charts are read-outs beside them.
+
+### Tests
+- `tests/oracle_forager.js` updated for four levels. The flock check was replaced by "only the far orchard asks, once; mid-axis and the start miss the tangent; the hedge, hawk and night key lines match the model". **46/46.**
+- `tests/forager_paths.py` (the boss is level 3) passes with 0 failed. `tests/forager_shots.py` now shoots four levels.
+- Lint 0/0, `dup_globals` ok, bot sweep PASS (best unions D-T), monkey seeds 1–3 at 390 × 780 and 1280 × 720 reach the end card.
+- Honest limit: the far orchard's answer is the same 6.5 s on every seed, as it was before, so a player who memorised it from an earlier reveal can earn Predict.

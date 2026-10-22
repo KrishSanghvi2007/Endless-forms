@@ -2,10 +2,11 @@
 
   python3 tests/census_paths.py BUILD.html
 
-Checks, at 390x780 under virtual time:
-  - act-to-juice latency (Events.lat, D5 §3 item 1) for tag (L0), crank (L1), quadrat (L3), tray (L6): <= 200 ms
-  - keyboard: L0 arrows + Enter tag a beetle; L1 Space cranks; L3 arrows place the quadrat; L6 Enter lays a tray; L7 keys 1-4 buy a test
-  - untimed (Save.d.ui.unt): L3 field time does not run down; L6 waits for Release
+Checks, at 390x780 under virtual time (engine levels: 0 copies, 1 tumbler, 2 census, 3 relatives, 4 rats; D6 decision 9):
+  - act-to-juice latency (Events.lat, D5 §3 item 1) for tag (L0), crank (L1), quadrat (L2), tray (L4): <= 200 ms
+  - keyboard: L0 arrows + Enter tag a beetle; L1 Space cranks; L2 arrows place the quadrat; L3 V turns the valve; L4 Enter lays a tray
+  - the one prediction: only the tumbler asks; the copies level has no ask; an untouched ask is not committed for you
+  - untimed (Save.d.ui.unt): L2 field time does not run down; L4 waits for Release
   - Calm (prefers-reduced-motion): L0 tag still lands copies in the jars
   - What if? on the L1 card thaws the vial with "No stirring" and ends with its Interesting result
   - ?v1=1 plays the legacy Census (not v2)
@@ -58,45 +59,36 @@ def main():
         key('1' if ev("() => TB.REG.census.sim.s.left[0]") == 0 else '2'); adv(200)
         check(ev("() => TB.REG.census.sim.s.manual") == 1 and ev("() => TB.REG.census.sim.s.open") == -1, 'L0: keys 1 and 2 send a copy to the A or a jar')
         adv(1200); check(sum(ev("() => TB.REG.census.v.jarShown")) == 2, 'L0: its two copies land in the jars')
-        adv(1500); asked = ev("() => !!(TB.Predict.cur && TB.Predict.cur.active)"); adv(12000)
-        check(asked and ev("() => !!(TB.Predict.cur && TB.Predict.cur.active)") and ev("() => TB.REG.census.sim.s.pred.guess === undefined"), 'L0: an untouched prediction is not committed for you after 12 s (no soft timer)')
-        check(ev("() => TB.Strip.isOpen"), 'phone: the prediction sheet is open during the ask')
-        ev("() => TB.Predict.commit()"); adv(400); check(not ev("() => TB.Strip.isOpen"), 'phone: the sheet folds within 400 ms of Lock in, so the payoff is in view')
+        adv(1500); check(not ev("() => !!(TB.Predict.cur && TB.Predict.cur.active)") and ev("() => TB.REG.census.sim.s.asks.length") == 0, 'L0: no prediction interlude after the first beetle (D6 decision 9)')
         play(1); ev("() => TB.Events.clear()"); k = ev("() => TB.REG.census.knob()"); pg.mouse.click(o[0] + k[0], o[1] + k[1]); adv(300)
         lat = ev("() => TB.Events.lat()"); check(lat and max(x for x in lat if x is not None) <= 200, f'L1 crank: act to first juice {lat} ms')
         check(ev("() => TB.REG.census.sim.s.pairs.length") == 1, 'L1: a tap on the crank makes one pair')
         key(' '); adv(300); check(ev("() => TB.REG.census.sim.s.pairs.length") == 2, 'L1: Space cranks one pair (keyboard)')
-        ev("() => { const s = TB.REG.census.sim.s; s.phase = 'spin'; s.lever = 1; s.pairs = new Array(40).fill(0); s.ask = null; }"); key(']'); adv(200)
-        check(abs(ev("() => TB.REG.census.sim.s.p") - 0.4) < 1e-9 and ev("() => TB.REG.census.sim.s.pairs.length") == 0, 'L1: ] raises the hoppers to p = 0.4 for the 400')
-        play(2); ev("() => { const s = TB.REG.census.sim.s; TB.REG.census.sim.H().setRound(TB.REG.census.sim, s, 1); }"); adv(300)
-        q0 = ev("() => { const q = TB.REG.census.penSlots()[0]; return [q.x, q.y]; }"); pg.mouse.click(o[0] + q0[0], o[1] + q0[1]); adv(200)
-        check(ev("() => TB.REG.census.sim.s.par.join('/')") == '31/1/8', 'L2: tapping a parent changes the pen (AA → Aa)')
-        ev("() => document.querySelector('#dock [data-id=built]').click()"); adv(200); check(ev("() => TB.REG.census.sim.s.phase") == 'show', 'L2: Done ends the build')
-        play(3); adv(5000); check(ev("() => TB.REG.census.sim.s.pool") == 45, 'L3: the field clock waits for your first quadrat (45 s left after 5 s of reading)')
+        key(' '); key(' '); adv(600); asked = ev("() => !!(TB.Predict.cur && TB.Predict.cur.active) && TB.REG.census.sim.s.ask && TB.REG.census.sim.s.ask.id")
+        check(asked == 'het', 'L1: after four pairs the one prediction opens: the Aa share')
+        check(ev("() => TB.Strip.isOpen"), 'phone: the prediction sheet is open during the ask')
+        adv(12000); check(ev("() => TB.REG.census.sim.s.pred.het === undefined"), 'L1: an untouched prediction is not committed for you after 12 s (no soft timer)')
+        ev("() => TB.Predict.commit()"); adv(400); check(not ev("() => TB.Strip.isOpen"), 'phone: the sheet folds within 400 ms of Lock in, so the payoff is in view')
+        g = ev("() => { const ch = TB.REG.census; return [ch.v.fly.length, typeof ch.gamete, typeof ch.zygote]; }"); check(g[1] == 'function' and g[2] == 'function', 'L1: the tumbler draws eggs, sperm and fertilised eggs (D6 decision 10)')
+        play(2); adv(5000); check(ev("() => TB.REG.census.sim.s.pool") == 45, 'L2: the field clock waits for your first quadrat (45 s left after 5 s of reading)')
         ev("() => TB.Events.clear()"); key('ArrowRight'); adv(1500)
-        q = ev("() => TB.REG.census.sim.s.q"); check(q['x'] >= 0, f'L3: an arrow key places the quadrat ({q})')
-        lat = ev("() => TB.Events.lat()"); check(lat is not None, f'L3 quadrat: latency {lat}')
-        check(ev("() => TB.REG.census.sim.s.n") > 0, 'L3: the quadrat genotypes beetles')
-        play(5); ev("() => { const ch = TB.REG.census, s = ch.sim.s; for (let i = 0; i < s.f.g.length && s.n < 65; i++) { s.f.sm[i] = 1; s.n++; s.obs[s.f.g[i]]++; } }"); adv(300)
-        check(ev("() => { const b = document.querySelector('#dock [data-id=finish]'); return !!b && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('locked'); }"), 'L5: Finish unlocks at 60 sampled beetles')
-        ev("() => document.querySelector('#dock [data-id=finish]').click()"); adv(300); key('3'); adv(300)
-        check(ev("() => TB.REG.census.sim.s.splits.length") == 1, 'L5: key 3 draws a diagonal split line (keys 1-4: four directions)')
-        play(6); key('Enter'); adv(300); check(ev("() => TB.REG.census.sim.s.trays.length") == 1, 'L6: Enter lays a bait tray (keyboard)')
+        q = ev("() => TB.REG.census.sim.s.q"); check(q['x'] >= 0, f'L2: an arrow key places the quadrat ({q})')
+        lat = ev("() => TB.Events.lat()"); check(lat is not None, f'L2 quadrat: latency {lat}')
+        check(ev("() => TB.REG.census.sim.s.n") > 0, 'L2: the quadrat genotypes beetles')
+        play(3); adv(300); pg.keyboard.press('v'); adv(300); check(ev("() => TB.REG.census.sim.s.mode") == 'fam', 'L3: V turns the two-way valve to Families (keyboard)')
+        check(sorted(ev("() => [...document.querySelectorAll('#dock button')].map(b => b.dataset.id).filter(Boolean)")) == ['crank', 'spin', 'valve'], 'L3: the dock holds Crank, Spin and Valve only')
+        play(4); key('Enter'); adv(300); check(ev("() => TB.REG.census.sim.s.trays.length") == 1, 'L4: Enter lays a bait tray (keyboard)')
         t0 = ev("() => { const t = TB.REG.census.sim.s.trays[0]; return TB.REG.census.yardPt(t.x, t.y); }"); pg.mouse.click(o[0] + t0[0], o[1] + t0[1]); adv(300)
-        check(ev("() => TB.REG.census.sim.s.trays.length") == 0, 'L6: a tap on a tray lifts it (bait costs grain)')
+        check(ev("() => TB.REG.census.sim.s.trays.length") == 0, 'L4: a tap on a tray lifts it (bait costs grain)')
         key('Enter'); adv(300)
         ev("() => TB.Events.clear()"); yp = ev("() => TB.REG.census.yardPt(120, 90)"); pg.mouse.click(o[0] + yp[0], o[1] + yp[1]); adv(300)
-        lat = ev("() => TB.Events.lat()"); check(lat and max(x for x in lat if x is not None) <= 200, f'L6 tray: act to first juice {lat} ms')
+        lat = ev("() => TB.Events.lat()"); check(lat and max(x for x in lat if x is not None) <= 200, f'L4 tray: act to first juice {lat} ms')
         # L0 keyboard tag
         play(0); key('ArrowRight'); key('Enter'); adv(300); op = ev("() => TB.REG.census.sim.s.open")
         for _ in range(2): key('1' if ev("() => TB.REG.census.sim.s.left[0]") == 0 else '2'); adv(150)
         check(op >= 0 and ev("() => TB.REG.census.sim.s.manual") == 1, 'L0: arrows and Enter open a beetle, 1 and 2 sort it (keyboard)')
-        # L7: keys 1-4 buy tests after sampling
-        play(7); adv(1600); ev("() => TB.Sim.act(TB.REG.census, {k: 'quad', x: 0.5, y: 0.5})"); adv(4000)
-        n = ev("() => TB.REG.census.sim.s.n"); d0 = ev("() => TB.REG.census.sim.s.days"); key('1'); adv(300)
-        check(n >= ev("() => TB.REG.census.sim.H().need(TB.REG.census.sim.s)") and ev("() => TB.REG.census.sim.s.days") == d0 - 1, f'L7: key 1 buys "By area" for a day (n {n})')
-        play(7); adv(1600); why = ev("() => { const b = document.querySelector('#dock [data-id=diag]'); return b ? (b.title || b.getAttribute('aria-label') || '') : ''; }")
-        check(any(ch.isdigit() for ch in why), f'L7: the locked Diagnose says how many beetles it needs ({why!r})')
+        play(2); adv(1600); why = ev("() => { const b = document.querySelector('#dock [data-id=finish]'); return b ? (b.title || b.getAttribute('aria-label') || '') : ''; }")
+        check(any(ch.isdigit() for ch in why), f'L2: the locked Finish says how many beetles it needs ({why!r})')
         # What if? on the L1 card
         play(1)
         for _ in range(400):
@@ -120,11 +112,11 @@ def main():
         ctx.close()
         # untimed
         ctx, pg = page(); ev = lambda js, a=None: pg.evaluate(js, a); adv = lambda ms: ev("ms=>window.__advance(ms)", ms)
-        ev("() => { TB.Save.d.ui.unt = 1; TB.Cards.close(); TB.App.playLevel(TB.REG.census, 3, {seed: 2}); }"); adv(5000)
+        ev("() => { TB.Save.d.ui.unt = 1; TB.Cards.close(); TB.App.playLevel(TB.REG.census, 2, {seed: 2}); }"); adv(5000)
         ev("() => TB.Sim.act(TB.REG.census, {k: 'quad', x: 0.5, y: 0.5})"); adv(5000)
-        check(ev("() => TB.REG.census.sim.s.pool") == 45, 'untimed: L3 field time does not run down')
-        ev("() => { TB.Cards.close(); TB.App.playLevel(TB.REG.census, 6, {seed: 2}); TB.Sim.act(TB.REG.census, {k: 'tray', i: 0, x: 80, y: 130}); }"); adv(15000)
-        check(ev("() => TB.REG.census.sim.s.phase") == 'place', 'untimed: L6 waits for Release before the night')
+        check(ev("() => TB.REG.census.sim.s.pool") == 45, 'untimed: L2 field time does not run down')
+        ev("() => { TB.Cards.close(); TB.App.playLevel(TB.REG.census, 4, {seed: 2}); TB.Sim.act(TB.REG.census, {k: 'tray', i: 0, x: 80, y: 130}); }"); adv(15000)
+        check(ev("() => TB.REG.census.sim.s.phase") == 'place', 'untimed: L4 waits for Release before the night')
         ctx.close()
         # Calm
         ctx, pg = page(calm=True); ev = lambda js, a=None: pg.evaluate(js, a); adv = lambda ms: ev("ms=>window.__advance(ms)", ms)

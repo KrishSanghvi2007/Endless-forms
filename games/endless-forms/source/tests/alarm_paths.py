@@ -2,9 +2,8 @@
 
   GAME_HTML=/abs/build.html python3 tests/alarm_paths.py
 
-Checks: a tap on your squirrel calls; a tap on your burrow stays silent; C and S keys call and stay silent; a real tap on
-a burrow-map node opens the tag menu and a tap on a menu disc places the tag; Done (dock) starts the attacks; H/B and the
-dock choose in the boss; act-to-juice latency ≤ 200 ms (Events.lat); ?untimed=1 never times a decision out; ?calm=1 and
+Checks: a tap on your squirrel calls; a tap on your burrow stays silent; C and S keys call and stay silent; L2 opens on an
+attack with blank sister flags; the boss hides the whistle's cost until the first hawk's ledger; act-to-juice latency ≤ 200 ms (Events.lat); ?untimed=1 never times a decision out; ?calm=1 and
 ?teacher=1 load and play; ?v1=1 opens the legacy chapter. Exit 1 on a failed check or a page error."""
 import os, sys
 from playwright.sync_api import sync_playwright
@@ -56,22 +55,16 @@ def main():
             check(len(lat) > 0 and max(lat) <= 200, 'act-to-juice latency ≤ 200 ms (%s)' % lat[:6])
             pg.evaluate("()=>window.__advance(3300)"); pg.click('#dock [data-id="al-call"]'); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>TB.REG.alarm.sim.s.recs.length === 5"), 'L1: the dock Call button calls')
-            # L2: real taps on the burrow map
+            # L2: sisters' flags are blank; their face blazes decide; the same verb
             open_level(pg, 1); pg.evaluate("()=>window.__advance(1500)")
-            x, y = canvas_xy(pg, "ch.nodeAt('f1')"); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(100)")
-            check(pg.evaluate("()=>TB.REG.alarm.v.pv.menu === 'f1'"), 'L2: a tap on a sister opens the tag menu')
-            x, y = canvas_xy(pg, "(()=>{ const q = ch.nodeAt('f1'); return [q[0] + PedigreeView.OX[0], q[1] + PedigreeView.OY[0]]; })()".replace('PedigreeView', 'TB.PedigreeView'))
-            pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(100)")
-            check(pg.evaluate("()=>TB.REG.alarm.sim.s.tags.f1 === '1/2'"), 'L2: a tap on the ½ disc tags her ½')
-            x, y = canvas_xy(pg, "ch.nodeAt('me')"); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(100)")
-            check(pg.evaluate("()=>!TB.REG.alarm.sim.s.tags.me"), 'L2: you cannot tag yourself')
-            pg.click('#dock [data-id="al-done"]'); pg.evaluate("()=>window.__advance(200)")
-            check(pg.evaluate("()=>TB.REG.alarm.sim.s.phase === 'attack'"), 'L2: Done starts the attacks')
-            # boss: keys and dock
-            open_level(pg, 4); pg.evaluate("()=>window.__advance(500)"); pg.keyboard.press('h'); pg.evaluate("()=>window.__advance(100)")
-            check(pg.evaluate("()=>TB.REG.alarm.sim.s.sp[0].a === 'help'"), 'boss: the H key helps')
-            pg.evaluate("()=>window.__advance(4600)"); pg.click('#dock [data-id="al-breed"]'); pg.evaluate("()=>window.__advance(100)")
-            check(pg.evaluate("()=>TB.REG.alarm.sim.s.sp[1].a === 'breed'"), 'boss: the dock Breed button breeds')
+            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return s.phase === 'attack' && s.atk.nb.some(id => s.tags[id] == null); }"), 'L2: opens on an attack with a blank-flagged sister to read')
+            x, y = canvas_xy(pg, "ch.youAt()"); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(100)")
+            check(pg.evaluate("()=>TB.REG.alarm.sim.s.recs.length === 1"), 'L2: a tap on your squirrel calls (one verb all chapter)')
+            # the boss: the first hawk's cost is hidden until its ledger
+            open_level(pg, 3); pg.evaluate("()=>window.__advance(800)"); pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(3400)")
+            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return s.atk && s.atk.pred === 'hawk' && !s.hawkSeen; }"), 'boss: the second attack is a hawk, its whistle cost still hidden')
+            pg.keyboard.press('c'); pg.evaluate("()=>window.__advance(3400)")
+            check(pg.evaluate("()=>TB.REG.alarm.sim.s.hawkSeen === true"), 'boss: after the first hawk the whistle cost is known')
             ctx.close()
         for q, name in [('?untimed=1', 'untimed'), ('?calm=1', 'calm'), ('?teacher=1', 'teacher')]:
             ctx = b.new_context(viewport={'width': 390, 'height': 780}); pg = ctx.new_page(); pg.add_init_script(vclock)

@@ -13,7 +13,7 @@ CHROME = {"executable_path": "/opt/pw-browsers/chromium"} if os.path.exists("/op
 
 STATE = """()=>{ const ch = TB.REG.raffle, s = ch.sim.s, card = document.querySelector('#cards.on .card');
   if (card) return {card: card.className};
-  return {phase: s.phase, i: s.i, ask: s.ask && s.ask.id, hold: s.hold, mins: s.mins, F: s.fem[Math.min(s.i, s.fem.length - 1)].s, auto: s.auto}; }"""
+  return {phase: s.phase, i: s.i, ask: s.ask && s.ask.id, hold: s.hold, mins: s.mins, F: s.fem[Math.min(s.i, s.fem.length - 1)].s, auto: s.auto, egg: s.eggI}; }"""
 POUR = """()=>{ const ch = TB.REG.raffle, S = ch.sim, s = S.s; const a = S.bots.expert(s, S.actions()); if (a) TB.Sim.act(ch, a); return a; }"""
 
 
@@ -21,7 +21,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--vp', default='390x780,1280x720')
-    ap.add_argument('--levels', default='0,1,2,3')
+    ap.add_argument('--levels', default='0,1,2')
     ap.add_argument('--calm', action='store_true')
     ap.add_argument('--query', default='')
     ap.add_argument('--whatif', action='store_true')
@@ -57,7 +57,7 @@ def main():
                     if 'card' in st:
                         pg.evaluate("()=>window.__advance(1500)")
                         shot('card')
-                        if a.whatif and lv in (0, 2):
+                        if a.whatif and lv in (0, 1):
                             pg.evaluate("()=>{ const b = [...document.querySelectorAll('#cards.on .card-btns button')].find(x => x.textContent === 'What if?'); if (b) b.click(); window.__advance(300); const c = document.querySelector('#cards.on .chip[data-lever]'); if (c) c.click(); window.__advance(300); }")
                             for k in range(400):
                                 if pg.evaluate("()=>!!document.querySelector('#cards.on .card')"): break
@@ -69,8 +69,8 @@ def main():
                     if st.get('ask'):
                         pg.evaluate("()=>window.__advance(500)")
                         shot('ask_' + st['ask'])
-                        box = pg.evaluate("""()=>{ const ch = TB.REG.raffle, s = ch.sim.s, A = s.ask, i = A.id === 'p4' ? 1 : 0, c = TB.Strip.canvas(i); if (!c || !c._lg) return null; const r = c.getBoundingClientRect(), G = c._lg.G, e = ch.sim.expect(s, A.id);
-                          const x = A.kind === 'y' ? G.X(A.at) : G.X(e), y = A.kind === 'y' ? G.Y(e + 0.6) : G.plot.y + G.plot.h * 0.5; return [r.x + x, r.y + y, r.x + G.plot.x + 5, r.y + G.plot.y + 5]; }""")
+                        box = pg.evaluate("""()=>{ const ch = TB.REG.raffle, s = ch.sim.s, A = s.ask, c = TB.Strip.canvas(0); if (!c || !c._lg) return null; const r = c.getBoundingClientRect(), G = c._lg.G, e = ch.sim.expect(s, A.id);
+                          const x = G.X(A.at), y = G.Y(e + 0.6); return [r.x + x, r.y + y, r.x + G.plot.x + 5, r.y + G.plot.y + 5]; }""")
                         if box:
                             pg.mouse.move(box[0] + 30, box[1] - 20); pg.mouse.down(); pg.mouse.move(box[0], box[1], steps=5); pg.mouse.up()
                             pg.evaluate("()=>window.__advance(200)")
@@ -84,19 +84,19 @@ def main():
                             done_first = True
                             cv = pg.evaluate("()=>{ const r = document.getElementById('scene').getBoundingClientRect(); return [r.x + r.width * 0.5, r.y + r.height * 0.45]; }")
                             pg.mouse.move(cv[0], cv[1]); pg.mouse.down()
-                            pg.evaluate("(lv)=>window.__advance(lv === 2 ? 2600 : 900)", lv)
+                            pg.evaluate("(lv)=>window.__advance(lv === 1 ? 2600 : 900)", lv)
                             shot('hold')
-                            pg.evaluate("(lv)=>window.__advance(lv === 2 ? 1500 : 300)", lv)
+                            pg.evaluate("(lv)=>window.__advance(lv === 1 ? 1500 : 300)", lv)
                             pg.mouse.up()
                             pg.evaluate("()=>window.__advance(700)")
                             continue
                         pg.evaluate(POUR)
                         pg.evaluate("()=>window.__advance(40)")
                         continue
-                    for name in ('draw', 'later', 'search', 'pm', 'leave'):
+                    for name in ('draw', 'search', 'pm', 'leave'):
                         if ph == name and (name, st.get('i')) not in seen and (st.get('i') in (0, 1, 3) or name in ('pm',)):
                             seen.add((name, st.get('i')))
-                            pg.evaluate("(n)=>window.__advance(n === 'draw' ? 1100 : n === 'later' ? 900 : 700)", name)
+                            pg.evaluate("(n)=>window.__advance(n === 'draw' ? 500 : 700)", name)
                             shot('%s%d' % (name, st.get('i') + 1))
                     pg.evaluate("()=>window.__advance(80)")
             warn = pg.evaluate("()=>[].concat((TB.Lbl && TB.Lbl.warnings) || [], (TB.Whisper && TB.Whisper.warnings) || [], (TB.HUD && TB.HUD.warnings) || [], (TB.LiveGraph && TB.LiveGraph.errors) || [])")

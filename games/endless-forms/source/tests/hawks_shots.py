@@ -2,7 +2,7 @@
 
   GAME_HTML=/abs/build.html python3 tests/hawks_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3,4,5] [--cvd]
 
-Plays each level with a scripted player (Hawk/Dove picks, holds, a prediction drag) under virtual time and saves PNGs named
+Plays each level with a scripted player (Hawk/Dove picks, the new-beach prediction drag) under virtual time and saves PNGs named
 L<n>_<phase>_<w>x<h>.png. Prints any page error. Exit 1 on an error."""
 import os, sys, json, argparse
 from playwright.sync_api import sync_playwright
@@ -14,7 +14,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--vp', default='390x780,1280x720')
-    ap.add_argument('--levels', default='0,1,2,3,4,5')
+    ap.add_argument('--levels', default='0,1,2,3')
     ap.add_argument('--cvd', action='store_true')
     ap.add_argument('--calm', action='store_true')
     ap.add_argument('--query', default='')
@@ -41,13 +41,12 @@ def main():
                 shot = lambda name: pg.screenshot(path=os.path.join(a.out, 'L%d_%s_%s.png' % (lv + 1, name, tag)))
                 pg.evaluate("()=>window.__advance(500)")
                 shot('start')
-                # play: a scripted player; hawk mostly in L2/L4, owner-wins in L5, varied holds in L6
+                # play: a scripted player; hawk in L2/L3, owner-wins in L4
                 for step in range(4000):
                     st = pg.evaluate("""(lv)=>{ const ch = TB.REG.hawks, s = ch.sim.s, D = s.duel, card = document.querySelector('#cards.on .card');
                       if (card) return {card: card.className};
                       if (s.ask) return {ask: s.ask.id, phase: s.phase};
-                      if (lv === 5) { if (D && D.st === 'face') { TB.Sim.act(ch, {k: 'hold', on: true}); ch._want = [3, 14, 7, 22, 1, 9, 30, 5][s.dn % 8]; } else if (D && D.st === 'hold' && D.raps >= ch._want) TB.Sim.act(ch, {k: 'hold', on: false}); }
-                      else if (D && (D.st === 'walk' || D.st === 'face') && D.a == null) { const a = lv === 4 ? (D.d < 0 ? 1 : 0) : lv === 0 ? (s.dn % 2) : lv === 2 ? (s.dn % 3 === 0 ? 1 : 0) : 1; TB.Sim.act(ch, {k: 'pick', a}); }
+                      if (D && (D.st === 'walk' || D.st === 'face') && D.a == null) { const a = lv === 3 ? (D.d < 0 ? 1 : 0) : lv === 0 ? (s.dn % 2) : 1; TB.Sim.act(ch, {k: 'pick', a}); }
                       return {phase: s.phase, st: D && D.st, dn: s.dn, tide: s.tide}; }""", lv)
                     if 'card' in st:
                         pg.evaluate("()=>window.__advance(1500)")
@@ -70,9 +69,6 @@ def main():
                     if st.get('st') == 'clash' and st.get('dn') == 3 and not os.path.exists(os.path.join(a.out, 'L%d_clash_%s.png' % (lv + 1, tag))):
                         pg.evaluate("()=>window.__advance(250)")
                         shot('clash')
-                    if lv == 5 and st.get('st') == 'hold' and st.get('dn') == 3 and not os.path.exists(os.path.join(a.out, 'L%d_hold_%s.png' % (lv + 1, tag))):
-                        pg.evaluate("()=>window.__advance(2500)")
-                        shot('hold')
                     if st.get('phase') == 'duel' and st.get('tide') == 3 and st.get('st') == 'face' and not os.path.exists(os.path.join(a.out, 'L%d_mid_%s.png' % (lv + 1, tag))):
                         shot('mid')
                     if st.get('phase') == 'nbrun' and not os.path.exists(os.path.join(a.out, 'L%d_nbrun_%s.png' % (lv + 1, tag))):
@@ -84,7 +80,7 @@ def main():
             if a.cvd:
                 for kind in ('mono', 'deut'):
                     pg.goto('file://' + html + '?cvd=' + kind); pg.evaluate("()=>{ if (window.TB && TB.Intro) { TB.Intro.off = true; if (TB.Intro.box()) TB.Intro.go(); } }"); pg.evaluate("()=>window.__advance(600)")   # skip the description card (D6 decision 8; covered by selftest_e4 and the monkey)
-                    for lv in (0, 1, 4, 5):
+                    for lv in (0, 1, 2, 3):
                         pg.evaluate("(lv)=>{ TB.App.playLevel(TB.REG.hawks, lv, {seed: 7}); window.__advance(5000); }", lv)
                         pg.screenshot(path=os.path.join(a.out, 'L%d_cvd-%s_%s.png' % (lv + 1, kind, tag)))
             ctx.close()

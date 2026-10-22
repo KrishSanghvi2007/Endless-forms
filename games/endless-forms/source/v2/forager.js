@@ -1,14 +1,13 @@
 /* ================= v2/forager.js: The Forager (Act 6; D1 §3.7, D5 §4 item 8) =================
-   One great tit's day on one map, then a winter night. Role: a behaving animal whose rule then competes as a gene (D1 G1 role 2).
+   One great tit's day on one map, then a winter night. Role: a behaving animal (D1 G1 role 2). D6 decision 9: four levels, one
+   verb (take it or move on), one prediction (the far orchard), and the key rule shown plainly in the HUD at each stretch.
      L0 Morning, the hedgerow  caterpillars appear one at a time ahead of the bird; tap to carry one home, or let it pass. Big ones
                                scarce, then common, then small ones swarm. The zero–one diet rule (Krebs et al. 1977).
      L1 Midday, the orchard    the tit feeds itself; catches slow as a tree empties; tap the next tree to fly on. Near trees, then
                                far ones. The marginal value theorem: the tangent from the travel time (Charnov 1976; Cowie 1977).
      L2 Afternoon, the hawk    the same take-or-pass verb, but field caterpillars are out in the open under a sparrowhawk.
                                Danger is a cost in the same currency (Lima & Dill 1990).
-     L3 Evening, your rule     a last orchard run with trees twice as far apart; your leaving time seeds a lineage in a flock of 200;
-                               30 years of selection with mutation find the tangent nobody computed (D1 G7).
-     L4 Winter night (boss)    a steady feeder (2 seeds) against a lucky one (0 or 4) before a long night: survival, not rate, is
+     L3 Winter night (boss)    a steady feeder (2 seeds) against a lucky one (0 or 4) before a long night: survival, not rate, is
                                the currency, so the gamble pays only when steady feeding falls short (Stephens 1981; contested).
    Encounters are sequential and the next arrival is drawn only when it happens (a per-tick hazard), so nothing in the state
    foretells the next prey: a look-ahead bot has nothing to look at (D1 §3.7 fix; R7 A63). The legacy Math.min(1, eff) cap is
@@ -18,34 +17,31 @@
    Code shape (API_v2 §9): a headless sim (plain JSON; R(), Det, WF only; a run is (seed, level, actions)); all words in FG_TEXT;
    the view juices from Sim.run's events only. Load rule: top-level code touches only legacy objects and lower-numbered v2 files
    (Rig, LiveGraph); engine calls at run time sit behind typeof guards. Under ?v1=1 the learning-layer rewrites at the foot are
-   skipped and the legacy chapter plays. */
+   skipped and the legacy chapter plays. Levels run model kinds (FG_KIND 0, 1, 2, 4; s.kd): the evening flock, kind 3, is cut. */
 
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const FG_TEXT = {
   intro: {   // the opening card (D6 addendum 8): three parts, 1–2 sentences each, ≤ 35 words
     game: 'You are a great tit raising four chicks on an English hedgerow. One day runs from dawn mist to dusk, then a winter night.',
     biology: 'Every catch costs time that could find food elsewhere. Selection favours rules that weigh gain against time and danger, though no bird does the sums.',
-    how: 'Tap a caterpillar to carry it home, or tap the hedge to let it pass. Later you tap trees and feeders, and drag a line to predict.'
+    how: 'Tap a caterpillar to carry it home, or the hedge to let it pass. Later, tap the next tree or a feeder; once, drag a line to predict.'
   },
   firstWords: 'Four hungry chicks. Tap a caterpillar to carry it home, or tap the hedge to let it pass.',
   hud: {
     hedge: 'Take a caterpillar home, or let it pass. Every trip home costs time.',
     hedgeU: 'Each caterpillar waits for you. Take it, or tap the hedge to pass.',
-    askA1: 'When do small ones stop paying? Drag the rate of big ones, then Lock in.',
-    askA2: 'Small ones now come three times as often. Where is the switch now?',
+    // the key rules (D6 decision 9), each with its one-line meaning
+    keyHedge: 'Big ones: {b} a minute. Small ones pay only below 15: {v}.', takeSmall: 'take them', passSmall: 'pass them',
+    swarm: 'Small ones swarm next. The switch stays at 15 big ones a minute.',
+    keyHawk: 'Danger per field trip: {p}%. Field pays only below about 20%: {v}.', fieldPays: 'take it', hedgePays: 'stay in the hedge',
+    keyTree: 'Best stay: {t} s, where a line from the {T} s flight meets the curve.',
+    keyNight: 'Steady reaches {x} by nightfall; the line is {need}. {v}', playSafe: 'Play steady.', gamble: 'Gamble on lucky.',
     orchard: 'Midday: you feed yourself. Catches slow as a tree empties. Tap the next tree.',
     orchardU: 'Tap Stay to feed for half a second, or Fly on.',
-    askB1: 'Drag the best time to leave a tree here, then Lock in.',
-    askB2: 'The trees stand far apart now. Drag the best time to leave.',
+    askB2: 'The trees stand far apart now. Drag the best time to leave, then Lock in.',
     hawk: 'Field caterpillars are plentiful but out in the open. Hedge ones are safe.',
-    askC1: 'When are field caterpillars worth the risk? Drag the danger per trip.',
     caught: 'Caught. Your mate finishes the day.',
-    evening: 'Evening. The trees stand twice as far apart. Feed, then fly on.',
-    flock: 'Suppose your leaving time were inherited. It founds one lineage among 200 tits.',
-    askD1: 'Where will the flock’s leaving time settle? Drag, then Lock in.',
-    years: 'Each year, birds with better leaving rules raise more young.',
     night: 'Reach the line by nightfall. Steady gives 2 seeds. Lucky gives 0 or 4.',
-    askE1: 'Drag your chance of surviving tonight, if you play your best.',
     nightfall: 'Night falls. The reserve burns down.',
     auto: 'What if? The rest runs by one fixed rule.',
     gap: 'A new stretch of the day.',
@@ -61,10 +57,10 @@ const FG_TEXT = {
     big: 'big', small: 'small', field: 'field', hedge: 'hedge', lock: 'Lock in', fly: 'Fly on', stay: 'Stay',
     steady: 'Steady', steadyG: 'always 2', lucky: 'Lucky', luckyG: '0 or 4', s0: 'Big ones scarce', s1: 'Big ones common', s2: 'Small ones swarm',
     r0: 'Trees close', r1: 'Trees far apart', h0: 'Hawk rare', h1: 'Hawk hunting', ev: 'Evening orchard', fl: 'Your rule',
-    night: 'Night line', eve: 'Evening {n}', gen: 'Year {n}', quick: 'Quick 2 s', patient: 'Patient 10 s', travel: '{t} s flight',
+    night: 'Night line', eve: 'Evening {n}', travel: '{t} s flight',
     ff: 'Tap: faster', xn: 'Selection ×N', xnRisk: 'Danger ×N', mate: 'Your mate', plus: '+{n}', best: 'best',
-    take: 'Take', pass: 'Pass', skip: 'Skip years', steadyB: 'Steady', luckyB: 'Lucky', others: 'others', gainC: 'catches in tree',
-    nFood: '{n} food', nEat: '{n} eaten', nYear: 'year {n}', nRes: '{e} of {need}'
+    take: 'Take', pass: 'Pass', steadyB: 'Steady', luckyB: 'Lucky', gainC: 'catches in tree',
+    nFood: '{n} food', nEat: '{n} eaten', nRes: '{e} of {need}'
   },
   interesting: {
     allsmall: 'You took small ones even when big ones were common. Each small one cost a trip home while big ones slipped past.',
@@ -75,13 +71,12 @@ const FG_TEXT = {
     bold: 'You kept taking field caterpillars while the hawk hunted. Food is worth little to a parent who is caught.',
     timid: 'You passed field caterpillars when the hawk was rare. That tiny risk was worth the food.',
     caught: 'The hawk caught you. In this model your mate finished the day, so the chicks got less.',
-    lost: 'Your lineage dwindled. A rule far from the best leaving time loses to mutants nearer it.',
     nogamble: 'You played safe on a night when steady feeding could not reach the line. Only luck could save you then.',
     reckless: 'You gambled when steady feeding was enough. Each gamble could only take survival away.',
     unlucky: 'You chose well, but the lucky feeder ran empty. Good choices raise the chance; they cannot guarantee it.'
   },
   live: {
-    appear: 'A {k} caterpillar. Take or pass?', tree: 'Tree {n}. {c} caterpillars so far.', gen: 'Year {n}. Mean leaving time {t} seconds.',
+    appear: 'A {k} caterpillar. Take or pass?', tree: 'Tree {n}. {c} caterpillars so far.',
     eve: 'Evening {n}. Reserve {e}, line {need}, {v} visits.', ask: 'Prediction open. Press P, then the arrows.'
   },
   data: {
@@ -90,15 +85,13 @@ const FG_TEXT = {
     eaten: ['Caterpillars eaten', '{n}', 'At midday the tit feeds itself.'],
     stays: ['Mean stay', 'near {a} s, far {b} s', 'Time in each tree before flying on.'],
     fieldT: ['Field ones taken', '{a} of {b}', 'This round.'],
-    flock: ['Flock leaving time', '{t} s mean', 'Year {g} of 30.'],
-    mine: ['Your lineage', '{p}%', 'Share of the flock.'],
     reserve: ['Reserve', '{e} of {need}', 'Visits left: {v}.'],
     right: ['Chance given up', '{r} points', 'Chance of dawn your feeder choices cost, against best play.'],
-    titles: { nights: 'Chance of dawn', prof: 'Food per second carried', rate: 'Rate if you leave', round: 'Food this round', diet: 'When to take small', gain: 'Gain in a tree', risk: 'Food against danger', hist: 'Leaving times', lin: 'Lineage shares', res: 'Tonight’s reserve', odds: 'Chance tonight' },
-    ax: { night: 'night', sec: 'seconds of the round', big: 'big ones a minute', rate: 'food a second', t: 'seconds in tree', got: 'caught', p: 'danger per field trip', food: 'chick food', lt: 'leaving time (s)', yr: 'year', sh: 'share', v: 'visit', e: 'seeds', ch: 'chance of dawn' },
+    titles: { nights: 'Chance of dawn', prof: 'Food per second carried', rate: 'Rate if you leave', round: 'Food this round', diet: 'When to take small', gain: 'Gain in a tree', risk: 'Food against danger', res: 'Tonight’s reserve', odds: 'Chance tonight' },
+    ax: { night: 'night', sec: 'seconds of the round', big: 'big ones a minute', rate: 'food a second', t: 'seconds in tree', got: 'caught', p: 'danger per field trip', food: 'chick food', sh: 'share', v: 'visit', e: 'seeds', ch: 'chance of dawn' },
     lines: { takeAll: 'take all', bigOnly: 'big only', swarm: 'take all, swarm', smallBar: 'small ones', mean: 'your mean', curve: 'expected', tangent: 'tangent', field: 'take field', safe: 'hedge only', you: 'you', line: 'night line', yours: 'your rounds', trees: 'your trees', skip: 'big only, now', yourN: 'your nights', bestP: 'best play' }
   },
-  levers: { takeall: 'Take everything', bigonly: 'Big ones only', quick: 'Leave at 2s', slow: 'Leave at 10s', bold: 'Brave the hawk', nohawk: 'No hawk', nomut: 'No mutation', far: 'Trees far apart', steady: 'Always steady', gamble: 'Always lucky' },
+  levers: { takeall: 'Take everything', bigonly: 'Big ones only', quick: 'Leave at 2s', slow: 'Leave at 10s', bold: 'Brave the hawk', nohawk: 'No hawk', steady: 'Always steady', gamble: 'Always lucky' },
   take: 'Good foragers act as if they weigh gain against time; selection, not calculation, builds the rule.',
   body: 'Your feeder choices gave up {r} points of survival chance over four nights. Ahead of the line, the lucky feeder could only hurt. Behind it, the gamble was the only hope.',
   whatifBody: {   // chosen and filled from the What if? run (lessons §1.5); expectations are the model's, not this run's luck
@@ -108,37 +101,31 @@ const FG_TEXT = {
     slow: 'The far orchard again, leaving every tree at 10 s. This run ate {n}; that rule expects {e}, the tangent stay {bb}. Long stays pick over empty twigs.',
     bold: 'The hawk round again, taking every field caterpillar. This run brought {n} food. On average that rule brings {e}; hedge ones alone bring {h}.',
     nohawk: 'The same round with no hawk, taking everything. This run brought {n} food; that rule expects {e}. The hawk, not the food, set your rule.',
-    nomut: 'The flock again, without mutation: only the founders’ three leaving times exist. It ended at {t} s; the tangent touches at {x} s.',
-    nomutNear: 'The flock again, without mutation. Your founding rule was already near the tangent, so the flock ended there, at {t} s.',
-    far: 'The flock again, with trees five times as far apart. It settled at {t} s; the tangent touches at {x} s. Longer flights, longer stays.',
     steady: 'Four nights, always steady. The exact chance of dawn, averaged over the nights, is {p}%. Both short nights are lost for sure.',
     gamble: 'Four nights, always lucky. The exact chance of dawn, averaged over the nights, is {p}%. Best play gives {bb}%: gambling when ahead throws safe nights away.'
   },
   law: { title: 'Weigh gain against time' },
   boss: { inverts: 'Survival, not rate, is the currency now: when steady falls short, gamble.' },
   stars: {
-    discover: 'Feed the chicks well, and survive a winter night.',
-    predict: 'Land the switch, leaving and risk predictions in two of three levels.',
-    transfer: 'Predict where the flock settles, and pick feeders well on winter nights.'
+    discover: 'Feed the chicks well in two daytime levels, and survive a winter night.',
+    predict: 'In the orchard, land the far trees’ best leaving time inside the band.',
+    transfer: 'On winter nights, give up under 10 points of dawn chance.'
   },
-  levelStars: [
-    { discover: 'Feed the chicks, taking small ones only while big ones are scarce.', predict: 'Land both switch-point predictions inside the band.' },
-    { discover: 'Eat 36 caterpillars, and stay longer in far trees than near ones.', predict: 'Land both leaving-time predictions inside the band.' },
-    { discover: 'Bring 10 food home, braving the field only while the hawk is rare.', predict: 'Land the danger prediction inside the band.' },
-    { discover: 'Forage well enough that your lineage holds half the flock.', transfer: 'Predict where the flock’s leaving time settles.' },
-    { discover: 'Survive both safe nights and at least one short one.', transfer: 'Give up under 10 points of dawn chance, and judge one night’s odds.' }
+  levelStars: [   // each level's own stars (D6 decision 9: one prediction; no star needs a removed step)
+    { discover: 'Feed the chicks, taking small ones only while big ones are scarce.' },
+    { discover: 'Eat 36 caterpillars, and stay longer in far trees than near ones.', predict: 'Land the far trees’ best leaving time inside the band.' },
+    { discover: 'Bring 10 food home, braving the field only while the hawk is rare.' },
+    { discover: 'Survive both safe nights and at least one short one.', transfer: 'Give up under 10 points of dawn chance: gamble only when steady falls short.' }
   ],
   levelTake: [
     'Small prey pay only while big ones are scarce. How many small ones come does not matter.',
     'Leave a tree when its catch rate falls to the orchard’s average. Longer flights mean longer stays.',
-    'Danger is a cost too. When the hawk hunts, scarce safe food beats plentiful risky food.',
-    'Nobody computed the tangent. Birds with better leaving rules raised more young, so the flock moved to it.'
+    'Danger is a cost too. When the hawk hunts, scarce safe food beats plentiful risky food.'
   ],
   levelBody: [
     'You took {a}% of small ones while big ones were scarce, and {b}% once they were common. The chicks got {f} food. The long-run rates cross at 15 big ones a minute, whatever the number of small ones.',
     'You stayed {a} s in near trees and {b} s in far ones. The tangent from the flight time touches the gain curve at {c} s near and {d} s far.',
-    'You took {a}% of field caterpillars with the hawk rare and {b}% with it hunting. Below about {p}% danger per trip, the field pays.',
-    'Your evening stay was {a} s. After 30 years the flock left trees at {b} s on average. The tangent for this orchard touches at {c} s.'
+    'You took {a}% of field caterpillars with the hawk rare and {b}% with it hunting. Below about {p}% danger per trip, the field pays.'
   ],
   model: [
     { level: 0, simulated: 'One great tit on a hedgerow. Caterpillars appear one at a time, at random. Each one taken is carried home to the chicks.',
@@ -159,13 +146,7 @@ const FG_TEXT = {
       cannot: 'Vigilance, flocking, learning where the hawk hunts, or future broods.',
       nature: 'Animals across many groups give up food to lower their risk of being eaten. They feed nearer cover and scan more when predators are about.',
       contested: false, refs: ['limadill1990', 'newton1986'] },
-    { level: 3, simulated: 'A flock of 200 tits. Each carries a leaving time. Birds with a higher catch rate leave more young; young sometimes shift by half a second.',
-      simplification: 'Your evening habit becomes one founder lineage. Quick and patient birds found the others. A year is a generation.',
-      params: [{ name: 'flock', value: 200, tag: 'designed' }, { name: 'strength of selection', value: 10, tag: 'xN', real: 'much weaker; small rate gaps' }, { name: 'mutation', value: '30% of young, ±0.5 s', tag: 'xN', real: 'far rarer' }, { name: 'years', value: 30, tag: 'xN', real: 'many more' }],
-      cannot: 'Learning within a lifetime, which real tits also use to tune leaving times.',
-      nature: 'Foraging rules are partly learned and partly inherited. Models of their evolution predict that selection drives them towards the tangent, the marginal value rule.',
-      contested: false, refs: ['charnov1976', 'stephens1986'] },
-    { level: 4, simulated: 'Four winter evenings. Ten feeder visits before night. The steady feeder gives 2 seeds; the lucky one gives 0 or 4.',
+    { level: 3, simulated: 'Four winter evenings. Ten feeder visits before night. The steady feeder gives 2 seeds; the lucky one gives 0 or 4.',
       simplification: 'You survive the night if your reserve reaches the line. Your chance is computed exactly, backwards from nightfall.',
       params: [{ name: 'visits before night', value: 10, tag: 'designed' }, { name: 'feeders', value: '2, or 0 or 4', tag: 'designed' }, { name: 'night line', value: '22 to 28 seeds', tag: 'designed' }],
       cannot: 'Fat that costs flight speed, or hiding food for later.',
@@ -181,21 +162,24 @@ const FG_TEXT = {
     { real: ['John Krebs and colleagues gave great tits large and small mealworm pieces on a moving belt. When large pieces came often, the birds mostly ignored small ones. That held however many small ones passed.'],
       maths: ['Big caterpillars bring E = 3 food and take t = 2 s to carry home. Met at b a second, they alone earn bE ÷ (1 + bt). Small ones earn 1 ÷ 2 a second. Take them only if that beats bE ÷ (1 + bt).'] },
     { real: ['Richard Cowie put mealworm patches behind lids in an aviary. Harder lids meant longer travel. His great tits stayed longer in each patch when travel took longer.'],
-      maths: ['Your long-run rate is gain ÷ (flight + stay). It is highest where a line from minus the flight time just touches the gain curve. Longer flights move that touching point later.'] },
+      maths: ['Your long-run rate is gain ÷ (flight + stay). It is highest where a line from minus the flight time just touches the gain curve. Longer flights move that touching point later.',
+        'No tit computes this tangent. Selection on leaving rules, and learning within a life, bring birds near it.'] },
     { real: ['Sparrowhawks take many small woodland birds. Tits that feed in the open face more attacks, and they feed nearer cover when hawks are about.'],
-      maths: ['A field trip brings food but carries a chance p of being caught. Being caught loses the rest of your day. Above a danger near 20% per trip, the hedge alone pays more.'] },
-    { real: ['Real birds tune leaving times by experience too. Selection shapes the learning rules as well as fixed habits.'],
-      maths: ['Each year a bird’s young are in proportion to e raised to 10 times its relative catch rate. Mutants half a second either side keep testing the slope. The flock climbs to the rate’s peak: the tangent.'] }
+      maths: ['A field trip brings food but carries a chance p of being caught. Being caught loses the rest of your day. Above a danger near 20% per trip, the hedge alone pays more.'] }
   ]
 };
 /* ---------- levels (sim parameters; P holds the tagged tunables) ---------- */
+// D6 decision 9: four levels, one prediction (the far orchard's leaving time). FG_KIND maps a level number to its model kind
+// (s.kd); kind 3, the evening flock ("Your rule"), is cut
+const FG_KIND = [0, 1, 2, 4];
 const FG_LV = [
   { kind: 'hedge', rd: [{ b: 0.1, s: 0.5, S: 30, lab: 's0' }, { b: 0.6, s: 0.5, S: 30, lab: 's1' }, { b: 0.6, s: 1.5, S: 25, lab: 's2' }] },
-  { kind: 'orchard', rd: [{ T: 2, S: 45, lab: 'r0', askAt: 3, tol: 0.9 }, { T: 10, S: 66, lab: 'r1', askAt: 2, tol: 1.3 }] },
+  { kind: 'orchard', rd: [{ T: 2, S: 45, lab: 'r0' }, { T: 10, S: 66, lab: 'r1', askAt: 2, tol: 1.2 }] },   // the near orchard shows its tangent; the far one asks
   { kind: 'hawk', rd: [{ c: 0.2, f: 0.4, p: 0.01, S: 35, lab: 'h0' }, { c: 0.2, f: 0.4, p: 0.5, S: 35, lab: 'h1' }] },
-  { kind: 'orchard', eve: true, rd: [{ T: 4, S: 1e9, lab: 'ev', trees: 4 }] },
+  null,
   { kind: 'night', rd: [[4, 22], [2, 24], [6, 24], [2, 28]] }
 ];
+const FG_AX = 16;   // the orchard's seconds-in-tree axis (the ask's mid-axis, 8 s, is not the far tangent, 6.5 s)
 /* timings: dt the tick; vis the 1.2 s a prey stays in view (real time, never charged to the sun); trip ticks (2 s: exposure
    in the first half, delivery at tick 40); gap and night in real seconds */
 const FG_T = { dt: 1 / 30, vis: 1.2, trip: 60, expo: 30, del: 40, gap: 1.3, askMax: 30, maxStay: 20, genT: 0.45, nightT: 2.6, feedT: 0.5, auto: 4 };
@@ -213,16 +197,12 @@ const CH_FORAGER_V2 = {
   P: {
     G: { v: 6, tag: 'designed', min: 2, max: 20, label: 'caterpillars per tree' },
     tau: { v: 4, tag: 'designed', min: 1, max: 10, label: 'tree emptying time' },
-    K: { v: 10, tag: 'xN', min: 1, max: 40, real: 'much weaker selection', label: 'selection strength' },
-    mu: { v: 0.3, tag: 'xN', min: 0, max: 1, real: 'far rarer', label: 'mutation chance' },
-    N: { v: 200, tag: 'designed', min: 50, max: 500, label: 'flock size' },
     kill: { v: 0.5, tag: 'xN', min: 0.05, max: 1, real: 'most attacks fail', label: 'stoop success' }
   },
   levels: [
     { name: 'The hedgerow', adds: 'prey choice', codes: ['F1'], minutes: 3 },
     { name: 'The orchard', adds: 'travel time', codes: ['F2'], minutes: 4 },
     { name: 'The hawk', adds: 'predation risk', codes: ['F3'], minutes: 3 },
-    { name: 'Your rule', adds: 'inheritance of the rule', codes: ['F4'], minutes: 3 },
     { name: 'Winter night', adds: 'a survival threshold', codes: ['F5'], minutes: 4 }
   ],
   keys: { Space: 'take, stay or speed', ArrowRight: 'pass or fly on', 1: 'steady feeder', 2: 'lucky feeder', P: 'predict' },
@@ -237,12 +217,12 @@ const CH_FORAGER_V2 = {
   /* ================= headless simulation (API_v2 §9.3): R(), Det, WF only; no DOM, canvas or view ================= */
   sim: {
     dt: FG_T.dt, s: null, _V: {},
-    cfg(n) { return FG_LV[Math.max(0, Math.min(4, n | 0))]; },
+    cfg(kd) { return FG_LV[Math.max(0, Math.min(4, kd | 0))] || FG_LV[0]; },   // by model kind (s.kd), not level number
     P() { return CH_FORAGER_V2.P; },
     reset(level, o) {
-      o = o || {}; const c = this.cfg(level);
+      o = o || {}; const kd = FG_KIND[level | 0] != null ? FG_KIND[level | 0] : 0, c = this.cfg(kd);
       if (o.thaw) { this.restore(o.thaw.snap); this.s.log = []; this.lever(o.thaw.lever); return; }
-      this.s = { level: level | 0, kind: c.kind, phase: 'run', t: 0, i: 0, sun: 0, food: 0, eat: 0, unt: false, whatif: null, auto: null,
+      this.s = { level: level | 0, kd, kind: c.kind, phase: 'run', t: 0, i: 0, sun: 0, food: 0, eat: 0, unt: false, whatif: null, auto: null,
         asks: [], pred: {}, exp: {}, tol: {}, hits: {}, alt: {}, ask: null, resume: null, rec: [], log: [] };
       const s = this.s;
       if (c.kind === 'hedge' || c.kind === 'hawk') { s.prey = null; s.busy = 0; s.carry = null; s.dead = false; s.first = true; s.pid = 0; this.newRound(s, []); }
@@ -251,24 +231,21 @@ const CH_FORAGER_V2 = {
     },
     /* ---------- rounds (stretches of hedge, orchards, evenings) ---------- */
     newRound(s, ev) {
-      const r = this.cfg(s.level).rd[s.i]; s.sun = 0; s.t = 0;
+      const r = this.cfg(s.kd).rd[s.i]; s.sun = 0; s.t = 0;
       if (s.kind === 'orchard') { s.tt = 0; s.got = 0; s.lastC = null; s.late = false; s.phase = 'fly'; s.flyTot = s.flyN = this.flyTicks(r.T); s.rec.push({ T: r.T, eat: 0, stays: [] }); }   // every round opens with a flight, so each tree costs one flight
       else { s.phase = 'run'; s.dead = false; s.rec.push(s.kind === 'hedge' ? { seenS: 0, takeS: 0, seenB: 0, takeB: 0, food: 0, sun: 0 } : { seenF: 0, takeF: 0, seenH: 0, takeH: 0, food: 0, sun: 0, caught: false }); }
       ev.push({ k: 'round', i: s.i, lab: r.lab || '' });
     },
     endRound(s, ev) {
-      const L = this.cfg(s.level), r = s.rec[s.i]; r.sun = s.sun; ev.push({ k: 'endround', i: s.i });
+      const L = this.cfg(s.kd), r = s.rec[s.i]; r.sun = s.sun; ev.push({ k: 'endround', i: s.i });
       if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
       s.prey = null; s.carry = null; s.busy = 0;
-      if (s.i + 1 >= L.rd.length) { if (s.kind === 'orchard' && L.eve) { this.flockStart(s, ev); return; } s.phase = 'over'; ev.push({ k: 'over' }); return; }
+      if (s.i + 1 >= L.rd.length) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
       s.i++; s.phase = 'gap'; s.t = 0;
-      if (s.level === 0 && s.i === 2) this.openAsk(s, ev, 'a1', 0, 48, 4, 48, 60 * this.dietStar(), 'gap');          // after big ones were scarce, then common
-      if (s.level === 2 && s.i === 1) this.openAsk(s, ev, 'c1', 0, 0.6, 0.07, 0.6, this.riskStar(), 'gap');           // after the rare-hawk round
     },
     afterGap(s, ev) {
-      if (s.kind === 'night') { this.eveAsk(s, ev); return; }
+      if (s.kind === 'night') { this.newEve(s, ev); return; }
       this.newRound(s, ev);
-      if (s.level === 0 && s.i === 2) this.openAsk(s, ev, 'a2', 0, 48, 4, 48, 60 * this.dietStar(), 'run');          // small ones swarm: does the switch move?
     },
     step(dt) {
       const s = this.s, ev = []; if (!s || s.phase === 'over') return ev;
@@ -282,10 +259,10 @@ const CH_FORAGER_V2 = {
     },
 
     /* ---------- the hedgerow and the hawk: sequential encounters, carry home, take or pass ---------- */
-    rates(s) { const r = this.cfg(s.level).rd[s.i]; return s.kind === 'hedge' ? [r.b, r.s] : [r.f, r.c]; },   // [rate of the first kind (big | field), of the second (small | hedge)] a second
+    rates(s) { const r = this.cfg(s.kd).rd[s.i]; return s.kind === 'hedge' ? [r.b, r.s] : [r.f, r.c]; },   // [rate of the first kind (big | field), of the second (small | hedge)] a second
     killTick(p) { return p > 0 ? 1 - Det.exp(Det.log(1 - p) / FG_T.expo) : 0; },   // per-tick catch chance while exposed, so a 30-tick trip carries danger p
     hedgeStep(s, ev) {
-      const dt = this.dt, r = this.cfg(s.level).rd[s.i];
+      const dt = this.dt, r = this.cfg(s.kd).rd[s.i];
       if (s.busy > 0) {
         s.busy--; s.sun += dt; const k = FG_T.trip - s.busy, c = s.carry;
         if (c.field && k <= FG_T.expo && r.p > 0) {
@@ -333,8 +310,7 @@ const CH_FORAGER_V2 = {
       if (R() < (P.G.v / P.tau.v) * Det.exp(-t / P.tau.v) * dt) { s.got++; s.eat++; s.rec[s.i].eat++; s.lastC = s.tt * dt; ev.push({ k: 'catch', got: s.got, t: s.tt * dt }); }
     },
     orchardStep(s, ev) {
-      const r = this.cfg(s.level).rd[s.i], dt = this.dt;
-      if (s.phase === 'flock' || s.phase === 'gens') { this.flockStep(s, ev); return; }
+      const r = this.cfg(s.kd).rd[s.i], dt = this.dt;
       if (s.phase === 'fly') { s.flyN--; s.sun += r.T / s.flyTot; if (s.flyN <= 0) this.land(s, ev); return; }
       if (s.phase !== 'tree') return;
       if (s.sun >= r.S - 1e-9 && !s.late) { s.late = true; ev.push({ k: 'late' }); }   // the round ends at your next departure, so every stay is whole
@@ -344,42 +320,14 @@ const CH_FORAGER_V2 = {
       if (s.tt * dt >= FG_T.maxStay) this.leave(s, ev);   // an empty tree: the bird gives up at 20 s
     },
     leave(s, ev) {
-      if (s.phase !== 'tree') return; const r = this.cfg(s.level).rd[s.i], d = { T: r.T, stay: Math.round(s.tt * this.dt * 1000) / 1000, got: s.got, round: s.i };
+      if (s.phase !== 'tree') return; const r = this.cfg(s.kd).rd[s.i], d = { T: r.T, stay: Math.round(s.tt * this.dt * 1000) / 1000, got: s.got, round: s.i };
       s.deps.push(d); s.rec[s.i].stays.push(d.stay); s.phase = 'fly'; s.flyTot = s.flyN = this.flyTicks(r.T);
       ev.push({ k: 'leave', stay: d.stay, got: d.got, T: r.T });
       if ((r.trees && s.rec[s.i].stays.length >= r.trees) || s.sun >= r.S - 1e-9) { s.phase = 'tree'; this.endRound(s, ev); }
     },
     land(s, ev) {
-      const r = this.cfg(s.level).rd[s.i]; s.tt = 0; s.got = 0; s.lastC = null; s.tree++; s.phase = 'tree'; ev.push({ k: 'land', tree: s.tree, round: s.i });
-      if (r.askAt && !s.auto && s.rec[s.i].stays.length === r.askAt && s.asks.indexOf('b' + s.i) < 0) this.openAsk(s, ev, 'b' + s.i, 0, 14, r.tol, 13, this.tStar(r.T), 'tree', this.tStar(this.cfg(1).rd[1 - s.i].T));
-    },
-
-    /* ---------- the flock: your leaving time as a gene among 200 tits (WF selection plus ±0.5 s mutation) ---------- */
-    NB: 28, stayOf(k) { return 0.5 * (k + 1); }, binOf(t) { return Math.max(0, Math.min(27, Math.round(t / 0.5) - 1)); },
-    yourStay(s) { const a = s.rec[0].stays.slice().sort((x, y) => x - y), n = a.length; if (!n) return 4; const m = n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2; return this.stayOf(this.binOf(m)); },
-    flockStart(s, ev) {
-      const N = this.P().N.v, a = Math.round(N / 3), b = Math.round(N / 3), c = N - a - b, z = () => new Array(this.NB).fill(0);
-      s.you = this.yourStay(s); s.fT = this.cfg(3).rd[0].T; s.mu = this.P().mu.v; s.fc = [z(), z(), z()]; s.fc[0][this.binOf(s.you)] += a; s.fc[1][this.binOf(2)] += b; s.fc[2][this.binOf(10)] += c;
-      s.gen = 0; s.fh = [this.flockStats(s)]; s.phase = 'flock'; s.t = 0; ev.push({ k: 'flock', you: s.you });
-    },
-    flockStats(s) { const N = this.P().N.v; let m = 0; const sh = [0, 0, 0]; for (let l = 0; l < 3; l++) for (let k = 0; k < this.NB; k++) { m += s.fc[l][k] * this.stayOf(k); sh[l] += s.fc[l][k]; } return { m: Math.round(m / N * 1000) / 1000, sh: sh.map(v => Math.round(v / N * 1000) / 1000) }; },
-    flockGen(s) {   // one year: parents in proportion to e^(K·(r − r̄)/r̄), WF multinomial, then mutation by ±0.5 s
-      const P = this.P(), N = P.N.v, K = P.K.v, T = s.fT, NB = this.NB, r = []; let rb = 0;
-      for (let k = 0; k < NB; k++) r.push(this.rateAt(this.stayOf(k), T));
-      for (let l = 0; l < 3; l++) for (let k = 0; k < NB; k++) rb += s.fc[l][k] * r[k]; rb /= N;
-      const w = [], cells = [];
-      for (let l = 0; l < 3; l++) for (let k = 0; k < NB; k++) { w.push(s.fc[l][k] * Det.exp(K * (r[k] - rb) / rb)); cells.push([l, k]); }
-      const m = WF.multinom(N, w), nc = [0, 1, 2].map(() => new Array(NB).fill(0));
-      for (let j = 0; j < m.length; j++) {
-        const n = m[j]; if (!n) continue; const [l, k] = cells[j];
-        const mt = s.mu > 0 ? WF.binom(n, s.mu) : 0, up = mt > 0 ? WF.binom(mt, 0.5) : 0, dn = mt - up;
-        nc[l][k] += n - mt; nc[l][Math.min(NB - 1, k + 1)] += up; nc[l][Math.max(0, k - 1)] += dn;
-      }
-      s.fc = nc; s.gen++; s.fh.push(this.flockStats(s));
-    },
-    flockStep(s, ev) {
-      if (s.phase === 'flock') { if (s.t >= 1.2 || s.auto) { if (s.auto) { s.phase = 'gens'; s.t = 0; } else this.openAsk(s, ev, 'd1', 0, 14, 0.9, 13, this.tStar(s.fT), 'gens', this.tStar(2)); } return; }
-      if (s.t >= (s.auto ? FG_T.genT / 2 : FG_T.genT)) { s.t = 0; this.flockGen(s); ev.push({ k: 'gen', g: s.gen }); if (s.gen >= 30) { s.phase = 'over'; ev.push({ k: 'over' }); } }
+      const r = this.cfg(s.kd).rd[s.i]; s.tt = 0; s.got = 0; s.lastC = null; s.tree++; s.phase = 'tree'; ev.push({ k: 'land', tree: s.tree, round: s.i });
+      if (r.askAt && !s.auto && s.rec[s.i].stays.length === r.askAt && s.asks.indexOf('b' + s.i) < 0) this.openAsk(s, ev, 'b' + s.i, 0, FG_AX, r.tol, FG_AX - 1, this.tStar(r.T), 'tree', this.tStar(this.cfg(1).rd[1 - s.i].T));   // the one prediction
     },
 
     /* ---------- the winter night: the steady and the lucky feeder; the chance of dawn by dynamic programming ---------- */
@@ -388,7 +336,6 @@ const CH_FORAGER_V2 = {
     Wfix(a, e, t, need) { if (t <= 0) return e >= need ? 1 : 0; return a === 0 ? this.Wfix(a, e + 2, t - 1, need) : 0.5 * this.Wfix(a, e, t - 1, need) + 0.5 * this.Wfix(a, e + 4, t - 1, need); },   // a fixed policy's exact chance
     newEve(s, ev) { const [e, need] = this.cfg(4).rd[s.i]; s.e = e; s.need = need; s.v = 10; s.traj = [e]; s.phase = 'eve'; s.t = 0; s.cd = 0; ev.push({ k: 'eve', i: s.i, e, need }); },
     short(i) { const [e, need] = this.cfg(4).rd[i]; return e + 20 < need; },
-    eveAsk(s, ev) { this.newEve(s, ev); if (!s.auto && this.short(s.i)) { this.openAsk(s, ev, 'e' + s.i, 0, 1, 0.12, 1, this.V(s.e, 10, s.need), 'eve'); return true; } return false; },
     feed(s, ev, a) {
       if (s.phase !== 'eve' || s.cd > 0 || s.v <= 0) return; a = a ? 1 : 0;
       const q0 = this.Q(0, s.e, s.v, s.need), q1 = this.Q(1, s.e, s.v, s.need);
@@ -423,11 +370,10 @@ const CH_FORAGER_V2 = {
     },
     /* ---------- What if? (D1 G9): the finished level is frozen; one round reruns by one fixed rule, at speed ---------- */
     lever(k) {
-      const s = this.s; s.whatif = k; s.ask = null; s.t = 0; const n = s.level;
+      const s = this.s; s.whatif = k; s.ask = null; s.t = 0; const n = s.kd;
       if (n === 0) { s.mine = s.rec[2].food; s.food -= s.rec[2].food; s.i = 2; s.rec.length = 2; s.auto = k === 'takeall' ? 'all' : 'big'; s.prey = null; s.busy = 0; s.carry = null; this.newRound(s, []); }
       else if (n === 1) { s.mine = s.rec[1].eat; s.i = 1; s.rec.length = 1; s.deps = s.deps.filter(d => d.round === 0); s.auto = k === 'quick' ? 'at2' : 'at10'; this.newRound(s, []); }
       else if (n === 2) { s.mine = s.rec[1].food; s.food -= s.rec[1].food; s.i = 1; s.rec.length = 1; s.lever = k; s.auto = 'all'; s.prey = null; s.busy = 0; s.carry = null; this.newRound(s, []); }
-      else if (n === 3) { if (k === 'nomut') s.mu = 0; else s.fT = 20; const N = this.P().N.v, z = () => new Array(this.NB).fill(0), a = Math.round(N / 3), b = Math.round(N / 3); s.fc = [z(), z(), z()]; s.fc[0][this.binOf(s.you)] += a; s.fc[1][this.binOf(2)] += b; s.fc[2][this.binOf(10)] += N - a - b; s.gen = 0; s.fh = [this.flockStats(s)]; s.auto = k; s.phase = 'gens'; }
       else { s.auto = k; s.nights = []; s.i = 0; s.decs = 0; s.right = 0; s.reg = 0; s.wfix = this.cfg(4).rd.map(([e, need]) => this.Wfix(k === 'gamble' ? 1 : 0, e, 10, need)); this.newEve(s, []); }
     },
     rule(s, key) {   // fixed rules for What if? runs and bots: → an action or null
@@ -435,11 +381,11 @@ const CH_FORAGER_V2 = {
         const p = s.prey; if (!p) return null; let take;
         if (key === 'all') take = true; else if (key === 'none') take = !!p.wait;
         else if (key === 'big') take = s.kind === 'hedge' ? p.big : !p.field;
-        else { const r = this.cfg(s.level).rd[s.i]; take = s.kind === 'hedge' ? (p.big || r.b < 0.25) : (!p.field || r.p < this.riskStar()); }   // 'rule': the zero–one rule in force
+        else { const r = this.cfg(s.kd).rd[s.i]; take = s.kind === 'hedge' ? (p.big || r.b < 0.25) : (!p.field || r.p < this.riskStar()); }   // 'rule': the zero–one rule in force
         return { k: take ? 'take' : 'pass' };
       }
       if (s.kind === 'orchard' && s.phase === 'tree') {
-        const r = this.cfg(s.level).rd[s.i], t = s.tt * this.dt, at = key === 'at2' ? 2 : key === 'at10' ? 10 : key === 'mvt' ? this.tStar(r.T) : +String(key).slice(2) || 4;
+        const r = this.cfg(s.kd).rd[s.i], t = s.tt * this.dt, at = key === 'at2' ? 2 : key === 'at10' ? 10 : key === 'mvt' ? this.tStar(r.T) : +String(key).slice(2) || 4;
         if (t >= at - 1e-9) return { k: 'leave' };
         return s.unt ? { k: 'stay' } : null;
       }
@@ -451,7 +397,6 @@ const CH_FORAGER_V2 = {
       const s = this.s, ev = []; if (!s || !a) return ev;
       if (a.k === 'unt') { s.unt = !!a.on; ev.push({ k: 'unt', on: s.unt }); return ev; }
       if (a.k === 'predict') { if (s.ask && a.id === s.ask.id) this.commit(s, ev, a.id, a.moved === false ? null : a.v); return ev; }
-      if (a.k === 'skip' && s.phase === 'gens') { while (s.gen < 30) this.flockGen(s); s.phase = 'over'; ev.push({ k: 'gen', g: s.gen }, { k: 'over' }); return ev; }
       if (s.auto || s.phase === 'ask' || s.phase === 'gap') return ev;
       if ((s.kind === 'hedge' || s.kind === 'hawk') && s.phase === 'run') { if (a.k === 'pass' && s.prey && s.prey.wait) { ev.push({ k: 'wait' }); return ev; } if (a.k === 'take' && s.busy > 0) { ev.push({ k: 'still' }); return ev; } }
       if (s.kind === 'orchard' && a.k === 'stay' && !s.unt) return ev;
@@ -481,19 +426,18 @@ const CH_FORAGER_V2 = {
     riskStar(r) { if (!r && this._rs != null) return this._rs; let lo = 0.001, hi = 0.95; const safe = this.riskE(0, 0, r); for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (this.riskE(m, 1, r) > safe) lo = m; else hi = m; } const v = (lo + hi) / 2; if (!r) this._rs = v; return v; },   // ≈ 0.2: the danger per trip where the two rules tie
     result() {
       const s = this.s; if (!s || s.phase !== 'over') return null;
-      const st = CH_FORAGER_V2.stars, n = s.level, mask = s.whatif ? 0 : (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
+      const st = CH_FORAGER_V2.stars, n = s.kd, mask = s.whatif ? 0 : (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
       return { mask, interesting: this.interesting(s) };
     },
     share(a, b) { return b > 0 ? a / b : 0; },
     meanStay(s, rd) { const a = s.deps.filter(d => d.round === rd).map(d => d.stay); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0; },
     interesting(s) {   // chosen from what happened (D1 G9; lessons §1.5)
-      const n = s.level;
+      const n = s.kd;
       if (s.whatif) return null;   // a What if? card reads whatifBody, filled from its own run
       const st = CH_FORAGER_V2.stars;
       if (n === 0) { if (st.discover(s, 0)) return null; const R0 = s.rec, late = R0[1].seenS + R0[2].seenS, lateT = R0[1].takeS + R0[2].takeS; if (late >= 4 && lateT / late > 0.4) return 'allsmall'; if (R0[0].seenS >= 3 && R0[0].takeS / R0[0].seenS < 0.6) return 'picky'; return s.food < 40 ? 'hungry' : null; }
       if (n === 1) { if (st.discover(s, 1)) return null; return s.eat < 36 ? 'unfed' : 'same'; }
       if (n === 2) { if (s.rec.some(r => r.caught)) return 'caught'; if (st.discover(s, 2)) return null; const b = s.rec[1]; if (b.seenF >= 3 && b.takeF / b.seenF > 0.2) return 'bold'; const a = s.rec[0]; if (a.seenF >= 3 && a.takeF / a.seenF < 0.6) return 'timid'; return null; }
-      if (n === 3) return st.discover(s, 3) ? null : 'lost';
       const shorts = s.nights.filter(x => x.short), safe = s.nights.filter(x => !x.short);
       if (safe.some(x => !x.ok)) return 'reckless';
       if (shorts.length && shorts.every(x => !x.ok)) return (s.reg || 0) <= 0.1 ? 'unlucky' : 'nogamble';
@@ -540,29 +484,23 @@ const CH_FORAGER_V2 = {
       if (n === 0) { const a = R0[0], lateSeen = R0[1].seenS + R0[2].seenS, lateTake = R0[1].takeS + R0[2].takeS; return s.food >= 40 && (a.seenS < 3 || a.takeS / a.seenS >= 0.6) && lateSeen >= 4 && lateTake / lateSeen <= 0.4; }
       if (n === 1) { const near = s.deps.filter(d => d.round === 0).length, far = s.deps.filter(d => d.round === 1).length; return s.eat >= 36 && near >= 2 && far >= 1 && sim.meanStay(s, 1) - sim.meanStay(s, 0) >= 1.5; }
       if (n === 2) { const a = R0[0], b = R0[1]; return s.food >= 10 && (a.seenF < 3 || a.takeF / a.seenF >= 0.6) && !b.caught && (b.seenF < 3 ? b.takeF === 0 : b.takeF / b.seenF <= 0.2); }
-      if (n === 3) { const f = s.fh && s.fh[s.fh.length - 1]; return !!f && s.gen >= 30 && f.sh[0] >= 0.5; }
       const safe = s.nights.filter(x => !x.short), shorts = s.nights.filter(x => x.short);
       return s.nights.length === 4 && safe.every(x => x.ok) && shorts.some(x => x.ok);
     },
-    predict: (s, n) => { if (s.whatif || n > 2) return false; const ids = n === 0 ? ['a1', 'a2'] : n === 1 ? ['b0', 'b1'] : ['c1']; return ids.every(id => s.hits[id]); },
-    transfer: (s, n) => {
-      if (s.whatif) return false;
-      if (n === 3) return !!s.hits.d1;
-      if (n === 4) return s.nights.length === 4 && (s.reg || 0) <= 0.1 && !!(s.hits.e1 || s.hits.e3);
-      return false;
-    }
+    predict: (s, n) => !s.whatif && n === 1 && !!s.hits.b1,   // the one prediction: the far orchard's best leaving time
+    transfer: (s, n) => !s.whatif && n === 4 && s.nights.length === 4 && (s.reg || 0) <= 0.1   // the boss: pick feeders well (under 10 points of dawn chance given up)
   },
-  unitStars(lv) {   // D1: Discover = chicks fed in two daytime levels and a night survived; Predict in two of L0–L2; Transfer = the flock and the boss
+  unitStars(lv) {   // by level number: Discover = fed in two daytime levels and a night survived; Predict = the orchard; Transfer = the winter night
     const m = i => lv[i] | 0, cnt = (a, b, bit) => { let k = 0; for (let i = a; i <= b; i++) if (m(i) & bit) k++; return k; };
-    return (cnt(0, 3, 1) >= 2 && (m(4) & 1) ? 1 : 0) | (cnt(0, 2, 2) >= 2 ? 2 : 0) | ((m(3) & 4) && (m(4) & 4) ? 4 : 0);
+    return (cnt(0, 2, 1) >= 2 && (m(3) & 1) ? 1 : 0) | (m(1) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
-  /* result code (30 bits) on assignment links: 0–2 level, 3–5 mask, 6–13 a level number (L0 small taken late %, L1 far − near stay ×10 + 64,
-     L2 field taken while hunting %, L3 flock mean ×10, L4 100 − chance given up in points), 14–20 first prediction ×100 of its axis span, 21–27 second */
+  /* result code (30 bits) on assignment links: 0–2 level number, 3–5 mask, 6–13 a level number (L1 small taken late %, L2 far − near stay ×10 + 64,
+     L3 field taken while hunting %, L4 100 − chance given up in points), 14–20 the prediction ×100 of its axis span (127: none) */
   resultBits(s, level) {
-    if (!s) return 0; const n = Math.max(0, Math.min(4, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v))), sim = this.sim;
-    let x = 0; if (n === 0) x = 100 * sim.share(s.rec[1].takeS + s.rec[2].takeS, s.rec[1].seenS + s.rec[2].seenS); else if (n === 1) x = 10 * (sim.meanStay(s, 1) - sim.meanStay(s, 0)) + 64; else if (n === 2) x = 100 * sim.share(s.rec[1].takeF, s.rec[1].seenF); else if (n === 3) x = 10 * (s.fh ? s.fh[s.fh.length - 1].m : 0); else x = 100 - 100 * (s.reg || 0);
-    const pv = id => { const v = s.pred[id], A = { a1: 48, a2: 48, b0: 14, b1: 14, c1: 0.6, d1: 14, e1: 1, e3: 1 }[id]; return v == null || !A ? 127 : c(100 * v / A, 126); }, ids = s.asks;
-    return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv(ids[0]) << 14 | pv(ids[1]) << 21) >>> 0;
+    if (!s) return 0; const lv = Math.max(0, Math.min(3, (level == null ? s.level : level) | 0)), n = s.kd, st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v))), sim = this.sim;
+    let x = 0; if (n === 0) x = 100 * sim.share(s.rec[1].takeS + s.rec[2].takeS, s.rec[1].seenS + s.rec[2].seenS); else if (n === 1) x = 10 * (sim.meanStay(s, 1) - sim.meanStay(s, 0)) + 64; else if (n === 2) x = 100 * sim.share(s.rec[1].takeF, s.rec[1].seenF); else x = 100 - 100 * (s.reg || 0);
+    const pv = id => { const v = s.pred[id]; return v == null || id !== 'b1' ? 127 : c(100 * v / FG_AX, 126); };
+    return (lv | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv(s.asks[0]) << 14) >>> 0;
   },
   /* ================= view: lifecycle, input, juice, drawing (D4 §5.3 Forager timings; juice from Sim.run's events only) ================= */
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
@@ -582,6 +520,16 @@ const CH_FORAGER_V2 = {
     this.v.ghost0 = !o.thaw;
   },
   banner(text, ms) { this.v.banner = { text, t: 0, ms: ms || 1100 }; },
+  kd() { return FG_KIND[this.level | 0] != null ? FG_KIND[this.level | 0] : 0; },   // the level's model kind (0 hedge, 1 orchard, 2 hawk, 4 night)
+  asked(ri) { return ri === 0 || this.sim.s.hits.b1 !== undefined; },   // the near orchard shows its tangent from the start; the far one after its ask
+  keyLine(s) {   // the key number for the moment (D6 decision 9), with its one-line meaning
+    const C = this.content.hud, r = this.sim.cfg(s.kd).rd[Math.min(s.i, this.sim.cfg(s.kd).rd.length - 1)];
+    if (s.kind === 'hedge') return Txt.f(C.keyHedge, { b: Math.round(60 * r.b), v: Math.round(60 * r.b) < 15 ? C.takeSmall : C.passSmall });
+    if (s.kind === 'hawk') return Txt.f(C.keyHawk, { p: Math.round(100 * r.p), v: r.p < this.sim.riskStar() ? C.fieldPays : C.hedgePays });
+    if (s.kind === 'orchard') return this.asked(s.i) ? Txt.f(C.keyTree, { t: (Math.round(10 * this.sim.tStar(r.T)) / 10).toFixed(1), T: r.T }) : C.orchard;
+    if (s.kind === 'night') { const x = s.e + 2 * s.v; return Txt.f(C.keyNight, { x, need: s.need, v: x >= s.need ? C.playSafe : C.gamble }); }
+    return '';
+  },
   phoneStrip() { return typeof Strip !== 'undefined' && !!Strip.isOpen && typeof Strip.phone === 'function' && Strip.phone(); },
   hudH() {   // the HUD's real bottom over the canvas (it wraps on a phone); measured at most twice a second
     const z = (typeof Stage !== 'undefined' && Stage.zones && Stage.zones.hud && Stage.zones.hud.h) || 56, v = this.v || {}, now = v.t || 0;
@@ -596,7 +544,7 @@ const CH_FORAGER_V2 = {
     const v = this.v;
     for (const e of Sim.run(this, 0)) this.juice(e);   // live actions first, so a Lock in starts the hold before the sim moves on
     if (v.hold >= 0) { v.hold += dt; if (!this.phoneStrip() || v.hold > 1.4) v.hold = -1; }
-    const s0 = this.sim.s, ff = s0.auto ? FG_T.auto : v.ff && /gap|night|gens|flock/.test(s0.phase) ? 3 : 1;
+    const s0 = this.sim.s, ff = s0.auto ? FG_T.auto : v.ff && /gap|night/.test(s0.phase) ? 3 : 1;
     const ev = Sim.run(this, v.hold >= 0 ? 0 : dt * ff), s = this.sim.s;
     for (const e of ev) this.juice(e);
     v.t += dt; v.flash = Math.max(0, v.flash - dt);
@@ -609,7 +557,6 @@ const CH_FORAGER_V2 = {
     if (v.ghostR) { v.ghostR.t += dt; if (v.ghostR.t > 2) v.ghostR = null; }
     if (s.kind === 'night') v.night = s.phase === 'night' ? Math.min(1, v.night + dt / 0.8) : Math.max(0, v.night - dt / 0.8);
     if (s.kind === 'hedge' || s.kind === 'hawk') { if (s.phase === 'run' && !s.prey && !s.busy) v.scroll += dt * 26; }
-    if (v.birds) this.birdsTick(dt * (ff > 1 ? 2 : 1));
     if (v.ghost0 && !v.banner) { v.ghost0 = false; this.teach(); }
     if (s.ask && this._asking !== s.ask.id) this.openAsk();
     if (!s.ask && this._asking) { this._asking = null; v.fold = 1; }
@@ -620,34 +567,33 @@ const CH_FORAGER_V2 = {
     if (r && !this._ended) { if (!this._pend) { this._pend = true; v.endT = 0; return; } v.endT += dt; if (v.endT < (v.fledge ? 1.7 : 0.9) && !s.auto) return; this._ended = true; this.finish(r); }
   },
   teach() {   // the ghost hand: within 3 s, on the verb this level adds (a known verb is skipped by Ghost itself)
-    if (typeof Ghost === 'undefined') return; const n = this.level;
+    if (typeof Ghost === 'undefined') return; const n = this.kd();
     if (n === 0 || n === 2) Ghost.show({ verb: 'tap', key: ' ', at: () => this.preyXY() || [Stage.w * 0.7, Stage.h * 0.5], until: () => this.sim.s.rec.some(r => (r.takeB || 0) + (r.takeS || 0) + (r.takeF || 0) + (r.takeH || 0) > 0) });
-    else if (n === 1 || n === 3) Ghost.show({ verb: 'tap', key: 'ArrowRight', at: () => { const P = this.pos(); return [P.nextX, P.treeY]; }, until: () => this.sim.s.deps.length > 0 });
+    else if (n === 1) Ghost.show({ verb: 'tap', key: 'ArrowRight', at: () => { const P = this.pos(); return [P.nextX, P.treeY]; }, until: () => this.sim.s.deps.length > 0 });
     else if (n === 4) Ghost.show({ verb: 'tap', key: '1', at: () => { const P = this.pos(); return [P.fx[0], P.fy]; }, until: () => this.sim.s.v < 10 || this.sim.s.i > 0 });
   },
   hud() {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     let t, num;
     if (s.auto) t = C.auto;
-    else if (s.phase === 'ask') t = { a1: C.askA1, a2: C.askA2, b0: C.askB1, b1: C.askB2, c1: C.askC1, d1: C.askD1, e1: C.askE1, e3: C.askE1 }[s.ask.id] || C.askB1;
-    else if (s.phase === 'gap') t = s.kind === 'night' ? C.night : C.gap;
-    else if (s.kind === 'hedge') t = this.level === 0 && s.first !== false ? this.content.firstWords : s.rec.length === 1 && s.rec[0].seenB + s.rec[0].seenS <= 1 && s.rec[0].takeB === 0 ? this.content.firstWords : s.unt ? C.hedgeU : C.hedge;
-    else if (s.kind === 'hawk') t = s.dead ? C.caught : s.unt ? C.hedgeU : C.hawk;
-    else if (s.kind === 'orchard') t = s.phase === 'flock' ? C.flock : s.phase === 'gens' ? C.years : this.level === 3 ? C.evening : s.unt ? C.orchardU : C.orchard;
-    else t = s.phase === 'night' ? C.nightfall : C.night;
+    else if (s.phase === 'ask') t = C.askB2;
+    else if (s.phase === 'gap') t = s.kind === 'night' ? C.night : s.kind === 'hedge' && s.i === 2 ? C.swarm : C.gap;
+    else if (s.kind === 'hedge') t = s.kd === 0 && s.first !== false ? this.content.firstWords : s.rec.length === 1 && s.rec[0].seenB + s.rec[0].seenS <= 1 && s.rec[0].takeB === 0 ? this.content.firstWords : s.unt ? C.hedgeU : this.keyLine(s);
+    else if (s.kind === 'hawk') t = s.dead ? C.caught : s.unt ? C.hedgeU : s.rec[s.i].seenF + s.rec[s.i].seenH === 0 && s.i === 0 ? C.hawk : this.keyLine(s);
+    else if (s.kind === 'orchard') t = s.unt ? C.orchardU : s.deps.length === 0 ? C.orchard : this.keyLine(s);
+    else t = s.phase === 'night' ? C.nightfall : s.v === 10 && s.i === 0 ? C.night : this.keyLine(s);
     if (s.phase === 'over' && !s.auto) t = C.over;
     if (s.kind === 'hedge' || s.kind === 'hawk') num = Txt.f(L.nFood, { n: s.food });
-    else if (s.kind === 'orchard') num = s.phase === 'gens' || s.phase === 'flock' || (s.phase === 'over' && s.fh) ? Txt.f(L.nYear, { n: s.gen || 0 }) : Txt.f(L.nEat, { n: s.eat });
+    else if (s.kind === 'orchard') num = Txt.f(L.nEat, { n: s.eat });
     else num = Txt.f(L.nRes, { e: s.e, need: s.need });
     const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
     const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
     if (bar) { const lab = this.roundLabel(); if (bar.textContent !== lab) bar.textContent = lab; }
   },
   roundLabel() {
-    const s = this.sim.s, L = this.content.labels, r = this.sim.cfg(this.level).rd[Math.min(s.i, this.sim.cfg(this.level).rd.length - 1)];
+    const s = this.sim.s, L = this.content.labels, r = this.sim.cfg(s.kd).rd[Math.min(s.i, this.sim.cfg(s.kd).rd.length - 1)];
     if (s.kind === 'night') return Txt.f(L.eve, { n: s.i + 1 });
-    if (s.phase === 'gens' || s.phase === 'flock' || s.fh) return L.fl;
-    const rr = s.phase === 'ask' && s.resume === 'gap' ? this.sim.cfg(this.level).rd[s.i - 1] : r;
+    const rr = r;
     return rr && rr.lab ? L[rr.lab] : '';
   },
   dock() {
@@ -658,13 +604,11 @@ const CH_FORAGER_V2 = {
     if (s.auto || s.phase === 'over') { Dock.set([]); return; }
     if ((s.kind === 'hedge' || s.kind === 'hawk') && s.phase === 'run') { Dock.set([{ id: 'fg-take', label: L.take, key: ' ', fn: () => Sim.act(this, { k: 'take' }) }, { id: 'fg-pass', label: L.pass, key: 'ArrowRight', fn: () => Sim.act(this, { k: 'pass' }) }]); return; }
     if (s.kind === 'orchard' && (s.phase === 'tree' || s.phase === 'fly')) { const b = [{ id: 'fg-fly', label: L.fly, key: 'ArrowRight', fn: () => Sim.act(this, { k: 'leave' }) }]; if (s.unt) b.unshift({ id: 'fg-stay', label: L.stay, key: ' ', fn: () => Sim.act(this, { k: 'stay' }) }); Dock.set(b); return; }
-    if (s.kind === 'orchard' && s.phase === 'gens') { Dock.set([{ id: 'fg-skip', label: L.skip, key: 'Enter', fn: () => Sim.act(this, { k: 'skip' }) }]); return; }
     if (s.kind === 'night' && s.phase === 'eve') { Dock.set([{ id: 'fg-s', label: L.steadyB, key: '1', fn: () => Sim.act(this, { k: 'feed', a: 0 }) }, { id: 'fg-l', label: L.luckyB, key: '2', fn: () => Sim.act(this, { k: 'feed', a: 1 }) }]); return; }
     Dock.set([]);
   },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
-    if (A.id === 'd1' && Predict.clear) Predict.clear(0);   // the evening's gain chart became the flock's histogram
     const chart = s.kind === 'night' ? 1 : 0;
     Predict.ask({ id: A.id, chart, kind: 'x', axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, soft: s.unt ? null : 24, needMove: true, linger: 1100,
       onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'predict', id: A.id, v: null, moved: false }), say: this.content.live.ask });
@@ -680,21 +624,21 @@ const CH_FORAGER_V2 = {
 
   /* ---------- the level card ---------- */
   finish(r) {
-    const s = this.sim.s, n = this.level, C = this.content, sim = this.sim, o = { level: n, mask: r.mask, final: n === 4, interesting: r.interesting }, V = this.bodyVars();
-    if (s.whatif) { const k = s.whatif === 'nomut' && Math.abs(V.t - V.x) < 0.3 ? 'nomutNear' : s.whatif; o.body = Txt.f(C.whatifBody[k], V); o.take = null; o.interesting = null; }
+    const s = this.sim.s, n = this.kd(), C = this.content, sim = this.sim, o = { level: this.level, mask: r.mask, final: n === 4, interesting: r.interesting }, V = this.bodyVars();   // n: the model kind; kinds 0–2 are levels 0–2, so they index the level texts
+    if (s.whatif) { o.body = Txt.f(C.whatifBody[s.whatif], V); o.take = null; o.interesting = null; }
     else if (n < 4) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
     else { o.take = C.take; o.body = Txt.f(C.body, V); o.bodyFirst = true; }
-    if (!s.whatif && typeof Freezer !== 'undefined') { Freezer.put(this.id, 1, sim.snapshot(), { force: true }); o.whatIf = { gen: 1, levers: [['takeall', 'bigonly'], ['quick', 'slow'], ['bold', 'nohawk'], ['nomut', 'far'], ['steady', 'gamble']][n] }; }
+    if (!s.whatif && typeof Freezer !== 'undefined') { Freezer.put(this.id, 1, sim.snapshot(), { force: true }); o.whatIf = { gen: 1, levers: { 0: ['takeall', 'bigonly'], 1: ['quick', 'slow'], 2: ['bold', 'nohawk'], 4: ['steady', 'gamble'] }[n] }; }
     o.why = n < 4 ? C.levelWhy[n] : C.why;
+    { const LS = (C.levelStars || [])[this.level] || {}; o.stars = {}; [['discover', 1], ['predict', 2], ['transfer', 4]].forEach(([k, b]) => { o.stars[k] = r.mask & b ? C.stars[k] : LS[k] || null; }); }   // a star this level earned but the unit still lacks names where the unit earns it
     const spec = this.cardSpec(); if (spec) { o.chart = cv => LiveGraph.draw(cv, spec, 'paper'); o.chartLabel = spec.title; }
     End.show(this, o);
   },
   bodyVars() {
-    const s = this.sim.s, sim = this.sim, pc = (a, b) => Math.round(100 * sim.share(a, b)), f1 = x => (Math.round(x * 10) / 10).toFixed(1), n = this.level;
+    const s = this.sim.s, sim = this.sim, pc = (a, b) => Math.round(100 * sim.share(a, b)), f1 = x => (Math.round(x * 10) / 10).toFixed(1), n = this.kd();
     if (n === 0) { const R0 = s.rec, rt = sim.dietRates(0.6, 1.5), S2 = R0[2] && R0[2].sun > 0 ? R0[2].sun : 25; return { a: pc(R0[0].takeS, R0[0].seenS), b: pc((R0[1] || {}).takeS + ((R0[2] || {}).takeS || 0), (R0[1] || {}).seenS + ((R0[2] || {}).seenS || 0)), f: s.food, n: R0[2] ? R0[2].food : 0, e: Math.round(rt.all * S2), g: Math.round(rt.big * S2) }; }   // expectations over the stretch's own length
     if (n === 1) { const at = s.whatif === 'quick' ? 2 : 10, S1 = s.rec[1] && s.rec[1].sun > 0 ? s.rec[1].sun : 66; return { a: f1(sim.meanStay(s, 0)), b: f1(sim.meanStay(s, 1)), c: f1(sim.tStar(2)), d: f1(sim.tStar(10)), n: s.rec[1] ? s.rec[1].eat : 0, e: Math.round(sim.rateAt(at, 10) * S1), bb: Math.round(sim.rateAt(sim.tStar(10), 10) * S1) }; }
     if (n === 2) { const R0 = s.rec, ra = sim.cfg(2).rd[1]; return { a: pc(R0[0].takeF, R0[0].seenF), b: R0[1] ? pc(R0[1].takeF, R0[1].seenF) : 0, p: Math.round(100 * sim.riskStar()), n: R0[1] ? R0[1].food : 0, e: f1(sim.riskE(s.whatif === 'nohawk' ? 0 : ra.p, 1)), h: f1(sim.riskE(0, 0)) }; }
-    if (n === 3) { const f = s.fh ? s.fh[s.fh.length - 1] : { m: 0 }; return { a: f1(s.you || 0), b: f1(f.m), c: f1(sim.tStar(4)), t: f1(f.m), x: f1(sim.tStar(s.fT || 4)) }; }
     const mean = a => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length), vs = sim.cfg(4).rd.map(([e, need]) => sim.V(e, 10, need));
     return { r: Math.round(100 * (s.reg || 0)), a: s.right, b: s.decs, p: s.wfix ? Math.round(100 * mean(s.wfix)) : 0, bb: Math.round(100 * mean(vs)) };
   },
@@ -740,13 +684,7 @@ const CH_FORAGER_V2 = {
         if (F) { F.tier(1); F.burst('dust', x, y, 5, { ink: '#8FA35A' }); F.pop('+1', x, y - 18, 1); } if (typeof Snd !== 'undefined' && Snd.peck) Snd.peck();
         return;
       }
-      case 'leave': { v.prevStay = v.lastStay; v.lastStay = e.stay; snd('wing', P.titX, P.titY); v.deps.push({ stay: e.stay, got: e.got, T: e.T }); (v.past || (v.past = [])).push({ ct: (v.ct || []).slice(), stay: e.stay, round: s.i }); if (v.past.length > 6) v.past.shift(); const rid = 'b' + s.i; if (this.level === 1 && s.hits[rid] !== undefined || this.level === 3 && s.asks.indexOf('d1') >= 0) v.tan = { k: 0, T: e.T }; return; }
-      case 'flock': this.birdsInit(); if (F) F.tier(3, () => this.banner(L.fl, 1300)); if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); return;
-      case 'gen': {
-        this.birdsAssign(); const f = s.fh[s.fh.length - 1]; snd('tick', Stage.w - 50, this.hudH() + 30);
-        if (typeof Live !== 'undefined' && e.g % 5 === 0) Live.say(Txt.f(this.content.live.gen, { n: e.g, t: (Math.round(f.m * 10) / 10).toFixed(1) }));
-        if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); return;
-      }
+      case 'leave': { v.prevStay = v.lastStay; v.lastStay = e.stay; snd('wing', P.titX, P.titY); v.deps.push({ stay: e.stay, got: e.got, T: e.T }); (v.past || (v.past = [])).push({ ct: (v.ct || []).slice(), stay: e.stay, round: s.i }); if (v.past.length > 6) v.past.shift(); if (this.asked(s.i)) v.tan = { k: 0, T: e.T }; return; }
       case 'eve': if (typeof Live !== 'undefined') Live.say(Txt.f(this.content.live.eve, { n: e.i + 1, e: e.e, need: e.need, v: 10 })); if (e.i > 0) this.banner(Txt.f(L.eve, { n: e.i + 1 }), 1100); return;
       case 'feed': {
         const fx = P.fx[e.a], tx = P.gx, ty = P.gaugeY(e.e); v.fly = { a: e.a, t: 0 };
@@ -768,7 +706,7 @@ const CH_FORAGER_V2 = {
   /* ---------- input: tap the caterpillar to take it, the hedge to pass; the next tree to fly on; a feeder to visit it ---------- */
   down(x, y) {
     const s = this.sim.s, v = this.v, P = this.pos();
-    if (/gap|night|gens|flock/.test(s.phase)) { v.ff = true; return; }
+    if (/gap|night/.test(s.phase)) { v.ff = true; return; }
     if (s.auto || s.phase === 'ask' || s.phase === 'over') return;
     if (s.kind === 'hedge' || s.kind === 'hawk') {
       if (s.busy > 0) { Sim.act(this, { k: 'take' }); return; }
@@ -781,12 +719,12 @@ const CH_FORAGER_V2 = {
   },
   onKey(k) {
     const s = this.sim.s, v = this.v;
-    if (k === ' ' && /gap|night|gens|flock/.test(s.phase)) { v.ff = true; return; }
+    if (k === ' ' && /gap|night/.test(s.phase)) { v.ff = true; return; }
     if (s.kind === 'night' && (k === '1' || k === '2')) { Sim.act(this, { k: 'feed', a: k === '2' ? 1 : 0 }); return; }
     if (k === ' ') { Sim.act(this, { k: s.kind === 'orchard' ? 'stay' : 'take' }); return; }
     if (k === 'ArrowRight') Sim.act(this, { k: s.kind === 'orchard' ? 'leave' : 'pass' });
   },
-  teacherStep() { const s = this.sim.s; if (s.phase === 'gens') Sim.act(this, { k: 'skip' }); else this.v.ff = true; },
+  teacherStep() { this.v.ff = true; },
 
   /* ---------- geometry (canvas px); recomputed per call, cheap ---------- */
   pos() {
@@ -799,7 +737,7 @@ const CH_FORAGER_V2 = {
     P.preyX = W * 0.76; P.preyY = P.hedgeTop + (P.hedgeBot - P.hedgeTop) * 0.42;
     P.fieldX = W * 0.66; P.fieldY = gy + (H - gy) * 0.5;
     // orchard: the current tree at 42% of the width, the next to the right at a distance set by the flight time
-    P.tree = Math.max(130, Math.min(300, 0.5 * u, (gy - top) * 0.8)); P.treeX = W * 0.42; P.treeY = gy; P.nextX = Math.min(W - 26, P.treeX + P.tree * 0.95 + (s && s.kind === 'orchard' && this.sim.cfg(this.level).rd[s.i] && this.sim.cfg(this.level).rd[s.i].T > 5 ? W : 0));
+    P.tree = Math.max(130, Math.min(300, 0.5 * u, (gy - top) * 0.8)); P.treeX = W * 0.42; P.treeY = gy; P.nextX = Math.min(W - 26, P.treeX + P.tree * 0.95 + (s && s.kind === 'orchard' && this.sim.cfg(s.kd).rd[s.i] && this.sim.cfg(s.kd).rd[s.i].T > 5 ? W : 0));
     // night: two feeders, the perch between, the reserve gauge at the right
     P.fx = [W * 0.2, W * 0.58]; P.fy = top + (gy - top) * 0.62; P.gx = W - Math.max(30, W * 0.08); P.gTop = top + 40; P.gBot = gy - 10; P.gaugeY = e => P.gBot - (P.gBot - P.gTop) * Math.max(0, Math.min(1, e / 36));
     if (s && s.kind === 'night') { P.titX = W * 0.39; P.titY = top + (gy - top) * 0.25 - P.hero * 0.3; }
@@ -830,11 +768,11 @@ const CH_FORAGER_V2 = {
   draw(c, w, h) {
     const s = this.sim.s; if (!s) return;
     if (s.kind === 'hedge' || s.kind === 'hawk') this.drawHedge(c, w, h);
-    else if (s.kind === 'orchard') { if (s.phase === 'flock' || s.phase === 'gens' || (s.phase === 'over' && s.fh) || (s.phase === 'ask' && s.fh)) this.drawFlock(c, w, h); else this.drawOrchard(c, w, h); }
+    else if (s.kind === 'orchard') this.drawOrchard(c, w, h);
     else this.drawNight(c, w, h);
     const v = this.v; if (typeof Lbl === 'undefined') return;
     if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; c.save(); c.globalAlpha = a; Lbl.put('fg-banner', b.text, w / 2, this.hudH() + 34, { size: 22, c, weight: 700 }); c.restore(); }
-    if (/gap|night|gens/.test(s.phase) && !v.ff && !s.auto) Lbl.put('fg-ff', this.content.labels.ff, w - 12, h - 16, { align: 'right', size: 12, c });
+    if (/gap|night/.test(s.phase) && !v.ff && !s.auto) Lbl.put('fg-ff', this.content.labels.ff, w - 12, h - 16, { align: 'right', size: 12, c });
   },
   sky(c, w, h, top, bot, k) {   // the winter boss's baked sky (k 4); the day levels paint theirs live from the clock (skyLive)
     const S = [['#F3D9B1', '#C9DCE3'], ['#A9CCE0', '#E4EEE6'], ['#E9C98E', '#CFE0DA'], ['#5B5A7E', '#E6A97A'], ['#D99A8E', '#3A3F66']][k], g = c.createLinearGradient(0, 0, 0, bot);
@@ -842,10 +780,9 @@ const CH_FORAGER_V2 = {
   },
   /* ---------- the day clock: one light from dawn mist to rose dusk across L1–L4 (view only) ---------- */
   mixC(a, b, k) { const p = q => [1, 3, 5].map(i => parseInt(q.slice(i, i + 2), 16)), A = p(a), B = p(b); return 'rgb(' + A.map((x, i) => Math.round(x + (B[i] - x) * k)).join(',') + ')'; },
-  hour() {   // hedgerow 05:10–08:50, orchard 11–14, hawk 14:35–17:10, your rule 17:35–19:25, then the flock's years into dusk
-    const s = this.sim.s, n = this.level, f = this.dayFrac();
-    if (n === 0) return 5.15 + 3.6 * f; if (n === 1) return 11 + 3 * f; if (n === 2) return 14.6 + 2.6 * f;
-    return s.fh ? 19.4 + 1.3 * Math.min(1, (s.gen || 0) / 30) : 17.6 + 1.8 * f;
+  hour() {   // hedgerow 05:10–08:50, orchard 11–14, hawk 14:35–19:25 into rose dusk (the winter night bakes its own sky)
+    const n = this.kd(), f = this.dayFrac();
+    if (n === 0) return 5.15 + 3.6 * f; if (n === 1) return 11 + 3 * f; return 14.6 + 4.8 * f;
   },
   skyAt(h) { const K = FG_SKY; let i = 0; while (i < K.length - 2 && h > K[i + 1][0]) i++; const a = K[i], b = K[i + 1], k = Math.max(0, Math.min(1, (h - a[0]) / (b[0] - a[0]))); return { top: this.mixC(a[1], b[1], k), hor: this.mixC(a[2], b[2], k), sun: this.mixC(a[3], b[3], k) }; },
   sunXY(h, P, hor) { const f = Math.max(0, Math.min(1, (h - 5) / 16)); return [P.W * (0.06 + 0.88 * f), hor + 10 - Det.sin(Math.PI * f) * Math.max(30, hor - P.top - 46)]; },
@@ -993,7 +930,7 @@ const CH_FORAGER_V2 = {
     if (hawk) { Lbl.put('fg-hedgeL', L.hedge, w * 0.82, P.hedgeTop + 18, { size: 13, c }); Lbl.put('fg-fieldL', L.field, w * 0.82, P.gy + 16, { size: 13, c }); Lbl.put('fg-xn', L.xnRisk, 12, h - 14, { align: 'left', size: 12, c }); }
     if (s.phase === 'gap' || s.phase === 'ask') { c.fillStyle = 'rgba(20,28,26,0.18)'; c.fillRect(0, 0, w, h); }
   },
-  dayFrac() { const s = this.sim.s, rd = this.sim.cfg(this.level).rd; let tot = 0, done = 0; rd.forEach((r, i) => { const S = r.S > 1e8 ? 30 : r.S || 30; tot += S; if (i < s.i) done += S; else if (i === s.i) done += Math.min(S, s.sun); }); return tot ? Math.max(0, Math.min(1, done / tot)) : 0; },
+  dayFrac() { const s = this.sim.s, rd = this.sim.cfg(this.kd()).rd; let tot = 0, done = 0; rd.forEach((r, i) => { const S = r.S > 1e8 ? 30 : r.S || 30; tot += S; if (i < s.i) done += S; else if (i === s.i) done += Math.min(S, s.sun); }); return tot ? Math.max(0, Math.min(1, done / tot)) : 0; },
   drawLedger(c, P) {   // the take-or-pass record in the scene: big row and small row, filled taken, hollow passed (rung 1)
     const v = this.v, L = v.ledger.slice(-Math.floor((P.W - 70) / 9)), y0 = P.H - 22, r = 3.6; let x = 60, lastI = L.length ? L[0].i : 0;
     if (typeof Lbl !== 'undefined') { Lbl.put('fg-lbig', this.content.labels.big, 30, y0 - 9, { size: 12, c: Stage.ctx, pill: false, ink: '#1B1612' }); Lbl.put('fg-lsmall', this.content.labels.small, 30, y0 + 7, { size: 12, c: Stage.ctx, pill: false, ink: '#1B1612' }); }
@@ -1066,7 +1003,7 @@ const CH_FORAGER_V2 = {
     }
   },
   drawOrchard(c, w, h) {
-    const s = this.sim.s, v = this.v, P = this.pos(), eve = this.level === 3, r = this.sim.cfg(this.level).rd[Math.min(s.i, this.sim.cfg(this.level).rd.length - 1)], L = this.content.labels, hr = this.hour(), tau = this.sim.P().tau.v, G = this.sim.P().G.v;
+    const s = this.sim.s, v = this.v, P = this.pos(), eve = false, r = this.sim.cfg(s.kd).rd[Math.min(s.i, this.sim.cfg(s.kd).rd.length - 1)], L = this.content.labels, hr = this.hour(), tau = this.sim.P().tau.v, G = this.sim.P().G.v;
     const bg = this.bake(eve ? 'ev' : 'or', w, h, (cc, W, H) => this.bgOrchard(cc, W, H, P, eve));
     this.skyLive(c, P, P.gy - P.tree * 0.5, hr); c.drawImage(bg, 0, 0, w, h);
     // the camera: in flight it pans from this tree to the next (distance ∝ flight time)
@@ -1094,63 +1031,21 @@ const CH_FORAGER_V2 = {
     if (s.phase === 'ask' || s.phase === 'gap') { c.fillStyle = 'rgba(20,28,26,0.18)'; c.fillRect(0, 0, w, h); }
   },
   drawGainCard(c, P) {   // the gain curve drawing itself in the scene: this tree's catches against time, past trees faint, your leaving points
-    const s = this.sim.s, v = this.v, r = this.sim.cfg(this.level).rd[Math.min(s.i, this.sim.cfg(this.level).rd.length - 1)], T = r.T, cw = Math.min(P.W * 0.46, 230), ch = Math.min(130, (P.gy - P.top) * 0.36), x0 = P.W - cw - 10, y0 = P.top + 8;
+    const s = this.sim.s, v = this.v, r = this.sim.cfg(s.kd).rd[Math.min(s.i, this.sim.cfg(s.kd).rd.length - 1)], T = r.T, cw = Math.min(P.W * 0.46, 230), ch = Math.min(130, (P.gy - P.top) * 0.36), x0 = P.W - cw - 10, y0 = P.top + 8;
     c.save(); c.fillStyle = 'rgba(232,223,201,0.92)'; rrect(c, x0, y0, cw, ch, 8); c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(27,22,18,0.4)'; c.stroke();
-    const px = x0 + 12, pw = cw - 20, py = y0 + 8, ph = ch - 22, tmin = -T, tmax = 14, X = t => px + (t - tmin) / (tmax - tmin) * pw, Y = g => py + ph - g / 7 * ph;
+    const px = x0 + 12, pw = cw - 20, py = y0 + 8, ph = ch - 22, tmin = -T, tmax = FG_AX, X = t => px + (t - tmin) / (tmax - tmin) * pw, Y = g => py + ph - g / 7 * ph;
     c.strokeStyle = 'rgba(27,22,18,0.55)'; c.beginPath(); c.moveTo(X(0), py); c.lineTo(X(0), py + ph); c.lineTo(px + pw, py + ph); c.stroke();
     c.setLineDash([2, 3]); c.beginPath(); c.moveTo(X(-T), py + ph - 30); c.lineTo(X(-T), py + ph); c.stroke(); c.setLineDash([]);
-    const asked = this.level === 1 ? s.hits['b' + s.i] !== undefined : s.asks.indexOf('d1') >= 0;
-    if (asked) { c.lineWidth = 2; c.setLineDash([5, 3]); c.strokeStyle = '#1B1612'; c.beginPath(); for (let t = 0; t <= 14; t += 0.25) { const g = this.sim.gainAt(t); if (t === 0) c.moveTo(X(t), Y(g)); else c.lineTo(X(t), Y(g)); } c.stroke();
+    const asked = this.asked(s.i);
+    if (asked) { c.lineWidth = 2; c.setLineDash([5, 3]); c.strokeStyle = '#1B1612'; c.beginPath(); for (let t = 0; t <= FG_AX; t += 0.25) { const g = this.sim.gainAt(t); if (t === 0) c.moveTo(X(t), Y(g)); else c.lineTo(X(t), Y(g)); } c.stroke();
       const ts = this.sim.tStar(T), gs = this.sim.gainAt(ts), k = v.tan ? v.tan.k : 1; c.beginPath(); c.moveTo(X(-T), Y(0)); c.lineTo(X(-T) + (X(ts) - X(-T)) * k, Y(0) + (Y(gs) - Y(0)) * k); c.stroke(); c.setLineDash([]); if (k >= 1) { c.beginPath(); c.arc(X(ts), Y(gs), 4, 0, TAU); c.lineWidth = 1.5; c.stroke(); } }
     for (const d of s.deps.filter(q => q.round === s.i)) { c.fillStyle = '#1B1612'; c.beginPath(); c.arc(X(d.stay), Y(d.got), 3, 0, TAU); c.fill(); }
-    const stair = (ct, end, lw, a) => { c.save(); c.globalAlpha *= a; c.lineWidth = lw; c.strokeStyle = '#1B1612'; c.beginPath(); c.moveTo(X(0), Y(0)); let g = 0; for (const t of ct) { if (t > 14) break; c.lineTo(X(t), Y(g)); g++; c.lineTo(X(t), Y(g)); } c.lineTo(X(Math.min(end, 14)), Y(g)); c.stroke(); c.restore(); return g; };
+    const stair = (ct, end, lw, a) => { c.save(); c.globalAlpha *= a; c.lineWidth = lw; c.strokeStyle = '#1B1612'; c.beginPath(); c.moveTo(X(0), Y(0)); let g = 0; for (const t of ct) { if (t > FG_AX) break; c.lineTo(X(t), Y(g)); g++; c.lineTo(X(t), Y(g)); } c.lineTo(X(Math.min(end, FG_AX)), Y(g)); c.stroke(); c.restore(); return g; };
     for (const q of (v.past || []).filter(q => q.round === s.i)) stair(q.ct, q.stay, 1.5, 0.3);
-    if (s.phase === 'tree') { const now = s.tt * this.sim.dt, g = stair(v.ct || [], now, 3, 1); c.beginPath(); c.arc(X(Math.min(now, 14)), Y(g), 3.5, 0, TAU); c.fillStyle = '#1B1612'; c.fill(); }
+    if (s.phase === 'tree') { const now = s.tt * this.sim.dt, g = stair(v.ct || [], now, 3, 1); c.beginPath(); c.arc(X(Math.min(now, FG_AX)), Y(g), 3.5, 0, TAU); c.fillStyle = '#1B1612'; c.fill(); }
     c.restore();
     if (typeof Lbl !== 'undefined') { Lbl.put('fg-gc', this.content.labels.gainC, X(0) + 6, y0 + 12, { size: 12, c, pill: false, ink: '#1B1612', align: 'left' }); }
   },
-  /* ---------- the flock: ~40 tits flit between five trees, each with its own leaving time; your lineage haloed ---------- */
-  birdsInit() { const v = this.v; v.birds = []; for (let j = 0; j < 24; j++) v.birds.push({ tree: j % 5, to: j % 5, t: (j * 0.37) % 1.5, fl: 0, stay: 4, lin: 0 }); this.birdsAssign(); },
-  birdsAssign() {   // sprite j takes the population quantile (j + 0.5)/40, so the crowd shows the flock's distribution without any draw
-    const s = this.sim.s, v = this.v; if (!v.birds || !s.fc) return; const cells = []; let N = 0;
-    for (let l = 0; l < 3; l++) for (let k = 0; k < this.sim.NB; k++) if (s.fc[l][k]) { cells.push([this.sim.stayOf(k), l, s.fc[l][k]]); N += s.fc[l][k]; }
-    cells.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    v.birds.forEach((b, j) => { const q = (j + 0.5) / v.birds.length * N; let acc = 0; for (const c0 of cells) { acc += c0[2]; if (acc >= q) { b.stay = c0[0]; b.lin = c0[1]; break; } } });
-  },
-  birdsTick(dt) { for (const b of this.v.birds) { if (b.fl > 0) { b.fl -= dt; if (b.fl <= 0) { b.tree = b.to; b.t = 0; } continue; } b.t += dt; if (b.t >= b.stay * 0.3) { b.to = (b.tree + 1 + ((b.stay * 10) | 0) % 4) % 5; b.fl = 0.45; } } },
-  drawFlock(c, w, h) {
-    const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels;
-    const hr = this.hour(), L5 = this.flockLay(P), ts = L5.ts, tyB = L5.base, tx = i => L5.x[i], ty = i => L5.y[i] - L5.sz[i] * 0.62, sz = Math.max(22, Math.min(40, P.u * 0.07));
-    const bg = this.bake('fl', w, h, (cc, W, H) => { const hy = L5.hor; this.hills(cc, W, hy, '#857F92', 20, 7); const r = rng(29); for (let x = -10; x < W + 10; x += 14) this.leafBlob(cc, x, hy + 16 + r() * 6, 16 + r() * 8, r() < 0.5 ? '#5E6A55' : '#66735C', r); cc.fillStyle = '#5E6A42'; cc.fillRect(0, hy + 20, W, H); cc.fillStyle = '#56603A'; cc.fillRect(0, P.gy, W, H - P.gy); for (const i of L5.order) this.tree(cc, L5.x[i], L5.y[i], L5.sz[i], 0, 31 + i); });
-    this.skyLive(c, P, L5.hor, hr); c.drawImage(bg, 0, 0, w, h); this.castLive(c, P, hr, 0);
-    if (!v.birds) this.birdsInit(); void ts; void tyB;
-    v.birds.forEach((b, j) => {
-      let x, y; const sl = (j * 5 + b.tree * 3) % 8, ang = sl / 8 * TAU, jx = Det.cos(ang) * L5.sz[b.tree] * 0.3, jy = Det.sin(ang) * L5.sz[b.tree] * 0.2;
-      if (b.fl > 0) { const f = 1 - b.fl / 0.45; x = tx(b.tree) + (tx(b.to) - tx(b.tree)) * f + jx; y = ty(b.tree) - 28 * Det.sin(Math.PI * f) + jy; }
-      else { x = tx(b.tree) + jx; y = ty(b.tree) + jy; }
-      this.titDraw(c, x, y, sz, { flip: b.fl > 0 && b.to < b.tree, id: j });
-      if (b.lin === 0) { const my = y - sz * 0.62, r0 = Math.max(4, sz * 0.15); c.beginPath(); c.moveTo(x, my - r0); c.lineTo(x + r0, my); c.lineTo(x, my + r0); c.lineTo(x - r0, my); c.closePath(); c.fillStyle = '#F4EEDD'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke(); }   // your lineage: a small cream diamond over the head (shape, not hue), light enough for a crowd
-    });
-    this.drawHist(c, P);
-    if (typeof Lbl !== 'undefined') { Lbl.put('fg-year', Txt.f(L.gen, { n: s.gen || 0 }), 14, P.top + 18, { align: 'left', size: 15, c, mono: true }); Lbl.put('fg-xnf', L.xn, 14, P.top + 44, { align: 'left', size: 12, c }); }
-    if (s.phase === 'ask') { c.fillStyle = 'rgba(20,28,26,0.15)'; c.fillRect(0, 0, w, h); }
-  },
-  flockLay(P) {   // five trees: one row on a wide screen; on a tall phone three behind and two in front, so the crowd fills the scene
-    const w = P.W, base = P.gy - 30, tall = (P.gy - P.top) > w * 0.75;
-    if (!tall) { const ts = Math.min(w / 3.9, (P.gy - P.top) * 0.62); return { ts, base, hor: base - ts * 0.45, x: [0, 1, 2, 3, 4].map(i => w * (0.1 + 0.2 * i)), y: [base, base, base, base, base], sz: [ts, ts, ts, ts, ts], order: [0, 1, 2, 3, 4] }; }
-    const ts = Math.min(w / 2.5, (P.gy - P.top) * 0.42), back = base - ts * 0.62, tb = ts * 0.82;
-    return { ts, base, hor: back - tb * 0.4, x: [w * 0.17, w * 0.5, w * 0.83, w * 0.32, w * 0.68], y: [back, back, back, base, base], sz: [tb, tb, tb, ts, ts], order: [0, 1, 2, 3, 4] };
-  },
-  drawHist(c, P) {   // the flock's leaving times as a dot histogram on the ground: one dot per 5 birds; yours filled, others hollow
-    const s = this.sim.s, v = this.v; if (!s.fc) return; const x0 = 16, x1 = P.W - 16, NB = this.sim.NB, bw = (x1 - x0) / NB, r = Math.max(2.4, Math.min(4.2, bw * 0.34)), base = P.H - 24;
-    const X = t => x0 + (t - 0.25) / 14 * (x1 - x0);
-    for (let k = 0; k < NB; k++) { let n = 0; for (let l = 0; l < 3; l++) { const d = Math.round(s.fc[l][k] / 5); for (let i = 0; i < d; i++) { const y = base - n * (2 * r + 1); n++; if (y < P.gy + 4) continue; c.beginPath(); c.arc(x0 + (k + 0.5) * bw, y, r, 0, TAU); if (l === 0) { c.fillStyle = '#1B1612'; c.fill(); } else { c.lineWidth = 1.2; c.strokeStyle = '#1B1612'; c.stroke(); } } } }
-    c.strokeStyle = 'rgba(27,22,18,0.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, base + 4); c.lineTo(x1, base + 4); c.stroke();
-    if (s.hits.d1 !== undefined) { const xs = X(this.sim.tStar(s.fT)); c.setLineDash([5, 3]); c.lineWidth = 2; c.beginPath(); c.moveTo(xs, P.gy + 6); c.lineTo(xs, base + 4); c.stroke(); c.setLineDash([]); if (typeof Lbl !== 'undefined') Lbl.put('fg-tan', this.content.labels.best, xs, P.gy + 4, { size: 12, c }); }
-    if (typeof Lbl !== 'undefined') for (const t of [2, 4, 6, 8, 10, 12]) Lbl.put('fg-ht' + t, String(t), X(t), base + 2, { size: 12, c, pill: false, ink: '#1B1612', base: 'top' });
-    void v;
-  },
-  /* ---------- the winter night ---------- */
   drawNight(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels, calm = typeof Fx !== 'undefined' && Fx.calm;
     const bg = this.bake('nt', w, h, (cc, W, H) => { this.sky(cc, W, H, 0, P.gy, 4); this.hills(cc, W, P.gy - 34, '#7A7090', 22, 13); { const r0 = rng(31); for (let x = -8; x < W + 8; x += 9) { cc.strokeStyle = '#3A3245'; cc.lineWidth = 1.2; cc.beginPath(); cc.moveTo(x, P.gy); cc.lineTo(x + (r0() - 0.5) * 10, P.gy - 14 - r0() * 16); cc.stroke(); } cc.fillStyle = '#3A3245'; cc.fillRect(0, P.gy - 12, W, 12); }   /* a bare winter hedge on the skyline */ cc.fillStyle = '#E4E8EC'; cc.fillRect(0, P.gy, W, H - P.gy); const r = rng(21); for (let i = 0; i < W / 4; i++) { cc.fillStyle = 'rgba(160,172,190,0.4)'; cc.beginPath(); cc.arc(r() * W, P.gy + r() * (H - P.gy), 1 + r() * 2, 0, TAU); cc.fill(); }
@@ -1189,70 +1084,59 @@ const CH_FORAGER_V2 = {
   /* ---------- the live strip (notes() is the LiveGraph data provider) ---------- */
   notes() {
     const s = this.sim.s; if (!s) return { stats: [], charts: [] };
-    const D = this.content.data, sim = this.sim, n = this.level, stats = [];
+    const D = this.content.data, sim = this.sim, n = this.kd(), stats = [];
     const row = (d, vars) => stats.push([d[0], Txt.f(d[1], vars), d[2] ? Txt.f(d[2], vars) : '']);
     if (n === 0) { row(D.food, { n: s.food }); s.rec.forEach(r => row(D.small, { a: r.takeS, b: r.seenS })); return { stats, charts: [this.dietSpec(), this.profSpec()] }; }
     if (n === 1) { row(D.eaten, { n: s.eat }); row(D.stays, { a: sim.meanStay(s, 0).toFixed(1), b: sim.meanStay(s, 1).toFixed(1) }); return { stats, charts: [this.gainSpec(), this.rateSpec()] }; }
     if (n === 2) { row(D.food, { n: s.food }); s.rec.forEach(r => row(D.fieldT, { a: r.takeF, b: r.seenF })); return { stats, charts: [this.riskSpec(), this.roundSpec()] }; }
-    if (n === 3) {
-      if (!s.fh) { row(D.eaten, { n: s.eat }); return { stats, charts: [this.gainSpec(), this.rateSpec()] }; }
-      const f = s.fh[s.fh.length - 1]; row(D.flock, { t: f.m.toFixed(1), g: s.gen }); row(D.mine, { p: Math.round(100 * f.sh[0]) });
-      return { stats, charts: [this.histSpec(), this.linSpec()] };
-    }
     row(D.reserve, { e: s.e, need: s.need, v: s.v }); row(D.right, { r: Math.round(100 * (s.reg || 0)) });
     return { stats, charts: [this.resSpec(), this.oddsSpec()] };
   },
   dietSpec() {   // food a second against big ones a minute: your stretches as dots; the two long-run lines only after you predict
     const s = this.sim.s, D = this.content.data, sim = this.sim, lines = [], dots = [];
     const curve = (fn, lab) => { const pts = []; for (let b = 0; b <= 48; b += 2) pts.push([b, fn(b / 60)]); lines.push({ pts, dash: true, label: lab }); };
-    if (s.hits.a1 !== undefined) { curve(b => sim.dietRates(b, 0.5).big, D.lines.bigOnly); curve(b => sim.dietRates(b, 0.5).all, D.lines.takeAll); }
+    curve(b => sim.dietRates(b, 0.5).big, D.lines.bigOnly); curve(b => sim.dietRates(b, 0.5).all, D.lines.takeAll);   // the key result in plain sight (D6 decision 9): the lines cross at 15 big ones a minute
     if (s.hits.a2 !== undefined) curve(b => sim.dietRates(b, 1.5).all, D.lines.swarm);
     s.rec.forEach((r, i) => { if (r.sun > 0) dots.push({ x: 60 * sim.cfg(0).rd[i].b + (i === 2 ? 1.5 : 0), y: r.food / r.sun, shape: i === 2 ? 'square' : 'disc' }); });
     return { type: 'fg_xy', title: D.titles.diet, x: { lo: 0, hi: 48, label: D.ax.big }, y: { lo: 0, hi: 1.2, label: D.ax.rate }, frame: 'designed', lines, dots, dotLabel: dots.length ? D.lines.yours : null };
   },
   gainSpec() {   // catches against seconds in a tree, from minus the flight time; the expected curve and the tangent only after you predict
-    const s = this.sim.s, D = this.content.data, sim = this.sim, v = this.v, ri = Math.min(s.i, sim.cfg(this.level).rd.length - 1), T = sim.cfg(this.level).rd[ri].T, lines = [], steps = [], dots = [];
-    const asked = this.level === 1 ? s.hits['b' + ri] !== undefined : s.asks.indexOf('d1') >= 0;
-    if (asked) { const pts = []; for (let t = 0; t <= 14; t += 0.5) pts.push([t, sim.gainAt(t)]); lines.push({ pts, dash: true, label: D.lines.curve }); }
+    const s = this.sim.s, D = this.content.data, sim = this.sim, v = this.v, ri = Math.min(s.i, sim.cfg(s.kd).rd.length - 1), T = sim.cfg(s.kd).rd[ri].T, lines = [], steps = [], dots = [];
+    const asked = this.asked(ri);
+    if (asked) { const pts = []; for (let t = 0; t <= FG_AX; t += 0.5) pts.push([t, sim.gainAt(t)]); lines.push({ pts, dash: true, label: D.lines.curve }); }
     for (const d of s.deps.filter(q => q.round === ri)) dots.push({ x: d.stay, y: d.got, shape: 'disc' });
-    const stair = (ct, end) => { const pts = [[0, 0]]; let g = 0; for (const t of ct) { if (t > 14) break; pts.push([t, g]); g++; pts.push([t, g]); } pts.push([Math.min(14, end), g]); return pts; };
+    const stair = (ct, end) => { const pts = [[0, 0]]; let g = 0; for (const t of ct) { if (t > FG_AX) break; pts.push([t, g]); g++; pts.push([t, g]); } pts.push([Math.min(FG_AX, end), g]); return pts; };
     if (v) for (const q of (v.past || []).filter(q => q.round === ri)) steps.push({ pts: stair(q.ct, q.stay), w: 1, faint: true });
     if (s.phase === 'tree') steps.push({ pts: stair((v && v.ct) || [], s.tt * sim.dt), w: 3 });
     const st = s.deps.filter(q => q.round === ri).map(q => q.stay), you = st.length ? { x: st.reduce((a, b) => a + b, 0) / st.length, y: sim.gainAt(st.reduce((a, b) => a + b, 0) / st.length), label: D.lines.mean } : null;
     const tan = asked ? { x0: -T, y0: 0, x1: sim.tStar(T), y1: sim.gainAt(sim.tStar(T)), k: v && v.tan ? v.tan.k : 1, label: D.lines.tangent } : null;
-    return { type: 'fg_xy', title: D.titles.gain, x: { lo: -T, hi: 14, label: D.ax.t }, y: { lo: 0, hi: 7, label: D.ax.got }, frame: 'designed', lines, steps, dots, you, tan, vlines: [{ x: 0 }, { x: -T, dash: true }] };
+    return { type: 'fg_xy', title: D.titles.gain, x: { lo: -T, hi: FG_AX, label: D.ax.t }, y: { lo: 0, hi: 7, label: D.ax.got }, frame: 'designed', lines, steps, dots, you, tan, vlines: [{ x: 0 }, { x: -T, dash: true }] };
   },
   riskSpec() {   // chick food in a round against the danger per field trip: the two rules' expectations only after you predict
     const s = this.sim.s, D = this.content.data, sim = this.sim, lines = [], dots = [];
-    if (s.hits.c1 !== undefined) { const a = [], b = []; const safe = sim.riskE(0, 0); for (let p = 0; p <= 0.6001; p += 0.03) { a.push([p, sim.riskE(p, 1)]); b.push([p, safe]); } lines.push({ pts: a, dash: true, label: D.lines.field }, { pts: b, dash: true, label: D.lines.safe }); }
+    { const a = [], b = []; const safe = sim.riskE(0, 0); for (let p = 0; p <= 0.6001; p += 0.03) { a.push([p, sim.riskE(p, 1)]); b.push([p, safe]); } lines.push({ pts: a, dash: true, label: D.lines.field }, { pts: b, dash: true, label: D.lines.safe }); }   // the two rules cross near 20% danger
     s.rec.forEach((r, i) => { if (r.sun > 0 || r.caught) dots.push({ x: sim.cfg(2).rd[i].p, y: r.food, shape: r.caught ? 'ring' : 'disc' }); });
     return { type: 'fg_xy', title: D.titles.risk, x: { lo: 0, hi: 0.6, label: D.ax.p, fmt: 'pct' }, y: { lo: 0, hi: 14, label: D.ax.food }, frame: 'designed', lines, dots, dotLabel: dots.length ? D.lines.yours : null };
   },
   profSpec() {   // food a second while carrying each kind (its profitability); after you predict, what passing small ones earns in this stretch
     const s = this.sim.s, D = this.content.data, L = this.content.labels, sim = this.sim, F = FG_DIET, r = sim.cfg(0).rd[Math.min(s.i, 2)], lines = [];
-    if (s.hits.a1 !== undefined) lines.push({ pts: [[0, sim.dietRates(r.b, r.s).big], [2, sim.dietRates(r.b, r.s).big]], dash: true, label: D.lines.skip });
+    lines.push({ pts: [[0, sim.dietRates(r.b, r.s).big], [2, sim.dietRates(r.b, r.s).big]], dash: true, label: D.lines.skip });
     return { type: 'fg_xy', title: D.titles.prof, fold: false, x: { lo: 0, hi: 2 }, y: { lo: 0, hi: 1.8, label: D.ax.rate }, frame: 'designed', noX: true, lines, dots: [],
       bars: [{ x: 0.5, y: F.big / F.t, label: L.big }, { x: 1.5, y: F.small / F.t, label: L.small }] };
   },
   rateSpec() {   // your long-run rate for each tree you left, against the stay; the expected rate curve and its peak only after you predict
-    const s = this.sim.s, D = this.content.data, sim = this.sim, ri = Math.min(s.i, sim.cfg(this.level).rd.length - 1), T = sim.cfg(this.level).rd[ri].T, lines = [], vlines = [];
-    const asked = this.level === 1 ? s.hits['b' + ri] !== undefined : s.asks.indexOf('d1') >= 0;
-    if (asked) { const pts = []; for (let t = 0.25; t <= 14; t += 0.25) pts.push([t, sim.rateAt(t, T)]); lines.push({ pts, dash: true, label: D.lines.curve }); vlines.push({ x: sim.tStar(T), dash: true }); }
+    const s = this.sim.s, D = this.content.data, sim = this.sim, ri = Math.min(s.i, sim.cfg(s.kd).rd.length - 1), T = sim.cfg(s.kd).rd[ri].T, lines = [], vlines = [];
+    const asked = this.asked(ri);
+    if (asked) { const pts = []; for (let t = 0.25; t <= FG_AX; t += 0.25) pts.push([t, sim.rateAt(t, T)]); lines.push({ pts, dash: true, label: D.lines.curve }); vlines.push({ x: sim.tStar(T), dash: true }); }
     const dots = s.deps.filter(q => q.round === ri).map(q => ({ x: q.stay, y: q.got / (T + q.stay), shape: 'disc' }));
-    return { type: 'fg_xy', title: D.titles.rate, fold: false, x: { lo: 0, hi: 14, label: D.ax.t }, y: { lo: 0, hi: 1.2, label: D.ax.rate }, frame: 'designed', lines, dots, vlines, dotLabel: dots.length ? D.lines.trees : null };
+    return { type: 'fg_xy', title: D.titles.rate, fold: false, x: { lo: 0, hi: FG_AX, label: D.ax.t }, y: { lo: 0, hi: 1.2, label: D.ax.rate }, frame: 'designed', lines, dots, vlines, dotLabel: dots.length ? D.lines.trees : null };
   },
   roundSpec() {   // chick food so far this round, against the round's seconds; after you predict, both rules' expectations for this round's hawk
     const s = this.sim.s, v = this.v, D = this.content.data, sim = this.sim, ri = Math.min(s.i, 1), r = sim.cfg(2).rd[ri], lines = [];
-    if (s.hits.c1 !== undefined) { const a = [], b = []; sim.riskE(r.p, 1, r, a); sim.riskE(0, 0, r, b); lines.push({ pts: a, dash: true, label: D.lines.field }, { pts: b, dash: true, label: D.lines.safe }); }
+    { const a = [], b = []; sim.riskE(r.p, 1, r, a); sim.riskE(0, 0, r, b); lines.push({ pts: a, dash: true, label: D.lines.field }, { pts: b, dash: true, label: D.lines.safe }); }
     const pts = [[0, 0]]; let f = 0; for (const d of (v && v.dl || []).filter(q => q.i === ri)) { pts.push([d.sun, f]); f += d.v; pts.push([d.sun, f]); } pts.push([Math.min(r.S, s.i === ri ? s.sun : r.S), f]);
     return { type: 'fg_xy', title: D.titles.round, fold: false, x: { lo: 0, hi: r.S, label: D.ax.sec }, y: { lo: 0, hi: 14, label: D.ax.food }, frame: 'designed', lines, steps: [{ pts, w: 3 }], dots: [] };
   },
-  histSpec() {
-    const s = this.sim.s, D = this.content.data, mine = [], other = [];
-    for (let l = 0; l < 3; l++) for (let k = 0; k < this.sim.NB; k++) for (let i = 0; i < s.fc[l][k]; i++) (l === 0 ? mine : other).push(this.sim.stayOf(k));
-    return { type: 'dots', title: D.titles.hist, bins: 28, x: { lo: 0.25, hi: 14.25, label: D.ax.lt }, groups: [{ v: mine, style: 'solid', label: D.lines.you }, { v: other, style: 'hollow', label: this.content.labels.others }], frame: 'designed' };
-  },
-  linSpec() { const s = this.sim.s, D = this.content.data, L = this.content.labels, h = s.fh || []; return { type: 'trace', title: D.titles.lin, fold: false, x: { lo: 0, hi: 30, label: D.ax.yr }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series: [{ d: h.map(f => f.sh[0]), ink: 'ink', label: D.lines.you, you: true }, { d: h.map(f => f.sh[1]), ink: 'ink', label: L.quick }, { d: h.map(f => f.sh[2]), ink: 'ink', label: L.patient }] }; },
   resSpec() { const s = this.sim.s, D = this.content.data; return { type: 'fg_xy', title: D.titles.res, x: { lo: 0, hi: 10, label: D.ax.v }, y: { lo: 0, hi: 36, label: D.ax.e }, frame: 'designed', steps: [{ pts: (s.traj || []).map((e, i) => [i, e]), w: 3 }], lines: [{ pts: [[0, s.need], [10, s.need]], dash: true, label: D.lines.line }], dots: [] }; },
   oddsSpec() {   // one row per night: best play's exact chance (dashed, once that night is under way and past any ask) and how it went
     const s = this.sim.s, D = this.content.data, sim = this.sim, lines = [], dots = [];
@@ -1267,7 +1151,7 @@ const CH_FORAGER_V2 = {
     return { type: 'fg_xy', title: D.titles.nights, x: { lo: 0.4, hi: 4.6, label: D.ax.night, fmt: 'int' }, xticks: [1, 2, 3, 4], y: { lo: 0, hi: 1.2, label: D.ax.ch, fmt: 'pct' }, frame: 'designed',
       bars: rd.map(([e, need], i) => ({ x: i + 1, y: sim.V(e, 10, need), w: 0.25 })), dots: (s.nights || []).map((q, i) => ({ x: i + 1, y: q.ok ? 1 : 0, shape: q.ok ? 'disc' : 'ring' })), lines: [], dotLabel: (s.nights || []).length ? D.lines.yourN : null, barLabel: D.lines.bestP };
   },
-  cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return this.dietSpec(); if (n === 1) return this.gainSpec(); if (n === 2) return this.riskSpec(); if (n === 3) return s.fh ? this.linSpec() : this.gainSpec(); return s.whatif ? this.resSpec() : this.nightsSpec(); }
+  cardSpec() { const n = this.kd(), s = this.sim.s; if (n === 0) return this.dietSpec(); if (n === 1) return this.gainSpec(); if (n === 2) return this.riskSpec(); return s.whatif ? this.resSpec() : this.nightsSpec(); }
 };
 V2.push(CH_FORAGER_V2);
 

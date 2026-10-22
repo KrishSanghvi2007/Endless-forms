@@ -35,24 +35,20 @@ window.__bw = {
 };
 """
 
-SCRIPT = {
+SCRIPT = {   # D6 decision 9: four levels; only L3 (Two poisons) asks
     0: [("open", "window.__advance(700)"), ("peck", "__bw.peck(); window.__advance(70)"), ("bitter", "window.__advance(400); __bw.bitter(); window.__advance(160)"),
         ("hunt", "window.__advance(1400); __bw.hunt(4); window.__advance(100)"), ("dusk", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(900)"),
-        ("gen2", "__bw.untilPhase('dawn'); window.__advance(300); __bw.hunt(5)"), ("ask", "__bw.hunt(30); __bw.untilPhase('ask'); window.__advance(500)"),
-        ("reveal", "__bw.commit(); window.__advance(500)"), ("late", "__bw.gen(); __bw.gen(); __bw.hunt(6)"), ("card", "for (let k = 0; k < 6 && !__bw.card(); k++) __bw.gen(); window.__advance(1600)")],
-    1: [("open", "window.__advance(700)"), ("hunt", "__bw.hunt(5); __bw.bitter(); window.__advance(120)"), ("ask", "__bw.gen(); __bw.hunt(30); __bw.untilPhase('ask'); window.__advance(500)"),
-        ("reveal", "__bw.commit(); window.__advance(500)"), ("crash", "__bw.gen(); __bw.gen(); window.__advance(400); __bw.hunt(6)"),
+        ("gen2", "__bw.untilPhase('dawn'); window.__advance(300); __bw.hunt(5)"), ("late", "__bw.gen(); __bw.gen(); __bw.hunt(6)"),
         ("card", "for (let k = 0; k < 8 && !__bw.card(); k++) __bw.gen(); window.__advance(1600)")],
-    2: [("open", "window.__advance(700)"), ("deadly", "__bw.gen(); window.__advance(500); __bw.hunt(3); __bw.bitter(); window.__advance(150)"),
-        ("ask", "__bw.hunt(30); __bw.untilPhase('ask'); window.__advance(500)"), ("reveal", "__bw.commit(); window.__advance(500)"),
-        ("card", "for (let k = 0; k < 8 && !__bw.card(); k++) __bw.gen(); window.__advance(1600)")],
-    3: [("open", "window.__advance(700)"), ("taste", "__bw.hunt(3); __bw.bitter(); window.__advance(150)"), ("young", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(1300)"),
+    1: [("open", "window.__advance(700)"), ("hunt", "__bw.hunt(5); __bw.bitter(); window.__advance(120)"), ("day3", "__bw.gen(); __bw.gen(); window.__advance(400); __bw.hunt(3)"),
+        ("crash", "__bw.gen(); __bw.gen(); window.__advance(400); __bw.hunt(6)"), ("dusk", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(500)"),
+        ("card", "for (let k = 0; k < 9 && !__bw.card(); k++) __bw.gen(); window.__advance(1600)")],
+    2: [("open", "window.__advance(700)"), ("taste", "__bw.hunt(3); __bw.bitter(); window.__advance(150)"), ("young", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(1300)"),
         ("ask", "__bw.untilPhase('ask'); window.__advance(500)"), ("reveal", "__bw.commit(); window.__advance(500)"),
         ("mid", "__bw.gen(); __bw.gen(); __bw.gen(); window.__advance(300); __bw.hunt(4)"), ("card", "for (let k = 0; k < 8 && !__bw.card(); k++) __bw.gen(); window.__advance(1600)")],
-    4: [("open", "window.__advance(700)"), ("taste", "__bw.hunt(3); __bw.bitter(); window.__advance(150)"), ("young", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(1400)"),
-        ("ask", "__bw.gen(); __bw.gen(); __bw.hunt(30); __bw.untilPhase('ask'); window.__advance(500)"), ("reveal", "__bw.commit(); window.__advance(500)"),
-        ("reveal_c", "for (let k = 0; k < 6 && __bw.s().phase !== 'reveal' && __bw.s().phase !== 'over'; k++) __bw.gen(); window.__advance(1500)"),
-        ("card", "__bw.untilPhase('over', 200); window.__advance(1800)")],
+    3: [("open", "window.__advance(700)"), ("taste", "__bw.hunt(3); __bw.bitter(); window.__advance(150)"), ("young", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(1400)"),
+        ("mid", "__bw.gen(); __bw.gen(); __bw.hunt(4)"), ("dusk", "__bw.hunt(30); __bw.untilPhase('dusk'); window.__advance(900)"),
+        ("card", "for (let k = 0; k < 8 && !__bw.card(); k++) __bw.gen(); __bw.untilPhase('over', 200); window.__advance(1800)")],
 }
 
 
@@ -63,7 +59,7 @@ def main():
     ap.add_argument('--vp', default='390x780,1280x720')
     ap.add_argument('--seed', type=int, default=3)
     ap.add_argument('--cvd', default='')
-    ap.add_argument('--levels', default='0,1,2,3,4')
+    ap.add_argument('--levels', default='0,1,2,3')
     a = ap.parse_args()
     html, out = os.path.abspath(a.html), os.path.abspath(a.out)
     os.makedirs(out, exist_ok=True)
@@ -76,7 +72,7 @@ def main():
         for vp, cvd in runs:
             w, h = (int(v) for v in vp.split('x'))
             for lv in [int(x) for x in a.levels.split(',')]:
-                if cvd and lv not in (0, 3, 4):
+                if cvd and lv not in (0, 2, 3):
                     continue
                 ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1)
                 ext = []

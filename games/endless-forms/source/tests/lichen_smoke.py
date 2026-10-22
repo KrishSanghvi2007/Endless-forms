@@ -2,8 +2,8 @@
 
   python3 tests/lichen_smoke.py BUILD.html
 
-Begin goes straight into the Wood; keyboard play (arrows, Enter pecks, Shift+Enter pins, B the bird's rule, Enter locks a
-prediction); untimed looks; the bird's rule hunts by itself; act-to-feedback latency; teacher, projector and deep links;
+Begin goes straight into the Wood; keyboard play (arrows, Enter pecks, B the bird's rule, P, arrows and Enter lock the
+one prediction in Mixed diets); untimed looks; the bird's rule hunts by itself; act-to-feedback latency; teacher, projector and deep links;
 ?v1=1 keeps the legacy chapter; no JavaScript errors, NaN text or Lbl/Whisper/HUD/Dock warnings. Exit 1 on any failure.
 """
 import os, sys, json
@@ -76,12 +76,23 @@ with sync_playwright() as p:
     ok(st['auto'] and st['eaten'] >= 4, f"B turns on the bird's rule and the bird hunts by itself (eaten {st['eaten']})")
     for i in range(400):
         st = pg.evaluate(S)
+        if st['phase'] == 'hatch' or st['ask']: break
+        adv(pg, 100)
+    ok(st['phase'] == 'hatch' and not st['ask'] and pg.evaluate("()=>TB.REG.lichen.sim.s.asks.length") == 0, 'L1 asks nothing: the dusk runs straight to the hatch (D6 decision 9)')
+    ok('R = h²S' in pg.evaluate("()=>document.getElementById('hud').innerText"), 'L1 hatch: the HUD shows the key equation R = h²S')
+    clean(pg, 'keyboard'); ctx.close()
+
+    # Mixed diets: the chapter's one prediction ("where will the young land?")
+    ctx, pg, ext = page(b, '?unit=lichen&level=2&seed=5')
+    adv(pg, 900); pg.keyboard.press('b'); adv(pg, 300)
+    for i in range(600):
+        st = pg.evaluate(S)
         if st['ask']: break
         adv(pg, 100)
-    ok(st['ask'], 'a prediction opens at dusk')
+    ok(st['ask'], 'Mixed diets: a prediction opens at dusk')
     aid = st['ask']
     pg.evaluate("()=>{ const o = TB.Predict.overlay(0); if (o) o.focus = false; TB.REG.lichen.lockIn(); }"); adv(pg, 100)
-    ok(pg.evaluate(S)['ask'] == aid and 'Drag the diamond first' in pg.evaluate("()=>document.getElementById('whisper').innerText"), 'Lock in with an unmoved diamond asks for a drag instead of committing')
+    ok(pg.evaluate(S)['ask'] == aid and 'Tap where the young will land' in pg.evaluate("()=>document.getElementById('whisper').innerText"), 'Lock in with an unmoved diamond asks for a drag instead of committing')
     ok(pg.evaluate("()=>TB.Strip.isOpen"), 'phone: the prediction opened the strip')
     pg.keyboard.press('p'); adv(pg, 40)
     for k in ['ArrowRight'] * 4: pg.keyboard.press(k); adv(pg, 30)
@@ -95,14 +106,22 @@ with sync_playwright() as p:
     ok(not h2['open'] and (h2['ph'] != 'hatch' or h2['t'] > 0), f'phone: the strip closes, then the hatch plays in full view ({h2})')
     for i in range(400):
         st = pg.evaluate(S)
+        if st['card']: break
+        adv(pg, 100)
+    ok(pg.evaluate("()=>TB.REG.lichen.sim.s.asks.length") == 1, 'Mixed diets asks exactly once')
+    clean(pg, 'predict'); ctx.close()
+    ctx, pg, ext = page(b, '?unit=lichen&level=2&seed=8')
+    adv(pg, 900); pg.keyboard.press('b'); adv(pg, 300)
+    for i in range(600):
+        st = pg.evaluate(S)
         if st['ask']: break
         adv(pg, 100)
     aid2 = st['ask']; adv(pg, 9600); st = pg.evaluate(S); pv = pg.evaluate("id=>TB.REG.lichen.sim.s.pred[id]", aid2)
     said = pg.evaluate("()=>TB.Whisper.log.map(x => x.text).join(' | ')")
     ok(aid2 and not st['ask'] and pv is None and 'No prediction' in said, f'the 9 s soft timer on an unmoved diamond is no prediction, and says so ({said[-80:]})')
-    clean(pg, 'keyboard'); ctx.close()
+    clean(pg, 'soft timer'); ctx.close()
 
-    # L0: the press-and-hold demo shows at the second dawn and outlives it; a hold pins there; Auto-hunt appears after morning 1
+    # L0: one verb (no press-and-hold demo; a hold pecks); Auto-hunt appears after morning 1
     ctx, pg, ext = page(b, '?unit=lichen&level=0&seed=6')
     adv(pg, 1500)
     for i in range(40):
@@ -113,12 +132,12 @@ with sync_playwright() as p:
         if pg.evaluate(S)['phase'] == 'hunt': break
         adv(pg, 100)
     adv(pg, 400)
-    ok(pg.evaluate("()=>TB.Ghost.active && TB.Ghost.last && TB.Ghost.last.verb === 'hold'"), 'L0 morning 2: the press-and-hold ghost is showing during the hunt')
+    ok(not pg.evaluate("()=>TB.Ghost.active && TB.Ghost.last && TB.Ghost.last.verb === 'hold'"), 'L0 morning 2: no press-and-hold ghost (pinning was cut, D6 decision 9)')
     ok(pg.evaluate("()=>TB.Dock.items.some(b => b.id === 'auto')"), 'L0 morning 2: Auto-hunt is offered (a small chip)')
     r = pg.evaluate("()=>{const ch=TB.REG.lichen,s=ch.sim.s,L=ch.sim.live(s),p=ch.pos(s.moths[L[0]]),c=document.getElementById('scene').getBoundingClientRect();return [c.left+p[0],c.top+p[1]];}")
-    pg.mouse.move(r[0], r[1]); pg.mouse.down(); adv(pg, 700); pg.mouse.up(); adv(pg, 100)
-    ok(pg.evaluate(S)['pins'] == 1, 'L0 morning 2: a hold pins the moth')
-    clean(pg, 'L0 pin'); ctx.close()
+    e0 = pg.evaluate(S)['eaten']; pg.mouse.move(r[0], r[1]); pg.mouse.down(); adv(pg, 700); pg.mouse.up(); adv(pg, 100); st = pg.evaluate(S)
+    ok(st['pins'] == 0 and st['eaten'] == e0 + 1, 'L0 morning 2: a hold is a peck, never a pin')
+    clean(pg, 'L0 hold'); ctx.close()
 
     # two hungry mornings offer Untimed; it switches the clock to looks
     ctx, pg, ext = page(b, '?unit=lichen&level=1&seed=12')

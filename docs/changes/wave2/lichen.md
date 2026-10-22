@@ -258,3 +258,39 @@ Three reviewers (playtest and art, science, design) raised 49 issues. I checked 
 | Scripted play with What if? (390×780, 1280×720) | all levels, no errors or warnings; L2 Predict earned by real drags; boss and No inheritance Transfers earned |
 
 Screenshots: `scratchpad/wave2/lichen/review/` (106 images, both viewports, every level and phase, plus `L1_card_whatif_chips_360x640.png` and `L3_streak_fade_390x780.png`). I looked at them. Two collisions remain in the live strip and are engine-owned: "you" over "now" while you drag onto the current point in the triangle, and the collapsed phone strip's labels.
+
+---
+
+## Simplification (D6 decision 9), 22 October 2026
+
+The designer liked the wood, the bird and the UI, but found some of the play fiddly. I played all four levels at 390 × 780 (screenshots in the session scratchpad, `s3/simp_lichen_soot/before_lw/` and `after_lw/`) and cut whatever did not serve the one idea: *selection keeps what the predator misses, and only the inherited part of that difference reaches the young (R = h²S)*. The verb is now just one thing: tap a moth to eat it.
+
+### What was removed or merged, and why
+
+| Removed | Where | Why |
+|---|---|---|
+| "How many eggs will see spring?" drag-the-line prediction | L0 | It was not the aha. The point (300 eggs, 30 places) is now stated plainly at dusk: "300 eggs, room for 30. Most young must die, whatever you do." |
+| Press-and-hold pinning, its ghost-hand demo, Shift+Enter, the specimen card | L0 | It was a second verb that no playtester found unprompted, and the Discover star depended on it. A hold is now a peck. The `pin` action stays inert so old replay logs still run. |
+| Three "drag the diamond" predictions | L1 | L1 now just shows the selection. At the first hatch the HUD gives the key equation: "R = h²S: the young keep only the inherited part of S." h² sits in the HUD and data table from the first dusk (it used to be hidden until the third prediction). The realised-h² line at generation 3 stays. |
+| Two of the three diamond predictions | L2 | Mixed diets keeps **the chapter's one prediction**, the one that makes the aha. With h² ≈ 0.3 the young land only about a third of the way to the survivors. It is asked **once**, at the first dusk where "no change" would miss (`wantAsk`), so it is always a real test. The HUD says: "Survivors sit at the S arrow. Tap where their young will land, then Lock in." |
+| The boss triangle prediction ("where will the wood be after generation 6?") | L3 | It was a second, harder gesture (a simplex) that did not produce the boss's aha. The boss is now played and watched. |
+| The What if? triangle prediction | L3 | The levers (no search image, eat the rare, one hides better) now run fourteen generations straight away, and the card reports the result. |
+
+Kept: the four levels, each with one idea (overproduction; R = h²S; low h² shrinks R; apostatic selection). Also kept: the art, the bark, the egg tray, the S and R arrows, the dot chart and trace, the search image and ghost jays (the boss's mechanism), Auto-hunt and Untimed (accessibility), every MODEL card and reference, and What if? No inheritance in L1 and L2. That last one asks the same "where will the young land?" tap, so the chapter still has only one kind of prediction.
+
+### Stars, re-balanced to the remaining steps
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L0 Too many moths | fed on 2 of 3 mornings (the pin is no longer required) | — | — |
+| L1 The Lichen Wood | fed on 4 of 5, camouflage +15 points | — | What if? No inheritance: predict the young (hint shown here) |
+| L2 Mixed diets | fed on 3 of 4, S ≥ 8 points | the one ask lands in the band (was 2 of 3) | (still earnable through What if?; no hint on this card) |
+| L3 Two barks | fed on 4 of 6, every look ≥ 10% | — | — (was the triangle) |
+
+No level offers three stars. The unit still totals D + P + T. `content.levelStars`, `stars`, the intro card's "How to play" and the level bodies were rewritten to match. The text about the pin and the egg question was deleted.
+
+### Tests
+
+- `tests/oracle_lichen.js`: the tests that assumed L1 asks now run on L2. New checks: L0, L1 and the boss ask nothing; Mixed diets asks at most once and always as a real test, and is asked in ≥ 90% of runs by a hunter who selects; a competent player earns D + P in L2; the old pin action is inert. Full run: **77/77**. L1 R/S 0.75 against h² 0.76 and L2 0.27 against 0.26 are unchanged. The unit now takes 4.2 virtual minutes.
+- `tests/lichen_smoke.py`: the prediction checks (unmoved Lock in, P/arrows/Enter, phone hold of the hatch, 9 s soft timer) now run in L2. L1 checks that it asks nothing and that the HUD shows R = h²S. L0 checks that a hold pecks. **52/52**.
+- Lint 0 errors and 0 warnings; `dup_globals` ok; bot sweep (10 bots × 20 seeds) passes, best unions D or DP; monkey seeds 1–3 at 390 × 780 and 1280 × 720: **6/6** reached the end card with no errors.

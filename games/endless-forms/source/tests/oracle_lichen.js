@@ -153,11 +153,20 @@ module.exports = function (G, t) {
   {
     const tally = (lv, pred) => { let hit = 0, n = 0; for (let sd = 1; sd <= N(60); sd++) { const r = run(lv, { seed: 2000 + sd, policy: softBot(0, pred), rnd: mulberry(sd) }); for (const id of r.s.asks) { n++; if (r.s.hits[id]) hit++; } } return hit / n; };
     const rIsS = (s, acts) => near(acts, s.hist[s.hist.length - 1].mSurv), none = (s, acts) => near(acts, s.hist[s.hist.length - 1].mAll), exact = (s, acts) => ({ k: 'predict', id: s.ask.id, v: s.exp[s.ask.id] });
-    const e1 = tally(1, exact), e2 = tally(2, exact), s2 = tally(2, rIsS), z2 = tally(2, none), z1 = tally(1, none);
-    t.note(`hit rates: expectation L1 ${e1.toFixed(2)} L2 ${e2.toFixed(2)}; young = survivors L2 ${s2.toFixed(2)}; no change L1 ${z1.toFixed(2)} L2 ${z2.toFixed(2)}`);
-    t.ok(e1 >= 0.99 && e2 >= 0.99, 'a prediction at the expectation always lands in the band');
+    const e2 = tally(2, exact), s2 = tally(2, rIsS), z2 = tally(2, none);
+    t.note(`hit rates in Mixed diets' one ask: expectation ${e2.toFixed(2)}; young = survivors ${s2.toFixed(2)}; no change ${z2.toFixed(2)}`);
+    t.ok(e2 >= 0.99, 'a prediction at the expectation always lands in the band');
     t.ok(s2 <= 0.25, 'L2: "the young match the survivors" mostly misses (h² is low; predictions must shrink)');
-    t.ok(z2 <= 0.35 && z1 <= 0.35, '"no change" mostly misses in L1 and L2');
+    t.ok(z2 <= 0.35, '"no change" mostly misses in L2');
+    {   // D6 decision 9: one prediction in the chapter's main path (Mixed diets), asked once, and only where "no change" would miss
+      let other = 0, many = 0, untest = 0, asked = 0, M = N(40);
+      for (let sd = 1; sd <= M; sd++) for (const lv of [0, 1, 2, 3]) {
+        const r = run(lv, { seed: 2500 + sd, policy: softBot(2, exact), rnd: mulberry(sd * 5 + lv) });
+        if (lv !== 2) other += r.s.asks.length; else { if (r.s.asks.length > 1) many++; if (r.s.asks.length) asked++; for (const id of r.s.asks) if (!r.s.test[id]) untest++; }
+      }
+      t.eq([other, many, untest], [0, 0, 0], `L0, L1 and the boss ask nothing; Mixed diets asks at most once, always a real test (asked in ${asked}/${M} runs)`);
+      t.ok(asked / M >= 0.9, 'a hunter who selects is asked in Mixed diets');
+    }
     G.reset(3, 11); const sx = sim.s, e = sim.replay(sx.moths, 3, 2, LW_D_ORACLE(), 200, 5), e2b = sim.replay(sx.moths, 3, 2, LW_D_ORACLE(), 200, 5);
     t.eq(e, e2b, 'the boss expectation (200 replays, private PRNG) is deterministic');
     const before = G.TB.R.state(); sim.replay(sx.moths, 3, 2, LW_D_ORACLE(), 50, 6); t.eq(G.TB.R.state(), before, 'the replays never draw from R(), so the run is untouched');
@@ -167,9 +176,10 @@ module.exports = function (G, t) {
   {
     let secs = 0; const paced = (s, acts, rnd) => softBot(2, (s2, a2) => ({ k: 'predict', id: s2.ask.id, v: s2.exp[s2.ask.id] }))(s, acts, rnd);
     for (let lv = 0; lv < 4; lv++) {   // a competent player: one peck every 0.5 s, a prediction after 3 s; plus 15 s on each level card
-      const r = G.run(lv, { seed: 3000 + lv, policy: (s, acts, rnd) => { if (s.ask && s.t < 3) return null; if (lv === 0 && s.gen === 2 && !s.pins.length) { const p = acts.find(a => a.k === 'pin'); if (p) return p; } return paced(s, acts, rnd); }, every: 15, rnd: mulberry(lv + 1) });
+      const r = G.run(lv, { seed: 3000 + lv, policy: (s, acts, rnd) => { if (s.ask && s.t < 3) return null; return paced(s, acts, rnd); }, every: 15, rnd: mulberry(lv + 1) });
       secs += r.ticks * sim.dt + 15; t.ok(!!r.result, `L${lv}: the competent player finishes (${(r.ticks * sim.dt).toFixed(0)} s)`);
-      if (lv === 0) t.ok((r.result.mask & 1) === 1, 'L0: feeding the chicks and pinning a moth earns Discover');
+      if (lv === 0) t.ok((r.result.mask & 1) === 1, 'L0: feeding the chicks earns Discover');
+      if (lv === 2) t.ok((r.result.mask & 3) === 3, 'L2: a competent player who predicts the expectation earns Discover and Predict');
     }
     t.note(`the unit takes ${(secs / 60).toFixed(1)} minutes of virtual clock for a competent player`);
     t.ok(secs <= 15 * 60, 'D1 oracle 4: a scripted competent player finishes the Wood within 15 minutes');
@@ -199,8 +209,8 @@ module.exports = function (G, t) {
     for (const lv of [0, 1, 2]) for (let sd = 1; sd <= N(30); sd++) { const r = run(lv, { seed: 6000 + sd, policy: softBot(0, undragged), rnd: mulberry(sd + 50 * lv) }); for (const id of r.s.asks) { asks++; if (r.s.hits[id]) hits++; } if (r.result && (r.result.mask & 6)) stars++; }
     t.eq([hits, stars], [0, 0], `an unmoved ghost (Lock in, or the soft timer) is no prediction: ${asks} asks, no hit, no Predict or Transfer star`);
     let ok = 0, n = 0;   // the ghost starts at the axis's left end (0%), far from any expectation
-    for (let sd = 1; sd <= N(30); sd++) { const r = run(1, { seed: 6100 + sd, policy: softBot(0, (s) => ({ k: 'predict', id: s.ask.id, v: s.ask.start })), rnd: mulberry(sd) }); for (const id of r.s.asks) { n++; if (!r.s.hits[id]) ok++; } }
-    t.eq(ok, n, `L1: the ghost starts off the data, so committing its start value always misses (${ok}/${n})`);
+    for (let sd = 1; sd <= N(30); sd++) { const r = run(2, { seed: 6100 + sd, policy: softBot(0, (s) => ({ k: 'predict', id: s.ask.id, v: s.ask.start })), rnd: mulberry(sd) }); for (const id of r.s.asks) { n++; if (!r.s.hits[id]) ok++; } }
+    t.eq(ok, n, `L2: the ghost starts off the data, so committing its start value always misses (${ok}/${n})`);
     let zc = 0, zn = 0;   // "no change" never counts towards Predict (the test rule), even where the band is floored
     for (let sd = 1; sd <= N(60); sd++) { const r = run(2, { seed: 6200 + sd, policy: softBot(0, (s) => ({ k: 'predict', id: s.ask.id, v: s.hist[s.hist.length - 1].mAll })), rnd: mulberry(sd * 3) }); for (const id of r.s.asks) { zn++; if (r.s.hits[id]) zc++; } }
     t.eq(zc, 0, `L2: an exact "no change" call never scores (${zn} asks)`);
@@ -223,18 +233,17 @@ module.exports = function (G, t) {
     t.ok(hit / M >= 0.95, `No inheritance: calling the old average lands (${hit}/${M})`);
     t.eq(bodyOk, M, 'What if? card: S and R are the replayed generation\'s own, never the level\'s averages');
   }
-  {   // the strip never shows the answer while you predict; L1 names h² only after the third prediction
-    G.TB.seed(31); ch.level = 1; sim.reset(1, {}); let ticks = 0; const rnd = mulberry(31), pol = softBot(0, null);
-    while (!sim.s.ask && ticks < 20000) { const A = sim.actions(); if (A.length && ticks % 3 === 0 && !sim.s.ask) { const x = pol(sim.s, A, rnd); if (x) sim.act(x); } sim.step(sim.dt); ticks++; }
-    const nt = ch.notes(), tr = nt.charts.find(c => c.type === 'trace'), e = sim.s.exp[sim.s.ask.id];
-    t.ok(tr && tr.ghost[0].d.length === 1 && tr.ghost[0].d.every(v => Math.abs(v - e) > 1e-9), 'during an L1 ask the trace shows no expected point for the generation you are predicting');
-    t.ok(!nt.stats.some(r => /^h²/.test(r[0])), 'during L1\'s first ask the data table hides h²');
+  {   // the strip never shows the answer while you predict (the trace has no expected point for the generation asked)
+    G.TB.seed(31); ch.level = 2; sim.reset(2, {}); let ticks = 0; const rnd = mulberry(31), pol = softBot(0, null);
+    while (!sim.s.ask && !sim.result() && ticks < 20000) { const A = sim.actions(); if (A.length && ticks % 3 === 0 && !sim.s.ask) { const x = pol(sim.s, A, rnd); if (x) sim.act(x); } sim.step(sim.dt); ticks++; }
+    const nt = ch.notes(), tr = nt.charts.find(c => c.type === 'trace'), e = sim.s.ask && sim.s.exp[sim.s.ask.id], g = sim.s.gen;
+    t.ok(!!sim.s.ask && tr && tr.ghost[0].d.length === g && tr.ghost[0].d.every(v => Math.abs(v - e) > 1e-9), 'during the L2 ask the trace shows no expected point for the generation you are predicting');
   }
 
   /* ---------- review round: pins, the search cost, the boss looks, Interesting results ---------- */
   {
     G.reset(1, 5); const s = sim.s; sim.act({ k: 'pin', i: live(s)[0] }); t.eq(s.pins.length, 0, 'L1: a long press never pins (pinning is taught only in L0, mornings 2–3)');
-    G.reset(0, 5); sim.act({ k: 'pin', i: live(sim.s)[0] }); t.eq(sim.s.pins.length, 0, 'L0 morning 1: no pin');
+    G.reset(0, 5); sim.act({ k: 'pin', i: live(sim.s)[0] }); t.eq(sim.s.pins.length, 0, 'L0: no pin (pinning was cut, D6 decision 9); the old action is inert');
     const idle = G.run(0, { seed: 9, policy: () => null }); t.eq(idle.result && idle.result.interesting, 'starved0', 'L0 idle: the hungry-chicks line for L0 (nothing is hidden there)');
   }
   {   // evolution makes the job harder: a darkest-first hunter at a fixed pace has more hungry chicks in L1's last morning than its first

@@ -2,11 +2,11 @@
 
   GAME_HTML=/abs/build.html python3 tests/raffle_paths.py
 
-Checks: a real pointer hold pours (a quick tap pours exactly one unit; holding longer pours more; letting go closes the drum
+Checks: a real pointer hold pours (a quick tap pours exactly one unit; holding longer pours more; letting go closes the mating
 after a grace, and pressing again inside it resumes); the dock's Pour is a tap-to-start, tap-to-stop latch; keys (Space as a
 true hold, ArrowUp adds a unit, Enter is Done); act-to-juice latency <= 200 ms (Events.lat); the dung pat's hold sets the
 mating time; untimed mode logs itself and halves the pour rate, and its asks never time out; a Predict ask needs a move;
-What if? thaws the level's start with one change and shows its own text; Calm mode stops the drum spinning; a deep link;
+What if? thaws the level's start with one change and shows its own text; Calm mode; a deep link;
 teacher mode; ?v1=1 plays the legacy chapter; the learning layer. Exit 1 on any failure."""
 import os, sys
 from playwright.sync_api import sync_playwright
@@ -61,7 +61,7 @@ def main():
         pg.evaluate("()=>window.__advance(200)"); pg.mouse.down(); pg.evaluate("()=>window.__advance(400)"); pg.mouse.up()
         check(S(pg, "F.s") > u + 1 and S(pg, "s.i") == 0, 'pressing again inside the grace resumes the same pour')
         pg.evaluate("()=>window.__advance(900)")
-        check(S(pg, "s.phase") in ('draw', 'leave'), 'letting go closes her drum after the grace, and the eggs draw (%s)' % S(pg, "s.phase"))
+        check(S(pg, "s.phase") in ('draw', 'leave'), 'letting go ends the mating after the grace, and her eggs are fertilised (%s)' % S(pg, "s.phase"))
         lat = pg.evaluate("()=>TB.Events && TB.Events.lat ? TB.Events.lat().filter(x => x != null) : []")
         check(len(lat) > 0 and max(lat) <= 200, 'act-to-juice latency %s ms (<= 200)' % (max(lat) if lat else None))
         for k in range(300):
@@ -80,7 +80,7 @@ def main():
         pg.keyboard.down(' '); pg.evaluate("()=>window.__advance(700)"); held = S(pg, "s.hold"); pg.keyboard.up(' '); pg.evaluate("()=>window.__advance(60)")
         check(held and not S(pg, "s.hold"), 'Space is a true hold: pouring while down, stopping on release')
         pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(60)")
-        check(S(pg, "s.phase") in ('draw', 'ask', 'later'), 'Enter is Done: her drum closes at once (%s)' % S(pg, "s.phase"))
+        check(S(pg, "s.phase") in ('draw', 'ask', 'later'), 'Enter is Done: the mating ends at once (%s)' % S(pg, "s.phase"))
         # a call needs a move: tap Lock in on an untouched ghost; then play the level out with the expert
         for k in range(4000):
             st = S(pg, "({ph: s.phase, ask: s.ask && s.ask.id, card: !!document.querySelector('#cards.on .card')})")
@@ -108,12 +108,12 @@ def main():
 
         # ---- the dung pat: the hold is the mating time ----
         ctx, pg, errs = page(b)
-        play(pg, 2)
+        play(pg, 1)
         for k in range(60):
             if S(pg, "s.phase") == 'pour': break
             pg.evaluate("()=>window.__advance(50)")
         x, y = centre(pg); pg.mouse.move(x, y); pg.mouse.down(); pg.evaluate("()=>window.__advance(3250)"); m = S(pg, "s.mins"); pg.mouse.up(); pg.evaluate("()=>window.__advance(400)")
-        check(28 < m < 32, 'L3: holding 3.25 s mates for about 30 minutes (%.1f; ×600 time)' % m)
+        check(28 < m < 32, 'L2: holding 3.25 s mates for about 30 minutes (%.1f; ×600 time)' % m)
         check(S(pg, "s.fem[0].t > 25 && Math.abs(s.fem[0].x - 0.8934849 * (1 - Math.exp(-0.0627036 * s.fem[0].t))) < 1e-9"), 'her store share follows the displacement curve')
         check(not errs, 'no page errors on the dung pat')
         ctx.close()
@@ -137,14 +137,14 @@ def main():
         # ---- Calm, a deep link, teacher mode, the result code row ----
         ctx, pg, errs = page(b, 390, 780, '?unit=raffle&level=1&seed=5', calm=True)
         pg.evaluate("()=>window.__advance(1500)")
-        st = pg.evaluate("()=>({lv: TB.REG.raffle.level, calm: !!(TB.Fx && TB.Fx.calm), risky: TB.REG.raffle.sim.s.risky})")
-        check(st['lv'] == 1 and st['calm'] and st['risky'] >= 1, 'a deep link opens L2 in Calm mode')
+        st = pg.evaluate("()=>({lv: TB.REG.raffle.level, calm: !!(TB.Fx && TB.Fx.calm), dung: TB.REG.raffle.sim.s.fem[0].T > 0})")
+        check(st['lv'] == 1 and st['calm'] and st['dung'], 'a deep link opens L2 (the dung pat) in Calm mode')
         pg.evaluate("()=>{ const ch = TB.REG.raffle; TB.Sim.act(ch, {k: 'mate'}); window.__advance(2600); }")
-        check(pg.evaluate("()=>TB.REG.raffle.v.spinV < 0.01"), 'Calm: the drum does not spin during the draw')
+        check(pg.evaluate("()=>TB.REG.raffle.sim.s.fem[0].eggs >= 0") and not errs, 'Calm: her eggs are laid without errors')
         ctx.close()
-        ctx, pg, errs = page(b, 1280, 720, '?teacher=1&unit=raffle&level=3&seed=3')
+        ctx, pg, errs = page(b, 1280, 720, '?teacher=1&unit=raffle&level=2&seed=3')
         pg.evaluate("()=>window.__advance(1500)")
-        check(pg.evaluate("()=>TB.REG.raffle.sim.s && TB.REG.raffle.level === 3") and not errs, 'teacher mode opens the boss without errors')
+        check(pg.evaluate("()=>TB.REG.raffle.sim.s && TB.REG.raffle.level === 2") and not errs, 'teacher mode opens the boss without errors')
         ctx.close()
 
         # ---- ?v1=1 keeps the legacy chapter; the learning layer is v2 otherwise ----
@@ -154,7 +154,7 @@ def main():
         ctx.close()
         ctx, pg, errs = page(b)
         st = pg.evaluate("()=>({v2: TB.REG.raffle.v2 === true, plan: TB.REG.raffle.levels.length})")
-        check(st['v2'] and st['plan'] == 4, 'the v2 Raffle replaces it with 4 levels')
+        check(st['v2'] and st['plan'] == 3, 'the v2 Raffle replaces it with 3 levels')
         ctx.close()
         b.close()
     print('raffle paths: %d ok, %d failed' % (len(oks), len(fails)))

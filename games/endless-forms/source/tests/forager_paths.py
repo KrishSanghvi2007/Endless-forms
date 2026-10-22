@@ -93,7 +93,7 @@ def main():
         # 5. Calm and teacher load and play a level with the scripted player
         for q in ('?dev=1&calm=1', '?teacher=1&unit=forager&seed=5'):
             pg, errs = page(b, html, q)
-            play(pg, 4, 5)
+            play(pg, 3, 5)
             for k in range(2000):
                 done = pg.evaluate("""()=>{ const ch = TB.REG.forager, s = ch.sim.s; if (document.querySelector('#cards.on .card')) return true;
                   const a = ch.sim.bots.expert(s, ch.sim.actions(), Math.random); if (a) TB.Sim.act(ch, a); window.__advance(60); return false; }""")

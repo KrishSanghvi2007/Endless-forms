@@ -399,6 +399,8 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 - **2026-10-21** Opening card built (`00_entry.js`, API_v2 §15). Batch 1 retrofitted; Drift Casino reskinned as a riverboat saloon with anoles.
 - **2026-10-21** Built as v2 units, each in its own world: bitter, forager, jaws, raffle, alarm, clinic, switch, scribe (self-reviewed and tested), plus the new games royal, tap, swamp and dig (built; external reviews partial; see `START_HERE.md` §4). All 9 designer favourites are now rebuilt. Full-build `SW_C` clash fixed; `tests/dup_globals.sh` added.
 
+- **2026-10-22** Designer feedback, recorded as D6 decisions 9 (simple beats clever: remove prediction interludes that add little, one verb, 3–4 levels, key number shown plainly) and 10 (real biology, not symbols). Simplification pass done for 8 units; raffle, alarm and switch were part-done; the rest are pending. The six Wave A chapters are planned (workflow script 6) but not built. See `START_HERE.md`.
+
 ## 14. Open questions for the designer
 
 The D5 §7 questions were answered on 14 Oct 2026; see D6. Still open:

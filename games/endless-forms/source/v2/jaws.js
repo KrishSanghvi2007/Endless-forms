@@ -1,7 +1,8 @@
 /* ================= v2/jaws.js: Left Jaw, Right Jaw (Act 5; D1 §3.3, D5 §4 item 7; log docs/changes/wave2/jaws.md) =================
    Lake Tanganyika shallows. Scale-eaters (Perissodus) strike a flank set by a continuous, partly inherited jaw twist; you raise
-   guard plates on the side you expect, and that habit is the selection (negative frequency dependence). L0 one fish, L1 the
-   school (scarce guards), L2 low h² (R = h²S), L3 two species, L4 boss: rock–paper–scissors lizards. A headless sim (plain JSON,
+   guard plates on the side you expect, and that habit is the selection (negative frequency dependence). D6 decision 9: four
+   levels, one verb, one prediction. L1 one fish (the one prediction), L2 low h² (R = h²S, shown plainly), L3 two species,
+   L4 boss: rock–paper–scissors lizards. Internally a level runs a model kind (JW_KIND 0, 2, 3, 4; s.kd). A headless sim (plain JSON,
    R()/Det/Gen/WF; a run is (seed, level, actions)); words in JW_TEXT; juice from Sim.run's events only; ?v1=1 skips the foot. */
 
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
@@ -9,7 +10,7 @@ const JW_TEXT = {
   intro: {   // the opening card (D6 addendum, decision 8), drawn by 00_entry.js
     game: 'You keep watch over a school of cichlids in the shallows of Lake Tanganyika. Scale-eaters dart in from behind and rip scales off a flank.',
     biology: 'Each scale-eater’s jaw bends to one side, so it mostly bites one flank. The rarer jaw meets fewer guards and leaves more young, so neither form wins for long.',
-    how: 'Tap a fish’s left or right flank to raise a guard plate for a moment. Block what you can, then predict where the jaws will swing.'
+    how: 'Tap a fish’s left or right flank to raise a guard for a moment; block what you can. Once, you drag a marker to predict.'
   },
   firstWords: 'Scale-eaters dart in from behind and bite a flank. Tap the flank you expect them to bite.',
   hud: {
@@ -18,14 +19,16 @@ const JW_TEXT = {
     swimN: 'Two guards, three fish. Guard where the next bites will land.',
     unt: 'Place your guards, then press Strike.',
     dusk: 'Season over. Well-fed scale-eaters leave the most young.',
-    ask: 'Where will right-strikers be next season? Drag the diamond, then Lock in.',
-    askZ: 'Where will the young’s mean twist land? Drag the line, then Lock in.',
-    askB: 'Where will striped right-strikers be next season? Drag, then Lock in.',
+    // the key numbers (D6 decision 9), each with its one-line meaning
+    duskK: 'Left-strikers landed {l}% of bites, right-strikers {r}%. The better-fed jaw leaves more young.',
+    duskB: 'One guard blocks both species, so both lose on the same side.',
+    breedR: 'R = h²S = {h} × {s} ≈ {r}: the young keep the inherited part.',
+    ask: 'You guarded the commoner side. Where will right-strikers be next season? Drag, then Lock in.',
     breed: 'The young replace their parents.',
     liz: 'Tap the side a yellow sneaker comes from. Orange males cannot be stopped.',
     lizU: 'A sneaker waits. Tap its side to chase it off.',
     lizDusk: 'Season over. Each morph’s young depend on whom it beat.',
-    lizAsk: 'Where will the rocks be next season? Tap the triangle, then Lock in.',
+    lizK: 'Blocked {b}% of sneakers. Blue beats yellow only above 50%: 2b − 1 > 0.',
     auto: 'What if? Eight seasons, run fast.',
     over: 'Done.'
   },
@@ -68,7 +71,6 @@ const JW_TEXT = {
     cross: ['', ', crossing 50:50 once', ', crossing 50:50 twice', ', crossing 50:50 {n} times'],
     takeNo: [   // the card's take when the run did not show the level's lesson
       'No full swing this time. The rare side feeds only when your guards follow the commoner side.',
-      'No full swing this time. The rare type rises only when scarce guards cover the common side.',
       'Chance swamped the response this time. With heritability this low, the young barely track the fed group.',
       'The two species did not move together this time. Chance in who bred outweighed the shared push.'
     ],
@@ -84,26 +86,23 @@ const JW_TEXT = {
   law: { title: 'Rare does better' },
   boss: { inverts: 'Rarity is no shield here: a morph rises when the morph it beats is common.' },
   stars: {
-    discover: 'Block over half the bites and watch the share swing past 50:50 and back.',
-    predict: 'In two levels, land two predictions inside the band.',
-    transfer: 'Keep the lizard wheel turning and land two triangle predictions.'
+    discover: 'In two fish levels, block over half the bites and see the share swing.',
+    predict: 'In One fish, land the next-season prediction inside the band.',
+    transfer: 'Keep the lizard wheel turning: blue, orange, yellow, then blue again.'
   },
-  levelStars: [
-    { discover: 'Block 55% of bites and see the share cross 50:50 and come back.' },
-    { discover: 'Block half the bites and see the share cross 50:50 and come back.', predict: 'Land two of three predictions inside the band.' },
-    { discover: 'Block half the bites and move the share 8 points towards 50:50.', predict: 'Land two of three predictions inside the band.' },
-    { discover: 'Block half the bites and keep both species moving together.', predict: 'Land two of three predictions inside the band.' },
-    { discover: 'Keep the wheel turning: blue, orange, yellow, then blue again.', transfer: 'Land two of three triangle predictions inside the band.' }
+  levelStars: [   // each level's own stars (D6 decision 9: one prediction, no triangle)
+    { discover: 'Block 55% of bites and see the share cross 50:50 and come back.', predict: 'Land the next-season prediction inside the band.' },
+    { discover: 'Block half the bites and move the share 8 points towards 50:50.' },
+    { discover: 'Block half the bites and keep both species moving together.' },
+    { discover: 'Block at least half the sneakers, so blue beats yellow.', transfer: 'Keep the wheel turning: blue, orange, yellow, then blue again.' }
   ],
   levelTake: [   // shown only when the run did it (the level's Discover); otherwise levelTakeNo (lessons rule 6)
     'Your guards made the common side go hungry. The rare side fed, bred and became common.',
-    'Scarce guards protect the common side. So the rare type rises, and the young overshoot.',
     'Little heritability, little response. Hard selection moved the young only part of the way.',
     'One defender selects both species, so their swings line up.'
   ],
   levelBody: [
     'Right-strikers went {p0}% → {p1}%{x}. You blocked {b}% of bites. Bites on the rarer side landed {u}% of the time, on the commoner side {c}%.',
-    'Right-strikers went {p0}% → {p1}%{x}. You guarded the commoner side {t}% of the time. Each season’s young answer the guards their parents met.',
     'Each season your guards fed a group whose mean twist differed by {s}. Their young moved {r} the same way on average. Most twist variation here comes from development.',
     'Plain right-strikers went {a0}% → {a1}%; striped went {b0}% → {b1}%. They moved the same way in {k} of {n} seasons, because one guard blocks both.'
   ],
@@ -113,22 +112,17 @@ const JW_TEXT = {
       params: [{ name: 'heritability h²', value: 0.9, tag: 'xN', real: 'about 0.2 in Perissodus' }, { name: 'scale-eaters', value: 40, tag: 'designed' }, { name: 'young per scale eaten', value: 'about 20 to 1 against the hungry', tag: 'xN', real: 'much weaker selection in the lake' }, { name: 'guard length', value: '1.2 s', tag: 'designed' }, { name: 'seasons', value: 6, tag: 'xN', real: 'years per swing' }],
       cannot: 'Prey that remember attacks, scale-eaters that switch sides, or jaws shaped by use.',
       nature: 'Hori followed Perissodus for about a decade. The share swung around 50:50, with a period of about five years. He read the jaw as one gene; later work finds a continuous, partly inherited trait.', contested: false, refs: ['hori1993', 'takeuchi2012', 'kusche2012'] },
-    { level: 1, simulated: 'Three prey fish and two guard plates. Each plate covers one flank of one fish. The young answer last season’s guards.',
-      simplification: 'Each attack picks a fish at random. Twist is the only trait that matters for feeding.',
-      params: [{ name: 'heritability h²', value: 0.9, tag: 'xN', real: 'about 0.2' }, { name: 'prey fish', value: 3, tag: 'designed' }, { name: 'guards', value: 2, tag: 'designed' }],
-      cannot: 'Years of overlap between generations, which stretch real swings to about five years.',
-      nature: 'Hori proposed that prey watch the flank they are attacked on most, so the commoner jaw feeds less. Nobody computes: guarding follows experience.', contested: false, refs: ['hori1993'] },
-    { level: 2, simulated: 'The same lake, but development adds most of the twist variation. Heritability is about 0.25.',
-      simplification: 'Development adds random twist that is never passed on.',
-      params: [{ name: 'heritability h²', value: 0.25, tag: 'realistic' }, { name: 'scale-eaters', value: 40, tag: 'designed' }],
+    { level: 1, simulated: 'The same lake, now with three prey fish and two guard plates. Development adds most of the twist variation. Heritability is about 0.25.',
+      simplification: 'Development adds random twist that is never passed on. Each attack picks a fish at random.',
+      params: [{ name: 'heritability h²', value: 0.25, tag: 'realistic' }, { name: 'scale-eaters', value: 40, tag: 'designed' }, { name: 'prey fish', value: 3, tag: 'designed' }, { name: 'guards', value: 2, tag: 'designed' }],
       cannot: 'Plasticity: in the lake, a diet of scales and practice at striking make jaws more lopsided.',
       nature: 'Twist heritability is about 0.2. Diet and experience shape much of the rest. Whether twist has one mode or two is debated.', contested: false, refs: ['lee2015', 'kusche2012', 'raffini2019'] },
-    { level: 3, simulated: 'Two scale-eater species, forty each, share the prey. Your guards block both alike.',
+    { level: 2, simulated: 'Two scale-eater species, forty each, share the prey. Your guards block both alike.',
       simplification: 'This synchrony is a model prediction: one defender selects both species.',
       params: [{ name: 'heritability h²', value: 0.9, tag: 'xN', real: 'about 0.2' }, { name: 'species', value: 2, tag: 'designed' }],
       cannot: 'Competition between the two species for prey.',
       nature: 'Several Tanganyika scale-eaters strike mostly one flank. Whether their swings line up in the lake is not settled here.', contested: false, refs: ['hori1993', 'boileau2015'] },
-    { level: 4, simulated: '150 male side-blotched lizards. Orange usurps blue, blue guards against yellow, yellow sneaks past orange. Three of each morph arrive from other rocks each season.',
+    { level: 3, simulated: '150 male side-blotched lizards. Orange usurps blue, blue guards against yellow, yellow sneaks past orange. Three of each morph arrive from other rocks each season.',
       simplification: 'Your block rate sets how well blue does against yellow. Each morph’s young depend on whom it beats.',
       params: [{ name: 'males', value: 150, tag: 'designed' }, { name: 'strength of selection', value: 5, tag: 'xN', real: 'weaker in the field' }, { name: 'arrivals per morph', value: 3, tag: 'designed' }],
       cannot: 'Females, whose own morphs cycle too, and the yearly turnover of real lizards.',
@@ -140,9 +134,8 @@ const JW_TEXT = {
   },
   levelWhy: [
     { real: ['Michio Hori watched Perissodus in Lake Tanganyika for about ten years. Whichever jaw was common did worse, and the share swung around 50:50.'],
-      maths: ['Call p the share striking the right flank. When p is high, prey guard the right more, so right-strikers feed less. Fitness falls as p rises.'] },
-    { real: ['Prey cannot see a scale-eater coming from behind. Hori proposed that they watch the flank attacked most, so the commoner jaw meets more resistance.'],
-      maths: ['The young reflect last season’s feeding, not this season’s. Strong selection plus that lag makes the share overshoot 50:50, then swing back.'] },
+      maths: ['Call p the share striking the right flank. When p is high, prey guard the right more, so right-strikers feed less. Fitness falls as p rises.',
+        'The young reflect last season’s feeding, not this season’s. Strong selection plus that lag makes the share overshoot 50:50, then swing back.'] },
     { real: ['Studies of Perissodus find twist heritability near 0.2. Young reared on scales grow more lopsided jaws than young reared on other food.'],
       maths: ['Breeders write R = h²S. With h² near 0.25, the young keep about a quarter of the twist difference you selected.'] },
     { real: ['Lake Tanganyika holds several scale-eating cichlids. A striped one, Plecodus straeleni, looks like the striped fish it feeds on.'],
@@ -151,11 +144,14 @@ const JW_TEXT = {
 };
 
 /* ---------- levels (sim parameters; P holds the tunable, tagged values) ---------- */
+// D6 decision 9: four levels and one prediction (L1). JW_KIND maps a level number to its model kind (s.kd); kind 1, the old
+// three-fish "The school" level, is cut, and its three fish and two plates now arrive in L2 with the low-heritability idea
+const JW_KIND = [0, 2, 3, 4];
 const JW_LV = [
-  { nf: 1, plates: 1, att: 12, seasons: 6, m: [1.0], hk: 'h2', thr: 0.55, ask: 'y', asks: 2 },
-  { nf: 3, plates: 2, att: 16, seasons: 7, m: [-0.95], hk: 'h2', thr: 0.5, ask: 'y', asks: 3 },
-  { nf: 3, plates: 2, att: 18, seasons: 6, m: [1.0], hk: 'h2low', thr: 0.5, ask: 'x', asks: 3 },
-  { nf: 3, plates: 2, att: 20, seasons: 6, m: [1.0, -0.5], hk: 'h2', thr: 0.5, ask: 'b', asks: 3 },
+  { nf: 1, plates: 1, att: 12, seasons: 6, m: [1.0], hk: 'h2', thr: 0.55, ask: 'y', asks: 1 },   // the chapter's one prediction: next season's share
+  null,
+  { nf: 3, plates: 2, att: 18, seasons: 6, m: [1.0], hk: 'h2low', thr: 0.5, asks: 0 },
+  { nf: 3, plates: 2, att: 20, seasons: 6, m: [1.0, -0.5], hk: 'h2', thr: 0.5, asks: 0 },
   { boss: true, seasons: 8, c0: [40, 70, 40] }
 ];
 const JW_T = { lead: 0.12, veer: 0.16, guard: 1.2, dawn: 0.7, dusk: 1.3, breed: 1.5, askMax: 25, auto: 0.45, autoN: 8, lunge: 0.55, W: 0.12, tolY: 0.07, tolX: 0.08, tolT: 0.12 };
@@ -176,7 +172,6 @@ const CH_JAWS_V2 = {
   },
   levels: [
     { name: 'One fish', adds: 'frequency dependence', codes: ['C3'], minutes: 3 },
-    { name: 'The school', adds: 'scarce guards', codes: ['C3'], minutes: 3 },
     { name: 'Partly inherited', adds: 'low heritability', codes: ['B2'], minutes: 3 },
     { name: 'Two hunters', adds: 'a second species', codes: ['C3'], minutes: 4 },
     { name: 'The lizard wheel', adds: 'rock–paper–scissors', codes: ['C4'], minutes: 4 }
@@ -193,9 +188,9 @@ const CH_JAWS_V2 = {
   /* ================= headless simulation (API_v2 §9.3): R(), Det, Gen, WF only; no DOM, canvas or view ================= */
   sim: {
     dt: 1 / 30, s: null, _lay: {},
-    cfg(n) { return JW_LV[Math.max(0, Math.min(4, n | 0))]; },
+    cfg(kd) { return JW_LV[Math.max(0, Math.min(4, kd | 0))] || JW_LV[0]; },   // by model kind (s.kd), not level number
     lay(h2) { const k = 'h' + h2; if (!this._lay[k]) this._lay[k] = Gen.layout([{ k: 'tw', n: 4, m0: 0, s0: Math.sqrt(h2), mu: 0, msd: 0, ve: Math.sqrt(Math.max(0, 1 - h2)), lo: -4, hi: 4, det: true }]); return this._lay[k]; },
-    h2(s) { const P = CH_JAWS_V2.P; return s.level === 2 ? P.h2low.v : P.h2.v; },
+    h2(s) { const P = CH_JAWS_V2.P; return this.cfg(s.kd).hk === 'h2low' ? P.h2low.v : P.h2.v; },
     L(s) { return this.lay(this.h2(s)); },
     pr(z) { return 1 / (1 + Det.exp(-z / JW_T.W)); },   // chance of striking the right flank: mostly one-flanked (D1)
     born(lay, g, sp) { const z = Gen.ph(lay, g, 'tw'); return { g, z: Math.round(z * 1e4) / 1e4, a: Math.round(Gen.add(lay, g, 'tw') * 1e4) / 1e4, sp }; },
@@ -207,10 +202,10 @@ const CH_JAWS_V2 = {
     lead(f) { return Math.max(0, Math.min(1, f)); },
 
     reset(level, o) {
-      o = o || {}; const c = this.cfg(level), P = CH_JAWS_V2.P;
+      o = o || {}; const kd = JW_KIND[level | 0] != null ? JW_KIND[level | 0] : 0, c = this.cfg(kd), P = CH_JAWS_V2.P;
       if (o.thaw) { this.restore(o.thaw.snap); this.s.log = []; this.lever(o.thaw.lever); return; }
-      this.s = { level: level | 0, boss: !!c.boss, phase: 'dawn', t: 0, T: 0, season: 1, seasons: c.seasons, unt: false, att: 0, blk: 0, reach: 0, onCommon: 0,
-        asks: [], pred: {}, exp: {}, now: {}, tol: {}, hits: {}, ask: null, askAt: 0, whatif: null, wseason: 0, hist: [], first: level === 0, log: [] };
+      this.s = { level: level | 0, kd, boss: !!c.boss, phase: 'dawn', t: 0, T: 0, season: 1, seasons: c.seasons, unt: false, att: 0, blk: 0, reach: 0, onCommon: 0,
+        asks: [], pred: {}, exp: {}, now: {}, tol: {}, hits: {}, ask: null, askAt: 0, whatif: null, wseason: 0, hist: [], first: kd === 0, log: [] };
       const s = this.s;
       if (c.boss) { s.c = c.c0.slice(); s.N = c.c0[0] + c.c0[1] + c.c0[2]; s.trail = [s.c.map(v => v / s.N)]; s.lead = [this.lizLead(s.trail[0])]; s.bs = []; s.guard = null; s.cur = []; s.queue = []; s.orange = 0; s.sAtt = 0; s.sBlk = 0; s.kept = 0; s.lost = 0; }
       else {
@@ -223,7 +218,7 @@ const CH_JAWS_V2 = {
     dawn(ev) {
       const s = this.s; s.phase = 'dawn'; s.t = 0; s.T = 0;
       if (s.boss) { const x = s.trail[s.trail.length - 1]; this.lizQueue(s, x); s.sAtt = 0; s.sBlk = 0; s.orange = 0; s.guard = null; s.cur = []; s.next = 0.5; }
-      else { const c = this.cfg(s.level); s.plates = []; s.wave = null; s.next = 0.4; s.left = c.att; s.tally = [0, 0, 0, 0]; }
+      else { const c = this.cfg(s.kd); s.plates = []; s.wave = null; s.next = 0.4; s.left = c.att; s.tally = [0, 0, 0, 0]; }
       ev.push({ k: 'dawn', season: s.season });
     },
     lever(k) {   // What if? (D1 G9): the frozen dusk, one thing changed, then eight (boss: twelve) seasons run fast
@@ -247,7 +242,7 @@ const CH_JAWS_V2 = {
 
     /* ---------- the fish: waves, plates, strikes ---------- */
     swimStep(dt, ev) {
-      const s = this.s, c = this.cfg(s.level); s.T += dt;
+      const s = this.s, c = this.cfg(s.kd); s.T += dt;
       const w = s.wave;
       if (w) { if (!w.veered && s.T >= w.tb - JW_T.veer) this.veer(ev); if (s.T >= w.tb) this.resolve(ev); }   // strikes first: a plate up at the bite counts even if it lapses this tick
       if (!s.unt) s.plates = s.plates.filter(p => p.t1 > s.T);
@@ -280,7 +275,7 @@ const CH_JAWS_V2 = {
       if (s.unt) s.plates = [];
     },
     guard(ev, f, side) {
-      const s = this.s, c = this.cfg(s.level); if (s.phase !== 'swim' && s.phase !== 'dawn') return;
+      const s = this.s, c = this.cfg(s.kd); if (s.phase !== 'swim' && s.phase !== 'dawn') return;
       f = Math.max(0, Math.min(c.nf - 1, f | 0)); side = side ? 1 : 0;
       if (s.phase === 'dawn') { s.phase = 'swim'; s.t = 0; s.T = 0; }
       const old = s.plates.find(p => p.f === f), dur = CH_JAWS_V2.P.guard.v;
@@ -318,22 +313,14 @@ const CH_JAWS_V2 = {
     },
     afterDusk(ev) { const s = this.s; if (this.openAsk(ev)) return; this.breed(ev); },
     openAsk(ev) {
-      const s = this.s, n = s.level, c = this.cfg(n); if (s.whatif) return false;
-      if (s.boss) {
-        if (s.asks.length >= 3) return false;
-        const x = s.trail[s.trail.length - 1], e = this.lizNext(s.c, this.lizB(s), CH_JAWS_V2.P.F.v, s.N), corner = Math.min(...[0, 1, 2].map(k => this.triErr(e, [0, 1, 2].map(j => j === k ? 1 : 0))));
-        if (corner < 0.1 || this.triErr(e, x) < 0.2 || this.triErr(e, [1 / 3, 1 / 3, 1 / 3]) < 1.25 * JW_T.tolT) return false;
-        const id = 'L4s' + s.season, ld = this.lizLead(x); s.ask = { id, kind: 'tri', tol: JW_T.tolT, start: [0, 1, 2].map(j => j === ld ? 1 : 0) };
-        s.exp[id] = e; s.now[id] = x.slice();
-      } else {
-        if (s.asks.length >= c.asks) return false;
-        const r = s.hist[s.hist.length - 1], id = 'L' + n + 's' + s.season;
-        if (c.ask === 'x') {   // R = h²S on the twist histogram (the Wood L2 echo)
-          const q = r.sp[0], e = q.zm + q.h2 * q.S, tol = JW_T.tolX; if (Math.abs(e - q.zm) < 1.25 * tol || Math.abs(e) < 1.25 * tol) return false;
-          s.ask = { id, kind: 'x', lo: -3, hi: 3, tol, start: q.zm >= 0 ? 2.7 : -2.7 }; s.exp[id] = e; s.now[id] = q.zm; s.fedm = q.fm;
-        } else {
+      const s = this.s, n = s.kd, c = this.cfg(n); if (s.whatif) return false;
+      if (s.boss) return false;   // D6 decision 9: the boss is played and watched; the triangle prediction is gone
+      {
+        if (s.asks.length >= (c.asks || 0)) return false;
+        const id = 'L' + n + 's' + s.season;
+        {   // next season's right-striker share (L1)
           const sp = c.ask === 'b' ? 1 : 0, now = s.ps[sp][s.ps[sp].length - 1], e = this.expShare(s, sp, 300, 7001 + 97 * s.season + 13 * n), tol = JW_T.tolY;
-          if (Math.abs(e - now) < 1.25 * tol || Math.abs(e - 0.5) < tol || Math.abs(e - (1 - now)) < 0.75 * tol) return false;   // an ask counts only where every fixed rule misses: no change, back to 50:50, the mirror image
+          if (Math.abs(e - now) < 1.25 * tol || Math.abs(e - 0.5) < tol || Math.abs(e - (1 - now)) < 1.25 * tol) return false;   // asked only where every fixed rule misses: no change, back to 50:50, the mirror image
           s.ask = { id, kind: 'y', lo: 0, hi: 1, tol, start: now >= 0.5 ? 1 : 0, at: s.season + 1, sp }; s.exp[id] = e; s.now[id] = now;
         }
       }
@@ -377,7 +364,7 @@ const CH_JAWS_V2 = {
       ev.push({ k: 'breed', season: s.season, reveal: rid || null });
     },
     autoSeason(ev) {   // a What if? season, resolved at once: attacks drawn with R(), guards by the lever's rule
-      const s = this.s, c = this.cfg(s.level), lay = this.L(s), rl = s.wrule, k = s.whatif, two = s.wpop.length > 1, t = [0, 0, 0, 0];
+      const s = this.s, c = this.cfg(s.kd), lay = this.L(s), rl = s.wrule, k = s.whatif, two = s.wpop.length > 1, t = [0, 0, 0, 0];
       const pAll = () => { let a = 0, n = 0; for (const P of s.wpop) for (const x of P) { a += this.pr(x.z); n++; } return a / n; };
       const common = pAll() >= 0.5 ? 1 : 0;
       for (let i = 0; i < c.att; i++) {
@@ -465,7 +452,7 @@ const CH_JAWS_V2 = {
 
     result() {
       const s = this.s; if (!s || s.phase !== 'over') return null;
-      const st = CH_JAWS_V2.stars, n = s.level, mask = (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
+      const st = CH_JAWS_V2.stars, n = s.kd, mask = (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
       return { mask, interesting: this.interesting(s) };
     },
     lesson(s, n) {   // did this run show the level's lesson? (picks the card's take; lessons rule 6)
@@ -491,10 +478,10 @@ const CH_JAWS_V2 = {
         return 'noinherit';
       }
       if (s.boss) return this.turned(s.lead) ? null : s.bs.some(b => b < 0.5) ? 'stalled' : null;
-      const c = this.cfg(s.level), br = s.blk / Math.max(1, s.att), d = s.ps[0], x = this.crossings(d), moved = Math.abs(d[0] - 0.5) - Math.abs(d[d.length - 1] - 0.5);
-      if (s.level === 3) { const al = this.aligned(s); if (al.opp > 1 && br >= c.thr) return 'apart'; }
+      const c = this.cfg(s.kd), br = s.blk / Math.max(1, s.att), d = s.ps[0], x = this.crossings(d), moved = Math.abs(d[0] - 0.5) - Math.abs(d[d.length - 1] - 0.5);
+      if (s.kd === 3) { const al = this.aligned(s); if (al.opp > 1 && br >= c.thr) return 'apart'; }
       if (br < c.thr) return 'bitten';
-      if (s.level === 2) return moved < 0.08 ? 'slow' : null;
+      if (s.kd === 2) return moved < 0.08 ? 'slow' : null;
       if (x === 1 && Math.abs(d[d.length - 1] - 0.5) > 0.2) return 'oneway';
       if (x === 0 && moved < 0.1) return 'flat';
       return null;
@@ -505,7 +492,7 @@ const CH_JAWS_V2 = {
       const s = this.s, out = []; if (!s) return out;
       if (s.phase === 'swim' || s.phase === 'dawn') {
         if (s.boss) out.push({ k: 'lunge', side: 0 }, { k: 'lunge', side: 1 });
-        else { const c = this.cfg(s.level); for (let f = 0; f < c.nf; f++) out.push({ k: 'guard', f, side: 0 }, { k: 'guard', f, side: 1 }); if (s.unt && s.wave) out.push({ k: 'strike' }); }
+        else { const c = this.cfg(s.kd); for (let f = 0; f < c.nf; f++) out.push({ k: 'guard', f, side: 0 }, { k: 'guard', f, side: 1 }); if (s.unt && s.wave) out.push({ k: 'strike' }); }
       } else if (s.ask) {
         const A = s.ask;
         if (A.kind === 'tri') { for (let i = 0; i <= 20; i++) for (let j = 0; j <= 20 - i; j++) out.push({ k: 'predict', id: A.id, v: [i / 20, j / 20, (20 - i - j) / 20] }); }
@@ -560,25 +547,25 @@ const CH_JAWS_V2 = {
   stars: {
     discover: (s, n) => {
       if (s.whatif) return false; const sim = CH_JAWS_V2.sim;
-      if (n === 4) return sim.turned(s.lead);
+      if (n === 4) return s.att >= 8 && s.blk / s.att >= 0.5;   // the boss: block at least half the sneakers, so blue beats yellow (2b − 1 > 0)
       const c = sim.cfg(n); if (s.blk / Math.max(1, s.att) < c.thr) return false;
       const d = s.ps[0];
       if (n <= 1) return sim.crossings(d) >= 2;
       if (n === 2) return Math.abs(d[0] - 0.5) - Math.abs(d[d.length - 1] - 0.5) >= 0.08;
       const al = sim.aligned(s); return al.same >= 4 && al.opp <= 1;
     },
-    predict: (s, n) => { if (s.whatif || n < 1 || n > 3) return false; let k = 0; for (const id of s.asks) if (s.hits[id]) k++; return k >= 2; },
-    transfer: (s, n) => { if (s.whatif || n !== 4) return false; let k = 0; for (const id of s.asks) if (s.hits[id]) k++; return k >= 2; }
+    predict: (s, n) => { if (s.whatif || n !== 0) return false; return s.asks.some(id => s.hits[id]); },   // the one prediction (L1)
+    transfer: (s, n) => !s.whatif && n === 4 && CH_JAWS_V2.sim.turned(s.lead)   // the boss: keep the wheel turning, B → O → Y → B
   },
-  unitStars(lv) {   // D1: Discover in two fish levels; Predict in two of L1–L3; Transfer = the boss wheel turned and its triangle predicted
+  unitStars(lv) {   // by level number: Discover in two of the three fish levels; Predict = L1's prediction; Transfer = the boss wheel turned
     const m = i => lv[i] | 0, cnt = (a, b, bit) => { let k = 0; for (let i = a; i <= b; i++) if (m(i) & bit) k++; return k; };
-    return (cnt(0, 3, 1) >= 2 ? 1 : 0) | (cnt(1, 3, 2) >= 2 ? 2 : 0) | ((m(4) & 5) === 5 ? 4 : 0);
+    return (cnt(0, 2, 1) >= 2 ? 1 : 0) | (m(0) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
   /* result code (30 bits) on assignment links: 0–2 level, 3–5 mask, 6–12 blocked %, 13–19 final right-striker % (boss: leader string as base 3),
      20–23 crossings of 50:50 (boss: seasons blue led), 24–29 guarded-commoner-side % ÷ 2 */
   resultBits(s, level) {
-    if (!s) return 0; const n = Math.max(0, Math.min(4, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
-    let bits = n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(100 * s.blk / Math.max(1, s.att), 127) << 6;
+    if (!s) return 0; const lv = Math.max(0, Math.min(3, (level == null ? s.level : level) | 0)), n = s.kd, st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
+    let bits = lv | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(100 * s.blk / Math.max(1, s.att), 127) << 6;
     if (s.boss) { let v = 0; for (const l of s.lead.slice(-4)) v = v * 3 + l; bits |= c(v, 127) << 13 | c(s.lead.filter(l => l === 1).length, 15) << 20; }
     else { const d = s.ps[0]; bits |= c(100 * d[d.length - 1], 127) << 13 | c(this.sim.crossings(d), 15) << 20 | c(50 * (s.reach ? s.onCommon / s.reach : 0), 63) << 24; }
     return bits >>> 0;
@@ -607,7 +594,7 @@ const CH_JAWS_V2 = {
   },
   /* ---------- geometry ---------- */
   geo() {
-    const W = Stage.w, H = Stage.h, u = Stage.u || Math.min(W, 1.2 * H), top = this.hudH() + 34, floor = Math.max(64, Math.min(120, H * 0.17)), c = this.sim.cfg(this.level), nf = c.nf || 1;
+    const W = Stage.w, H = Stage.h, u = Stage.u || Math.min(W, 1.2 * H), top = this.hudH() + 34, floor = Math.max(64, Math.min(120, H * 0.17)), c = this.sim.cfg(this.sim.s.kd), nf = c.nf || 1;
     const len = nf === 1 ? Math.max(120, Math.min(230, 0.4 * u, (H - top - floor) * 0.55)) : Math.max(84, Math.min(150, 0.26 * u, W / 3.4, (H - top - floor) * 0.48));
     const y = top + (H - top - floor) * 0.42, xs = nf === 1 ? [W / 2] : [W * 0.2, W * 0.5, W * 0.8];
     return { W, H, u, top, floor, fy: H - floor, len, wid: len * 0.4, y, xs, nf };
@@ -644,10 +631,10 @@ const CH_JAWS_V2 = {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     let t;
     if (s.phase === 'auto') t = C.auto;
-    else if (s.boss) t = s.phase === 'ask' ? C.lizAsk : s.phase === 'dusk' || s.phase === 'breed' ? C.lizDusk : s.unt ? C.lizU : C.liz;
-    else if (s.phase === 'ask') t = s.ask && s.ask.kind === 'x' ? C.askZ : s.ask && s.ask.sp ? C.askB : C.ask;
-    else if (s.phase === 'dusk') t = C.dusk;
-    else if (s.phase === 'breed') t = C.breed;
+    else if (s.boss) t = s.phase === 'dusk' ? Txt.f(C.lizK, { b: Math.round(100 * (s.bs.length ? s.bs[s.bs.length - 1] : this.sim.lizB(s))) }) : s.phase === 'breed' ? C.lizDusk : s.unt ? C.lizU : C.liz;
+    else if (s.phase === 'ask') t = C.ask;
+    else if (s.phase === 'dusk') t = this.keyLine(s) || C.dusk;
+    else if (s.phase === 'breed') t = (s.kd === 2 && this.keyLineR(s)) || C.breed;
     else if (s.phase === 'over') t = C.over;
     else if (this.level === 0 && s.att === 0 && s.season === 1) t = this.content.firstWords;
     else t = s.unt ? C.unt : this.level === 0 ? (s.season === 1 ? C.swim0 : C.swim) : C.swimN;
@@ -673,22 +660,34 @@ const CH_JAWS_V2 = {
     this._dockSig = ''; this.dock();
   },
   lockIn() { const s = this.sim.s; if (!s.ask || typeof Predict === 'undefined') return; const ov = Predict.overlay(s.ask.kind === 'x' ? 1 : 0); if (ov && ov.id === s.ask.id && !ov.moved) { this.whisper('drag'); return; } Predict.commit(s.ask.id); },
+  keyLine(s) {   // the dusk's key number (D6 decision 9): bite success per flank (L1), the shared guard (L3)
+    const r = s.hist[s.hist.length - 1]; if (!r) return '';
+    if (s.kd === 0) return Txt.f(this.content.hud.duskK, { l: Math.round(100 * r.sL), r: Math.round(100 * r.sR) });
+    if (s.kd === 3) return this.content.hud.duskB;
+    return '';
+  },
+  keyLineR(s) {   // L2 at the hatch: R = h²S with this season's S and the model's h²
+    const r = s.hist[s.hist.length - 1], q = r && r.sp && r.sp[0]; if (!q || !q.S) return '';
+    const h = this.sim.h2(s), f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+    return Txt.f(this.content.hud.breedR, { h: f2(h), s: f2(q.S), r: f2(h * q.S) });
+  },
   whisper(k) { const t = this.content.whispers[k]; if (t && typeof Whisper !== 'undefined') Whisper.say(t, 'jw-' + k); },
   finish(r) {
-    const s = this.sim.s, n = this.level, C = this.content, o = { level: n, mask: r.mask, final: n === 4, interesting: r.interesting }, V = this.bodyVars();
+    const s = this.sim.s, n = this.level, kd = s.kd, C = this.content, o = { level: n, mask: r.mask, final: kd === 4, interesting: r.interesting }, V = this.bodyVars();   // n: the level number (content arrays); kd: its model kind
     if (s.whatif) { o.body = Txt.f(C.whatifBody[s.boss ? 1 : 0], V); o.take = null; }
-    else if (n < 4) { const tk = this.sim.take(s, n); o.take = tk === 'yes' ? C.levelTake[n] : tk === 'big' ? C.data.takeBig : C.data.takeNo[n]; o.body = Txt.f(C.levelBody[n], V); }
+    else if (kd < 4) { const tk = this.sim.take(s, kd); o.take = tk === 'yes' ? C.levelTake[n] : tk === 'big' ? C.data.takeBig : C.data.takeNo[n]; o.body = Txt.f(C.levelBody[n], V); }
     else { o.take = C.boss.inverts; o.body = Txt.f(C.body, V); o.bodyFirst = true; }
     const last = typeof Freezer !== 'undefined' ? Freezer.list(this.id).slice(-1)[0] : null;
-    if (last && !s.whatif) o.whatIf = { gen: last.gen, levers: n === 4 ? ['nofloor', 'poor', 'perfect'] : ['equal', 'noinherit', 'always'] };
-    o.why = n < 4 ? C.levelWhy[n] : C.why;
+    if (last && !s.whatif) o.whatIf = { gen: last.gen, levers: kd === 4 ? ['nofloor', 'poor', 'perfect'] : ['equal', 'noinherit', 'always'] };
+    o.why = kd < 4 ? C.levelWhy[n] : C.why;
     let spec = this.notes().charts[0];
     const rec = s.hist[s.hist.length - 1], q = rec && rec.sp && rec.sp[0];
-    if (n === 2 && !s.whatif && q && q.zs && q.ym != null) {   // the breeder's equation in one picture: parents, their young, S and R
+    if (kd === 2 && !s.whatif && q && q.zs && q.ym != null) {   // the breeder's equation in one picture: parents, their young, S and R
       const L = this.content.labels; spec = { type: 'dots', title: this.content.data.titles.hist, bins: 24, x: { lo: -3, hi: 3, label: L.twist }, frame: 'designed',
         groups: [{ v: q.zs, style: 'hollow', label: L.parents }, { v: s.pop[0].map(x => x.z), style: 'hatched', label: L.young }], arrows: { S: [q.zm, q.fm], R: [q.zm, q.ym] } };
       o.bodyFirst = true;
     }
+    { const LS = (C.levelStars || [])[this.level] || {}; o.stars = {}; [['discover', 1], ['predict', 2], ['transfer', 4]].forEach(([k, b]) => { o.stars[k] = r.mask & b ? C.stars[k] : LS[k] || null; }); }   // a star this level earned but the unit still lacks names where the unit earns it
     if (spec) { o.chart = cv => LiveGraph.draw(cv, spec, 'paper'); o.chartLabel = spec.title; }
     End.show(this, o);
   },
@@ -698,9 +697,9 @@ const CH_JAWS_V2 = {
     const X = this.content.data.cross, xw = k => Txt.f(X[Math.min(3, k)], { n: k });   // "crossing 50:50 once / twice / 3 times"
     if (s.whatif) { const d = s.wps[0]; return { p0: pc(d[0]), p1: pc(d[d.length - 1]), x: xw(sim.crossings(d)) }; }
     const d = s.ps[0], V = { p0: pc(d[0]), p1: pc(d[d.length - 1]), x: xw(sim.crossings(d)), b: pc(s.blk / Math.max(1, s.att)), t: pc(s.reach ? s.onCommon / s.reach : 0) };
-    if (s.level === 0) { const rc = sim.rareCommon(s); V.u = pc(rc[0]); V.c = pc(rc[1]); }
-    if (s.level === 2) { let S = 0, R0 = 0, k = 0; for (const r of s.hist) if (r.sp[0].R != null && r.sp[0].S) { S += Math.abs(r.sp[0].S); R0 += r.sp[0].R * (r.sp[0].S > 0 ? 1 : -1); k++; } V.s = f2(k ? S / k : 0); V.r = f2(k ? R0 / k : 0); }
-    if (s.level === 3) { const B = s.ps[1], al = sim.aligned(s); V.a0 = pc(d[0]); V.a1 = pc(d[d.length - 1]); V.b0 = pc(B[0]); V.b1 = pc(B[B.length - 1]); V.k = al.same; V.n = al.n; }
+    if (s.kd === 0) { const rc = sim.rareCommon(s); V.u = pc(rc[0]); V.c = pc(rc[1]); }
+    if (s.kd === 2) { let S = 0, R0 = 0, k = 0; for (const r of s.hist) if (r.sp[0].R != null && r.sp[0].S) { S += Math.abs(r.sp[0].S); R0 += r.sp[0].R * (r.sp[0].S > 0 ? 1 : -1); k++; } V.s = f2(k ? S / k : 0); V.r = f2(k ? R0 / k : 0); }
+    if (s.kd === 3) { const B = s.ps[1], al = sim.aligned(s); V.a0 = pc(d[0]); V.a1 = pc(d[d.length - 1]); V.b0 = pc(B[0]); V.b1 = pc(B[B.length - 1]); V.k = al.same; V.n = al.n; }
     return V;
   },
 
@@ -779,7 +778,7 @@ const CH_JAWS_V2 = {
     const s = this.sim.s, v = this.v;
     if (k === ' ' && /dusk|breed|auto/.test(s.phase)) { v.ff = true; return; }
     if (k === ' ' && s.unt && !s.boss) { Sim.act(this, { k: 'strike' }); return; }
-    if (k === '1' || k === '2' || k === '3') { v.focus = Math.min((this.sim.cfg(this.level).nf || 1) - 1, +k - 1); return; }
+    if (k === '1' || k === '2' || k === '3') { v.focus = Math.min((this.sim.cfg(this.sim.s.kd).nf || 1) - 1, +k - 1); return; }
     if (k !== 'ArrowLeft' && k !== 'ArrowRight') return; const side = k === 'ArrowRight' ? 1 : 0;
     if (s.boss) { Sim.act(this, { k: 'lunge', side }); return; }
     let f = v.focus; if (f < 0 && s.wave) { const a = s.wave.att.find(q => !s.plates.some(p => p.f === q.f)) || s.wave.att[0]; f = a.f; } if (f < 0) f = 0;   // the threatened fish without a plate, unless you picked one
@@ -912,7 +911,7 @@ const CH_JAWS_V2 = {
     }
   },
   drawPips(c, G) {   // guard plates available: filled while a plate is up (D4: two guard pips)
-    const s = this.sim.s, n = this.sim.cfg(this.level).plates || 1, up = s.plates ? s.plates.length : 0, y = this.hudH() + 20;
+    const s = this.sim.s, n = this.sim.cfg(s.kd).plates || 1, up = s.plates ? s.plates.length : 0, y = this.hudH() + 20;
     for (let i = 0; i < n; i++) { const x = G.W - 20 - i * 20, ready = i >= up; c.beginPath(); c.moveTo(x, y - 10); c.quadraticCurveTo(x + 12, y, x, y + 10); c.quadraticCurveTo(x + 4, y, x, y - 10); c.closePath(); c.fillStyle = ready ? '#E2725B' : 'rgba(27,22,18,0.3)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke(); }
   },
   drawFloor(c, G) {   // the twist histogram on the lake floor: one dot per scale-eater, left-strikers left of the line, right-strikers right
@@ -1051,7 +1050,7 @@ const CH_JAWS_V2 = {
     else if (s.phase === 'breed' && rec) groups.push({ v: pops[0].map(x => x.z), style: 'hatched', label: L.young });
     else groups.push({ v: pops[0].map(x => x.z), style: 'solid', label: L.share });
     const hist = { type: 'dots', title: D.titles.hist, fold: false, bins: 24, x: { lo: -3, hi: 3, label: L.twist }, groups, frame: 'designed' };
-    if (rec && pops.length === 1 && s.level === 2) {
+    if (rec && pops.length === 1 && s.kd === 2) {
       const q = rec.sp[0]; if (s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'breed') hist.arrows = q.R != null ? { S: [q.zm, q.fm], R: [q.zm, q.ym] } : { S: [q.zm, q.fm] };
       if (q.S != null) stats.push([D.S[0], q.S.toFixed(2), D.S[1]]); if (q.R != null) { stats.push([D.R[0], q.R.toFixed(2), D.R[1]]); stats.push([D.h2[0], q.h2.toFixed(2), D.h2[1]]); }
     }

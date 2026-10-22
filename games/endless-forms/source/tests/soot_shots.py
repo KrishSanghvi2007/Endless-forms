@@ -4,7 +4,7 @@
 
 Each viewport loads ?unit=soot&level=0 under virtual time (vclock.js, seeded Math.random, network blocked) and walks
 L4 → L5 → L6, saving a PNG at each moment worth looking at (opening haze, a peck, dusk eggs, the cull, each prediction,
-each reveal, clean air, the morph triangle, the gene lens, the night, the light trap, the verdict, the end cards).
+the dusk key numbers, the pass line, the one prediction and its reveal, clean air, the night, the light trap, the verdict, the end cards).
 Predictions are committed at the expectation the sim would score (a competent player), so the reveals show hits.
 Exit 1 on a JavaScript error, an error box, bad canvas text or a network request.
 """
@@ -76,47 +76,37 @@ def main():
             ev("()=>window.__advance(700)"); shot('L4_01_open')
             ev("()=>window.__advance(2600)"); shot('L4_02_haze')
             ev("()=>{ __soot.peck(); window.__advance(60); }"); shot('L4_03_peck')
-            ev("()=>{ window.__advance(200); __soot.hunt(12); window.__advance(900); }"); shot('L4_04_dusk_eggs')
+            ev("()=>{ window.__advance(200); __soot.hunt(12); window.__advance(900); }"); shot('L4_04_dusk_numbers')
             ev("()=>window.__advance(700)"); shot('L4_05_cull')
-            ev("()=>__soot.untilPhase('ask')"); ev("()=>window.__advance(600)"); shot('L4_06_ask_a1')
-            ev("()=>{ __soot.commit(); window.__advance(500); }"); shot('L4_07_reveal_a1')
-            ev("()=>{ __soot.untilPhase('dawn'); window.__advance(500); }"); shot('L4_08_dawn2')
-            ev("()=>{ __soot.hunt(40); __soot.untilPhase('ask'); window.__advance(600); }"); shot('L4_09_ask_tri')
-            ev("()=>{ __soot.commit(); window.__advance(500); }"); shot('L4_10_reveal_tri')
-            ev("()=>{ __soot.untilPhase('dawn'); __soot.gen(); __soot.hunt(40); __soot.untilPhase('ask'); window.__advance(1300); }"); shot('L4_11_ask_jars')
-            ev("()=>{ __soot.commit(); __soot.untilPhase('dawn'); __soot.hunt(40); __soot.untilPhase('ask'); window.__advance(600); }"); shot('L4_12_ask_rec')
-            ev("()=>{ __soot.commit(); __soot.untilPhase('dawn'); window.__advance(2000); __soot.hunt(5); }"); shot('L4_13_late_hunt')
-            ev("()=>{ for (let k=0;k<6;k++) { if (__soot.s().phase==='over' || __soot.card()) break; __soot.gen(); } window.__advance(3500); }"); shot('L4_14_level_card')
+            ev("()=>{ __soot.untilPhase('dawn'); window.__advance(500); }"); shot('L4_06_dawn2')
+            ev("()=>{ for (let k=0;k<8;k++) { const s=__soot.s(); if (s.phase==='over' || __soot.card() || (s.passed!=null && s.passed===s.gen)) break; __soot.gen(); } window.__advance(600); }"); shot('L4_07_pass_key')
+            ev("()=>{ __soot.hunt(40); __soot.untilPhase('dusk'); window.__advance(500); }"); shot('L4_08_late_dusk')
+            ev("()=>{ for (let k=0;k<8;k++) { if (__soot.s().phase==='over' || __soot.card()) break; __soot.gen(); } window.__advance(3500); }"); shot('L4_09_level_card')
             # L5
             ev("()=>{ __soot.next(); window.__advance(800); }"); shot('L5_01_open')
             ev("()=>{ window.__advance(1500); __soot.hunt(6); }"); shot('L5_02_hunt')
             ev("()=>{ __soot.hunt(40); __soot.untilPhase('ask'); window.__advance(600); }"); shot('L5_03_ask_b1')
             ev("()=>{ __soot.commit(); window.__advance(1600); }"); shot('L5_04_reveal_b1')
-            ev("()=>{ __soot.untilPhase('dawn'); __soot.hunt(40); __soot.untilPhase('ask'); window.__advance(600); }"); shot('L5_05_ask_morph')
-            ev("()=>{ __soot.commit(); window.__advance(600); }"); shot('L5_06_reveal_morph')
-            ev("""()=>{ __soot.untilPhase('dawn'); for (let k=0;k<12;k++) { const s=__soot.s(); if (s.phase==='over' || __soot.card()) break;
-                     if (s.phase==='hunt'||s.phase==='dawn') __soot.hunt(40); __soot.untilPhase(['ask','post','dawn','over'], 300); if (__soot.s().ask) break; __soot.untilPhase(['dawn','over'], 200); }
-                     window.__advance(1300); }"""); shot('L5_07_ask_late')
-            ev("()=>{ __soot.commit(); __soot.untilPhase('dawn'); window.__advance(2000); __soot.hunt(4); }"); shot('L5_08_clean_hunt')
-            ev("()=>{ for (let k=0;k<14;k++) { if (__soot.s().phase==='over' || __soot.card()) break; __soot.gen(); } window.__advance(3500); }"); shot('L5_09_level_card')
+            ev("()=>{ __soot.untilPhase('dawn'); __soot.hunt(40); __soot.untilPhase('dusk'); window.__advance(500); }"); shot('L5_05_dusk_numbers')
+            ev("()=>{ __soot.untilPhase('dawn'); window.__advance(2000); __soot.hunt(4); }"); shot('L5_06_clean_hunt')
+            ev("()=>{ for (let k=0;k<16;k++) { if (__soot.s().phase==='over' || __soot.card()) break; __soot.gen(); } window.__advance(3500); }"); shot('L5_07_level_card')
             # L6
             ev("()=>{ __soot.next(); window.__advance(1000); }"); shot('L6_01_open')
             ev("""()=>{ const cv=document.getElementById('scene'), r=cv.getBoundingClientRect(), J=[[150,222],[246,308],[150,400],[240,460]];
                      for (const j of J) { __soot.tapAt(j[0]/390*r.width, j[1]/540*r.height); window.__advance(300); } }"""); shot('L6_02_released')
-            ev("()=>{ TB.Sim.act(__soot.ch(), {k:'night'}); window.__advance(800); }"); shot('L6_03_ask')
-            ev("()=>{ __soot.commit(); window.__advance(1200); }"); shot('L6_04_night')
-            ev("()=>window.__advance(1300)"); shot('L6_05_birds')
-            ev("()=>window.__advance(900)"); shot('L6_06_trap')
-            ev("()=>{ __soot.untilPhase('tally'); window.__advance(400); }"); shot('L6_07_tally_countup')
-            ev("""()=>{ __soot.untilPhase('place'); const ch=__soot.ch();
-                     for (let n=0;n<6;n++) { const s=__soot.s(); if (s.phase!=='place') break; TB.Sim.act(ch,{k:'wood', w: n%2? 'soot':'clean'});
-                       for (const j of [[150,222],[246,308],[150,400],[240,460]]) TB.Sim.act(ch,{k:'release', x:j[0], y:j[1]});
-                       TB.Sim.act(ch,{k:'night'}); window.__advance(300); if (__soot.s().ask) __soot.commit(); __soot.untilPhase(['place','conclude'], 400); }
-                     window.__advance(1300); }"""); shot('L6_08_data')
-            ev("()=>{ if (__soot.s().phase==='place') TB.Sim.act(__soot.ch(), {k:'conclude'}); window.__advance(400); }"); shot('L6_09_conclude')
-            ev("""()=>{ const ch=__soot.ch(), L=ch.concludeLayout(), c=L.cards.find(x=>x.id==='rev'), p=L.pips[3]; __soot.tapAt(c.x+c.w/2, c.y+c.ht/2); window.__advance(200); __soot.tapAt(p.x, p.y); window.__advance(300); }"""); shot('L6_10_confidence')
-            ev("()=>{ const b=[...document.querySelectorAll('#dock button')].find(x=>/submit/i.test(x.textContent)); if (b) b.click(); window.__advance(700); }"); shot('L6_11_verdict')
-            ev("()=>window.__advance(3000)"); shot('L6_12_end_card')
+            ev("()=>{ TB.Sim.act(__soot.ch(), {k:'night'}); window.__advance(1200); }"); shot('L6_03_night')
+            ev("()=>window.__advance(1300)"); shot('L6_04_birds')
+            ev("()=>window.__advance(900)"); shot('L6_05_trap')
+            ev("()=>{ __soot.untilPhase('tally'); window.__advance(400); }"); shot('L6_06_tally_countup')
+            ev("""()=>{ const ch=__soot.ch(), J=[[150,222],[246,308],[150,400],[240,460]];
+                     for (let n=0;n<7;n++) { __soot.untilPhase(['place','conclude'], 400); const s=__soot.s(); if (s.phase!=='place') break;
+                       TB.Sim.act(ch,{k:'wood', w: n%2===0 ? 'clean' : 'soot'}); for (const j of J) TB.Sim.act(ch,{k:'release', x:j[0], y:j[1]});
+                       TB.Sim.act(ch,{k:'night'}); window.__advance(300); __soot.untilPhase(['place','conclude'], 400); }
+                     window.__advance(1300); }"""); shot('L6_07_data')
+            ev("()=>{ if (__soot.s().phase==='place') TB.Sim.act(__soot.ch(), {k:'conclude'}); window.__advance(400); }"); shot('L6_08_conclude')
+            ev("""()=>{ const ch=__soot.ch(), L=ch.concludeLayout(), c=L.cards.find(x=>x.id==='rev'); __soot.tapAt(c.x+c.w/2, c.y+c.ht/2); window.__advance(300); }"""); shot('L6_09_picked')
+            ev("()=>{ const b=[...document.querySelectorAll('#dock button')].find(x=>/submit/i.test(x.textContent)); if (b) b.click(); window.__advance(700); }"); shot('L6_10_verdict')
+            ev("()=>window.__advance(3000)"); shot('L6_11_end_card')
             if ext:
                 problems.append((vp, 'network', ext[:3]))
             ctx.close()

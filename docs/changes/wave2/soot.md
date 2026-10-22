@@ -176,3 +176,39 @@ Renaming the morning length to `TIMES` left `breed()` setting `s.time` to undefi
 ### Still open
 
 Designer playtest of the 10 s and 9 s mornings, and of whether the late-generation hungry whisper fires (issue 18). Engine requests: LiveGraph label nudge, primary token, pane sizing, class pool. Coordinator A sign-off on the changed claims (symmetric starts, realised s, posterior model).
+
+---
+
+## Simplification (D6 decision 9), 22 October 2026
+
+I played the three levels at 390 × 780 (screenshots in the session scratchpad, `s3/simp_lichen_soot/before_soot/` and `after_soot2/`). The world, the moths, the mills and the drawer chart stayed. The asks did not. L4 had four predictions (a timing marker, a genotype triangle, a "jars" share and a two-copy transfer), L5 had four more (timing, the pattern triangle, a genotype triangle and a share), and L6 had a share before each wood. Each used a different gesture. On top of that came a Look / Genes / Jars lens, a packed-batch rule, a power meter and five confidence pips. The chapter teaches one thing: *one dominant copy shows at once, so black rose fast; pale copies hide in black heterozygotes, so pale returns slowly.* The verb is tapping a moth (in L6, tapping the tree to release marked moths).
+
+### What was removed or merged, and why
+
+| Removed | Where | Why |
+|---|---|---|
+| a1 (when will black pass half?), a2 (genotype triangle), a3 (jars share), t4 (what if black needed two copies?) | L4 | Four gestures in eight generations, and none of them was the aha. Every dusk now states the key numbers: "One C copy makes a moth black: C copies 3%, black moths 7%." At the dawn after black passes half, the HUD gives the equation: "Black passed half. Black = 1 − (1 − p)²: one copy is enough." The two-copy case stays as the What if? lever "Two copies needed". |
+| t5 (pattern triangle), b3 (genotype triangle), b2 (share), and the uneven-wood draw that only existed for t5 | L5 | Kept **the chapter's one prediction, b1**, because it creates the aha. The HUD now names what it is compared with: "Rise to half: about *n* generations. When will black fall below half? Tap the graph." Here *n* is the model's own rise from the same start distance (`mirrorData`). After the call, the mirrored rise is drawn, and the fall is slower. Every dusk says "Pale needs two c copies: c copies 26%, pale moths 6%." The opening line is "Clean air: the bark lightens. Pale = q², so pale needs two c copies." |
+| Gene-pool lens (Look / Genes / Jars dock control, the jars and the p\|q bar) | L4, L5 | It was a control no one was told about, and it only served the removed share asks. The dusk line, the black and C lines on the strip graph, and the genotype triangle beside the scene carry the same information as read-outs. |
+| c1 and c2 (black share of tonight's survivors?) | L6 | They interrupted every first night and did not help decide between the ideas. The night now runs straight away. |
+| Packed-batch rule (crowding risk, amber outlines, "set aside" counts, the crowd whisper, the "crowded" card), and the trunk/branch whispers | L6 | It was a sub-mechanic about a methods critique. The MODEL card still says that real studies had to space releases, and the "Methods debated" pill stays. |
+| Power meter and power hatching | L6 | The back/sent tally card is the evidence. The HUD at each tally now gives the key number: "Survival = back ÷ sent. Compare black and pale in each wood." `power6` is kept for the result code. |
+| Five confidence pips and the expected-Brier verdict | L6 | Too clever for the idea. You pick one of four ideas and Submit. The verdict reads "Your data back Camouflage: 97%." |
+
+Real biology (D6 decision 10): the L6 idea cards and the tally card used black and pale squares as stand-ins. They now draw small carbonaria and typica moths (`mothIcon`). On the sooty plate the black moth is hard to see, which is the point.
+
+### Stars, re-balanced to the remaining steps
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L4 The Black Country | black passes half, ≥ 70% of meals fed | — (was 2 of a1, a2, a3) | — (was t4) |
+| L5 Clean air | black falls below half, ≥ 60% fed | b1 inside the band (± 2 generations) | — (was t5) |
+| L6 The evidence | the recaptures show the reversal in both woods | — (was c1, c2) | Camouflage, with posterior ≥ 0.8 from your own recaptures (no confidence pip) |
+
+No level offers three stars, and the unit still totals D + P + T. New `content.levelStars` lines give each level card only its own stars. The intro card's "How to play" was rewritten. The MODEL card for L6 lost the packed-batch row. Every other MODEL row and reference is unchanged, and the oracle still checks the L5 projection and the Why? pace numbers against the model.
+
+### Tests
+
+- `tests/oracle_soot.js` §5 now checks the dusk-line claim directly: newborns are in HW proportions from the survivors' copies, and two-copy black would be far rarer. §8 drops the packing and Brier checks. It now checks that every batch counts, that the night runs with no ask, that the verdict is camouflage plus strong evidence, and that Submit needs an idea. §10 checks one ask in the chapter (L5 b1 only), that a player who marks the expectation earns Predict on 20 of 20 seeds, and that the naive mirror guess mostly misses. **50/50**.
+- `tests/soot_shots.py` was rewritten for the new flow (27 shots per viewport, no errors).
+- Lint 0 errors and 0 warnings; `dup_globals` ok; bot sweep (12 bots × 20 seeds) passes. The best masks are D in L4, D or -P- in L5, and D-T in L6 (a bot that releases in both woods and names camouflage earns Transfer, as a careful investigator should). Monkey seeds 1–3 at 390 × 780 and 1280 × 720: **6/6** reached the end card. `tests/soot_paths.py` runs clean.

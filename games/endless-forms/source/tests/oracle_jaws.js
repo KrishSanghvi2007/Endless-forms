@@ -4,6 +4,7 @@
    heritabilities in force, R ≈ h²S, the expectations the stars read (next-season share, lizard step) against realised
    replicates, determinism and replay, snapshot round trip, the expert earning every star offered, no bot's union across the
    unit reaching three stars, the first action that cannot fail, and every What if? text checked against its own run.
+   D6 decision 9: four levels (level numbers 0–3 run model kinds 0, 2, 3, 4) and one prediction (L1, next season's share).
    JW_FAST=1 runs fewer seeds. */
 'use strict';
 module.exports = function (G, t) {
@@ -26,26 +27,27 @@ module.exports = function (G, t) {
 
   /* 2. swings: the commoner-side bot makes the share cross 50:50 and come back; guarding one side always does not */
   const swing = (lv, bot) => { let k = 0; for (let seed = 1; seed <= NS; seed++) if (sim.crossings(G.run(lv, { seed, bot }).s.ps[0]) >= 2) k++; return k / NS; };
-  const sG0 = swing(0, 'greedy'), sB0 = swing(0, 'alwaysB'), sG1 = swing(1, 'greedy');
-  t.ok(sG0 >= 0.85 && sG1 >= 0.85, `full swing with the commoner-side bot: L1 ${sG0.toFixed(2)}, L2 ${sG1.toFixed(2)} of seeds (≥ 0.85)`);
+  const sG0 = swing(0, 'greedy'), sB0 = swing(0, 'alwaysB');
+  t.ok(sG0 >= 0.85, `full swing with the commoner-side bot: L1 ${sG0.toFixed(2)} of seeds (≥ 0.85)`);
   t.ok(sB0 <= 0.1, `always guarding right gives no full swing (steady selection): ${sB0.toFixed(2)} of seeds`);
 
   /* 3. heritabilities in force: founders' regression of breeding value on twist */
   const h2of = lv => { const vals = []; for (let seed = 1; seed <= 20; seed++) { const s = G.reset(lv, seed); const P = s.pop[0], am = mean(P.map(x => x.a)), zm = mean(P.map(x => x.z)); let c = 0, v = 0; for (const x of P) { c += (x.a - am) * (x.z - zm); v += (x.z - zm) * (x.z - zm); } vals.push(c / v); } return mean(vals); };
-  const h0 = h2of(0), h2 = h2of(2);
+  const h0 = h2of(0), h2 = h2of(1);
   t.near(h0, 0.9, 0.06, `L1 heritability in force ${h0.toFixed(3)} (0.9, ×N)`);
-  t.near(h2, 0.25, 0.08, `L3 heritability in force ${h2.toFixed(3)} (0.25, realistic)`);
+  t.near(h2, 0.25, 0.08, `L2 heritability in force ${h2.toFixed(3)} (0.25, realistic)`);
 
-  /* 4. R ≈ h²S in L3 (the response to your own selection), pooled over seeds */
+  /* 4. R ≈ h²S in L2 (the response to your own selection), pooled over seeds; the HUD's key line uses the model's h² */
   let S = 0, Rr = 0, hS = 0;
-  for (let seed = 1; seed <= NS; seed++) for (const rec of G.run(2, { seed, bot: 'greedy' }).s.hist) { const q = rec.sp[0]; if (q.R == null) continue; S += q.S; Rr += q.R; hS += q.h2 * q.S; }
-  t.near(Rr / S, 0.25, 0.1, `L3 pooled realised R/S ${(Rr / S).toFixed(3)} (≈ 0.25)`);
-  t.near(Rr / hS, 1, 0.3, `L3 pooled R against Σh²S ${(Rr / hS).toFixed(3)} (≈ 1)`);
+  for (let seed = 1; seed <= NS; seed++) for (const rec of G.run(1, { seed, bot: 'greedy' }).s.hist) { const q = rec.sp[0]; if (q.R == null) continue; S += q.S; Rr += q.R; hS += q.h2 * q.S; }
+  t.near(Rr / S, 0.25, 0.1, `L2 pooled realised R/S ${(Rr / S).toFixed(3)} (≈ 0.25, the h² the key line R = h²S shows)`);
+  t.near(Rr / hS, 1, 0.3, `L2 pooled R against Σh²S ${(Rr / hS).toFixed(3)} (≈ 1)`);
+  { G.reset(1, 3); t.near(sim.h2(sim.s), 0.25, 1e-9, 'L2: the key line’s h² is the model’s 0.25'); G.reset(0, 3); t.near(sim.h2(sim.s), 0.9, 1e-9, 'L1: h² 0.9 (×N)'); }
 
   /* 5. the expectation the Predict star reads: expShare against realised breeding replicates (same state, many R() seeds) */
   { const errs = [];
     for (let seed = 1; seed <= (FAST ? 3 : 6); seed++) {
-      G.reset(1, seed); const s = sim.s;   // a fresh L2 state; play one season with the bot
+      G.reset(0, seed); const s = sim.s;   // a fresh L1 state (where the one prediction lives); play one season with the bot
       let ticks = 0; while (s.phase !== 'dusk' && ticks < 20000) { const A = sim.actions(); const a = A.length ? sim.bots.greedy(s, A) : null; if (a) sim.act(a); sim.step(sim.dt); ticks++; }
       const snap = sim.snapshot(), e = sim.expShare(s, 0, 600, 4242), got = [];
       for (let k = 0; k < (FAST ? 60 : 160); k++) { sim.restore(snap); TB.seed(k + 1); sim.breed([]); got.push(sim.s.ps[0][sim.s.ps[0].length - 1]); }
@@ -77,8 +79,8 @@ module.exports = function (G, t) {
   }
 
   /* 7. two hunters: one defender selects both species, so their moves line up */
-  { let ok = 0; for (let seed = 1; seed <= NS; seed++) { const s = G.run(3, { seed, bot: 'greedy' }).s, al = sim.aligned(s); if (al.same >= 4 && al.opp <= 1) ok++; }
-    t.ok(ok / NS >= 0.75, `L4: plain and striped shares move together on ${ok} of ${NS} seeds (commoner-side bot)`); }
+  { let ok = 0; for (let seed = 1; seed <= NS; seed++) { const s = G.run(2, { seed, bot: 'greedy' }).s, al = sim.aligned(s); if (al.same >= 4 && al.opp <= 1) ok++; }
+    t.ok(ok / NS >= 0.75, `L3: plain and striped shares move together on ${ok} of ${NS} seeds (commoner-side bot)`); }
 
   /* 8. determinism, replay and snapshots */
   { const a = G.run(1, { seed: 9, bot: 'greedy' }), b = G.run(1, { seed: 9, bot: 'greedy' });
@@ -91,13 +93,13 @@ module.exports = function (G, t) {
   }
 
   /* 9. the expert earns every star its level offers; no level offers all three */
-  { const want = [1, 3, 3, 3, 5], got = [0, 0, 0, 0, 0];
-    for (let lv = 0; lv < 5; lv++) for (let seed = 1; seed <= (FAST ? 8 : 20); seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; }
+  { const want = [3, 1, 1, 5], got = [0, 0, 0, 0];
+    for (let lv = 0; lv < 4; lv++) for (let seed = 1; seed <= (FAST ? 8 : 20); seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; }
     const n = FAST ? 8 : 20; got.forEach((g, lv) => t.ok(g / n >= 0.8, `L${lv + 1}: the expert earns every offered star (${want[lv]}) on ${g} of ${n} seeds`)); }
 
   /* 10. no bot's union across the unit reaches three stars (lessons rule 5), via ch.unitStars */
   { const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'lazy', 'mirror'], worst = {};
-    for (const b of bots) { worst[b] = 0; for (let seed = 1; seed <= (FAST ? 6 : 16); seed++) { const lv = []; for (let l = 0; l < 5; l++) { const r = G.run(l, { seed, bot: b }); lv.push(r.result ? r.result.mask & 7 : 0); if (r.result && (r.result.mask & 7) === 7) worst[b] = 9; } const u = ch.unitStars(lv); const pc = (u & 1) + ((u >> 1) & 1) + ((u >> 2) & 1); worst[b] = Math.max(worst[b], pc); } }
+    for (const b of bots) { worst[b] = 0; for (let seed = 1; seed <= (FAST ? 6 : 16); seed++) { const lv = []; for (let l = 0; l < 4; l++) { const r = G.run(l, { seed, bot: b }); lv.push(r.result ? r.result.mask & 7 : 0); if (r.result && (r.result.mask & 7) === 7) worst[b] = 9; } const u = ch.unitStars(lv); const pc = (u & 1) + ((u >> 1) & 1) + ((u >> 2) & 1); worst[b] = Math.max(worst[b], pc); } }
     t.ok(Object.values(worst).every(v => v < 3), 'no bot reaches three unit stars: ' + bots.map(b => b + ' ' + worst[b]).join(', ')); }
 
   /* 11. the first action cannot fail: the first wave of L1 waits for your first guard; a random tapper finishes season 1 */
@@ -113,9 +115,9 @@ module.exports = function (G, t) {
       const a = thaw(1, seed, 'always'), d = a.s.wps[0]; if (a.r.interesting === 'always' && !(d[d.length - 1] < d[0] - 0.15)) { ok = false; notes.push('always ' + seed); }
       const e = thaw(1, seed, 'equal'), de = e.s.wps[0], txt = e.r.interesting; if ((txt === 'equal') !== (Math.abs(de[de.length - 1] - de[0]) <= 0.15)) { ok = false; notes.push('equal ' + seed); }
       const ni = thaw(1, seed, 'noinherit'), dn = ni.s.wps[0]; if (Math.abs(mean(dn.slice(1)) - G.reset(1, seed).ps[0][0]) > 0.15) { ok = false; notes.push('noinherit ' + seed); }
-      const nf = thaw(4, seed, 'nofloor'); if ((nf.r.interesting === 'nofloor') !== nf.s.wtrail.some(x => Math.min(...x) === 0)) { ok = false; notes.push('nofloor ' + seed); }
-      const pr = thaw(4, seed, 'poor'); if (sim.lizLead(pr.s.wtrail[pr.s.wtrail.length - 1]) !== 2) { ok = false; notes.push('poor ' + seed); }
-      const pf = thaw(4, seed, 'perfect'); if ((pf.r.interesting === 'perfect') !== sim.turned(pf.s.wlead)) { ok = false; notes.push('perfect ' + seed); }
+      const nf = thaw(3, seed, 'nofloor'); if ((nf.r.interesting === 'nofloor') !== nf.s.wtrail.some(x => Math.min(...x) === 0)) { ok = false; notes.push('nofloor ' + seed); }
+      const pr = thaw(3, seed, 'poor'); if (sim.lizLead(pr.s.wtrail[pr.s.wtrail.length - 1]) !== 2) { ok = false; notes.push('poor ' + seed); }
+      const pf = thaw(3, seed, 'perfect'); if ((pf.r.interesting === 'perfect') !== sim.turned(pf.s.wlead)) { ok = false; notes.push('perfect ' + seed); }
       if ([a, e, ni, nf, pr, pf].some(x => x.r.mask !== 0)) { ok = false; notes.push('stars in a What if? ' + seed); }
     }
     t.ok(ok, 'every What if? text matches its own run, and What if? runs earn no stars' + (notes.length ? ' (' + notes.join(', ') + ')' : '')); }
@@ -127,11 +129,11 @@ module.exports = function (G, t) {
   /* 14. the level card's take and numbers, chosen from the run (lessons rule 6): recomputed here from the raw records */
   { let ok = true, n0 = 0; const notes = [], cnt = { yes: 0, no: 0, big: 0 };
     const cross = d => { let k = 0; for (let i = 1; i < d.length; i++) if ((d[i] - 0.5) * (d[i - 1] - 0.5) < 0) k++; return k; };
-    for (const lv of [0, 1, 2, 3]) for (const bot of ['greedy', 'alwaysB', 'random', 'threshold']) for (let seed = 1; seed <= (FAST ? 5 : 12); seed++) {
-      const s = G.run(lv, { seed, bot }).s, k = sim.take(s, lv); cnt[k]++; n0++;
+    for (const lv of [0, 1, 2]) for (const bot of ['greedy', 'alwaysB', 'random', 'threshold']) for (let seed = 1; seed <= (FAST ? 5 : 12); seed++) {
+      const s = G.run(lv, { seed, bot }).s, kd = s.kd, k = sim.take(s, kd); cnt[k]++; n0++;
       let want;
-      if (lv <= 1) want = cross(s.ps[0]) >= 2 ? 'yes' : 'no';                                  // "No full swing" only when there was none
-      else if (lv === 2) { let S = 0, R = 0; for (const r of s.hist) { const q = r.sp[0]; if (q.R != null && q.S) { S += Math.abs(q.S); R += q.R * Math.sign(q.S); } } const g = S ? R / S : 0; want = g > 0 && g <= 0.6 ? 'yes' : g > 0.6 ? 'big' : 'no'; }
+      if (kd <= 1) want = cross(s.ps[0]) >= 2 ? 'yes' : 'no';                                  // "No full swing" only when there was none
+      else if (kd === 2) { let S = 0, R = 0; for (const r of s.hist) { const q = r.sp[0]; if (q.R != null && q.S) { S += Math.abs(q.S); R += q.R * Math.sign(q.S); } } const g = S ? R / S : 0; want = g > 0 && g <= 0.6 ? 'yes' : g > 0.6 ? 'big' : 'no'; }
       else { const A = s.ps[0], B = s.ps[1]; let same = 0, opp = 0; for (let i = 1; i < A.length; i++) { const da = A[i] - A[i - 1], db = B[i] - B[i - 1]; if (Math.max(Math.abs(da), Math.abs(db)) < 0.03) continue; if (da * db > 0) same++; else opp++; } want = same >= 4 && opp <= 1 ? 'yes' : 'no'; }
       if (k !== want) { ok = false; notes.push(lv + 1 + '/' + bot + '/' + seed); }
       if (lv === 0) {   // "bites on the rarer side landed u%, on the commoner side c%"
@@ -140,4 +142,9 @@ module.exports = function (G, t) {
       }
     }
     t.ok(ok, `every level card's take matches its own run (${n0} runs: ${cnt.yes} lesson shown, ${cnt.no} not, ${cnt.big} chance-large)` + (notes.length ? ' (' + notes.slice(0, 6).join(', ') + ')' : '')); }
+
+  /* 15. D6 decision 9: one prediction in the chapter (L1, at most once); the boss asks nothing */
+  { let bad = 0, asked = 0; const n = FAST ? 8 : 20;
+    for (let seed = 1; seed <= n; seed++) for (let lv = 0; lv < 4; lv++) { const r = G.run(lv, { seed, bot: 'greedy' }); const k = r.s.asks.length; if (lv === 0) { if (k === 1) asked++; if (k > 1) bad++; } else if (k) bad++; }
+    t.ok(bad === 0 && asked >= 0.8 * n, `D6: only L1 asks, once (${asked} of ${n} seeds; ${bad} stray asks)`); }
 };

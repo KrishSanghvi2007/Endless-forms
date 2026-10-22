@@ -3,36 +3,38 @@
    a bank burrow (role: selective environment; jacamars taste and release Heliconius, then reject them on sight: Chai
    1986). Tap a butterfly to eat it. A Heliconius-style model (black, red band, yellow bar) is bitter: the retch costs seconds (the felt cost, D0) and flips a tile into the taste ledger, the
    bird's memory (D1 Ledger; tiles fade over two mornings). What you spare breeds at dusk.
+   D6 decision 9 (simple beats clever): four levels, one verb (tap to eat), one prediction (L3's meeting point).
      L1 Bitter lessons    8 models; 24 palewings (Dismorphia-like whites, Bates's own mimics) start cream. Sparing what looks bitter makes palewings look bitter.
-     L2 Too many liars    the models' passion vine wilts: models 12 → 2, then back to 12. Past the break-even (mimics per
-                          model above the retch cost in meals) tasting pays, and the mimics' edge collapses.
-     L3 Deadly models     mild days (1.5 s) alternate with deadly days (6 s and a chick's meals): toxicity holds
-                          protection up. The broad spread of rough mimics is shown, with a Contested pill.
-     L4 Two poisons       bitterwings and sourwings, both defended; four young birds each taste one of every look they
-                          have not learned (Müller 1879). The rarer species carries the cost and converges on the
-                          commoner (advergence), by a large-effect allele first (Turner's two steps).
-     L5 The first warning (boss) a rare bright colour on a defended green shield bug, on two river islands: eggs scattered on A,
+     L2 Too many liars    the models' passion vine wilts: models 12 → 1, then back to 12. The HUD shows the key number every
+                          day: k mimics per model against C, the retch cost in meals. Tasting pays when k > C.
+     L3 Two poisons       bitterwings and sourwings, both defended; four young birds each taste one of every look they
+                          have not learned (Müller 1879). Each look loses about the same count, so the rarer pays a bigger share
+                          (n ÷ N) and converges on the commoner (advergence), by a large-effect allele first (Turner's two steps).
+     L4 The first warning (boss) a rare bright colour on a defended green shield bug, on two river islands: eggs scattered on A,
                           sibling clusters on B. Rare and scattered, bright is tasted out; clustered, one taste spares
                           the siblings (Alatalo & Mappes 1996). Inverts L1–L2: for a warning colour, rare is bad.
-   Every prediction is scored against the model's expectation for the parameters in force (D1 G10), never the realised
+   Internally each level runs a model kind (BWK.KIND: 0, 1, 3, 4; s.kd), so the old "Deadly models" kind 2 is simply gone.
+   The prediction is scored against the model's expectation for the parameters in force (D1 G10), never the realised
    run. A run is (seed, level, actions); the view juices from Sim.run's events only. Not a Hunt-mode chapter: Hunt has
    no replay, Freezer or bot sweep (lessons_batch1 §0 rule 1). Load rule: top level touches legacy objects only; every
    engine call is behind a typeof guard or inside a function. */
 
 /* ---------- constants and pure helpers (Det-safe: + − × ÷, Math.sqrt and Det only) ---------- */
 const BWK = {
-  T: { dawn: 1.2, dusk: 2.4, duskF: 0.8, post: 0.6, askMax: 40, handle: 0.25, miss: 0.3, reveal: 2.6, autoDt: 0.45, autoF: 0.12 },
+  T: { dawn: 1.2, dusk: 2.4, duskF: 0.8, post: 0.6, askMax: 40, handle: 0.25, miss: 0.3, autoDt: 0.45, autoF: 0.12 },
   N: 24, QUOTA: 12, CHICKS: 4, TIME: 12, LOOKS: 18, WARN: 0.6, HALO: 0.15, FADE: [1, 0.6, 0.3, 0], MAXLED: 10,
   BOX: { x0: 26, x1: 364, y0: 128, y1: 438 },   BAND: 96,                       // the leaf, in the fixed virtual 390 × 540 stage
+  // D6 decision 9: four levels. KIND maps the level number to its model (the old "Deadly models" kind 2 is cut); s.kd holds the kind
+  KIND: [0, 1, 3, 4],
   LV: [
-    { gens: 6, horizon: [4, 6, 9], models: [8], cost: 3, m0: 0.12, s0: 0.10, ask: { 2: 'p1' } },
-    { gens: 9, models: [12, 8, 5, 3, 1, 1, 3, 8, 12], costs: [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6], grubs: 6, m0: 0.62, s0: 0.17, ask: {} },   // p2 is asked on day 2–4, when today's mix is not already the answer
-    { gens: 8, models: [2, 3, 4, 6], mild: 1.5, deadly: 6, chick: 3, grubs: 6, m0: 0.62, s0: 0.17, ask: { 2: 'p3' } },
-    { gens: 8, common: 24, rare: 8, grubs: 12, quota: 8, cost: 1.5, young: 4, enc: 0.5, gw: 0.12, jump: 0.7, ask: { 1: 'p4' } },
-    { gens: 6, N: 40, terr: 8, n0: 8, dB: 0.95, dG: 0.42, brood: 6, cBrood: [2, 8], grubs: 6, quota: 8, cost: 1.5, ask: { 3: 't5' } }
+    { gens: 6, models: [8], cost: 3, m0: 0.12, s0: 0.10, ask: {} },
+    { gens: 9, models: [12, 8, 5, 3, 1, 1, 3, 8, 12], costs: [2, 2.5, 3, 3.5, 4], grubs: 6, m0: 0.62, s0: 0.17, ask: {} },
+    null,
+    { gens: 8, common: 24, rare: 8, grubs: 12, quota: 8, cost: 1.5, young: 4, enc: 0.5, gw: 0.12, jump: 0.7, ask: { 1: 'p4' } },   // the chapter's one prediction (D6 decision 9)
+    { gens: 6, N: 40, terr: 8, n0: 8, dB: 0.95, dG: 0.42, brood: 6, grubs: 6, quota: 8, cost: 1.5, ask: {} }
   ],
-  PRED: ['p1', 'p2', 'p3', 'p4', null], TOL: { p1: 0.07, p2: 0.45, p3: 0.9, p4: 0.06, t5: 0.07 },
-  AXIS: { p1: [0, 1], p2: [0, 14], p3: [0, 20], p4: [0, 1], t5: [0, 1] }, STEP: { p1: 0.01, p2: 0.25, p3: 0.25, p4: 0.02, t5: 0.01 },
+  PRED: [null, null, null, 'p4', null], TOL: { p4: 0.06 },
+  AXIS: { p4: [0, 1] }, STEP: { p4: 0.02 },
   ISL: [{ y0: 128, y1: 268 }, { y0: 300, y1: 440 }],                   // L5: island A above, island B below (virtual stage)
   lay: {}
 };
@@ -47,17 +49,6 @@ const bwMean = a => { if (!a.length) return 0; let t = 0; for (const v of a) t +
 const bwFed = s => s.need > 0 ? s.fed / s.need : 0;
 function bwGauss(rnd) { let u = 0; while (u === 0) u = rnd(); return Math.sqrt(-2 * Det.log(u)) * Det.cos(TAU * rnd()); }   // Box–Muller on a private PRNG
 function bwShuffle(a, rnd) { for (let i = a.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-// maximum-likelihood β for "each catch is drawn from what is on the leaf with weight e^(−β·look)" (Det maths, 0.1 grid)
-function bwFitBeta(cat) {
-  if (!cat || !cat.length) return 2;
-  let best = 0, bl = -Infinity;
-  for (let b = -2; b <= 30.0001; b += (b < 12 ? 0.1 : 0.5)) {
-    let ll = 0;
-    for (const c of cat) { let z = 0; for (const v of c.pool) z += Det.exp(-b * v); ll += -b * c.e - Det.log(z); }
-    if (ll > bl + 1e-12) { bl = ll; best = b; }
-  }
-  return Math.round(best * 10) / 10;
-}
 // L5: one dusk of young birds on an island, on any PRNG; tasting kills (D1 L4–L5). → {kill: [i…], spare: [i…], spared}
 function bwYoung5(bugs, terr, dB, dG, rnd) {
   const kill = [], spare = [];
@@ -75,29 +66,29 @@ const BW_C = {
   firstWords: 'You are a jacamar with four hungry chicks. Tap a butterfly to eat it. Some taste bitter.',
   hud: {
     hunt: 'Feed the chicks: {n} more meals.', huntU: 'Feed the chicks: {n} more meals. Each tap spends a look.',
-    l2: 'The models’ passion vine is wilting. Fewer bitter butterflies each day.', l3: 'Some days the models are mild, some days deadly.',
+    l2: 'The models’ passion vine is wilting. Fewer bitter butterflies each day.',
     l4: 'Two bitter species, two patterns. Dragonflies are safe food.', l5: 'Two river islands. A few bitter bugs wear a bright new colour.',
-    mild: 'Mild day: a bitter mouthful costs 1.5 s.', deadly: 'Deadly day: a bitter mouthful costs 6 s and a chick’s meals.',
-    dusk: 'Dusk. The butterflies you spared lay eggs on the vines.', dusk4: 'Dusk. Young birds taste every look they have not learned.',
-    dusk5: 'Dusk. Each young bird must taste a colour to know it.', post: 'The young hatch.', wait: 'The season is over.',
-    ask1: 'Drag the marker: where will the average palewing look be by generation {g}?',
-    ask2: 'A retch costs {c}. Drag: how many mimics per model before tasting pays?',
-    ask3: 'One warning look in {n} is bitter. Drag: what retch cost protects the mimics?',
-    ask4: 'Drag the marker: where on the pattern line will the two looks meet?',
-    ask5: 'Island C lays its eggs in {b}. Drag: bright share at generation 6?',
-    whatif: 'What if: {lever}? The bird hunts for you.', reveal: 'Island C, run on to generation 6.'
+    // the key number (D6 decision 9), shown plainly with its one-line meaning
+    dusk1: 'Dusk. Spared palewings average {m}% warning look. Their young inherit it.',
+    kc: 'Today k = {k} mimics per model, C = {c}: {v}.', pays: 'k > C, tasting pays', spare: 'k ≤ C, sparing pays',
+    dusk4: 'Young birds ate {kb} of {nb} bitterwings, {ks} of {ns} sourwings: n ÷ N.',
+    dusk5: 'Bright: island A {a}%, island B {b}%. After one taste, a bird spares the siblings.',
+    learn5: 'Taste one bright bug to learn it, then spare the rest. Dragonflies are food.',
+    dusk: 'Dusk. The butterflies you spared lay eggs on the vines.', post: 'The young hatch.', wait: 'The season is over.',
+    ask4: 'The rarer pays more per head. Where will the two patterns meet? Drag the marker.',
+    whatif: 'What if: {lever}? The bird hunts for you.'
   },
   whispers: {
     miss: 'Only leaves there.', bitter: 'Bleugh! Bitter. You retch.', tasty: 'Tasty. It only looked bitter.', fed: 'All four chicks fed.',
     hungry: 'A chick went hungry.', busy: 'Still retching.', ring: 'You remember: those looks taste bitter.', crack: 'Your memory says: mostly tasty now.',
-    chick: 'Deadly! A chick goes hungry today.', kill: 'Tasting kills it.', spared: 'A young bird spared the siblings.',
+    kill: 'Tasting kills it.', spared: 'A young bird spared the siblings.',
     drag: 'Drag the marker first.', timeup: 'Time up: your marker stayed put.', idle: 'Tap a butterfly to eat it.',
     auto: 'The bird hunts for you.', manual: 'You hunt again.', grub: 'Dragonflies are safe food.'
   },
   labels: {
-    gen: 'Generation {g}', day: 'Day {g}', retch: 'Retch {c} s', models: '{m} models', mild: 'Mild day', deadly: 'Deadly day',
-    you: 'you', young: 'Young birds', A: 'Island A', B: 'Island B', C: 'Island C', scat: 'eggs scattered', clus: 'sibling clusters',
-    xn: 'selection ×N', hc: 'history compressed', contested: 'Contested', spots: 'spots', band: 'band', cream: 'cream', warn: 'warning',
+    gen: 'Generation {g}', day: 'Day {g}', retch: 'Retch {c} s', models: '{m} models', model1: '1 model', kc: 'k={k}, C={c}',
+    you: 'you', young: 'Young birds', A: 'Island A', B: 'Island B', scat: 'eggs scattered', clus: 'sibling clusters',
+    xn: 'selection ×N', hc: 'history compressed', spots: 'spots', band: 'band', cream: 'cream', warn: 'warning',
     memory: 'Taste memory', auto: 'Auto', lock: 'Lock in', skip: 'Skip', rest: 'Rest', spared: 'spared'
   },
   panels: [
@@ -109,20 +100,17 @@ const BW_C = {
     short1: 'The chicks went short. Pale palewings are safe food; black-and-red ones may be bitter.',
     short2: 'The chicks went short. When models are scarce, a warning look is probably a tasty mimic.',
     nobluff: 'You never tasted a warning look while models were scarce. The bluff was there to call.',
-    same3: 'You treated deadly and mild days alike. When a mistake costs a chick, warning looks are worth sparing.',
-    short3: 'The chicks went short. On mild days a bitter mouthful is cheap, so tasting warning looks pays.',
     lost4: 'The big-jump allele was lost by chance. Without it, the rarer species could not cross the gap in small steps.',
     both4: 'Both species moved this time. Chance and your own tastes can push the commoner too.',
     short4: 'The chicks went short. Dragonflies are safe food; warning butterflies only cost you retches.',
     b_lost: 'Bright was lost on island B by chance, though young birds spared siblings. New warning colours often vanish while rare.',
     a_kept: 'Bright survived on island A this time: a few bright bugs shared a territory. Rare and scattered usually means lost.',
     short5: 'The chicks went short. Dragonflies are safe food on both islands.',
+    nolearn5: 'Young birds spared siblings on island B. Learn bright as they do: one bright taste, then spare the rest.',
     w_nomodels: 'With no models, nothing made warning looks worth sparing. Palewings did not come to look bitter.',
     w_noinherit: 'Same choices, but looks were not inherited. The young started from scratch, so nothing accumulated.',
     w_manymodels: 'With models common all season, tasting never paid. The mimics kept their edge.',
     w_cheap: 'With a cheap retch, tasting paid even when models were common. The mimics’ edge was gone early.',
-    w_mild: 'Every day mild: a bitter mouthful cost little, so warning looks were tasted and rough mimics were eaten.',
-    w_deadly: 'Every day deadly: warning looks were spared, and rough mimics were spared with them.',
     w_nojump: 'Without the big jump, intermediates fell outside every memory and were tasted. Convergence stalled.',
     w_inside: 'Starting close, small steps landed within the commoner’s generalisation, so the rarer pattern crept towards it.',
     w_scatterB: 'Scattered on island B too, each bright bug was a new lesson for some young bird. Bright faded.',
@@ -130,57 +118,48 @@ const BW_C = {
     w_gone: 'Bright was already gone from island A, so clustering could not bring it back.',
     w_chance: 'This rerun went against the usual trend. In populations this small, chance is strong. Try it again.'
   },
-  levers: { nomodels: 'No models', noinherit: 'No inheritance', manymodels: 'Models stay', cheap: 'Cheap retch', mild: 'All days mild', deadly: 'All days deadly',
+  levers: { nomodels: 'No models', noinherit: 'No inheritance', manymodels: 'Models stay', cheap: 'Cheap retch',
     nojump: 'No big jump', inside: 'Start closer', scatterB: 'Scatter B', clusterA: 'Cluster A' },
   take: 'Mimics borrow protection that models pay for; two defended species share the cost, and the rarer converges.',
-  body: 'Your hesitation was the selection. Palewings that looked bitter were spared, so mimicry spread. It paid only while tasting cost more than it gained: models common, or toxic, enough. Two defended species shared your lessons, and the rarer one moved. A new warning colour survives where siblings cluster.',
+  body: 'Your hesitation was the selection. Palewings that looked bitter were spared, so mimicry spread. It paid only while k, mimics per model, stayed below C, the cost of a retch. Two defended species shared the lessons, and the rarer one moved. A new warning colour survives where siblings cluster.',
   levelTake: [
     'You spared what looked bitter, so palewings that looked like models left more young.',
-    'Mimics do best when rare relative to models. Past the break-even, tasting paid and their edge collapsed.',
-    'A deadlier model holds protection up: when a mistake costs more, more mimics per model are spared.',
+    'Mimics do best when rare relative to models. Once k > C, tasting paid and their edge collapsed.',
     'Two defended species share the cost of every lesson. The rarer one converged on the commoner.'],
   law: { title: 'Rare mimics, common models' },
   boss: { inverts: 'Rare mimics thrive among common models; a rare new warning colour dies unless siblings cluster.' },
-  stars: { discover: 'Feed your chicks and live through the mimicry collapse.', predict: 'Place the break-even and the meeting point inside their bands.', transfer: 'Predict island C inside its band.' },
-  levelStars: [
-    { discover: 'Feed your chicks while palewings come to look bitter.', predict: 'Place the last generation inside the band.' },
-    { discover: 'Feed your chicks and call the bluff when models are scarce.', predict: 'Place the break-even inside the band.' },
-    { discover: 'Spare warning looks on deadly days; taste them on mild days.', predict: 'Place the protecting cost inside the band.' },
+  stars: { discover: 'Feed your chicks and call the bluff once k > C.', predict: 'Place the meeting point inside its band.', transfer: 'On the islands, learn bright from one taste; it outlasts A on clustered B.' },
+  levelStars: [   // each level's own stars (D6 decision 9: no star needs a removed step)
+    { discover: 'Feed your chicks while palewings come to look bitter.' },
+    { discover: 'Feed your chicks and taste warning looks once k > C.' },
     { discover: 'Feed your chicks while the rarer pattern moves.', predict: 'Place the meeting point inside the band.' },
-    { discover: 'Feed your chicks and see young birds spare siblings.', transfer: 'Predict island C inside its band.' }],
+    { discover: 'Feed your chicks and see young birds spare siblings.', transfer: 'Taste exactly one bright bug, then spare them; bright outlasts A on B.' }],
   model: [
-    { level: 0, simulated: 'You hunt 24 palewings and 8 bitter models at one forest edge for 4 to 9 generations. Palewings you spare pair at random; 24 young hatch. Look is one inherited trait, cream to black-and-red.',
+    { level: 0, simulated: 'You hunt 24 palewings and 8 bitter models at one forest edge for 6 generations. Palewings you spare pair at random; 24 young hatch. Look is one inherited trait, cream to black-and-red.',
       simplification: 'Models never change. You are the only predator. A retch wastes 3 s. The morning asks a meal a second, so a retch costs about 3 meals.',
       params: [{ name: 'palewings', value: '24', tag: 'designed' }, { name: 'eaten each morning', value: 'up to 12 of 24, half', tag: 'xN', real: 'a few per cent a day' },
-        { name: 'heritability of look', value: 'about 0.85', tag: 'designed' }, { name: 'retch', value: '3 s', tag: 'designed' }, { name: 'generations', value: '4 to 9 by seed', tag: 'xN', real: 'dozens to thousands' }],
+        { name: 'heritability of look', value: 'about 0.85', tag: 'designed' }, { name: 'retch', value: '3 s', tag: 'designed' }, { name: 'generations', value: '6', tag: 'xN', real: 'dozens to thousands' }],
       cannot: 'How the first faint resemblance arose, or mimics whose looks differ in many separate traits.',
       nature: 'Bates (1862) found tasty Amazon whites that look like distasteful butterflies. Rufous-tailed jacamars taste and release such models, then reject them on sight (Chai 1986).',
       contested: false, refs: ['bates1862', 'brower1969', 'chai1986'] },
     { level: 1, simulated: 'The same forest edge. The models’ passion vine wilts, so models fall from 12 to 1 and return to 12. Your scatter compares good and poor mimics each day.',
-      simplification: 'Break-even: tasting a warning look pays when mimics per model exceed the retch cost in meals. The retch cost (1–6 s) varies by seed.',
-      params: [{ name: 'models', value: '12, 8, 5, 3, 1, 1, 3, 8, 12', tag: 'designed' }, { name: 'retch', value: '1–6 s by seed, so 1–6 meals', tag: 'designed' },
+      simplification: 'Break-even: tasting a warning look pays when k, mimics per model, exceeds C, the retch cost in meals. C (2–4 s) varies by seed. A deadlier model raises C.',
+      params: [{ name: 'models', value: '12, 8, 5, 3, 1, 1, 3, 8, 12', tag: 'designed' }, { name: 'retch', value: '2–4 s by seed, so 2–4 meals', tag: 'designed' },
         { name: 'mimics', value: '24, most look warning-coloured', tag: 'designed' }, { name: 'eaten each morning', value: 'up to half', tag: 'xN', real: 'a few per cent a day' }],
       cannot: 'Several predator species with different tastes and memories.',
       nature: 'Great tits were tested with artificial prey. Mimics were protected best when models were common and very distasteful (Lindström et al. 1997).',
       contested: false, refs: ['lindstrom1997', 'ruxton2004'] },
-    { level: 2, simulated: 'Days alternate. Mild models cost a 1.5 s retch. Deadly ones cost 6 s, and one chick misses its 3 meals. Models stay at 2, 3, 4 or 6.',
-      simplification: 'A deadly day’s bitter mouthful costs 9 meals. So it pays to spare warning looks unless mimics outnumber models more than 9 to 1.',
-      params: [{ name: 'mild retch', value: '1.5 s', tag: 'designed' }, { name: 'deadly retch', value: '6 s and a chick', tag: 'designed' },
-        { name: 'models', value: '2, 3, 4 or 6 by seed', tag: 'designed' }, { name: 'eaten each morning', value: 'up to half', tag: 'xN', real: 'a few per cent a day' }],
-      cannot: 'Whether rough mimics persist because predators generalise more when models are deadly. That is one explanation among several.',
-      nature: 'Imperfect mimics are common. Relaxed selection under very toxic models is one explanation; others exist, and the debate is open (Sherratt 2002).',
-      contested: true, refs: ['sherratt2002', 'duncan1965', 'lindstrom1997'] },
-    { level: 3, simulated: 'Bitterwings (red band) and sourwings (yellow spots), both defended. Four young jacamars each taste one of every look they have not learned; tasting kills.',
+    { level: 2, simulated: 'Bitterwings (red band) and sourwings (yellow spots), both defended. Four young jacamars each taste one of every look they have not learned; tasting kills.',
       simplification: 'Pattern is one line from spots to band. A large-effect allele jumps most of the way; small genes refine it. Young jacamars generalise over about ±0.12. Real Heliconius often survive a taste.',
       params: [{ name: 'commoner : rarer', value: '24 : 8', tag: 'designed' }, { name: 'large-effect allele', value: '2 copies in each species; moves 92% of the gap', tag: 'designed' },
         { name: 'young birds', value: '4 a dusk', tag: 'designed' }, { name: 'generations', value: '8', tag: 'xN', real: 'many more' }],
       cannot: 'Linked genes and supergenes in detail; The Tangled Pairs takes that up.',
       nature: 'Heliconius erato and H. melpomene match each other race by race across the Amazon (Müller 1879). One gene, optix, switches their red bands (Reed et al. 2011).',
       contested: false, refs: ['muller1879', 'mallet1999', 'turner1977', 'balogh2005', 'reed2011', 'joron2011'] },
-    { level: 4, simulated: 'Two river islands of 40 green, defended shield bugs. A dominant allele makes a bug bright. Eight young birds per island each learn for themselves; tasting kills.',
+    { level: 3, simulated: 'Two river islands of 40 green, defended shield bugs. A dominant allele makes a bug bright. Eight young birds per island each learn for themselves; tasting kills.',
       simplification: 'Young birds find bright bugs far more often than green ones. After one bright taste, a bird spares bright bugs for the rest of its dusk.',
       params: [{ name: 'bright at start', value: '8 of 40', tag: 'designed' }, { name: 'found per dusk', value: 'bright 95%, green 42%', tag: 'xN', real: 'far lower' },
-        { name: 'brood', value: '6 eggs on B; 2 or 8 on C', tag: 'designed' }, { name: 'generations', value: '6', tag: 'xN', real: 'many more' }],
+        { name: 'brood', value: '6 eggs on B', tag: 'designed' }, { name: 'generations', value: '6', tag: 'xN', real: 'many more' }],
       cannot: 'Bright bugs that survive a taste, or predators that are wary of anything new.',
       nature: 'Jacamars attack novel colour forms of Heliconius more often (Langham 2004). Aggregated novel prey are learned faster (Alatalo & Mappes 1996), but warning colours often came before grouping (Sillén-Tullberg 1988).',
       contested: false, refs: ['langham2004', 'alatalo1996', 'lindstrom2001', 'sillentullberg1988', 'gittleman1980'] }
@@ -188,7 +167,7 @@ const BW_C = {
   why: {
     real: ['Mimicry rings in Amazon butterflies are textbook evolution. A jacamar that tastes a bitter Heliconius avoids its look afterwards, so tasty look-alikes are spared. Selection measured in a Heliconius hybrid zone was strong (Mallet & Barton 1989).',
       'Müllerian mimics share the cost of teaching predators, so the rarer partner gains most by converging. Large-effect genes often make the first jump. In Heliconius numata, one supergene switches whole wing patterns (Joron et al. 2011).'],
-    maths: ['Odds that a warning look is tasty = mimics per model, k. A retch costs C meals. Tasting pays when k × 1 > C, so the break-even is k = C.',
+    maths: ['Odds that a warning look is tasty = mimics per model, k. A retch costs C meals. Tasting pays when k × 1 > C, so the break-even is k = C. A deadlier model raises C, so protection lasts longer.',
       'Say n young birds each taste one of every look they do not know. Each look then loses about n insects. Shared by N insects, the cost per insect is n ÷ N.']
   }
 };
@@ -197,12 +176,12 @@ const BW_C = {
 BW_C.intro = {
   game: 'You are a jacamar at a rainforest edge, feeding four chicks on butterflies. Some butterflies are bitter, and a bitter mouthful costs you seconds.',
   biology: 'Tasty butterflies that look like bitter ones are spared, so the disguise spreads. It pays only while bitter models are common, and two bitter species come to share one look.',
-  how: 'Tap a butterfly to eat it, and feed the chicks before the clock runs out. Your taste memory fills the row below; drag the marker when asked to predict.'
+  how: 'Tap butterflies to feed the chicks in time; a bitter one costs seconds. Once, you drag a marker to predict.'
 };
 const BW_ACCENT = '#E2483A';
 const CH_BITTER_V2 = {
   id: 'bitter', v2: true, role: 'environment', place: 'pond', accent: BW_ACCENT, plan: ['Bitter Wings', 'Mimicry and warning colours'],   // place: the nearest deep-green ground until a 'forest' place exists (engine request)
-  intro: { goal: 'Feed your chicks; watch mimicry rise, collapse and converge.' },
+  intro: { goal: 'Feed your chicks; watch mimicry rise, collapse and converge.' },   // (legacy goal line; the card text is BW_C.intro)
   content: BW_C,
   P: {
     quota: { v: 12, tag: 'designed', min: 6, max: 18, label: 'meals a morning' },
@@ -213,13 +192,12 @@ const CH_BITTER_V2 = {
   levels: [
     { name: 'Bitter lessons', adds: 'a warning-coloured model', codes: ['F1', 'B1'], minutes: 3 },
     { name: 'Too many liars', adds: 'falling model numbers', codes: ['F1', 'F2'], minutes: 4 },
-    { name: 'Deadly models', adds: 'model toxicity', codes: ['F1', 'F3'], minutes: 4 },
     { name: 'Two poisons', adds: 'a second defended species', codes: ['F4'], minutes: 4 },
     { name: 'The first warning', adds: 'clustered siblings', codes: ['F5'], minutes: 4 }
   ],
   keys: { ArrowLeft: 'move the beak', ArrowRight: 'move the beak', ArrowUp: 'move the beak', ArrowDown: 'move the beak', Space: 'peck', A: 'auto hunt', E: 'rest (untimed)', P: 'predict', Enter: 'lock in or skip' },
   untimed: true,
-  teacher: { prompts: ['Why did palewings come to look bitter, when no palewing chose to?', 'Why does the rarer of two defended species do the moving?', 'This jacamar weighs each taste perfectly. What would a real, forgetful bird change?'], pool: 'trace' },
+  teacher: { prompts: ['Why did palewings come to look bitter, though no palewing changed its own look?', 'Why does the rarer of two defended species do the moving?', 'This jacamar weighs each taste perfectly. What would a real, forgetful bird change?'], pool: 'trace' },
   // look is luminance (cream to black) plus a red band and a yellow bar; the two defended species differ in pattern (spots, band) and luminance;
   // palewings and models share a butterfly shape (Batesian), dragonflies and island bugs differ in shape
   encodings: [{ k: 'look', rgb: [120, 104, 92], channels: ['luminance', 'pattern', 'shape'] }, { k: 'cream', rgb: [242, 236, 214], channels: ['luminance', 'shape'] }, { k: 'warning', rgb: [24, 18, 20], channels: ['luminance', 'pattern', 'shape'] },
@@ -233,20 +211,18 @@ const CH_BITTER_V2 = {
     reset(level, o) {
       o = o || {};
       if (o.thaw) { this.restore(o.thaw.snap); const t = this.s; t.log = []; t.thawed = true; t.thawGen = t.gen; t.auto = true; this.lever(o.thaw.lever); t.th0 = this.metric(t); return; }
-      const L = BWK.LV[level], K = BWK;
-      this.s = { level, gen: 1, gens: L.gens, phase: 'dawn', t: 0, unt: !!(o.untimed != null ? o.untimed : (Save.d && Save.d.ui && Save.d.ui.unt)),
-        quota: L.quota || K.QUOTA, eaten: 0, fed: 0, need: 0, hungry: 0, busy: 0, stun: 0, time: K.TIME, time0: K.TIME, looks: K.LOOKS, cost: L.cost || 3, chickCost: 0,
-        led: [], ins: [], hist: [], cat: [], asks: [], ask: null, pred: {}, exp: {}, hit: {}, cnt: {}, nextId: 1, log: [], thawed: false, auto: false, autoT: 0, lever: null,
-        bitN: 0, warnN: 0, bluff: 0, wMild: 0, wDeadly: 0, tastes: 0, eatenAll: 0, spareB: 0, deadly: false };
+      const kd = BWK.KIND[level | 0] != null ? BWK.KIND[level | 0] : 0, L = BWK.LV[kd], K = BWK;
+      this.s = { level, kd, gen: 1, gens: L.gens, phase: 'dawn', t: 0, unt: !!(o.untimed != null ? o.untimed : (Save.d && Save.d.ui && Save.d.ui.unt)),
+        quota: L.quota || K.QUOTA, eaten: 0, fed: 0, need: 0, hungry: 0, busy: 0, stun: 0, time: K.TIME, time0: K.TIME, looks: K.LOOKS, cost: L.cost || 3,
+        led: [], ins: [], hist: [], asks: [], ask: null, pred: {}, exp: {}, hit: {}, cnt: {}, nextId: 1, log: [], thawed: false, auto: false, autoT: 0, lever: null,
+        bitN: 0, warnN: 0, bluff: 0, tastes: 0, eatenAll: 0, spareB: 0, brT: 0 };
       const s = this.s;
-      if (level <= 2) {
-        if (level === 0) s.gens = L.horizon[(R() * L.horizon.length) | 0];   // how far ahead the prediction looks varies by seed
-        if (level === 1) s.cost = L.costs[(R() * L.costs.length) | 0];
-        if (level === 2) s.M = L.models[(R() * L.models.length) | 0];
+      if (kd <= 1) {
+        if (kd === 1) s.cost = L.costs[(R() * L.costs.length) | 0];   // the break-even k = C moves with the retch cost
         const lay = bwLay('pale');
         for (let i = 0; i < K.N; i++) s.ins.push(this.mk('p', Gen.genome(lay, { r: { m: L.m0, s: L.s0 } })));
         s.r0 = bwMean(s.ins.map(x => x.v));
-      } else if (level === 3) {
+      } else if (kd === 3) {
         const lay = bwLay('two'), cb = R() < 0.5;   // which species is the commoner varies by seed, so "always the band end" is a coin toss
         s.common = cb ? 'b' : 's'; { const g = 0.36 + 0.12 * R(), c = 0.08 + g / 2 + (0.84 - g) * R(); s.base = { b: c + g / 2, s: c - g / 2 }; }   // and where the pair sits on the line (0.36–0.48 apart, never at an end)
         s.jump = Math.round(0.92 * (s.base.b - s.base.s) * 1000) / 1000;   // the large-effect allele moves a pattern most of the way to the other (modifiers refine it)
@@ -254,20 +230,19 @@ const CH_BITTER_V2 = {
         add(s.common, L.common, 2); add(s.common === 'b' ? 's' : 'b', L.rare, 2);   // the jump at 2 of 48 and 2 of 16 copies (history compressed)
         s.m0 = { b: this.spMean('b'), s: this.spMean('s') };
       } else {
-        const lay = bwLay('isl'); s.cBrood = L.cBrood[(R() * L.cBrood.length) | 0]; s.isl = [];
-        for (let k = 0; k < 3; k++) {   // A scattered, B one sibling cluster of bright bugs, C (hidden) laid in broods of cBrood
+        const lay = bwLay('isl'); s.isl = [];
+        for (let k = 0; k < 2; k++) {   // A scattered, B laid in sibling clusters (its bright founders are one brood)
           const bugs = [];
           for (let i = 0; i < L.N; i++) { const g = Gen.genome(lay, { br: { p: 0 } }); const br = i < L.n0; if (br) g[0] = 1; bugs.push({ g, br, ter: (R() * L.terr) | 0, fam: 0, st: 0 }); }
-          if (k > 0) {   // B and C: siblings share a territory; the bright founders are siblings too, in broods of the island's size
-            let bs = k === 1 ? L.n0 : s.cBrood, fam = 1;   // B: the mutant's first brood sits together
+          if (k > 0) {   // B: siblings share a territory; the bright founders are siblings too
+            let bs = L.n0, fam = 1;   // the mutant's first brood sits together
             const ts = bwShuffle(Array.from({ length: L.terr }, (_, q) => q), R);   // founder broods laid apart, one territory each
             for (let i = 0, q = 0; i < L.n0; i += bs, q++) { const t = ts[q % L.terr]; for (let j = i; j < Math.min(L.n0, i + bs); j++) { bugs[j].ter = t; bugs[j].fam = fam; } fam++; }
-            bs = k === 1 ? L.brood : s.cBrood;
+            bs = L.brood;
             for (let i = L.n0; i < L.N; i += bs) { const t = (R() * L.terr) | 0; for (let j = i; j < Math.min(L.N, i + bs); j++) { bugs[j].ter = t; bugs[j].fam = fam; } fam++; }
           }
           s.isl.push({ bugs, hist: [this.share(bugs)], spare: 0 });
         }
-        s.C0 = JSON.parse(JSON.stringify(s.isl[2].bugs.map(b => ({ br: b.br, g: [b.g[0], b.g[1]], ter: b.ter }))));
         this.islIns();
       }
       this.dawn();
@@ -282,29 +257,28 @@ const CH_BITTER_V2 = {
     },
     share(bugs) { let b = 0; for (const x of bugs) if (x.br) b++; return bugs.length ? b / bugs.length : 0; },
     spMean(sp, list) { return bwMean((list || this.s.ins).filter(x => x.k === sp && x.st !== 1 && x.st !== 3).map(x => x.v)); },
-    islIns() {   // L5: the leaf shows islands A and B (C is simulated off-screen); bug ids stay stable through the morning
+    islIns() {   // the boss: the leaf shows islands A and B; bug ids stay stable through the morning
       const s = this.s, L = BWK.LV[4]; s.ins = [];
       for (let k = 0; k < 2; k++) s.isl[k].bugs.forEach((b, j) => { const x = this.mk('g', null); x.br = b.br; x.v = b.br ? 1 : 0; x.isl = k; x.j = j; x.ter = b.ter; x.fam = b.fam; s.ins.push(x); });
       for (let k = 0; k < 2; k++) for (let i = 0; i < L.grubs; i++) { const x = this.mk('u', null); x.isl = k; x.ter = (R() * L.terr) | 0; s.ins.push(x); }
     },
     /* the day: models, costs, placement */
     dawn() {
-      const s = this.s, n = s.level, L = BWK.LV[n], K = BWK;
+      const s = this.s, n = s.kd, L = BWK.LV[n], K = BWK;
       s.led = s.led.filter(t => s.gen - t.g < 4);   // tiles fade over two mornings; a dashed tile is dropped at age 4
-      if (n <= 2) {
+      if (n <= 1) {
         s.ins = s.ins.filter(x => x.k === 'p');
-        let m = n === 0 ? (s.noModels ? 0 : L.models[0]) : n === 1 ? (s.manyModels ? 12 : L.models[Math.min(s.gen - 1, L.models.length - 1)]) : s.M;
+        let m = n === 0 ? (s.noModels ? 0 : L.models[0]) : (s.manyModels ? 12 : L.models[Math.min(s.gen - 1, L.models.length - 1)]);
         for (let i = 0; i < m; i++) s.ins.push(this.mk('m', null));
         for (let i = 0; i < (L.grubs || 0); i++) s.ins.push(this.mk('u', null));   // grubs: safe food from L2 on, so a skipped warning look is not a lost meal
-        if (n === 2) { s.deadly = s.allDeadly ? true : s.allMild ? false : s.gen % 2 === 0; s.cost = s.deadly ? L.deadly : L.mild; s.chickCost = s.deadly ? L.chick : 0; }
         if (n === 1 && s.cheap) s.cost = 1;
         s.models = m;
       } else if (n === 3) { s.ins = s.ins.filter(x => x.k !== 'u'); for (let i = 0; i < L.grubs; i++) s.ins.push(this.mk('u', null)); }
       for (const x of s.ins) x.st = 0;
       this.place();
-      s.eaten = 0; s.pen = 0; s.busy = 0; s.stun = 0; s.time = s.time0; s.looks = K.LOOKS; s.mBit = 0; s.mWarn = 0; s.mTaste = 0; s.chickHit = false;
+      s.eaten = 0; s.pen = 0; s.busy = 0; s.stun = 0; s.time = s.time0; s.looks = K.LOOKS; s.mBit = 0; s.mWarn = 0; s.mTaste = 0;
       const pale = s.ins.filter(x => x.k === 'p'), warn = pale.filter(x => x.v >= K.WARN).length;
-      const rec = { gen: s.gen, models: s.models || 0, cost: s.cost + s.chickCost, deadly: s.deadly, k: s.models ? warn / s.models : null, warn,
+      const rec = { gen: s.gen, models: s.models || 0, cost: s.cost, k: s.models ? warn / s.models : null, warn,
         mean: pale.length ? bwMean(pale.map(x => x.v)) : null, vals: pale.map(x => Math.round(x.v * 1000) / 1000), adv: null, dusk: null };
       if (n === 3) { rec.mb = this.spMean('b'); rec.ms = this.spMean('s'); }
       if (n === 4) rec.sh = s.isl.map(I => I.hist[I.hist.length - 1]);
@@ -321,7 +295,7 @@ const CH_BITTER_V2 = {
         }
         pts.push(best); return best;
       };
-      if (s.level < 4) {
+      if (s.kd < 4) {
         const n = s.ins.length, minD = Math.min(42, Math.sqrt((B.x1 - B.x0) * (B.y1 - B.y0) / n) * 0.66);
         for (const x of s.ins) { const p = spot(B.x0, B.x1, B.y0, B.y1, minD); x.x = p[0]; x.y = p[1]; x.a = (R() - 0.5) * 0.9; }
         return;
@@ -341,8 +315,6 @@ const CH_BITTER_V2 = {
       if (k === 'noinherit') s.noinherit = true;
       if (k === 'manymodels') s.manyModels = true;
       if (k === 'cheap') s.cheap = true;
-      if (k === 'mild') s.allMild = true;
-      if (k === 'deadly') s.allDeadly = true;
       if (k === 'nojump' || k === 'inside') {
         const lay = bwLay('two'), o = lay.T.jp.off, rare = s.common === 'b' ? 's' : 'b', cm = bwMean(s.ins.filter(x => x.k === s.common).map(x => Gen.add(lay, x.g, 'pt')));   // the commoner's look without the jump
         for (const x of s.ins) if (x.g && (x.k === 'b' || x.k === 's')) {
@@ -353,7 +325,7 @@ const CH_BITTER_V2 = {
       }
       if (k === 'scatterB') s.scatterB = true;
       if (k === 'clusterA') s.clusterA = true;
-      if (s.level <= 3 && s.phase === 'dawn') { s.hist.pop(); this.dawn(); }   // re-read the frozen dawn under the new rule
+      if (s.kd <= 3 && s.phase === 'dawn') { s.hist.pop(); this.dawn(); }   // re-read the frozen dawn under the new rule
     },
     /* the morning */
     step(dt) {
@@ -370,7 +342,6 @@ const CH_BITTER_V2 = {
       else if (s.phase === 'dusk') { if (s.t >= (fast ? K.T.duskF : K.T.dusk)) this.afterDusk(ev); }
       else if (s.phase === 'ask') { if (!s.unt && s.t >= K.T.askMax) this.commit(s.ask.id, null, ev); }
       else if (s.phase === 'post') { if (s.t >= (fast ? 0.2 : K.T.post)) this.breedOrEnd(ev); }
-      else if (s.phase === 'reveal') { if (s.t >= K.T.reveal) { s.phase = 'over'; s.t = 0; ev.push({ k: 'over' }); } }
       return ev;
     },
     toHunt(ev) { const s = this.s; s.phase = 'hunt'; s.t = 0; s.autoT = 0; ev.push({ k: 'hunt', gen: s.gen }); },
@@ -378,24 +349,20 @@ const CH_BITTER_V2 = {
     inHalo(v) { const s = this.s; return s.led.some(t => t.b && (BWK.FADE[Math.min(3, s.gen - t.g)] || 0) > 0 && Math.abs(t.v - v) <= BWK.HALO); },
     eat(i, ev) {
       const s = this.s, x = s.ins[i], K = BWK; if (!x || x.st) return;
-      const pool = s.level === 0 && s.gen <= 2 ? s.ins.filter(y => !y.st && (y.k === 'p' || y.k === 'm')).map(y => Math.round(y.v * 1000) / 1000) : null;
       const bitter = x.k === 'm' || x.k === 'b' || x.k === 's' || x.k === 'g', warnLook = x.k !== 'u' && (x.k !== 'p' || x.v >= K.WARN);
-      if (pool) s.cat.push({ e: Math.round(x.v * 1000) / 1000, pool });
       if (bitter) {
-        x.st = s.level <= 2 ? 2 : 1;   // a model staggers off alive; in L4–L5 tasting kills (D1)
+        x.st = s.kd <= 1 ? 2 : 1;   // a model staggers off alive; from Two poisons on, tasting kills (D1)
+        if (x.k === 'g' && x.br) s.brT++;   // the boss: bright bugs you tasted (a learning bird needs one)
         const c = s.cost, stun = Math.min(1, c * 0.4); s.busy = stun; s.stun = 1;
         if (s.unt) s.looks -= c; else s.time -= c - stun;
         s.bitN++; s.mBit++; s.tastes++; s.mTaste++;
-        let chick = false; if (s.chickCost && !s.chickHit) { s.chickHit = true; chick = true; }
-        if (s.level === 2) { if (s.deadly) s.wDeadly++; else s.wMild++; }
         const cue = this.ledger(x, 1);
-        ev.push({ k: 'bitter', i, x: x.x, y: x.y, cost: c, chick, kills: s.level >= 3 }); if (cue) ev.push({ k: cue });
+        ev.push({ k: 'bitter', i, x: x.x, y: x.y, cost: c, kills: s.kd >= 3 }); if (cue) ev.push({ k: cue });
       } else {
         x.st = 1; s.eaten++; s.eatenAll++; s.busy = K.T.handle; if (s.unt) s.looks -= 1;
         if (x.k === 'p' && warnLook) {
           s.warnN++; s.mWarn++; s.tastes++; s.mTaste++;
-          if (s.level === 1 && s.hist[s.hist.length - 1].k > s.cost) s.bluff++;
-          if (s.level === 2) { if (s.deadly) s.wDeadly++; else s.wMild++; }
+          if (s.kd === 1 && s.hist[s.hist.length - 1].k > s.cost) s.bluff++;
           const cue = this.ledger(x, 0); if (cue) ev.push({ k: cue });
         }
         ev.push({ k: 'eat', i, x: x.x, y: x.y, chick: (s.eaten - 1) % K.CHICKS, n: s.eaten, warn: warnLook && x.k === 'p' });
@@ -406,43 +373,43 @@ const CH_BITTER_V2 = {
       const s = this.s, w0 = this.weights();
       s.led.push({ v: Math.round(x.v * 1000) / 1000, b, g: s.gen, k: x.k, br: x.br ? 1 : 0 }); while (s.led.length > BWK.MAXLED) s.led.shift();
       const w1 = this.weights();
-      if (s.level <= 2 && w0.b < 2.5 && w1.b >= 2.5) return 'ring';           // memory holds about three bitter tastes: the avoid-ring appears
-      if (s.level <= 2 && w1.b >= 2.5 && w0.t <= w0.b && w1.t > w1.b) return 'crack';   // tasty tastes now outnumber bitter: the ring cracks
+      if (s.kd <= 1 && w0.b < 2.5 && w1.b >= 2.5) return 'ring';           // memory holds about three bitter tastes: the avoid-ring appears
+      if (s.kd <= 1 && w1.b >= 2.5 && w0.t <= w0.b && w1.t > w1.b) return 'crack';   // tasty tastes now outnumber bitter: the ring cracks
       return null;
     },
     // the auto bird (What if? reruns and the Auto button): cream first; a warning look only when the ledger's odds beat the retch cost
     autoPick() {
       const s = this.s, K = BWK, alive = []; s.ins.forEach((x, i) => { if (!x.st) alive.push(i); }); if (!alive.length) return -1;
-      if (s.level >= 3) {   // grubs are food; warning insects only to keep learning (one taste of a look you have no memory of), and only when no grub is left
+      if (s.kd >= 3) {   // grubs are food; warning insects only to keep learning (one taste of a look you have no memory of), and only when no grub is left
         const g = alive.filter(i => s.ins[i].k === 'u'); if (g.length) return g[0];
         const un = alive.filter(i => !this.inHalo(s.ins[i].v)); return un.length && s.mTaste < 2 ? un[0] : -1;
       }
       const cream = alive.filter(i => s.ins[i].k === 'u' || (s.ins[i].k === 'p' && s.ins[i].v < K.WARN)).sort((a, b) => s.ins[a].v - s.ins[b].v);
-      const w = this.weights(), odds = (w.t + 1) / (w.b + 1), worth = odds > s.cost + s.chickCost, cheap = !s.chickCost;
+      const w = this.weights(), odds = (w.t + 1) / (w.b + 1), worth = odds > s.cost;
       const warn = alive.filter(i => s.ins[i].k === 'm' || s.ins[i].v >= K.WARN).sort((a, b) => s.ins[b].v - s.ins[a].v);   // warning colours are the easiest to spot
       if (worth && warn.length) return warn[0];
       if (cream.length) return cream[0];
-      if (cheap && warn.length && w.b + w.t < 3 && s.mTaste < 3) return warn[warn.length - 1];   // little memory, and no chick at stake: taste to learn
+      if (warn.length && w.b + w.t < 3 && s.mTaste < 3) return warn[warn.length - 1];   // little memory: taste to learn
       return -1;
     },
     endMorning(ev) {
-      const s = this.s, n = s.level, K = BWK, rec = s.hist[s.hist.length - 1];
-      let got = Math.min(s.eaten, s.quota);
-      if (s.chickHit) got = Math.max(0, got - BWK.LV[2].chick);   // a deadly day: one chick misses its meals
+      const s = this.s, n = s.kd, K = BWK, rec = s.hist[s.hist.length - 1];
+      const got = Math.min(s.eaten, s.quota);
       s.fed += got; s.need += s.quota; s.hungry = Math.ceil((s.quota - got) / (s.quota / K.CHICKS) - 1e-9);
       const d = { eaten: s.eaten, bit: s.mBit, warn: s.mWarn, got };
-      if (n <= 2) {   // the mimics' edge today: survival of the better-looking half minus the poorer half
+      if (n <= 1) {   // the mimics' edge today: survival of the better-looking half minus the poorer half
         const pale = s.ins.filter(x => x.k === 'p'), vs = pale.map(x => x.v).sort((a, b) => a - b), med = vs.length ? vs[vs.length >> 1] : 0.5;
         let gn = 0, gs = 0, pn = 0, ps = 0; for (const x of pale) { if (x.v >= med) { gn++; if (!x.st) gs++; } else { pn++; if (!x.st) ps++; } }
         rec.adv = (gn ? gs / gn : 0) - (pn ? ps / pn : 0);
         const sv = pale.filter(x => !x.st); d.mean = sv.length ? bwMean(sv.map(x => x.v)) : rec.mean; d.vals = pale.map(x => x.st ? -1 : 1);
       } else if (n === 3) {
         const yb = this.young4(); d.yk = yb.kill.length; d.ys = yb.spare; d.order = yb.kill; d.mouth = s.mBit + yb.kill.length;
+        d.kb = yb.kill.filter(i => s.ins[i].k === 'b').length; d.ks = yb.kill.length - d.kb;   // the key number: each species loses about the same count, so the rarer loses a bigger share
       } else {
-        d.y = []; for (let k = 0; k < 3; k++) {
-          const I = s.isl[k]; if (k < 2) s.ins.forEach(x => { if (x.isl === k && x.k === 'g' && x.st === 1) I.bugs[x.j].st = 1; });
+        d.y = []; for (let k = 0; k < 2; k++) {
+          const I = s.isl[k]; s.ins.forEach(x => { if (x.isl === k && x.k === 'g' && x.st === 1) I.bugs[x.j].st = 1; });
           const r = bwYoung5(I.bugs, BWK.LV[4].terr, BWK.LV[4].dB, BWK.LV[4].dG, R); I.spare += r.spare.length; if (k === 1) s.spareB += r.spare.length;
-          if (k < 2) { const idx = j => s.ins.findIndex(x => x.isl === k && x.j === j); d.y.push({ kill: r.kill.map(idx), spare: r.spare.map(idx) }); for (const j of r.kill) { const q = idx(j); if (q >= 0) s.ins[q].st = 3; } }
+          const idx = j => s.ins.findIndex(x => x.isl === k && x.j === j); d.y.push({ kill: r.kill.map(idx), spare: r.spare.map(idx) }); for (const j of r.kill) { const q = idx(j); if (q >= 0) s.ins[q].st = 3; }
         }
       }
       rec.dusk = d; s.phase = 'dusk'; s.t = 0; s.auto = s.thawed ? true : s.auto;
@@ -461,11 +428,9 @@ const CH_BITTER_V2 = {
       return { kill, spare };
     },
     afterDusk(ev) {
-      const s = this.s, r0 = s.hist[s.hist.length - 1]; let id = BWK.LV[s.level].ask[s.gen];
-      if (s.level === 1 && s.gen >= 2 && s.gen <= 4 && !s.pred.hasOwnProperty('p2') && (Math.abs((r0.k || 0) - s.cost) >= 1.2 || s.gen === 4)) id = 'p2';
+      const s = this.s, id = BWK.LV[s.kd].ask[s.gen];   // only Two poisons asks (once, after its first dusk)
       if (id && !s.thawed && !s.pred.hasOwnProperty(id)) {
-        const ax = BWK.AXIS[id]; s.ask = { id, kind: s.level === 3 || id === 't5' ? 'y' : 'x', lo: ax[0], hi: ax[1], tol: BWK.TOL[id], gen: s.gen };
-        if (id === 'p3') { const r = s.hist[s.hist.length - 1]; s.ask.n = Math.round((r.k || 0) + 1); }
+        const ax = BWK.AXIS[id]; s.ask = { id, kind: 'y', lo: ax[0], hi: ax[1], tol: BWK.TOL[id], gen: s.gen };
         s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id }); return;
       }
       s.phase = 'post'; s.t = 0;
@@ -474,59 +439,19 @@ const CH_BITTER_V2 = {
       const s = this.s, A = s.ask; if (!A || A.id !== id) return;
       const e = this.expect(id), cur = this.current(id);
       s.pred[id] = v == null ? null : +v; s.exp[id] = e;
-      s.cnt[id] = id === 'p1' || id === 'p2' ? Math.abs(e - cur) >= (id === 'p1' ? 0.12 : A.tol) : true;   // counts only when "no change" (today's value) would miss
+      s.cnt[id] = Math.abs(e - cur) > A.tol;   // counts only when "meet halfway" (the misconception, shown at the ask) would miss
       s.hit[id] = v != null && Math.abs(+v - e) <= A.tol + 1e-9;
       s.ask = null; s.phase = 'post'; s.t = 0;
       ev.push({ k: 'pred', id, hit: s.hit[id], exp: e, tol: A.tol, counted: s.cnt[id] });
     },
     current(id) {   // "no change": the value the player can read off the screen at the ask
       const s = this.s, r = s.hist[s.hist.length - 1];
-      if (id === 'p1') return r.mean; if (id === 'p2') return r.k || 0; if (id === 'p3') return r.cost; if (id === 'p4') return (r.mb + r.ms) / 2;
-      return s.isl ? s.isl[2].hist[0] : 0;   // island C is hidden: "no change" is its first-dawn share, the same start as A and B
+      return (r.mb + r.ms) / 2;   // p4: "meet halfway"
     },
     /* the expectation for an ask (D1 G10): from the model at the parameters in force, never the realised run */
     expect(id) {
       const s = this.s;
-      if (id === 'p2') return s.cost;                                          // break-even: mimics per model = retch cost in meals
-      if (id === 'p3') { const r = s.hist[s.hist.length - 1]; return r.k || 0; }  // the cost that protects = mimics per model now
-      if (id === 'p4') { const v = s.ins.filter(x => x.k === s.common && !x.st).map(x => x.v).sort((a, b) => a - b); return v.length ? v[v.length >> 1] : 0.5; }   // the rarer converges on the commoner's typical look
-      if (id === 't5') return this.replay5(s.C0, s.cBrood, s.gens - 1, 300, 5101);
-      return this.replay1(200, 1101 + s.gen);
-    },
-    // L1: replays of your fitted rule (β from your catches so far) on the survivors, with a private PRNG, to generation 6's dawn
-    replay1(n, seedv) {
-      const s = this.s, lay = bwLay('pale'), L2 = lay.L, sp = lay.T.r, beta = bwFitBeta(s.cat), rnd = rng(seedv), K = BWK;
-      const pale = s.ins.filter(x => x.k === 'p'), surv = pale.filter(x => !x.st), par0 = (surv.length >= 2 ? surv : pale).map(x => Array.from(x.g));
-      const morn = s.hist.filter(r => r.dusk), kbar = Math.max(4, Math.round(bwMean(morn.map(r => r.dusk.eaten)))), M = BWK.LV[0].models[0];
-      const ph = g => { let v = 0; for (let i = 0; i < sp.n; i++) v += g[sp.off + i] + g[L2 + sp.off + i]; return clamp(v + sp.ve * bwGauss(rnd), 0, 1); };
-      const kid = (a, b) => { const c = new Array(2 * L2); for (let i = 0; i < L2; i++) { c[i] = a[rnd() < 0.5 ? i : L2 + i]; c[L2 + i] = b[rnd() < 0.5 ? i : L2 + i]; for (const h of [i, L2 + i]) if (rnd() < sp.mu) c[h] += sp.msd * bwGauss(rnd); } return c; };
-      const breed = par => { const out = []; for (let k = 0; k < K.N; k++) { const a = par[(rnd() * par.length) | 0]; let b = par[(rnd() * par.length) | 0]; for (let t = 0; t < 6 && b === a; t++) b = par[(rnd() * par.length) | 0]; out.push(kid(a, b)); } return out; };
-      let acc = 0;
-      for (let r = 0; r < n; r++) {
-        let gs = breed(par0);
-        for (let g = s.gen + 1; g < s.gens; g++) {   // mornings gen+1 … gens−1, then the dawn of the last generation
-          const items = gs.map(q => ({ q, v: ph(q), d: 0 })); for (let m = 0; m < M; m++) items.push({ q: null, v: 0.98, d: 0 });
-          let meals = 0, tries = 0;
-          while (meals < kbar && tries < kbar + 8) {
-            tries++; let z = 0; for (const it of items) if (!it.d) z += Det.exp(-beta * it.v); if (!(z > 0)) break;
-            let u = rnd() * z, pick = null; for (const it of items) { if (it.d) continue; u -= Det.exp(-beta * it.v); if (u <= 0) { pick = it; break; } }
-            if (!pick) pick = items.find(it => !it.d); pick.d = 1; if (pick.q) meals++;
-          }
-          const sv = items.filter(it => it.q && !it.d).map(it => it.q); gs = breed(sv.length >= 2 ? sv : gs);
-        }
-        let m = 0; for (const q of gs) m += ph(q); acc += m / gs.length;
-      }
-      return acc / n;
-    },
-    // L5: island C replayed from its first dawn (private PRNG): young birds, then broods of `brood`
-    replay5(c0, brood, gens, n, seedv) {
-      const L = BWK.LV[4], rnd = rng(seedv); let acc = 0;
-      for (let r = 0; r < n; r++) {
-        let bugs = c0.map(b => ({ br: b.br, g: b.g.slice(), ter: b.ter, st: 0 }));
-        for (let g = 0; g < gens; g++) { bwYoung5(bugs, L.terr, L.dB, L.dG, rnd); bugs = this.breed5(bugs, brood, true, rnd); }
-        acc += this.share(bugs);
-      }
-      return acc / n;
+      const v = s.ins.filter(x => x.k === s.common && !x.st).map(x => x.v).sort((a, b) => a - b); return v.length ? v[v.length >> 1] : 0.5;   // p4: the rarer converges on the commoner's typical look
     },
     breed5(bugs, brood, clustered, rnd) {   // broods of `brood` eggs from random survivor pairs; clustered broods share a territory
       const L = BWK.LV[4], sv = bugs.filter(b => !b.st), par = sv.length >= 2 ? sv : bugs, out = []; let fam = 2;
@@ -540,16 +465,13 @@ const CH_BITTER_V2 = {
     },
     breedOrEnd(ev) {
       const s = this.s;
-      if (s.gen >= s.gens) {
-        if (s.level === 4 && !s.thawed) { s.phase = 'reveal'; s.t = 0; ev.push({ k: 'reveal' }); return; }
-        s.phase = 'over'; s.t = 0; ev.push({ k: 'over' }); return;
-      }
+      if (s.gen >= s.gens) { s.phase = 'over'; s.t = 0; ev.push({ k: 'over' }); return; }
       this.breed(ev);
     },
     breed(ev) {
-      const s = this.s, n = s.level, K = BWK;
+      const s = this.s, n = s.kd, K = BWK;
       const pick = par => { const a = par[(R() * par.length) | 0]; let b = par[(R() * par.length) | 0]; for (let t = 0; t < 6 && b === a; t++) b = par[(R() * par.length) | 0]; return [a, b]; };
-      if (n <= 2) {
+      if (n <= 1) {
         const lay = bwLay('pale'), L = BWK.LV[n], pale = s.ins.filter(x => x.k === 'p'), sv = pale.filter(x => !x.st), par = sv.length >= 2 ? sv : pale, kids = [];
         for (let i = 0; i < K.N; i++) { const [a, b] = pick(par); kids.push(this.mk('p', s.noinherit ? Gen.genome(lay, { r: { m: L.m0, s: L.s0 } }) : Gen.mate(lay, a.g, b.g))); }
         s.ins = kids;
@@ -561,9 +483,9 @@ const CH_BITTER_V2 = {
         }
         s.ins = kids;
       } else {
-        for (let k = 0; k < 3; k++) {
-          const I = s.isl[k], clustered = k === 0 ? !!s.clusterA : k === 1 ? !s.scatterB : true;
-          I.bugs = this.breed5(I.bugs, k === 2 ? s.cBrood : BWK.LV[4].brood, clustered, R); I.hist.push(this.share(I.bugs));
+        for (let k = 0; k < 2; k++) {
+          const I = s.isl[k], clustered = k === 0 ? !!s.clusterA : !s.scatterB;
+          I.bugs = this.breed5(I.bugs, BWK.LV[4].brood, clustered, R); I.hist.push(this.share(I.bugs));
         }
         this.islIns();
       }
@@ -579,7 +501,7 @@ const CH_BITTER_V2 = {
         const i = a.i | 0, x = s.ins[i];
         if (i >= 0 && x && !x.st) this.eat(i, ev);
         else { if (s.unt) s.looks -= 1; else s.time -= BWK.T.miss; ev.push({ k: 'miss' }); }
-      } else if (a.k === 'skip') { if (s.phase === 'dusk') s.t = 99; else if (s.phase === 'dawn') this.toHunt(ev); else if (s.phase === 'reveal') s.t = 99; }
+      } else if (a.k === 'skip') { if (s.phase === 'dusk') s.t = 99; else if (s.phase === 'dawn') this.toHunt(ev); }
       else if (a.k === 'rest' && s.phase === 'hunt' && s.unt) this.endMorning(ev);   // untimed: the bird can end its morning (nothing else would)
       else if (a.k === 'auto') { s.auto = !!a.on && (s.phase === 'hunt' || s.phase === 'dawn'); s.autoT = 0; if (s.auto && s.phase === 'dawn') this.toHunt(ev); ev.push({ k: 'auto', on: s.auto }); }
       else if (a.k === 'predict' && s.ask && a.id === s.ask.id) this.commit(a.id, a.v, ev);
@@ -591,30 +513,29 @@ const CH_BITTER_V2 = {
     /* ---------- contract ---------- */
     result() {
       const s = this.s; if (!s || s.phase !== 'over') return null;
-      const st = CH_BITTER_V2.stars, n = s.level;
+      const st = CH_BITTER_V2.stars, n = s.kd;
       const mask = s.thawed ? 0 : (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
       return { mask, outcome: this.outcome(s), interesting: this.why(s) };
     },
     outcome(s) {
-      const n = s.level, H = s.hist, a = H[0], z = H[H.length - 1];
+      const n = s.kd, H = s.hist, a = H[0], z = H[H.length - 1];
       if (n === 0) return { r0: a.mean, r1: z.mean, fed: bwFed(s) };
       if (n === 3) { const rare = s.common === 'b' ? 's' : 'b', f = r => r['m' + rare], g = r => r['m' + s.common]; return { rare: Math.abs(f(z) - f(a)), common: Math.abs(g(z) - g(a)), fed: bwFed(s) }; }
-      if (n === 4) return { A: s.isl[0].hist.slice(), B: s.isl[1].hist.slice(), C: s.isl[2].hist.slice(), fed: bwFed(s) };
+      if (n === 4) return { A: s.isl[0].hist.slice(), B: s.isl[1].hist.slice(), fed: bwFed(s), brT: s.brT };
       return { fed: bwFed(s), bluff: s.bluff };
     },
     why(s) {   // the Interesting result, chosen from what happened in this run
-      const n = s.level, st = CH_BITTER_V2.stars, o = this.outcome(s);
+      const n = s.kd, st = CH_BITTER_V2.stars, o = this.outcome(s);
       if (s.thawed && s.lever) return this.whatIfText(s);
-      if (st.discover(s, n)) return n === 4 && o.A[o.A.length - 1] >= o.A[0] ? 'a_kept' : null;
+      if (st.discover(s, n)) return n === 4 && o.A[o.A.length - 1] >= o.A[0] ? 'a_kept' : n === 4 && s.brT !== 1 ? 'nolearn5' : null;
       if (n === 0) return s.eatenAll < 3 * Math.max(1, s.gen) ? 'flat_idle' : (o.r1 - o.r0 < 0.15 ? 'flat' : 'short1');
       if (n === 1) return bwFed(s) < 0.6 ? 'short2' : s.bluff < 2 ? 'nobluff' : null;
-      if (n === 2) return bwFed(s) < 0.6 ? 'short3' : 'same3';
       if (n === 3) return bwFed(s) < 0.6 ? 'short4' : (this.jumpLost() ? 'lost4' : (o.common * 3 > o.rare ? 'both4' : null));
       return bwFed(s) < 0.6 ? 'short5' : (o.B[o.B.length - 1] <= 0 ? 'b_lost' : null);
     },
     metric(s) {   // the number a What if? text is checked against: the frozen value at the thaw, then the end of the rerun
-      const H = s.hist, z = H[H.length - 1], n = s.level, after = H.filter(r => r.gen >= (s.thawGen || 1) && r.adv != null).map(r => r.adv);
-      if (n === 0) return z.mean; if (n <= 2) return after.length ? bwMean(after) : null;
+      const H = s.hist, z = H[H.length - 1], n = s.kd, after = H.filter(r => r.gen >= (s.thawGen || 1) && r.adv != null).map(r => r.adv);
+      if (n === 0) return z.mean; if (n <= 1) return after.length ? bwMean(after) : null;
       if (n === 3) { const rare = s.common === 'b' ? 'ms' : 'mb'; return z[rare]; }
       return { A: s.isl[0].hist[s.isl[0].hist.length - 1], B: s.isl[1].hist[s.isl[1].hist.length - 1] };
     },
@@ -622,7 +543,7 @@ const CH_BITTER_V2 = {
       const k = s.lever, a = s.th0, z = this.metric(s), rare = s.common === 'b' ? 's' : 'b';
       if (k === 'clusterA' && a && a.A <= 0) return 'w_gone';
       const ok = { nomodels: () => z - a < 0.05, noinherit: () => z - a < 0.05, manymodels: () => z != null && z > 0.1, cheap: () => z != null && z < 0.15,
-        mild: () => z != null && z < 0.15, deadly: () => z != null && z > 0.1, nojump: () => Math.abs(z - a) < 0.1,
+        nojump: () => Math.abs(z - a) < 0.1,
         inside: () => (rare === 's' ? z - a : a - z) >= 0.03, scatterB: () => z.B <= a.B, clusterA: () => z.A >= a.A }[k];
       return ok && ok() ? 'w_' + k : 'w_chance';
     },
@@ -657,8 +578,13 @@ const CH_BITTER_V2 = {
         if ((tk | 0) % 18) return null; const i = CH_BITTER_V2.sim.autoPick(); return i >= 0 ? { k: 'tap', i } : acts.find(a => a.k === 'rest') || null;
       },
       copynow(s, acts, rnd, tk) { return CH_BITTER_V2.sim.bots.greedy(s, acts, rnd, tk); },
-      edge(s, acts, rnd, tk) {   // predicts a number read off the screen: the look plus a typical rise (L1), the odds shown (L3), the band end (L4), island B now (L5)
-        if (s.ask) { const sim = CH_BITTER_V2.sim, r = s.hist[s.hist.length - 1], id = s.ask.id; const v = id === 'p2' ? r.k + 2 : id === 'p3' ? (s.ask.n || 1) : id === 'p4' ? 0.8 : id === 't5' ? s.isl[1].hist[s.isl[1].hist.length - 1] : r.mean + 0.2; return acts.reduce((b, a) => !b || Math.abs(a.v - v) < Math.abs(b.v - v) ? a : b, null); }
+      edge(s, acts, rnd, tk) {   // predicts a fixed number (the band end, 0.8) and hunts like the Bayesian bird
+        if (s.ask) return acts.reduce((b, a) => !b || Math.abs(a.v - 0.8) < Math.abs(b.v - 0.8) ? a : b, null);
+        return CH_BITTER_V2.sim.bots.bayes(s, acts, rnd, tk);
+      },
+      learner(s, acts, rnd, tk) {   // the boss's Transfer path: taste one bright bug (on island A), then spare bright bugs; otherwise the Bayesian bird
+        if (s.kd === 4 && !s.ask && !((tk | 0) % 18) && s.brT === 0 && s.phase === 'hunt') { const a = acts.find(x => x.k === 'tap' && x.i >= 0 && s.ins[x.i].k === 'g' && s.ins[x.i].br && s.ins[x.i].isl === 0) || acts.find(x => x.k === 'tap' && x.i >= 0 && s.ins[x.i].k === 'g' && s.ins[x.i].br); if (a) return a; }
+        if (s.kd === 4 && !s.ask) { if ((tk | 0) % 18) return null; const g = acts.find(x => x.k === 'tap' && x.i >= 0 && s.ins[x.i].k === 'u'); return g || acts.find(a => a.k === 'rest') || null; }
         return CH_BITTER_V2.sim.bots.bayes(s, acts, rnd, tk);
       }
     }
@@ -670,25 +596,25 @@ const CH_BITTER_V2 = {
       const f = bwFed(s), H = s.hist;
       if (n === 0) return f >= 0.6 && H[H.length - 1].mean - H[0].mean >= 0.15;
       if (n === 1) return f >= 0.6 && s.bluff >= 2;
-      if (n === 2) return f >= 0.5 && s.wMild >= 2 && s.wDeadly <= Math.max(1, Math.floor(s.wMild / 3));
       if (n === 3) { const o = CH_BITTER_V2.sim.outcome(s), gap = s.base ? s.base.b - s.base.s : 0.6; return f >= 0.6 && o.rare >= 0.25 * gap && o.rare >= 3 * o.common; }   // the rarer crossed a quarter of the gap
       const A = s.isl[0].hist; return f >= 0.6 && s.spareB >= 3 && A[A.length - 1] < A[0];
     },
     predict: (s, n) => { const id = BWK.PRED[n]; return !!id && !!s.hit[id] && !!s.cnt[id]; },
-    transfer: (s, n) => n === 4 && !!s.hit.t5
+    // the boss's Transfer: act as the young birds do. Taste exactly one bright bug, spare the rest, and bright ends commoner on clustered B than on scattered A
+    transfer: (s, n) => { if (n !== 4) return false; const A = s.isl[0].hist, B = s.isl[1].hist; return bwFed(s) >= 0.6 && s.brT === 1 && B[B.length - 1] > A[A.length - 1]; }
   },
-  // D1 §3.2 unit stars: Discover = the collapse lived through (L2); Predict = the break-even (L2, or its inverse in L3) and the L4 meeting point; Transfer = island C
-  unitStars(lv) { const m = i => (lv && lv[i]) | 0; return (m(1) & 1 ? 1 : 0) | ((m(1) & 2 || m(2) & 2) && m(3) & 2 ? 2 : 0) | (m(4) & 4 ? 4 : 0); },
+  // unit stars (by level number; D6 decision 9: four levels): Discover = the bluff called (L2); Predict = the meeting point (L3, the one prediction); Transfer = the boss
+  unitStars(lv) { const m = i => (lv && lv[i]) | 0; return (m(1) & 1 ? 1 : 0) | (m(2) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0); },
 
   /* ---------- teacher hook: a 30-bit result code (?unit=bitter&seed=…) ----------
-     bits 0–2 level, 3–5 star mask, 6–12 meals fed %, 13–19 the level's key number ×100 (L1 mean look, L2 bluffs ×10, L3 mild tastes ×10,
-     L4 rarer shift, L5 island B share), 20–26 the prediction ×100 (L2–L3 ÷ 12), 27–29 the retch cost or brood (L2 cost, L5 brood) */
+     bits 0–2 level number, 3–5 star mask, 6–12 meals fed %, 13–19 the level's key number ×100 (L1 mean look, L2 bluffs ×10,
+     L3 rarer shift, L4 island B share), 20–26 the prediction ×100 (L3 only), 27–29 the retch cost in whole seconds (L1–L2) or bright tastes (L4) */
   resultBits(s, level) {
-    if (!s) return 0; const n = level == null ? s.level : level, r = this.sim.result(), mask = r ? r.mask & 7 : 0, pc = x => clamp(Math.round(100 * (+x || 0)), 0, 127);
+    if (!s) return 0; const n = s.kd, lv = level == null ? s.level : level, r = this.sim.result(), mask = r ? r.mask & 7 : 0, pc = x => clamp(Math.round(100 * (+x || 0)), 0, 127);
     const H = s.hist || [], z = H[H.length - 1] || {}, o = r ? r.outcome : {};
-    const key = n === 0 ? z.mean : n === 1 ? s.bluff / 10 : n === 2 ? s.wMild / 10 : n === 3 ? o.rare : (o.B ? o.B[o.B.length - 1] : 0);
-    const id = BWK.PRED[n] || 't5', pv = s.pred && s.pred[id] != null ? s.pred[id] / (n === 1 || n === 2 ? 12 : 1) : 0;
-    return ((n & 7) | (mask << 3) | (pc(bwFed(s)) << 6) | (pc(key) << 13) | (pc(pv) << 20) | ((clamp(n === 4 ? s.cBrood : s.cost, 0, 7) & 7) << 27)) >>> 0;
+    const key = n === 0 ? z.mean : n === 1 ? s.bluff / 10 : n === 3 ? o.rare : (o.B ? o.B[o.B.length - 1] : 0);
+    const pv = s.pred && s.pred.p4 != null ? s.pred.p4 : 0;
+    return ((lv & 7) | (mask << 3) | (pc(bwFed(s)) << 6) | (pc(key) << 13) | (pc(pv) << 20) | ((clamp(Math.round(n === 4 ? s.brT : s.cost), 0, 7) & 7) << 27)) >>> 0;
   },
 
   /* ---------- view ---------- */
@@ -708,7 +634,19 @@ const CH_BITTER_V2 = {
   },
   w(group, key, vars) { const s = (this.content[group] || {})[key]; return s == null ? '' : typeof Txt !== 'undefined' ? Txt.f(s, vars || {}) : String(s).replace(/\{(\w+)\}/g, (m, k) => vars && vars[k] != null ? vars[k] : m); },
   whisper(key, vars) { if (typeof Whisper !== 'undefined') Whisper.say(this.w('whispers', key, vars), 'bw-' + key); },
-  introLine() { const C = this.content; return [C.firstWords, C.hud.l2, C.hud.l3, C.hud.l4, C.hud.l5][this.level] || C.firstWords; },
+  introLine() { const C = this.content; return [C.firstWords, C.hud.l2, C.hud.l4, C.hud.l5][this.level] || C.firstWords; },
+  kd() { return BWK.KIND[this.level | 0] != null ? BWK.KIND[this.level | 0] : 0; },
+  kcLine(s) {   // L2's key number, plainly: k mimics per model against C, the retch cost in meals
+    const r = s.hist[s.hist.length - 1] || {}, k = r.k != null ? Math.round(r.k * 10) / 10 : 0;
+    return this.w('hud', 'kc', { k, c: this.fmtC(s.cost), v: this.w('hud', k > s.cost ? 'pays' : 'spare') });
+  },
+  duskLine(s) {   // the dusk's key number for each kind of level
+    const C = this.content.hud, r = s.hist[s.hist.length - 1] || {}, d = r.dusk || {};
+    if (s.kd === 0) return d.mean != null ? this.w('hud', 'dusk1', { m: Math.round(100 * d.mean) }) : C.dusk;
+    if (s.kd === 3) { const L = BWK.LV[3], nb = s.common === 'b' ? L.common : L.rare, ns = s.common === 's' ? L.common : L.rare; return this.w('hud', 'dusk4', { kb: d.kb | 0, nb, ks: d.ks | 0, ns }); }
+    if (s.kd === 4) { const sh = k => Math.round(100 * s.isl[k].hist[s.isl[k].hist.length - 1]); return this.w('hud', 'dusk5', { a: sh(0), b: sh(1) }); }
+    return C.dusk;
+  },
   px(x, y) { return [x / 390 * Stage.w, y / 540 * Stage.h]; },
   size() { return Math.max(34, Math.min(64, 0.1 * Math.min(Stage.w, 1.2 * Stage.h))); },   // actors ≥ 0.07u (D4 §3); a butterfly's wingspan
   hudH() { return Math.max(56, this._hudPx || 0, (Stage.zones && Stage.zones.hud && Stage.zones.hud.h) || 0); },
@@ -717,10 +655,10 @@ const CH_BITTER_V2 = {
     if (typeof Dock === 'undefined') return;
     const s = this.sim.s, L = this.content.labels, b = [], key = typeof Fx !== 'undefined' && Fx.lastInput === 'key';
     if (s.ask) b.push({ id: 'lock', label: L.lock, key: 'Enter', primary: true, fn: () => { if (typeof Predict !== 'undefined') Predict.commit(); } });
-    else if (s.phase === 'dusk' || s.phase === 'reveal') b.push({ id: 'skip', label: L.skip, key: 'Enter', fn: () => Sim.act(this, { k: 'skip' }) });
+    else if (s.phase === 'dusk') b.push({ id: 'skip', label: L.skip, key: 'Enter', fn: () => Sim.act(this, { k: 'skip' }) });
     else {
       if (s.unt && s.phase === 'hunt') b.push({ id: 'rest', label: L.rest, key: 'E', aria: 'End this morning', fn: () => Sim.act(this, { k: 'rest' }) });
-      if (s.unt || s.auto || s.thawed || key || (s.level >= 3 && s.asks.length)) {   // the non-visual path, and the fast watch after a level's prediction
+      if (s.unt || s.auto || s.thawed || key || (s.kd >= 3 && s.asks.length)) {   // the non-visual path, and the fast watch after a level's prediction
         b.push({ id: 'auto', label: L.auto, key: 'A', pressed: !!s.auto, aria: 'Let the bird hunt by itself', disabled: !(s.phase === 'hunt' || s.phase === 'dawn'), fn: () => Sim.act(this, { k: 'auto', on: !s.auto }) });
       }
     }
@@ -730,16 +668,16 @@ const CH_BITTER_V2 = {
   hud(force) {
     if (typeof HUD === 'undefined') return;
     const s = this.sim.s, C = this.content.hud; let text = '', num = '', first = false;
-    if (s.ask) text = this.w('hud', 'ask' + { p1: 1, p2: 2, p3: 3, p4: 4, t5: 5 }[s.ask.id], { c: this.fmtC(s.cost) + (s.cost === 1 ? ' meal' : ' meals'), n: s.ask.n || 2, b: s.cBrood === 2 ? 'pairs' : 'eights', g: s.gens });
+    if (s.ask) text = C.ask4;
     else if (s.thawed && s.lever && s.phase !== 'over') text = this.w('hud', 'whatif', { lever: (this.content.levers || {})[s.lever] || s.lever });
     else if (s.phase === 'hunt' || s.phase === 'dawn') {
-      if (s.gen === 1 && s.eatenAll === 0 && s.tastes === 0) { text = this.introLine(); first = s.level === 0; }
-      else if (s.level === 2 && s.phase === 'dawn') text = C[s.deadly ? 'deadly' : 'mild'];
+      if (s.gen === 1 && s.eatenAll === 0 && s.tastes === 0) { text = this.introLine(); first = s.kd === 0; }
+      else if (s.kd === 1) text = this.kcLine(s);
+      else if (s.kd === 4) text = C.learn5;
       else text = this.w('hud', s.unt ? 'huntU' : 'hunt', { n: Math.max(0, s.quota - s.eaten) });
       num = s.eaten + '/' + s.quota;
-    } else if (s.phase === 'dusk') text = s.level === 3 ? C.dusk4 : s.level === 4 ? C.dusk5 : C.dusk;
-    else if (s.phase === 'post') text = C.post;
-    else if (s.phase === 'reveal') text = C.reveal;
+    } else if (s.phase === 'dusk') text = this.duskLine(s);
+    else if (s.phase === 'post') text = s.kd === 1 ? this.kcLine(s) : C.post;
     else text = C.wait;
     if (force || text !== this._hudT || num !== this._hudN) {
       this._hudT = text; this._hudN = num; HUD.say(text, num, first ? { first: true } : undefined);
@@ -772,7 +710,7 @@ const CH_BITTER_V2 = {
     const v = this.v, s = this.sim.s; this._asked = A.id; v.askT0 = v.t; if (typeof Predict === 'undefined') return;
     // the ghost starts off every plausible answer (lessons §1.3); an untouched ghost never commits (needMove)
     const md = sp => { const v = s.ins.filter(x => x.k === sp && !x.st).map(x => x.v).sort((a, b) => a - b); return v.length ? v[v.length >> 1] : 0.5; };
-    const start = { p1: 0, p2: A.hi, p3: A.hi, p4: A.id === 'p4' ? (md('b') + md('s')) / 2 : 0, t5: 1 }[A.id];   // L4: "meet halfway", the misconception, at least 0.18 from the answer
+    const start = (md('b') + md('s')) / 2;   // "meet halfway", the misconception, at least 0.18 from the answer
     Predict.ask({ id: A.id, chart: 0, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start, tol: A.tol, at: A.kind === 'y' ? s.gens - 0.4 : undefined, soft: null, needMove: true,
       say: this._hudT || '', onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'void', id: A.id }) });
     if (typeof Snd2 !== 'undefined') Snd2.play('tick', { x: Stage.w / 2, y: Stage.h / 2 });
@@ -793,8 +731,7 @@ const CH_BITTER_V2 = {
       if (typeof Snd !== 'undefined') Snd.bitter();
       v.retch = { age: 0, c: e.cost, x: P[0], y: P[1] }; v.chunk = { age: 0, c: e.cost }; v.flip = s.led.length - 1; v.flipT = 0; v.flinch = 1;
       const T = this.timerBox(); if (F) F.pop('−' + this.fmtC(e.cost) + ' s', T.x + T.w * clamp(s.time / s.time0, 0, 1), T.y + 16, -1);
-      this.whisper(e.chick ? 'chick' : e.kills && s.level >= 3 && s.bitN <= 1 ? 'kill' : 'bitter');
-      if (e.chick) { const c = this.chickPos(3); if (F) F.ring(c[0], c[1], 15, { dashed: true }); }
+      this.whisper(e.kills && s.kd >= 3 && s.bitN <= 1 ? 'kill' : 'bitter');
       if (typeof Snd2 !== 'undefined' && Snd2.buzz) Snd2.buzz('cost');
     } else if (e.k === 'ring') { this.whisper('ring'); v.glow = 1; }
     else if (e.k === 'crack') this.whisper('crack');
@@ -818,26 +755,26 @@ const CH_BITTER_V2 = {
       if (typeof Freezer !== 'undefined' && !Sim.replaying(this)) Freezer.put(this.id, e.gen, this.sim.snapshot());
       if (typeof Live !== 'undefined') Live.say(Txt.f('Generation {g}.', { g: e.gen }));
       if (typeof Snd !== 'undefined' && Snd.dawn) Snd.dawn();
-    } else if (e.k === 'reveal') { if (F) F.tier(3, () => { }); if (typeof Snd2 !== 'undefined') Snd2.play('interesting', { x: W / 2, y: H / 2 }); }
+    }
     else if (e.k === 'over') { if (typeof Snd2 !== 'undefined') Snd2.play('interesting', { x: W / 2, y: H / 2 }); }
   },
   duskPlan() {   // when each young bird's taste lands during the dusk (L4–L5), and which bugs it spared
     const s = this.sim.s, r = s.hist[s.hist.length - 1].dusk || {}, out = { kills: [], spares: [] }, D = BWK.T.dusk - 0.6;
-    if (s.level === 3) (r.order || []).forEach((i, k, a) => out.kills.push({ i, t: 0.35 + D * (k + 0.5) / Math.max(1, a.length) }));
-    if (s.level === 4) (r.y || []).forEach(y => { y.kill.forEach((i, k, a) => { if (i >= 0) out.kills.push({ i, t: 0.35 + D * (k + 0.5) / Math.max(1, a.length) }); }); y.spare.forEach(i => { if (i >= 0) out.spares.push(i); }); });
+    if (s.kd === 3) (r.order || []).forEach((i, k, a) => out.kills.push({ i, t: 0.35 + D * (k + 0.5) / Math.max(1, a.length) }));
+    if (s.kd === 4) (r.y || []).forEach(y => { y.kill.forEach((i, k, a) => { if (i >= 0) out.kills.push({ i, t: 0.35 + D * (k + 0.5) / Math.max(1, a.length) }); }); y.spare.forEach(i => { if (i >= 0) out.spares.push(i); }); });
     return out;
   },
   end(r) {
     this._ended = true; const final = this.level === this.levels.length - 1, last = typeof Freezer !== 'undefined' ? Freezer.list(this.id)[0] : null;   // What if? from the earliest vial, so the change has time to show
-    const levers = [['nomodels', 'noinherit'], ['manymodels', 'cheap'], ['mild', 'deadly'], ['nojump', 'inside'], ['scatterB', 'clusterA']][this.level];
+    const kd = this.kd(), levers = { 0: ['nomodels', 'noinherit'], 1: ['manymodels', 'cheap'], 3: ['nojump', 'inside'], 4: ['scatterB', 'clusterA'] }[kd];
     const C = this.content, LS = (C.levelStars || [])[this.level] || {}, stars = {};   // a star this level earned still missing from the unit points to where the unit earns it
     [['discover', 1], ['predict', 2], ['transfer', 4]].forEach(([k, b]) => { stars[k] = r.mask & b ? C.stars[k] : LS[k] || null; });
-    const labels = ['Average palewing look by generation', 'Mimics’ edge against mimics per model', 'Mimics’ edge against the cost of a retch', 'Each species’ pattern by generation', 'Bright share on each island'];
+    const labels = ['Average palewing look by generation', 'Mimics’ edge against mimics per model (break-even k = C)', 'Each species’ pattern by generation', 'Bright share on each island'];
     End.show(this, { level: this.level, mask: r.mask, final, interesting: r.interesting, whatIf: last && levers ? { gen: last.gen, levers } : null, stars,
-      chart: cv => { if (typeof LiveGraph !== 'undefined') LiveGraph.draw(cv, this.notes(true).charts[this.level === 0 ? 1 : 0], 'paper'); }, chartLabel: labels[this.level] });
+      chart: cv => { if (typeof LiveGraph !== 'undefined') LiveGraph.draw(cv, this.notes(true).charts[kd === 0 ? 1 : 0], 'paper'); }, chartLabel: labels[this.level] });
   },
   teacherStep() {   // Teacher → (step): run on to the next dawn, prediction or the end
-    for (let i = 0; i < 4000; i++) { const s = this.sim.s, ph = s.phase, g = s.gen; this.update(1 / 30); const t = this.sim.s; if (t.ask || t.gen !== g || (t.phase !== ph && (t.phase === 'over' || t.phase === 'reveal'))) break; }
+    for (let i = 0; i < 4000; i++) { const s = this.sim.s, ph = s.phase, g = s.gen; this.update(1 / 30); const t = this.sim.s; if (t.ask || t.gen !== g || (t.phase !== ph && t.phase === 'over')) break; }
   },
 
   /* ---------- input ---------- */
@@ -851,7 +788,7 @@ const CH_BITTER_V2 = {
     const s = this.sim.s, W = Stage.w, H = Stage.h, c = this.v.cursor || (this.v.cursor = [W / 2, H / 2]);
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[k];
     if (d) { c[0] = clamp(c[0] + d[0] * W * 0.06, 8, W - 8); c[1] = clamp(c[1] + d[1] * H * 0.06, this.hudH() + 40, H - 64); return true; }
-    if (k === ' ' || k === 'Spacebar') { if (s.phase === 'dusk' || s.phase === 'reveal') Sim.act(this, { k: 'skip' }); else this.tap(c[0], c[1]); return true; }
+    if (k === ' ' || k === 'Spacebar') { if (s.phase === 'dusk') Sim.act(this, { k: 'skip' }); else this.tap(c[0], c[1]); return true; }
     if (k === 'a' || k === 'A') { Sim.act(this, { k: 'auto', on: !s.auto }); return true; }
     if ((k === 'e' || k === 'E') && s.unt) { Sim.act(this, { k: 'rest' }); return true; }
     return false;
@@ -867,7 +804,7 @@ const CH_BITTER_V2 = {
     cv.cw = S; cv.ch = S * Hh / W; if (C.size > 700) C.clear(); C.set(key, cv); return cv;
   },
   ground(w, h) {   // the forest edge, baked once per size: canopy light, layered big leaves, dappled sun, a passion vine in flower; L5 adds the river
-    const d = w * h > 300000 ? 1 : Math.min(1.5, Stage.dpr || 1), isl = this.level === 4, key = Math.round(w) + 'x' + Math.round(h) + '@' + d + (isl ? 'i' : '') + Math.round(this.hudH());
+    const d = w * h > 300000 ? 1 : Math.min(1.5, Stage.dpr || 1), isl = this.kd() === 4, key = Math.round(w) + 'x' + Math.round(h) + '@' + d + (isl ? 'i' : '') + Math.round(this.hudH());
     const G = this._g; if (G && G.key === key) return G.cv;
     const cv = mkCanvas(w * d, h * d), g = cv.getContext('2d'); g.scale(d, d);
     const r = rng(4157), u = Math.min(w, 1.2 * h) / 390, I = BW_INK, top = this.hudH();
@@ -906,7 +843,7 @@ const CH_BITTER_V2 = {
     const s = this.sim.s; if (!s || !this.v) return; const v = this.v;
     c.drawImage(this.ground(w, h), 0, 0, w, h);
     this.drawInsects(c, w, h);
-    if (s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post' || s.phase === 'over' || s.phase === 'reveal') this.drawDusk(c, w, h);
+    if (s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post' || s.phase === 'over') this.drawDusk(c, w, h);
     this.drawJac(c);
     this.drawTop(c, w, h);
     this.drawBand(c, w, h);
@@ -915,7 +852,7 @@ const CH_BITTER_V2 = {
   },
   avoid(q) {   // the memory cue (D4 §5.3): warning looks gain a dashed avoid-ring once memory holds about three bitter tastes; it cracks when tasty tastes outnumber bitter
     const s = this.sim.s, sim = this.sim;
-    if (s.level <= 2) { if (!(q.k === 'm' || (q.k === 'p' && q.v >= BWK.WARN))) return 0; const w = sim.weights(); return w.b >= 2.5 ? (w.t > w.b ? 2 : 1) : 0; }
+    if (s.kd <= 1) { if (!(q.k === 'm' || (q.k === 'p' && q.v >= BWK.WARN))) return 0; const w = sim.weights(); return w.b >= 2.5 ? (w.t > w.b ? 2 : 1) : 0; }
     if (q.k === 'u') return 0; return sim.inHalo(q.v) ? 1 : 0;
   },
   drawInsects(c, w, h) {
@@ -975,7 +912,7 @@ const CH_BITTER_V2 = {
   drawDusk(c, w, h) {   // dusk in the canvas: a violet tint; in L4–L5 the young jacamars swoop on what they taste and spare the siblings
     const s = this.sim.s, v = this.v, t = s.phase === 'dusk' ? s.t : 9, D = v.dusk, S = this.size();
     c.fillStyle = 'rgba(24,14,40,' + (0.34 * clamp(t / 0.5, 0, 1)) + ')'; c.fillRect(0, 0, w, h);
-    if (s.level <= 2 && s.phase === 'dusk') {   // survivors lay eggs, tinted by their look; the eggs fly into the next column of the in-scene graph (T2)
+    if (s.kd <= 1 && s.phase === 'dusk') {   // survivors lay eggs, tinted by their look; the eggs fly into the next column of the in-scene graph (T2)
       const G = this.graphBox(), n = Math.max(s.gens, s.hist.length), X = G.x + 6 + (G.w - 12) * (n > 1 ? Math.min(s.hist.length, n - 1) / (n - 1) : 0.5), Yt = G.y + G.h / 2;
       const a = clamp((t - 0.3) / 0.4, 0, 1), m = clamp((t - 1.3) / 0.8, 0, 1), e = m * m * (3 - 2 * m);
       s.ins.forEach((q, i) => {
@@ -1008,16 +945,16 @@ const CH_BITTER_V2 = {
       c.fillStyle = 'rgba(20,16,12,.55)'; const n = s.unt ? BWK.LOOKS : s.time0; for (let k = 1; k < n; k++) c.fillRect(T.x + T.w * k / n - 0.5, T.y, 1, T.h);
       if (v.chunk) { const a = v.chunk.age / 0.7, cw = T.w * v.chunk.c / (s.unt ? BWK.LOOKS : s.time0); c.globalAlpha = 1 - a; c.fillStyle = '#E8DFC9'; c.fillRect(T.x + T.w * f, T.y + 18 * a, cw, T.h); c.globalAlpha = 1; }
     }
-    const py = T.y + 20; let x = w - 8;   // pills: the retch cost, the models, the day, the ×N chip, Contested (L3), islands (L5)
+    const py = T.y + 20; let x = w - 8;   // pills: the retch cost, the models (L2: k against C), the ×N chip, islands (boss)
     const pill = (id, txt, o) => { const b = Lbl.put(id, txt, x, py, Object.assign({ size: 12, align: 'right' }, o || {})); if (b) x = b.x - 6; };
-    if (s.level <= 2) { pill('retch', this.w('labels', 'retch', { c: this.fmtC(s.cost) })); pill('models', this.w('labels', 'models', { m: s.models })); }
-    if (s.level === 2) pill('day', this.w('labels', s.deadly ? 'deadly' : 'mild'), { ink: s.deadly ? '#E8DFC9' : '#1B1612', bg: s.deadly ? '#1B1612' : '#E8DFC9' });
-    if (s.level === 3 || s.level === 4) pill('retch', this.w('labels', 'retch', { c: this.fmtC(s.cost) }));
+    if (s.kd === 0) { pill('retch', this.w('labels', 'retch', { c: this.fmtC(s.cost) })); pill('models', this.w('labels', s.models === 1 ? 'model1' : 'models', { m: s.models })); }
+    if (s.kd === 1) { const r = s.hist[s.hist.length - 1] || {}, k = r.k != null ? Math.round(r.k * 10) / 10 : 0, pays = k > s.cost;   // the key number, in the scene
+      pill('kc', this.w('labels', 'kc', { k, c: this.fmtC(s.cost) }), pays ? { ink: '#1B1612', bg: '#D9A441' } : undefined); pill('models', this.w('labels', s.models === 1 ? 'model1' : 'models', { m: s.models })); }
+    if (s.kd === 3 || s.kd === 4) pill('retch', this.w('labels', 'retch', { c: this.fmtC(s.cost) }));
     Lbl.put('xn', this.w('labels', 'xn'), 8, py, { size: 12, align: 'left', mono: true });
-    if (s.level === 1) this.drawPlant(c, w - 30, py + 48, s.models / 12);
-    if (s.level === 2) Lbl.put('contested', this.w('labels', 'contested'), 8, py + 24, { size: 12, align: 'left', ink: '#1B1612', bg: '#D9A441' });   // D0 §3: a Contested pill, and no star depends on it
-    if (s.level === 3 && s.gen <= 2) Lbl.put('hc', this.w('labels', 'hc'), 8, py + 24, { size: 12, align: 'left', mono: true });
-    if (s.level === 4) for (let k = 0; k < 2; k++) {
+    if (s.kd === 1) this.drawPlant(c, w - 30, py + 48, s.models / 12);
+    if (s.kd === 3 && s.gen <= 2) Lbl.put('hc', this.w('labels', 'hc'), 8, py + 24, { size: 12, align: 'left', mono: true });
+    if (s.kd === 4) for (let k = 0; k < 2; k++) {
       const y = this.px(0, k ? BWK.ISL[1].y0 - 16 : BWK.ISL[0].y0 + 2)[1], b = Lbl.put('isl' + k, this.w('labels', k ? 'B' : 'A'), w - 8, y, { size: 12, align: 'right' });
       Lbl.put('isl' + k + 'd', this.w('labels', k ? 'clus' : 'scat'), (b ? b.x : w - 70) - 6, y, { size: 12, align: 'right', mono: true });
     }
@@ -1033,7 +970,7 @@ const CH_BITTER_V2 = {
   },
   drawLedger(c, x0, y0, w) {   // the taste ledger (the bird's memory, D4 rule 11) and the warning-wing cue whose outline thickens per fresh bitter taste
     const s = this.sim.s, v = this.v, wgt = this.sim.weights(), nb = Math.min(4, Math.round(wgt.b));
-    const cue = this.sprite({ k: s.level === 3 ? (s.common || 'b') : s.level === 4 ? 'g' : 'm', v: s.level === 3 ? (s.common === 's' ? 0.1 : 0.9) : 1, br: true, id: 0 }, 26, 0);
+    const cue = this.sprite({ k: s.kd === 3 ? (s.common || 'b') : s.kd === 4 ? 'g' : 'm', v: s.kd === 3 ? (s.common === 's' ? 0.1 : 0.9) : 1, br: true, id: 0 }, 26, 0);
     c.drawImage(cue, x0 + 14 - cue.cw / 2, y0 + 15 - cue.ch / 2, cue.cw, cue.ch);
     c.strokeStyle = nb > 0 ? '#E8DFC9' : 'rgba(232,223,201,.3)'; c.lineWidth = Math.max(1, nb); c.beginPath(); c.arc(x0 + 14, y0 + 15, 15, 0, TAU); c.stroke();
     const n = Math.max(1, Math.min(BWK.MAXLED, Math.floor((w - 40) / 30))), tx = x0 + 36;
@@ -1065,18 +1002,17 @@ const CH_BITTER_V2 = {
     const X = i => b.x + 6 + (b.w - 12) * (n > 1 ? i / (n - 1) : 0.5), Y = f => b.y + b.h - 4 - (b.h - 8) * clamp(f, 0, 1);
     const line = (vals, col, lw, dash) => { c.strokeStyle = col; c.lineWidth = lw; c.setLineDash(dash || []); c.beginPath(); let on = false; vals.forEach((f, i) => { if (f == null) { on = false; return; } if (on) c.lineTo(X(i), Y(f)); else { c.moveTo(X(i), Y(f)); on = true; } }); c.stroke(); c.setLineDash([]); };
     const dot = (x, y, col, r) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, r || 3, 0, TAU); c.fill(); };
-    if (s.level === 0) {   // columns of the average look, painted in that look
+    if (s.kd === 0) {   // columns of the average look, painted in that look
       H.forEach((r, i) => { const cw = Math.min(16, (b.w - 12) / n * 0.7), f = r.mean || 0, x = X(i) - cw / 2, ht = Y(0) - Y(f), a = i === H.length - 1 ? clamp(v.born / 0.4, 0, 1) : 1;
         c.globalAlpha = a; c.fillStyle = css(mix([226, 212, 158], [28, 22, 24], f)); c.fillRect(x, Y(f), cw, ht); c.strokeStyle = '#E8DFC9'; c.strokeRect(x + 0.5, Y(f) + 0.5, cw - 1, ht - 1); c.globalAlpha = 1; });
       c.setLineDash([4, 3]); c.strokeStyle = 'rgba(232,223,201,.8)'; c.beginPath(); c.moveTo(b.x, Y(0.98)); c.lineTo(b.x + b.w, Y(0.98)); c.stroke(); c.setLineDash([]);
-    } else if (s.level <= 2) {   // the mimics' edge each day, above or below zero
+    } else if (s.kd <= 1) {   // the mimics' edge each day, above or below zero
       const z = b.y + b.h / 2; c.setLineDash([4, 3]); c.strokeStyle = 'rgba(232,223,201,.7)'; c.beginPath(); c.moveTo(b.x, z); c.lineTo(b.x + b.w, z); c.stroke(); c.setLineDash([]);
-      H.forEach((r, i) => { if (r.adv == null) return; const y = z - (b.h / 2 - 5) * clamp(r.adv, -1, 1); if (s.level === 1) { const bh = 2 + 14 * r.models / 12; c.fillStyle = 'rgba(232,223,201,.25)'; c.fillRect(X(i) - 3, b.y + b.h - bh, 6, bh); } dot(X(i), y, s.level === 2 && r.deadly ? '#1B1612' : '#E8DFC9', 3.5); c.strokeStyle = '#E8DFC9'; c.lineWidth = 1; c.beginPath(); c.arc(X(i), y, 3.5, 0, TAU); c.stroke(); });
-    } else if (s.level === 3) {   // each species' typical pattern: band above, spots below
+      H.forEach((r, i) => { if (r.adv == null) return; const y = z - (b.h / 2 - 5) * clamp(r.adv, -1, 1); if (s.kd === 1) { const bh = 2 + 14 * r.models / 12; c.fillStyle = 'rgba(232,223,201,.25)'; c.fillRect(X(i) - 3, b.y + b.h - bh, 6, bh); } dot(X(i), y, '#E8DFC9', 3.5); c.strokeStyle = '#E8DFC9'; c.lineWidth = 1; c.beginPath(); c.arc(X(i), y, 3.5, 0, TAU); c.stroke(); });
+    } else if (s.kd === 3) {   // each species' typical pattern: band above, spots below
       line(H.map(r => r.mb), '#E8DFC9', 2.5); line(H.map(r => r.ms), '#D9A441', 2.5);
     } else {   // bright share on island A (thin) and B (thick)
       line(H.map(r => r.sh ? r.sh[0] : null), 'rgba(232,223,201,.7)', 1.5, [3, 2]); line(H.map(r => r.sh ? r.sh[1] : null), '#E8DFC9', 2.5);
-      if (s.phase === 'reveal' || s.phase === 'over') line(s.isl[2].hist.map(x => x), '#D9A441', 2.5);
     }
   },
   graphBox() { const h = Stage.h; return { x: 140, y: h - 54, w: Stage.w - 152, h: 46 }; },
@@ -1084,8 +1020,8 @@ const CH_BITTER_V2 = {
     const s = this.sim.s, v = this.v; if (s.phase === 'dawn') v.title = Math.max(v.title, 0.6);
     const a = clamp(v.title, 0, 1); if (a <= 0.02) return;
     c.globalAlpha = a; c.fillStyle = 'rgba(12,18,17,.45)'; c.fillRect(0, h * 0.44 - 30, w, 60);
-    Lbl.put('gen', this.w('labels', s.level === 1 || s.level === 2 ? 'day' : 'gen', { g: s.gen }), w / 2, h * 0.44 - 6, { size: 24, pill: false, ink: '#E8DFC9', weight: 700 });
-    const sub = s.level <= 1 ? this.w('labels', 'models', { m: s.models }) : s.level === 2 ? this.w('labels', s.deadly ? 'deadly' : 'mild') : this.w('labels', 'young');
+    Lbl.put('gen', this.w('labels', s.kd === 1 ? 'day' : 'gen', { g: s.gen }), w / 2, h * 0.44 - 6, { size: 24, pill: false, ink: '#E8DFC9', weight: 700 });
+    const sub = s.kd <= 1 ? this.w('labels', s.models === 1 ? 'model1' : 'models', { m: s.models }) : this.w('labels', 'young');
     Lbl.put('sub', sub, w / 2, h * 0.44 + 18, { size: 14, pill: false, ink: '#E8DFC9' });
     c.globalAlpha = 1;
   },
@@ -1093,41 +1029,35 @@ const CH_BITTER_V2 = {
   /* ---------- the live graph (notes() feeds the strip; never pauses) ---------- */
   notes(card) {
     const s = this.sim.s; if (!s) return { stats: [], charts: [] };
-    const H = s.hist, n = s.level, cur = H[H.length - 1], done = id => s.exp && s.exp[id] != null, ask = s.ask;
-    const stats = [['Meals', s.fed + ' of ' + s.need, 'Meals fed to the chicks so far.'], [n <= 2 ? 'Day' : 'Generation', s.gen + ' of ' + s.gens, '']];
+    const H = s.hist, n = s.kd, cur = H[H.length - 1];
+    const stats = [['Meals', s.fed + ' of ' + s.need, 'Meals fed to the chicks so far.'], [n === 1 ? 'Day' : 'Generation', s.gen + ' of ' + s.gens, '']];
     if (n === 0) {
       const sp = [], ea = []; s.ins.forEach(q => { if (q.k !== 'p') return; (q.st ? ea : sp).push(q.v); });
       const dots = { type: 'dots', title: 'Palewing looks', x: { lo: 0, hi: 1, label: 'cream to warning' }, bins: 16, frame: 'designed',
         groups: [{ v: sp, style: 'solid', label: 'spared' }, { v: ea, style: 'hollow', label: 'eaten' }] };
       const tr = { type: 'trace', title: 'Average look', x: { lo: 1, hi: s.gens, label: 'generation' }, y: { lo: 0, hi: 1, label: 'look' }, frame: 'designed',
-        series: [{ d: H.map(r => r.mean), ink: 'ink', label: 'palewings' }], ghost: done('p1') ? [{ d: [[2, H[1] ? H[1].mean : cur.mean], [s.gens, s.exp.p1]], label: 'expected' }] : [], fold: false };
+        series: [{ d: H.map(r => r.mean), ink: 'ink', label: 'palewings' }], fold: false };
       stats.push(['Average look', Math.round((cur.mean || 0) * 100) + '%', '0% cream, 100% like a model.']);
       return { stats, charts: [dots, tr] };
     }
-    if (n <= 2) {
-      const C = n === 1 ? s.cost : null, pts = H.filter(r => r.adv != null).map(r => [n === 1 ? Math.min(14, r.k) : r.cost, Math.round(r.adv * 100) / 100]);
-      const xe = n === 1 ? 'p2' : 'p3', E = done(xe) ? s.exp[xe] : null, lo = n === 1 ? 0 : 0, hi = n === 1 ? 14 : 12;
-      const ghost = E != null ? this.edgeCurve(E, lo, hi, n === 1 ? 1 : -1) : undefined;   // // ghost-only: the expected edge for a bird that knows the true mix
-      const sc = { type: 'scatter', title: 'Mimics’ edge', x: { lo, hi, label: n === 1 ? 'mimics per model' : 'retch cost (meals)' }, y: { lo: -1, hi: 1, label: 'edge', fmt: 'pct' }, frame: 'designed', ref: 'zero',
-        series: [{ pts, shape: 'disc', ink: 'ink', label: 'days' }], ghost };
-      const sp = [], ea = []; s.ins.forEach(q => { if (q.k !== 'p') return; (q.st ? ea : sp).push(q.v); });
-      const second = n === 1 ? { type: 'trace', title: 'Average look', x: { lo: 1, hi: s.gens, label: 'day' }, y: { lo: 0, hi: 1, label: 'average look' }, frame: 'designed', series: [{ d: H.map(r => r.mean), ink: 'ink', label: 'mimics' }], fold: false }
-        : { type: 'dots', title: 'Palewing looks', x: { lo: 0, hi: 1, label: 'cream to warning' }, bins: 16, frame: 'designed', groups: [{ v: sp, style: 'solid', label: 'spared' }, { v: ea, style: 'hollow', label: 'eaten' }], fold: false };
-      stats.push(['Mimics per model', cur.k != null ? (Math.round(cur.k * 10) / 10).toString() : '–', 'Warning-coloured palewings for each model today.'], ['Retch', this.fmtC(s.cost) + ' s', 'About one meal a second at this pace.']);
+    if (n === 1) {   // the key number shown plainly (D6 decision 9): the break-even k = C is drawn from the start, since nothing is asked here
+      const pts = H.filter(r => r.adv != null).map(r => [Math.min(14, r.k), Math.round(r.adv * 100) / 100]), lo = 0, hi = 14;
+      const sc = { type: 'scatter', title: 'Mimics’ edge (break-even k = C)', x: { lo, hi, label: 'k, mimics per model' }, y: { lo: -1, hi: 1, label: 'edge', fmt: 'pct' }, frame: 'designed', ref: 'zero',
+        series: [{ pts, shape: 'disc', ink: 'ink', label: 'days' }], ghost: this.edgeCurve(s.cost, lo, hi, 1) };   // ghost: the expected edge for a bird that knows the true mix
+      const second = { type: 'trace', title: 'Average look', x: { lo: 1, hi: s.gens, label: 'day' }, y: { lo: 0, hi: 1, label: 'average look' }, frame: 'designed', series: [{ d: H.map(r => r.mean), ink: 'ink', label: 'mimics' }], fold: false };
+      stats.push(['k, mimics per model', cur.k != null ? (Math.round(cur.k * 10) / 10).toString() : '–', 'Warning-coloured palewings for each model today.'], ['C, retch cost', this.fmtC(s.cost) + ' meals', 'A retch wastes C seconds, about one meal a second. Tasting pays when k > C.']);
       return { stats, charts: [sc, second] };
     }
     if (n === 3) {
       const nameC = s.common === 'b' ? 'bitterwings' : 'sourwings', nameR = s.common === 'b' ? 'sourwings' : 'bitterwings', key = sp => sp === 'b' ? 'mb' : 'ms';
       const tr = { type: 'trace', title: 'Patterns', x: { lo: 1, hi: s.gens, label: 'generation' }, y: { lo: 0, hi: 1, label: 'spots to band' }, frame: 'designed',
         series: [{ d: H.map(r => r[key(s.common)]), ink: 'ink', label: nameC }, { d: H.map(r => r[key(s.common === 'b' ? 's' : 'b')]), ink: 'text2', label: nameR }] };
-      const mo = { type: 'trace', title: 'Bitter mouthfuls', x: { lo: 1, hi: s.gens, label: 'generation' }, y: { lo: 0, hi: 16, label: 'per dusk' }, frame: 'designed', series: [{ d: H.map(r => r.dusk ? r.dusk.mouth : null), ink: 'ink', label: 'all birds' }], fold: false };
       stats.push(['Commoner', nameC, 'The species with more individuals.']);
-      return { stats, charts: [tr, mo] };
+      return { stats, charts: [tr] };
     }
     const sh = k => H.map(r => r.sh ? r.sh[k] : null), ser = [{ d: sh(0), ink: 'text2', label: 'A' }, { d: sh(1), ink: 'ink', label: 'B' }];
-    if (s.phase === 'reveal' || s.phase === 'over' || card) ser.push({ d: s.isl[2].hist.slice(0, s.phase === 'reveal' || s.phase === 'over' ? 99 : 0), ink: 'text2', label: 'C' });
     const tr = { type: 'trace', title: 'Bright share', x: { lo: 1, hi: s.gens, label: 'generation' }, y: { lo: 0, hi: 1, label: 'bright', fmt: 'pct' }, frame: 'designed',
-      series: ser, ghost: done('t5') ? [{ d: [[1, s.isl[2].hist[0]], [s.gens, s.exp.t5]], label: 'C expected' }] : [] };
+      series: ser };
     stats.push(['Island B spared', String(s.spareB), 'Bright siblings spared by a young bird that had just tasted one.']);
     return { stats, charts: [tr] };
   },
@@ -1137,7 +1067,7 @@ const CH_BITTER_V2 = {
   }
 };
 V2.push(CH_BITTER_V2);
-EXPORT.BITTER = { K: BWK, fitBeta: bwFitBeta, young5: bwYoung5 };   // for tests/oracle_bitter.js
+EXPORT.BITTER = { K: BWK, young5: bwYoung5 };   // for tests/oracle_bitter.js
 
 /* ---------- the learning layer (D5 §3 item 12): overwritten for v2, untouched under ?v1=1 (there was no TRANSFER.bitter to rebuild) ---------- */
 if (!Url.v1) {

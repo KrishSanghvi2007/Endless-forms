@@ -276,3 +276,44 @@ New references for Coordinator A: Kusche H, Lee HJ, Meyer A (2012) Mouth asymmet
 9. Did the lake feel like a place of its own (water, light, rocks, shells)? Did you notice the scales tearing off and the "…-strikers lead" moment?
 
 Not done here (coordinator's steps): the bible's §13 decisions log and checklists (only unit files were to be edited), Coordinator A's sign-off, the designer-and-colleagues playtest.
+
+---
+
+## Simplification (D6 decision 9), 22 October 2026
+
+I played all five levels at 390 × 780 first (screenshots in the session scratchpad: `s3/simp_bitter_jaws_forager/before/jaws/`, then `after_jaws/` and `after_jaws2/`). The lake, the cichlids, the scale-eaters, the guard plates, the lizard rocks and the juice stayed. What made it heavy was the asking: up to 2 + 3 + 3 + 3 + 3 predictions on four kinds of gesture (a share diamond, a twist line, the striped share, the morph triangle). There was also a whole level, The school, whose idea ("the rare type rises, and the young overshoot") was already L1's. The one verb is still **tap the flank you expect to be bitten**.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| Level "The school" (old L2) | — | It repeated L1's lesson with more pressure. Its three fish and two plates now arrive in L2 (Partly inherited), where the HUD already explains them ("Two guards, three fish"). Its overshoot explanation moved into L1's Why? maths. Its MODEL card was merged into L2's (3 prey fish, 2 guards). |
+| L1's second practice ask | L1 | **Kept one prediction for the chapter**: "You guarded the commoner side. Where will right-strikers be next season?" It makes the aha: the guarded side falls, often past 50:50. It is asked once, only where "no change", "back to 50:50" and the mirror image all miss by more than 1.25 × the band. It now carries the Predict star. |
+| The R = h²S ask (drag the young's mean twist) | L2 | The key equation is now **shown**. At each hatch the HUD reads "R = h²S = 0.25 × −0.78 ≈ −0.20: the young keep the inherited part", with that season's S and the model's h². The S and R arrows stay on the twist histogram. |
+| The striped-share asks | L3 | At dusk the HUD gives the key line: "One guard blocks both species, so both lose on the same side." |
+| The morph-triangle asks | Boss | A simplex gesture that did not make the aha. The triangle stays as a read-out. At each dusk the key number: "Blocked n% of sneakers. Blue beats yellow only above 50%: 2b − 1 > 0." |
+| Dusk key number in L1 | L1 | "Left-strikers landed n% of bites, right-strikers m%. The better-fed jaw leaves more young." |
+
+The levels are now **L1 One fish, L2 Partly inherited, L3 Two hunters, L4 The lizard wheel**. Internally each level runs a model kind (`JW_KIND = [0, 2, 3, 4]`, `s.kd`), so the kept levels' science code is unchanged. The intro card's "How to play" ends "Once, you drag a marker to predict."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 One fish | block 55%, share crosses 50:50 and back | **the one prediction** inside ±0.07 (was practice, no star) | — |
+| L2 Partly inherited | block half, share moves 8 points to 50:50 | — (was 2 of 3 asks) | — |
+| L3 Two hunters | block half, species move together | — (was 2 of 3 asks) | — |
+| L4 The lizard wheel | **new:** block at least half the sneakers (blue beats yellow) | — | the wheel turns B → O → Y → B (was 2 of 3 triangle calls) |
+
+Unit stars: Discover in two of the three fish levels, Predict = L1, Transfer = the boss. No level offers all three. The level card's "still to earn" line now names the unit's requirement when the level already earned that star (as in Bitter Wings), so the boss card no longer asks for a Discover you just earned.
+
+### Science
+No claim changed. The lizard model, period 5 ± 1 seasons with the floor, h² 0.9 (×N) against 0.25 (realistic), and the expectation behind the one ask (`expShare`) are all still checked by the oracle.
+
+### Real biology (D6 decision 10)
+Already met: real cichlids and scale-eaters, real side-blotched lizards. The twist dots on the lake floor and the strip charts are read-outs beside them.
+
+### Tests
+- `tests/oracle_jaws.js` updated for four levels (h² in force, L2's R/S ≈ 0.25 behind the key line, `expShare` calibrated in L1, synchrony in L3, the lizard checks, What if? texts, card takes). New check: only L1 asks, once. **31/31.**
+- `tests/jaws_paths.py` (boss is level 3, the three-fish checks run in L2) passes with 0 failed. `tests/jaws_shots.py` now shoots four levels.
+- Lint 0/0, `dup_globals` ok, bot sweep PASS (no bot earns three stars in a level; best unions D-T), monkey seeds 1–3 at 390 × 780 and 1280 × 720 reach the end card.

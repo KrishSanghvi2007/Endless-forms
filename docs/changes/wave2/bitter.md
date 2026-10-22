@@ -246,3 +246,44 @@ Session 1 noted that a fixed guess fits about 50% of seeds. This session measure
 - **Size:** `v2/bitter.js` is 120 KB raw and 39 KB gzip (it was 101 KB and 33 KB) because of the painters.
 
 Screenshots: `/tmp/claude-0/-home-user-Endless-forms/a94d7c95-1dea-5618-8308-812bf3aed5b0/scratchpad/bitter/s3/` (118 shots plus per-level contact sheets `sheet390_L*.png` and `cvd.png`), `grim/` (grimace sequence), `paths/`.
+
+---
+
+## Simplification (D6 decision 9), 22 October 2026
+
+I played all five levels at 390 × 780 first (screenshots in the session scratchpad, `s3/simp_bitter_jaws_forager/before/bitter/`, and after, `after_bitter/`). The forest, the jacamar, the butterflies, the ledger and the juice stayed. What did not help was the asking. There were five drag-the-marker predictions on five different axes: the average look, the break-even, the "protecting cost", the meeting point and island C. There was also a hidden third island and a level, Deadly models, whose idea was the break-even again with a bigger C, plus a Contested pill. The one verb is now **tap a butterfly to eat it**.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| p1, "where will the average look be by generation n?" (and its 4/6/9-generation horizon and the fitted-β replay) | L1 | It was not the aha. L1 is now just played and watched. Its key number comes at every dusk: "Spared palewings average n% warning look. Their young inherit it." The horizon is a fixed 6 generations, and the β fit and `replay1` code are gone. |
+| p2, "how many mimics per model before tasting pays?" | L2 | The break-even is the chapter's **key equation**, so it is now **shown** rather than asked. Every day the HUD says "Today k = 8 mimics per model, C = 3: k > C, tasting pays" (or "k ≤ C, sparing pays"), and a pill in the scene reads "k=8, C=3", gold once tasting pays. The strip's scatter is titled "break-even k = C" and draws the expected edge curve from the start. The retch cost now varies only between 2 and 4 s, so the protected phase and the collapse both happen. It used to be 1–6 s, so that a guess could not fit. |
+| Level "Deadly models" (old L3), its p3 inverse prediction, mild/deadly days, the lost chick, the Contested pill | — | Same equation, bigger C, and its contested part could not carry a star. The idea survives as one line in L2's MODEL card and the Why? maths: "A deadlier model raises C, so protection lasts longer" (Lindström et al. 1997, unchanged ref). Its What if? levers went with it. |
+| Island C, its hidden run, the reveal phase and t5, "bright share at generation 6?" | Boss | It was a guessable number (its own log said a fixed guess fitted about half the seeds), and the designer asked about it. The boss now shows two islands only, A (scattered) and B (sibling clusters). At each dusk the HUD gives the key number: "Bright: island A n%, island B m%. After one taste, a bird spares the siblings." |
+| The "Bitter mouthfuls" second chart | L3 (Two poisons) | It was a side panel that did not serve the ask. The pattern trace stays. |
+| **Kept: the one prediction**, p4, "where will the two patterns meet?" | L3 (Two poisons) | This one makes the aha: the ghost starts at "meet halfway" (the misconception), and the answer is the commoner's look. Before the ask, the dusk shows the key number: "Young birds ate 3 of 8 bitterwings, 5 of 24 sourwings: n ÷ N". The ask says "The rarer pays more per head. Where will the two patterns meet? Drag the marker." |
+
+The levels are now **L1 Bitter lessons, L2 Too many liars, L3 Two poisons, L4 The first warning**. Internally each level runs a model kind (`BWK.KIND = [0, 1, 3, 4]`, `s.kd`), so the science code of the kept levels is unchanged. The intro card's "How to play" now reads "Tap butterflies to feed the chicks in time; a bitter one costs seconds. Once, you drag a marker to predict."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 Bitter lessons | fed, palewing look +0.15 | — (was p1) | — |
+| L2 Too many liars | fed, and you tasted warning looks at least twice while k > C | — (was p2) | — |
+| L3 Two poisons | fed, and the rarer pattern crossed a quarter of the gap | the meeting point inside ±0.06 | — |
+| L4 The first warning | fed, young birds spared ≥ 3 siblings on B, bright fell on A | — | **new:** taste exactly one bright bug (learn it as a young bird does), and bright ends commoner on clustered B than on scattered A (was island C's number) |
+
+Unit stars: Discover = L2's, Predict = L3's, Transfer = L4's. No level offers all three. A new `learner` bot plays the boss's Transfer path.
+
+### Science
+No claim was added. Removed with the cut level: its MODEL card (Sherratt 2002 and Duncan & Sheppard 1965 were cited only there). The teacher prompt "when no palewing chose to" became "though no palewing changed its own look" (D0 §3: never "choose").
+
+### Real biology (D6 decision 10)
+Already met: jacamars, Heliconius-style models, Dismorphia-like palewings, dragonflies and shield bugs are the picture. Dot charts and ledger tiles are read-outs beside them.
+
+### Tests
+- `tests/oracle_bitter.js` rewritten for four levels: L1 rise, L2 edge collapse and the key line ("tasting pays" exactly when k > C), L3 advergence, Turner's two steps, Balogh–Leimar and the dusk line's counts (rarer loses 50% per dusk against 33%), L4 two islands, A falls, B rises, and the learner's Transfer path. Also: only L3 asks, exactly once. **31/31.**
+- `tests/bitter_shots.py` and `tests/bitter_paths.py` updated for four levels (paths 8/8).
+- Lint 0/0, `dup_globals` ok, bot sweep PASS (5 generic bots × 20 seeds; no bot earns three stars in a level; best masks D or -P-), monkey seeds 1–3 at 390 × 780 and 1280 × 720: 6/6 reach the end card with no errors. Screenshots were rerun and checked; fixes found by looking: "1 models" became "1 model", and the L3 ask lost its second chart.

@@ -3,10 +3,10 @@
   python3 tests/switch_paths.py BUILD.html
 
   keys     L1 played by keyboard only: arrows to the Ubx/T3 cell, Space cycles it off, Enter hatches; the order is built
-  untimed  ?untimed=1: the run logs unt on, an ask never times out
+  untimed  ?untimed=1: the run logs unt on, and nothing on the bench runs on a clock
   calm     ?calm=1: a hatch runs to the judged fly with no errors
   teacher  ?teacher=1: teacherStep advances the lake by generations
-  whatif   L6 played to its card; What if? thaws a vial with a lever and runs to a card with no stars
+  whatif   L4 (the lake) played to its card; What if? thaws a vial with a lever and runs to a card with no stars
   v1       ?v1=1: the legacy Switches chapter still opens and its grid works
 Exit 1 on any failed check, JavaScript error or error box.
 """
@@ -48,22 +48,21 @@ def main():
         errs(pg, 'keys'); ctx.close()
         # untimed
         ctx, pg = page('?unit=switch&level=0&seed=5&intro=0&untimed=1'); pg.evaluate("window.__advance(400)")
-        u = pg.evaluate("()=>{const ch=TB.REG.switch; const s=ch.sim.s; s.job=3; ch.sim.startJob(); return s.unt}")
-        pg.evaluate("window.__advance(60000)"); a = pg.evaluate("()=>!!TB.REG.switch.sim.s.ask")
-        check(u and a, 'untimed: unt logged on, and the ask is still open after 60 s'); errs(pg, 'untimed'); ctx.close()
+        u = pg.evaluate("()=>TB.REG.switch.sim.s.unt")
+        pg.evaluate("window.__advance(60000)"); a = pg.evaluate("()=>{const s=TB.REG.switch.sim.s; return s.phase==='paint' && s.job===0}")
+        check(u and a, 'untimed: unt logged on, and the first order still waits after 60 s'); errs(pg, 'untimed'); ctx.close()
         # calm
         ctx, pg = page('?unit=switch&level=0&seed=5&intro=0&calm=1'); pg.evaluate("window.__advance(400)")
         pg.evaluate("()=>{TB.Sim.act(TB.REG.switch,{k:'cell',g:2,j:3,v:0}); TB.Sim.act(TB.REG.switch,{k:'hatch'})}"); pg.evaluate("window.__advance(4000)")
         check(pg.evaluate("()=>TB.REG.switch.sim.s.solvedN") == 1, 'calm: the hatch runs to a built fly'); errs(pg, 'calm'); ctx.close()
         # teacher
-        ctx, pg = page('?unit=switch&level=5&seed=5&intro=0&teacher=1'); pg.evaluate("window.__advance(400)")
+        ctx, pg = page('?unit=switch&level=3&seed=5&intro=0&teacher=1'); pg.evaluate("window.__advance(400)")
         g0 = pg.evaluate("()=>TB.REG.switch.sim.s.gen"); pg.evaluate("()=>{TB.REG.switch.teacherStep(); TB.REG.switch.teacherStep()}")
         check(pg.evaluate("()=>TB.REG.switch.sim.s.gen") > g0, 'teacher: step advances the lake'); errs(pg, 'teacher'); ctx.close()
         # what if
-        ctx, pg = page('?unit=switch&level=5&seed=5&intro=0', 1280, 720); pg.evaluate("window.__advance(400)")
+        ctx, pg = page('?unit=switch&level=3&seed=5&intro=0', 1280, 720); pg.evaluate("window.__advance(400)")
         pg.evaluate("""()=>{const ch=TB.REG.switch, sim=ch.sim; for (let k=0;k<4;k++) TB.Sim.act(ch,{k:'add',type:'n',x:70+80*k,y:466}); const s=sim.s; while (s.preds.some(p=>p.type==='t')) TB.Sim.act(ch,{k:'rm',i:s.preds.findIndex(p=>p.type==='t')});}""")
         for _ in range(40):
-            pg.evaluate("()=>{const ch=TB.REG.switch, s=ch.sim.s; if (s.ask) { const e=ch.sim.expect(s.ask.id), P=TB.Predict; if (P.cur) { P.cur.v=e; P.cur.moved=true; P.commit(); } } }")
             pg.evaluate("window.__advance(1500)")
             if pg.evaluate("()=>!!document.querySelector('#cards.on .card')"): break
         wi = pg.evaluate("()=>{const b=[...document.querySelectorAll('#cards.on .card-btns button')].find(x=>/what if/i.test(x.textContent)); if (b) b.click(); return !!b}")

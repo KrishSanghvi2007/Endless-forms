@@ -1,6 +1,6 @@
 """Left Jaw, Right Jaw (v2) screenshots: every level and its main phases at two viewports, plus Calm and colour-vision views.
 
-  GAME_HTML=/abs/build.html python3 tests/jaws_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3,4] [--query '?cvd=deut'] [--calm]
+  GAME_HTML=/abs/build.html python3 tests/jaws_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3] [--query '?cvd=deut'] [--calm]
 
 Plays each level with a scripted player (the commoner-side guard, through Sim.act; a prediction drag and Lock in) under
 virtual time and saves PNGs named L<n>_<phase>_<w>x<h>.png. Prints page errors and Lbl/Whisper/HUD warnings. Exit 1 on an error."""
@@ -21,7 +21,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--vp', default='390x780,1280x720')
-    ap.add_argument('--levels', default='0,1,2,3,4')
+    ap.add_argument('--levels', default='0,1,2,3')
     ap.add_argument('--calm', action='store_true')
     ap.add_argument('--query', default='')
     a = ap.parse_args()

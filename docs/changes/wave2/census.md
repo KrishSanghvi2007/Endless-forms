@@ -287,3 +287,23 @@ Screenshots: `scratchpad/wave2/census_rr/phone/` and `…/desktop/` (full script
 9. Projector: scale strip charts with the strip; show locked level names in the chooser; a documented playtest unlock flag.
 10. `Predict`: a public `fold()` (or a shorter linger) for the phone sheet; this unit sets `Predict._opened` itself.
 11. `Whisper`: anchor below the HUD's real height when the HUD wraps.
+
+## Simplification (D6 decisions 9 and 10), 22 October 2026
+
+Eight levels became five: **Two copies each, The tumbler, The census, Close relatives, The bait-layer** (2235 → ~1560 lines). The engine keeps the old sim keys through `EQ_MAP = [0, 1, 3, 4, 6]`, so each kept sim is untouched. `reset` maps the shown level to its key.
+
+**Removed or merged, and why**
+- **One generation (old L2) is cut.** The tumbler already shows Hardy–Weinberg proportions arising in one round of random mating. Its "any starting mix" point is now one MODEL line on The tumbler. That line also covers unequal sexes (equilibrium takes two generations) and X-linked genes (pointing to the Royal Line).
+- **Two demes (old L5, the Wahlund effect) is cut.** It was a second inference task beside The census. Close relatives keeps the heterozygote-deficit idea (2pqF).
+- **Case files (old L7) is cut.** It was a five-case quiz whose skill was reading picture tells. The bait-layer is now the last level and gets the unit card.
+- **Prediction interludes:** one is left, the aha on The tumbler, "what share will be Aa?" (2pq). The L0 post-tag ask became a reveal: "Yule bet blue would climb to 75%. Watch." Yule's 75% line stays on screen through the 30-generation lapse. Nothing else on The census asks first. The verdict comes after the full count. The bait-layer's q̂ ask became a reveal: after season 10 the HUD shows `q̂ = s₁/(s₁ + s₂) = {v}: here AA and aa deaths balance` from the player's own bait reach. The game then withdraws the bait automatically for 8 seasons (the slow recessive decline the Leaky Tap lesson promises).
+- **Key numbers shown plainly:** `p² + 2pq + q² = 1. Here: {a}% + {b}% + {c}%.` and q̂ as above. The census shows its full n (500).
+- **Controls:** the starting-p slider on The tumbler, the levers row, and the pens, split, case and dx tools are gone. Close relatives offers only Mix and Families. The bait-layer offers only tray placement.
+
+**Real biology (D6 decision 10):** the tumbler is now anchored in beetles. A female and a male beetle sit beside the two hoppers and shed gametes into them. Eggs are drawn as cream cells with an allele nucleus, sperm as head and tail. Each turn draws one egg and one sperm, which fuse into a zygote cell on the square and in the nursery. The jars of L0 stay as the readout beside the tagged beetles.
+
+**Stars rebalanced:** Discover on every level. Predict on The tumbler (the het call). Transfer on The bait-layer (q at season 10 within 0.12 of the shown q̂). Expert masks are [1, 3, 1, 1, 5], 7 in the union.
+
+**Tests:** oracle 76 passed. The L6 settle check now uses the steady-baiting greedy bot: mean gap 0.06, while the threshold bot is still approaching at 0.125. There are pure-maths checks for unequal sexes and carriers. census_paths 35 ok (L1 ask, gametes and zygotes present, quadrat, valve, trays). Bots on seeds 1–40: no bot earns three stars. Monkey seeds 1, 2 and 3 at both viewports: all reach the end card with no errors. lint_text and dup_globals are clean. Screenshot fixes: the "% look blue", Yule and gen labels moved to the right, clear of the whisper. Screenshots are in `s3/simp_hawks_census_casino/census/`.
+
+**Cross-unit notes:** the Gene Swamping lesson pointed to Equilibrium L7's migration case, which is now cut, so it should point to its own level instead. The Royal Line still owns X-linkage. The Leaky Tap promise (slow decline of a recessive) is kept by the automatic withdrawal coda.

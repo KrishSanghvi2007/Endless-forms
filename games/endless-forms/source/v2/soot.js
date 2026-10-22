@@ -2,13 +2,13 @@
    The Wood arc, part two. The player is again the jay hunting the wood's 120 moths (role: selective environment), now
    with one dominant carbonaria allele C that is epistatic over the Lichen Wood's three pale patterns.
      L4 The Black Country  soot settles; one tagged carbonaria origin (8 Cc moths, p = 1/30); you eat what you can see,
-                           so black passes half fast because every C copy shows. Gene-pool lens at dusk (survivors' copies).
+                           so black passes half fast because every C copy shows. The dusk line shows the key numbers.
      L5 Clean air (boss)   the chimneys stop and the bark is clean by generation 3; black now stands out, yet pale starts
-                           slowly, because its copies hide inside black moths, then plunges. Both levels ask when black
-                           crosses half, from symmetric starts (6.6% of the favoured colour), so rise and fall are compared
-                           over the same span; the slow-cleaning bark adds a little more, and a What if? lever removes it.
-     L6 The evidence       investigator: mark–release–recapture in a sooty and a clean wood on a stock of moths and nights
-                           (Kettlewell 1953/1955; Majerus 2001–07, Cook et al. 2012); predict, gather evidence, conclude.
+                           slowly, because its copies hide inside black moths, then plunges. The chapter's one prediction
+                           (D6 decision 9): "black rose past half in n generations; when will it fall below?" From
+                           symmetric starts (6.6% of the favoured colour) the fall is slower: that is the aha.
+     L6 The evidence       mark–release–recapture in a sooty and a clean wood on a stock of moths and nights
+                           (Kettlewell 1953/1955; Majerus 2001–07, Cook et al. 2012); gather evidence, then pick an idea.
    Per-second verb: tap a moth to peck it (beak shadow 90 ms, three dust puffs, chick pop). Minute: one morning, then
    dusk in the canvas (other jays, eggs tinted by parent colour, winter cull, survivors into the in-scene drawer chart).
    Science: carbonaria arose once (no recurrent mutation; G2); a black migrant arrives only if carbonaria is lost before
@@ -32,23 +32,15 @@ const SOOTK = {
   CARRIERS: 8, P5: 0.742, P5J: 0.03, MIGTONE: 0.74,
   SOOT4: [1], SOOT5: [0.6, 0.3, 0],
   GENS: [8, 16, 0], DUSK: 2.0, DAWN: 1.4, POST: 0.7, ASKMAX: 40, NIGHT: 3.8, TALLY: 1.2, YEARS: 4, Y0: [1860, 1956],
-  // L6 (designed): chance a bird hunting by sight takes a resting moth after dawn; a packed batch draws birds to the spot
-  // and widens the gap (crowdM matched, crowdX mismatched), so the evidence sets packed batches aside; stock = batches bred
-  L6: { match: 0.25, mismatch: 0.55, crowdM: 0.05, crowdX: 0.15, budget: 8, per: 4, nb: 5, np: 5, stock: 24, delta: 0.05 },
+  // L6 (designed): chance a bird hunting by sight takes a resting moth after dawn; stock = batches bred
+  L6: { match: 0.25, mismatch: 0.55, budget: 8, per: 4, nb: 5, np: 5, stock: 24, delta: 0.05 },
   // L6 tree: branch joints in the virtual 390 × 540 stage (moths rest under them in nature)
   JOINTS: [[150, 214], [246, 300], [150, 392], [240, 452]], TREE: { x0: 120, x1: 270, y0: 120, y1: 500 },
-  // asks: level → generation → spec
-  // (first: the level's first ask has no soft timer; b2 and b3 are asked when a real change is due, so "no change" misses)
-  ASK: [
-    // L4 asks early and mid-rise (1, 2, 4, 5), so the climax (black passing half, about generation 6) plays without a pause
-    { 1: { id: 'a1', kind: 'x', chart: 0, lo: 1, hi: 20, tol: 2, hud: 'askX50a', first: true }, 2: { id: 'a2', kind: 'tri', chart: 1, tol: 0.08, hud: 'askTri' },
-      4: { id: 'a3', kind: 'y', chart: 0, lo: 0, hi: 1, tol: 0.06, hud: 'askY' }, 5: { id: 't4', kind: 'y', chart: 0, lo: 0, hi: 1, tol: 0.07, hud: 'askRec' } },
-    { 1: { id: 'b1', kind: 'x', chart: 0, lo: 1, hi: 30, tol: 2, hud: 'askX50', first: true }, 2: { id: 't5', kind: 'tri', chart: 1, tol: 0.07, hud: 'askMorph' },
-      b3: { id: 'b3', kind: 'tri', chart: 1, tol: 0.08, hud: 'askTri' }, b2: { id: 'b2', kind: 'y', chart: 0, lo: 0, hi: 1, tol: 0.05, hud: 'askY5' } },
-    {}
-  ],
+  // asks: level → generation → spec. D6 decision 9: the chapter keeps ONE prediction, the one that makes the aha:
+  // after watching black rise, "when will black fall below half?" (untimed; the ghost starts at the next generation)
+  ASK: [{}, { 1: { id: 'b1', kind: 'x', chart: 0, lo: 1, hi: 30, tol: 2, hud: 'askX50', first: true } }, {}],
   TOLPX: 13, TOLCAP: 1.6,   // on a small chart the band is at least 13 px (a fingertip), never more than 1.6 × the science band
-  PRED: [['a1', 'a2', 'a3'], ['b1', 'b2', 'b3'], ['c1', 'c2']], TRANS: ['t4', 't5', null],
+  PRED: [[], ['b1'], []],
   lay: null
 };
 function sootLay() {
@@ -128,44 +120,39 @@ const SOOT_C = {
   intro: {   // the opening description card (D6 decision 8; 00_entry.js Intro): 1–2 sentences, ≤ 35 words each
     game: 'You are a jay in a wood near the mills as soot blackens the bark. Eat the moths you spot to feed your chicks, then test the story in the field.',
     biology: 'Industrial melanism: a dominant allele, carbonaria, makes moths black and spreads fast on sooty bark. When the air clears, pale copies hidden in black moths return slowly at first.',
-    how: 'Tap a moth to peck it, or steer the beak with the arrows and Space. Predict when black passes half; in the last level, mark, release and recapture moths.'
+    how: 'Tap a moth to peck it, or steer the beak with the arrows and Space. Once, predict when black falls below half; last, release marked moths and recapture them.'
   },
   hud: {
     hunt: 'Feed the chicks: {n} more moths.', dawn: 'Generation {g}. {line}',
     dusk: 'Dusk. The moths you missed lay eggs.', post: 'The survivors pair up.', wait: 'The season is over.',
-    askX50a: 'When will black moths pass half? Drag the marker on the graph.',
-    askTri: 'Tap the triangle where tomorrow’s newborns will sit.',
-    askY: 'Survivors’ copies are in the jars. Drag: black share tomorrow?',
-    askRec: 'What if black needed two copies? Drag: black share tomorrow.',
-    l5: 'Clean air. Soot washes off and the bark lightens. Feed the chicks.',
-    askX50: 'When will black fall below half? Drag the marker on the graph.',
-    askMorph: 'Black hid the patterns from the bird. Tap: which patterns will pale moths show?',
-    askY5: 'Drag: black share tomorrow? Mind the hidden pale copies.',
+    duskC: 'One C copy makes a moth black: C copies {p}%, black moths {b}%.',
+    duskQ: 'Pale needs two c copies: c copies {q}%, pale moths {w}%.',
+    passKey: 'Black passed half. Black = 1 − (1 − p)²: one copy is enough.',
+    l5: 'Clean air: the bark lightens. Pale = q², so pale needs two c copies.',
+    askX50: 'Rise to half: about {n} generations. When will black fall below half? Tap the graph.',
     whatif: 'What if: {lever}? The jay hunts by contrast.',
     l6: 'Tap the tree to release marked moths.',
     l6more: 'Release up to four batches, then run the night.',
-    l6ask: 'Before dawn: what share of the survivors will be black?',
-    night: 'Night. Birds hunt at first light.', tally: 'Survivors counted in the light trap.',
-    conclude: 'Which idea fits your data? Pick one, then your confidence.', out: 'No moths or nights left. Make your call.',
-    submit: 'Pick an idea and a confidence, then submit.', done: 'Your verdict is in.',
-    verdict: 'Your data: {idea} {a}%. You said {b}%.', thin: 'Your data: {idea} {a}%. Too few moths to be sure.'
+    night: 'Night. Birds hunt at first light.', tally: 'Survival = back ÷ sent. Compare black and pale in each wood.',
+    conclude: 'Which idea fits your data? Pick one, then Submit.', out: 'No moths or nights left. Make your call.',
+    submit: 'Pick an idea, then Submit.', done: 'Your verdict is in.',
+    verdict: 'Your data back {idea}: {a}%.', thin: 'Your data: {idea} {a}%. Too few moths to be sure.'
   },
   whispers: {
     miss: 'Only bark there.', fed: 'All four chicks fed.', hungry: 'A chick went hungry.', lost: 'Carbonaria lost. A black moth flies in.',
-    mig: 'A pale moth flies in.', pass: 'Black passed half.', below: 'Black fell below half.', lens: 'Genes show after the hunt.',
-    auto: 'The jay hunts by contrast.', manual: 'You hunt again.', crowd: 'Packed moths draw birds. Sceptics set them aside.',
-    trunk: 'Open trunk: used, but less than branches.', branch: 'Under a branch: a common resting spot.', full: 'Four batches tonight. Run the night.',
+    mig: 'A pale moth flies in.', pass: 'Black passed half.', below: 'Black fell below half.',
+    auto: 'The jay hunts by contrast.', manual: 'You hunt again.', full: 'Four batches tonight. Run the night.',
     none: 'Release some moths first.', stock: 'No moths left to release.', wood: 'Release here before switching woods.', locked: 'Locked in.',
     idle: 'You have not tapped a moth yet.', timeup: 'Time up: your marker stayed put.'
   },
   labels: {
     gen: 'Generation {g}', soot: 'Soot settles', smog: 'Black with soot', clear: 'Clean Air Act', lichen: 'Bark lightens', clean: 'Clean bark',
     eggs: 'Dot: 4 eggs', jays: 'Other trunks −{n}', line50: 'Half black', year: '≈{y}', compressed: 'history compressed', sooty: 'Sooty wood', cleanw: 'Clean wood',
-    xn4: 'selection ×2–4', xn5: 'selection ×3–6', xn6: 'gap ×3', debate: 'Methods debated', trap: 'Light trap', power: 'Power {n}%', nights: '{n} nights', stock: '{n} batches',
-    tally: '{a}/{b}', hBack: 'back', hSent: 'sent', aside: 'set aside {n}', batch: '5 + 5 moths', mirror: 'rise mirrored', you: 'you', tomorrow: 'tomorrow', black: 'black', pale: 'pale',
-    lens: 'Gene pool', auto: 'Auto', lock: 'Lock in', skip: 'Skip', night: 'Night', conclude: 'Decide', back: 'Back', submit: 'Submit',
+    xn4: 'selection ×2–4', xn5: 'selection ×3–6', xn6: 'gap ×3', debate: 'Methods debated', trap: 'Light trap', nights: '{n} nights', stock: '{n} batches',
+    tally: '{a}/{b}', hBack: 'back', hSent: 'sent', batch: '5 + 5 moths', mirror: 'rise mirrored', you: 'you', tomorrow: 'tomorrow', black: 'black', pale: 'pale',
+    auto: 'Auto', lock: 'Lock in', skip: 'Skip', night: 'Night', conclude: 'Decide', back: 'Back', submit: 'Submit',
     hRev: 'Camouflage', hBlack: 'Black tougher', hPale: 'Pale tougher', hNone: 'No difference', pct: '{n}%',
-    c50: '50%', c60: '60%', c70: '70%', c80: '80%', c90: '90%', wSoot: 'Sooty', wClean: 'Clean'
+    wSoot: 'Sooty', wClean: 'Clean'
   },
   panels: [
     { id: 'dominance', text: 'One carbonaria copy makes a moth black. So every black moth shows the bird its C, and selection acts on every copy at once. Pale needs two typica copies. When pale is rare, most typica copies sit unseen inside black moths. At first, selection barely reaches them.' }
@@ -182,9 +169,7 @@ const SOOT_C = {
     onewood: 'One wood cannot tell camouflage from toughness. Kettlewell compared a sooty and a clean wood for that reason.',
     weak: 'Your data could not yet separate the ideas. More moths in both woods would.',
     wrong: 'Your data pointed elsewhere. Look at both woods: the favoured colour swaps with the bark.',
-    overconf: 'Right idea, but you were bolder than your data. Match your confidence to the evidence.',
-    underconf: 'Right idea, and your data were stronger than your confidence. With this much evidence, say so.',
-    crowded: 'Packed batches drew birds and widened the gap. Critics said this of Kettlewell, so they were set aside.',
+
     w_recessive: 'Same copies, but black now needs two. Most carbonaria copies hid in pale Cc moths, so black stayed rare.',
     w_nosoot: 'On clean bark black moths stood out, so carbonaria stayed rare. The same copy needs the right bark.',
     w_paledom: 'Same bird, same black share. With pale dominant, every typica copy showed, so its copies spread fast.',
@@ -199,14 +184,19 @@ const SOOT_C = {
     'Pale copies hid in black moths, so pale began slowly, then plunged. The slow-cleaning bark added delay.',
     'Two woods and enough moths showed the reversal. One wood cannot.'],
   levelBody: [null, null,
-    'In the sooty wood black moths came back more often; in the clean wood pale ones did. Only that comparison rules out “black is tougher”. Packed releases inflate the gap, so fair tests space them out.'],
+    'In the sooty wood black moths came back more often; in the clean wood pale ones did. Only that comparison rules out “black is tougher”.'],
   law: { title: 'Dominance shapes the pace' },
   boss: { inverts: 'Black passed half fast; with clean air, pale wins half back more slowly.' },
   stars: {
     discover: 'Feed your chicks while the wood changes colour.',
-    predict: 'Get two predictions inside the band.',
-    transfer: 'Apply the rule to a new case, inside the band.'
+    predict: 'Predict when black falls below half, within two generations.',
+    transfer: 'Pick the idea your recaptures support, with strong evidence.'
   },
+  levelStars: [   // each level card names only the stars that level can give (D6 decision 9: one prediction, in Clean air)
+    { discover: 'Feed your chicks while black passes half.' },
+    { discover: 'Feed your chicks until black falls below half.', predict: 'Predict when black falls below half, within two generations.' },
+    { discover: 'Recapture in both woods: the favoured colour swaps with the bark.', transfer: 'Pick the idea your recaptures support, with strong evidence.' }
+  ],
   model: [
     { level: 0, simulated: 'A wood of 120 moths. You hunt the 30 on one trunk. Three designed jays copy your choices on the other trunks. Survivors pair at random; winter leaves 120 young.',
       simplification: 'Colour is one gene: carbonaria (C) is dominant over typica (c). The Lichen Wood patterns sit hidden under black. Soot settles in the first morning. History is compressed: the run starts at 8 carriers, the copy that escaped loss.',
@@ -227,9 +217,9 @@ const SOOT_C = {
       nature: 'After clean-air laws, black moths declined across Britain over decades. Selection against them was about 0.1–0.2 a year (Cook 2003; Saccheri et al. 2008). The decline often began before lichens came back: cleaner, lighter bark was enough.',
       contested: false, refs: ['cook2003', 'saccheri2008', 'cook2012'] },
     { level: 2, simulated: 'Marked moths released in a sooty and a clean wood. Birds hunting by sight take some after dawn; every survivor is recaptured the next night.',
-      simplification: 'Survival differs by colour against bark (designed). Packed batches draw birds and widen the gap, so the evidence sets them aside. You have 24 batches of moths and 8 nights.',
+      simplification: 'Survival differs by colour against bark (designed). Batches are spaced, as fair tests require. You have 24 batches of moths and 8 nights.',
       params: [{ name: 'survival to the trap, matched', value: '75%', tag: 'xN', real: 'a smaller daily gap, s about 0.1' }, { name: 'survival to the trap, mismatched', value: '45%', tag: 'xN', real: 'see above' },
-        { name: 'packed batch', value: '−5% matched, −15% mismatched', tag: 'designed' }, { name: 'stock', value: '24 batches, 8 nights', tag: 'designed' },
+        { name: 'stock', value: '24 batches, 8 nights', tag: 'designed' },
         { name: 'moths a batch', value: '5 black, 5 pale', tag: 'designed' }],
       cannot: 'Moths flying away, uneven recapture, or moths choosing their own resting sites. Real studies had to correct for these.',
       nature: 'Kettlewell recaptured 27.5% of black and 13% of pale moths in sooty Birmingham in 1953. Critics later questioned his release densities and daytime releases. Majerus released 4,864 moths at natural sites. Birds still took more black moths, confirming the result (Cook et al. 2012).',
@@ -259,7 +249,7 @@ const CH_SOOT_V2 = {
     { name: 'Clean air', adds: 'reversed bark', codes: ['C7', 'C1'], minutes: 7 },
     { name: 'The evidence', adds: 'a field budget', codes: ['A3', 'A2', 'A5'], minutes: 6 }
   ],
-  keys: { ArrowLeft: 'move the beak', ArrowRight: 'move the beak', ArrowUp: 'move the beak', ArrowDown: 'move the beak', Space: 'peck or release', A: 'auto hunt', L: 'gene pool lens', P: 'predict', N: 'run the night', W: 'switch wood' },
+  keys: { ArrowLeft: 'move the beak', ArrowRight: 'move the beak', ArrowUp: 'move the beak', ArrowDown: 'move the beak', Space: 'peck or release', A: 'auto hunt', P: 'predict', N: 'run the night', W: 'switch wood' },
   untimed: true,
   teacher: { prompts: ['Why did the share of black moths rise faster than the share of carbonaria copies?', 'Black passed half faster than pale won half back. How much of that was dominance, and how much the slow-cleaning bark?', 'The other jays copy your choices. What does that assume about real birds?'], pool: 'trace' },
   encodings: [{ k: 'C', rgb: [47, 95, 208], channels: ['colour', 'letter'] }, { k: 'c', rgb: [232, 180, 22], channels: ['colour', 'letter'] },
@@ -278,10 +268,7 @@ const CH_SOOT_V2 = {
       this.s = { level, wood, log: [], pred: {}, exp: {}, hit: {}, asks: [], ask: null, thawed: false, t: 0, nextId: 1,
         unt: !!(o.untimed != null ? o.untimed : (Save.d && Save.d.ui && Save.d.ui.unt)) };
       if (level === 2) { this.reset6(); return; }
-      if (level === 1 && !wood.saved) {   // the default wood's pattern mix is close to even thirds, so "tap the middle" would pass t5:
-        // without a saved Lichen wood, L5 draws a wood whose mix is clearly uneven (shown on the pattern triangle in generation 1)
-        for (let k = 0; k < 8; k++) { wood.pA = 0.06 + 0.34 * R(); wood.pB = 0.06 + 0.39 * R(); if (sootTriErr(sootMix(wood), [1, 1, 1]) >= 0.12) break; }
-      }
+
       const s = this.s, lay = sootLay();
       Object.assign(s, { gen: 1, gens: K.GENS[level], phase: 'dawn', dom: 'dom', mig: K.MIG, nosoot: false, auto: false, autoT: 0,
         quota: K.QUOTA, eaten: 0, eb: 0, ep: 0, time0: K.TIMES[level], time: K.TIMES[level], looks: K.LOOKS, fed: 0, need: 0, hungry: 0, rescues: 0, lostWhy: null,
@@ -395,12 +382,7 @@ const CH_SOOT_V2 = {
     },
     afterDusk(ev) {
       const s = this.s; if (s.thawed) { s.phase = 'post'; s.t = 0; return; }   // a What if? rerun asks nothing: it shows the consequence
-      let A = SOOTK.ASK[s.level][s.gen];
-      if (s.level === 1 && !A) {   // b3 and b2 are asked when a real change is due (or at the last dusk), so copying today's value misses
-        const K1 = SOOTK.ASK[1], h = s.hist[s.hist.length - 1], last = s.crossGen != null || s.gen >= s.gens;
-        if (!s.pred.hasOwnProperty('b3') && s.gen >= 4 && (last || sootTriErr(this.expect(K1.b3), h.G) >= 0.12)) A = K1.b3;
-        else if (!s.pred.hasOwnProperty('b2') && s.gen >= 5 && (last || Math.abs(this.expect(K1.b2) - h.B) >= 0.1)) A = K1.b2;
-      }
+      const A = SOOTK.ASK[s.level][s.gen];
       if (A && !s.pred.hasOwnProperty(A.id)) { s.ask = Object.assign({}, A, { gen: s.gen }); s.asks.push(A.id); (s.askAt || (s.askAt = {}))[A.id] = s.gen; s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id: A.id }); return; }
       s.phase = 'post'; s.t = 0;
     },
@@ -419,12 +401,7 @@ const CH_SOOT_V2 = {
       const s = this.s, K = SOOTK, N = K.N;
       if (s.level === 2) return this.expect6(A);
       const h = s.hist[s.hist.length - 1], d = h.dusk, p = d.p, f = 1 - K.MIG / N * (s.mig ? 1 : 0), q = 1 - p;
-      const G = [f * p * p, f * 2 * p * q, f * q * q + (1 - f)];   // tomorrow's newborns: HW from the survivors, plus one pale migrant
-      if (A.id === 'a2' || A.id === 'b3') return G;
-      if (A.id === 'a3' || A.id === 'b2') return s.dom === 'rec' ? G[0] : 1 - G[2];
-      if (A.id === 't4') return G[0];                              // if black needed two copies: CC only
-      if (A.id === 't5') return s.morph0.slice();                  // the hidden patterns come back unchanged in expectation
-      // a1, b1: the generation at whose dawn black first crosses the line, under the player's rule so far
+      // b1 (and a1, kept for tests): the generation at whose dawn black first crosses the line, under the player's rule so far
       const tp = h.tone || s.wood.tone[0], rs = sootRho(s.morn, 'soot', 1, tp), rc = sootRho(s.morn, 'clean', 0, tp);
       const kbar = s.morn.length ? s.morn.reduce((a, m) => a + m.k, 0) / s.morn.length : K.QUOTA;
       const B = sootProject(p, 60, i => this.sootAt(s.gen + 1 + i), x => x >= 0.5 ? rs : rc, kbar, s.dom === 'dom', s.mig);
@@ -491,18 +468,12 @@ const CH_SOOT_V2 = {
     reset6() {
       const s = this.s, K = SOOTK.L6, order = ['rev', 'black', 'pale', 'none'], z = () => ({ nb: 0, sb: 0, np: 0, sp: 0, eb: 0, ep: 0 });
       for (let i = 3; i > 0; i--) { const j = (R() * (i + 1)) | 0, t = order[i]; order[i] = order[j]; order[j] = t; }   // the idea cards' order varies by seed
-      Object.assign(s, { phase: 'place', wood6: 'soot', used: 0, budget: K.budget, stock: K.stock, batches: [], night: null, nights: [], hyp: null, conf: null, order6: order,
-        data: { soot: z(), clean: z() }, aside: { soot: z(), clean: z() }, asked: { soot: 0, clean: 0 }, powerAt: 0, post: null, brier: null, gen: 1 });
+      Object.assign(s, { phase: 'place', wood6: 'soot', used: 0, budget: K.budget, stock: K.stock, batches: [], night: null, nights: [], hyp: null, order6: order,
+        data: { soot: z(), clean: z() }, aside: { soot: z(), clean: z() }, powerAt: 0, post: null, gen: 1 });
     },
-    site6(x, y) {   // x, y in the virtual 390 × 540 stage → {site, crowd}; the site is for the whisper only (moths rest on both)
-      const s = this.s; let site = 'trunk';
-      for (const j of SOOTK.JOINTS) { const dx = j[0] - x, dy = j[1] - y; if (dx * dx + dy * dy < 40 * 40) site = 'branch'; }
-      let crowd = false; for (const b of s.batches) { const dx = b.x - x, dy = b.y - y; if (dx * dx + dy * dy < 44 * 44) { crowd = true; b.crowd = true; } }
-      return { site, crowd };
-    },
-    risk6(wood, black, b) {   // a packed batch draws birds to the spot, and they take the moths that stand out most (designed)
+    risk6(wood, black) {   // birds take the moths that stand out on this bark (designed)
       const K = SOOTK.L6, match = (wood === 'soot') === black;
-      return clamp((match ? K.match : K.mismatch) + (b.crowd ? (match ? K.crowdM : K.crowdX) : 0), 0, 0.95);
+      return match ? K.match : K.mismatch;
     },
     act6(a, ev) {
       const s = this.s, K = SOOTK.L6, T = SOOTK.TREE;
@@ -510,35 +481,31 @@ const CH_SOOT_V2 = {
         if (s.used >= s.budget) return ev;
         if (s.stock <= 0) { ev.push({ k: 'stock' }); return ev; }
         if (s.batches.length >= K.per) { ev.push({ k: 'full' }); return ev; }
-        const x = clamp(+a.x || 0, T.x0, T.x1), y = clamp(+a.y || 0, T.y0, T.y1), w = this.site6(x, y);
-        s.batches.push({ x, y, site: w.site, crowd: w.crowd, nb: K.nb, np: K.np }); s.stock--;
-        ev.push({ k: 'rel', j: s.batches.length - 1, x, y, site: w.site, crowd: w.crowd });
+        const x = clamp(+a.x || 0, T.x0, T.x1), y = clamp(+a.y || 0, T.y0, T.y1);
+        s.batches.push({ x, y, nb: K.nb, np: K.np }); s.stock--;
+        ev.push({ k: 'rel', j: s.batches.length - 1, x, y });
       } else if (a.k === 'wood' && s.phase === 'place') {
         if (s.batches.length) { ev.push({ k: 'woodno' }); return ev; }
         if (a.w === 'soot' || a.w === 'clean') { s.wood6 = a.w; ev.push({ k: 'wood', w: a.w }); }
       } else if (a.k === 'night' && s.phase === 'place') {
         if (!s.batches.length) { ev.push({ k: 'none' }); return ev; }
-        if (!s.asked[s.wood6]) { const id = s.wood6 === 'soot' ? 'c1' : 'c2'; s.asked[s.wood6] = 1; s.ask = { id, kind: 'y', chart: 0, lo: 0, hi: 1, tol: 0.1, hud: 'l6ask', gen: s.used + 1, at: s.used + 1, first: id === 'c1' }; s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id }); return ev; }
         this.night6(ev);
-      } else if (a.k === 'predict' && s.ask && a.id === s.ask.id) this.commit(a.id, a.v, ev);
-      else if (a.k === 'tolfloor') this.tolFloor(a);
-      else if (a.k === 'conclude' && s.phase === 'place') { s.phase = 'conclude'; s.t = 0; ev.push({ k: 'conclude' }); }
+      } else if (a.k === 'conclude' && s.phase === 'place') { s.phase = 'conclude'; s.t = 0; ev.push({ k: 'conclude' }); }
       else if (a.k === 'back' && s.phase === 'conclude' && s.used < s.budget && s.stock > 0) { s.phase = 'place'; s.t = 0; ev.push({ k: 'back' }); }
       else if (a.k === 'hyp' && s.phase === 'conclude' && ['rev', 'black', 'pale', 'none'].indexOf(a.h) >= 0) { s.hyp = a.h; ev.push({ k: 'hyp', h: a.h }); }
-      else if (a.k === 'conf' && s.phase === 'conclude' && [0.5, 0.6, 0.7, 0.8, 0.9].indexOf(+a.v) >= 0) { s.conf = +a.v; ev.push({ k: 'conf', v: s.conf }); }
-      else if (a.k === 'submit' && s.phase === 'conclude' && s.hyp && s.conf) {
-        s.powerAt = this.power6(); s.post = this.posterior6(); s.brier = this.brier6(s.hyp, s.conf, s.post); s.phase = 'over'; s.t = 0; ev.push({ k: 'over' });
+      else if (a.k === 'submit' && s.phase === 'conclude' && s.hyp) {   // no confidence pips (D6 decision 9): the idea, judged by the evidence behind it
+        s.powerAt = this.power6(); s.post = this.posterior6(); s.phase = 'over'; s.t = 0; ev.push({ k: 'over' });
       }
       return ev;
     },
-    night6(ev) {   // packed batches fly and are counted like the rest, but the evidence sets them aside (s.aside)
+    night6(ev) {   // every batch flies; birds take some after dawn; the light trap counts the rest
       const s = this.s, w = s.wood6, out = [];
       for (const b of s.batches) {
-        const r = { x: b.x, y: b.y, site: b.site, crowd: b.crowd, black: [], pale: [] };
-        for (let i = 0; i < b.nb; i++) r.black.push(R() < this.risk6(w, true, b) ? 0 : 1);
-        for (let i = 0; i < b.np; i++) r.pale.push(R() < this.risk6(w, false, b) ? 0 : 1);
-        const D = (b.crowd ? s.aside : s.data)[w]; D.nb += b.nb; D.np += b.np; D.sb += r.black.reduce((a, v) => a + v, 0); D.sp += r.pale.reduce((a, v) => a + v, 0);
-        D.eb += this.risk6(w, true, b) * b.nb; D.ep += this.risk6(w, false, b) * b.np;   // expected deaths (for power)
+        const r = { x: b.x, y: b.y, black: [], pale: [] };
+        for (let i = 0; i < b.nb; i++) r.black.push(R() < this.risk6(w, true) ? 0 : 1);
+        for (let i = 0; i < b.np; i++) r.pale.push(R() < this.risk6(w, false) ? 0 : 1);
+        const D = s.data[w]; D.nb += b.nb; D.np += b.np; D.sb += r.black.reduce((a, v) => a + v, 0); D.sp += r.pale.reduce((a, v) => a + v, 0);
+        D.eb += this.risk6(w, true) * b.nb; D.ep += this.risk6(w, false) * b.np;   // expected deaths (for power)
         out.push(r);
       }
       s.night = { wood: w, out }; s.nights.push({ wood: w, n: s.batches.length, sb: out.reduce((a, r) => a + r.black.reduce((x, v) => x + v, 0), 0), sp: out.reduce((a, r) => a + r.pale.reduce((x, v) => x + v, 0), 0) }); s.used++; s.batches = []; s.phase = 'night'; s.t = 0;
@@ -549,12 +516,11 @@ const CH_SOOT_V2 = {
       if (s.phase === 'nightgo') this.night6(ev);
       else if (s.phase === 'night' && s.t >= K.NIGHT) { s.phase = 'tally'; s.t = 0; ev.push({ k: 'tally' }); }
       else if (s.phase === 'tally' && s.t >= K.TALLY) { const out = s.used >= s.budget || s.stock <= 0; s.phase = out ? 'conclude' : 'place'; s.t = 0; ev.push({ k: s.phase, out }); }
-      else if (s.phase === 'ask' && !s.unt && s.t >= K.ASKMAX) this.commit(s.ask.id, null, ev);
       return ev;
     },
-    expect6(A) {   // expected black share among tonight's survivors, from tonight's batches
+    expect6() {   // expected black share among tonight's survivors, from tonight's batches (no ask uses it now; kept for tests)
       const s = this.s, w = s.wood6; let sb = 0, sp = 0;
-      for (const b of s.batches) { sb += b.nb * (1 - this.risk6(w, true, b)); sp += b.np * (1 - this.risk6(w, false, b)); }
+      for (const b of s.batches) { sb += b.nb * (1 - this.risk6(w, true)); sp += b.np * (1 - this.risk6(w, false)); }
       return sb + sp > 0 ? sb / (sb + sp) : 0.5;
     },
     power6() {   // design feedback: power to show both differences (sooty and clean) with a two-sided 5% test, at the true rates for the spaced releases made
@@ -579,29 +545,23 @@ const CH_SOOT_V2 = {
       out.other = Math.max(0, 1 - out.rev - out.black - out.pale - out.none);
       return out;
     },
-    brier6(hyp, conf, post) {   // expected Brier score of "hyp, with confidence conf" under the posterior, minus the best pip's: 0 = calibrated
-      const pr = c => { const p = (post && post[hyp]) || 0; return p * (1 - c) * (1 - c) + (1 - p) * c * c; };
-      let best = Infinity; for (const c of [0.5, 0.6, 0.7, 0.8, 0.9]) best = Math.min(best, pr(c));
-      return { score: pr(conf), regret: pr(conf) - best };
-    },
+
 
     /* ---------- contract ---------- */
     result() {
       const s = this.s; if (!s || s.phase !== 'over') return null;
       const st = CH_SOOT_V2.stars, n = s.level;
       const mask = s.thawed ? 0 : (st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0);
-      return { mask, outcome: n === 2 ? { hyp: s.hyp, conf: s.conf, power: s.powerAt, post: s.post ? s.post.rev : null } : { passed: s.passed, cross: s.crossGen, fed: sootFed(s) }, interesting: this.why(s) };
+      return { mask, outcome: n === 2 ? { hyp: s.hyp, power: s.powerAt, post: s.post ? s.post.rev : null } : { passed: s.passed, cross: s.crossGen, fed: sootFed(s) }, interesting: this.why(s) };
     },
     why(s) {   // the Interesting result, chosen from what actually happened in this run (catch rates, cause of a loss, the evidence)
       const n = s.level;
       if (s.thawed && s.lever) return s.lever === 'nomig' && s.crossGen == null ? 'w_nomig_slow' : 'w_' + s.lever;
       if (n === 2) {
-        const one = !s.data.soot.nb || !s.data.clean.nb, aside = s.aside.soot.nb + s.aside.clean.nb, pr = s.post ? s.post.rev : 0, b = s.brier;
+        const one = !s.data.soot.nb || !s.data.clean.nb, pr = s.post ? s.post.rev : 0;
         if (one) return 'onewood';
         if (pr < 0.8) return 'weak';
-        if (s.hyp !== 'rev') return 'wrong';
-        if (b && b.regret > 0.012) return s.conf > pr ? 'overconf' : 'underconf';
-        return aside >= 10 ? 'crowded' : null;   // two packed batches or more
+        return s.hyp !== 'rev' ? 'wrong' : null;
       }
       const rate = cls => { let eb = 0, nb = 0, ep = 0, np = 0, k = 0; for (const m of s.morn) if ((m.soot >= 0.5) === (cls === 'soot')) { eb += m.eb; nb += m.nb; ep += m.ep; np += m.np; k += m.k; } return { rb: nb ? eb / nb : 0, rp: np ? ep / np : 0, k, n: s.morn.filter(m => (m.soot >= 0.5) === (cls === 'soot')).length }; };
       if (n === 0) {
@@ -630,8 +590,7 @@ const CH_SOOT_V2 = {
           out.push({ k: 'conclude' });
         } else if (s.phase === 'conclude') {
           for (const h of ['rev', 'black', 'pale', 'none']) out.push({ k: 'hyp', h });
-          for (const v of [0.5, 0.6, 0.7, 0.8, 0.9]) out.push({ k: 'conf', v });
-          if (s.hyp && s.conf) out.push({ k: 'submit' });
+          if (s.hyp) out.push({ k: 'submit' });
         }
         return out;
       }
@@ -655,7 +614,7 @@ const CH_SOOT_V2 = {
           return near(h.B);
         }
         if (s.level === 2) {
-          if (s.phase === 'conclude') return !s.hyp ? { k: 'hyp', h: 'rev' } : !s.conf ? { k: 'conf', v: 0.9 } : { k: 'submit' };
+          if (s.phase === 'conclude') return !s.hyp ? { k: 'hyp', h: 'rev' } : { k: 'submit' };
           if (s.phase === 'place') {
             const want = s.used % 2 === 0 ? 'soot' : 'clean', rel = acts.filter(a => a.k === 'release');
             if (!s.batches.length && s.wood6 !== want) return { k: 'wood', w: want };
@@ -686,7 +645,7 @@ const CH_SOOT_V2 = {
         const sim = CH_SOOT_V2.sim;
         if (s.ask) { const A = s.ask; if (A.kind === 'tri') return { k: 'predict', id: A.id, v: [0.3, 0.4, 0.3] }; const mid = A.kind === 'x' ? Math.round((A.lo + A.hi) / 2) : 0.5; return acts.reduce((b, a) => !b || Math.abs(a.v - mid) < Math.abs(b.v - mid) ? a : b, null); }
         if (s.level === 2) {
-          if (s.phase === 'conclude') return !s.hyp ? { k: 'hyp', h: 'rev' } : !s.conf ? { k: 'conf', v: 0.7 } : { k: 'submit' };
+          if (s.phase === 'conclude') return !s.hyp ? { k: 'hyp', h: 'rev' } : { k: 'submit' };
           if (s.phase === 'place') return s.batches.length < 2 ? acts.filter(a => a.k === 'release')[s.batches.length] || null : { k: 'night' };
           return null;
         }
@@ -700,22 +659,21 @@ const CH_SOOT_V2 = {
   stars: {
     discover: (s, n) => n === 2 ? !!(s.data && s.data.soot.nb && s.data.clean.nb && s.data.soot.sb / s.data.soot.nb > s.data.soot.sp / s.data.soot.np && s.data.clean.sp / s.data.clean.np > s.data.clean.sb / s.data.clean.nb)
       : n === 0 ? s.passed != null && sootFed(s) >= 0.7 : s.crossGen != null && sootFed(s) >= 0.6,
-    predict: (s, n) => { const ids = SOOTK.PRED[n] || []; let k = 0; for (const id of ids) if (s.hit && s.hit[id]) k++; return k >= 2; },
-    // L6: camouflage, with the evidence behind it (posterior ≥ 0.8) and a confidence the evidence supports (expected Brier within 0.012 of the best pip)
-    transfer: (s, n) => n === 2 ? s.hyp === 'rev' && !!s.post && s.post.rev >= 0.8 && !!s.brier && s.brier.regret <= 0.012
-      : !!(s.hit && s.hit[SOOTK.TRANS[n]]) && (n !== 0 || s.passed != null)   // L4: the two-copy case only matters once black has risen
+    predict: (s, n) => (SOOTK.PRED[n] || []).some(id => !!(s.hit && s.hit[id])),   // Clean air's one prediction: when black falls below half
+    // L6: camouflage, with the evidence behind it (posterior ≥ 0.8 from your own recaptures)
+    transfer: (s, n) => n === 2 && s.hyp === 'rev' && !!s.post && s.post.rev >= 0.8
   },
 
   /* ---------- teacher hook (D5 §3.10): a 30-bit result code for assignment links (?unit=soot&seed=…) ----------
      bits 0–1 level, 2–4 star mask; L4/L5: 5–9 generation black crossed half (0 = never), 10–16 meals fed %, 17–23 last dawn
      black %, 24–28 carbonaria rescues; L6: 5–6 idea (camouflage 0, black tougher 1, pale tougher 2, no difference 3),
-     7–9 confidence (0 none, 1–5 = 50–90%), 10–16 design power %, 17–23 posterior for camouflage %, 24–28 batches used */
+     7–9 unused (was confidence), 10–16 design power %, 17–23 posterior for camouflage %, 24–28 batches used */
   resultBits(s, level) {
     if (!s) return 0; const n = level == null ? s.level : level, r = this.sim.result(), mask = r ? r.mask & 7 : 0, pc = x => clamp(Math.round(100 * (+x || 0)), 0, 100);
     let b = (n & 3) | (mask << 2);
     if (n === 2) {
-      const hi = Math.max(0, ['rev', 'black', 'pale', 'none'].indexOf(s.hyp)), ci = s.conf ? Math.round(s.conf * 10) - 4 : 0;
-      b |= (hi << 5) | ((ci & 7) << 7) | (pc(s.powerAt) << 10) | (pc(s.post ? s.post.rev : 0) << 17) | ((clamp(SOOTK.L6.stock - (s.stock | 0), 0, 31)) << 24);
+      const hi = Math.max(0, ['rev', 'black', 'pale', 'none'].indexOf(s.hyp));
+      b |= (hi << 5) | (pc(s.powerAt) << 10) | (pc(s.post ? s.post.rev : 0) << 17) | ((clamp(SOOTK.L6.stock - (s.stock | 0), 0, 31)) << 24);
     } else {
       const g = n === 0 ? s.passed : s.crossGen, h = s.hist && s.hist[s.hist.length - 1];
       b |= ((clamp(g | 0, 0, 31)) << 5) | (pc(sootFed(s)) << 10) | (pc(h ? h.B : 0) << 17) | ((clamp(s.rescues | 0, 0, 31)) << 24);
@@ -726,7 +684,7 @@ const CH_SOOT_V2 = {
   /* ---------- view ---------- */
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
   startLevel(n, o) {
-    o = o || {}; this.level = n; this._ended = false; this._asked = null; this._endT = 0; this._solo = false; this._tolSent = null; this._lensEl = null; this._proj = null; this._mir = null; this.xHi = 0;
+    o = o || {}; this.level = n; this._ended = false; this._asked = null; this._endT = 0; this._solo = false; this._tolSent = null; this._proj = null; this._mir = null; this.xHi = 0;
     Sim.start(this, n, Object.assign({}, o, { wood: null }));   // every run starts from the default wood; a saved wood enters as a logged action
     // The Lichen Wood's saved wood carries over, except where a run must be the same on every machine: seed links, teacher mode and replays.
     // It enters through Sim.act, so it is in the replay log and a replay code rebuilds the same wood anywhere (D1 G12.7, D5 §3.10).
@@ -737,11 +695,7 @@ const CH_SOOT_V2 = {
       cursor: null, flecks: [], plumes: [], fxq: [], idle: 0, askT0: 0, shown: null, shownT: 1, shownFrom: null };
     if (n === 0 && !o.thaw) this.v.soot = 0;   // the opening: soot settles over the clean wood
     if (n === 2) this.v.shown = { data: JSON.parse(JSON.stringify(this.sim.s.data)), aside: JSON.parse(JSON.stringify(this.sim.s.aside)) };   // the tally card shows what the trap has counted
-    this.lens = null;
-    if (n < 2 && typeof GenePoolLens !== 'undefined') {
-      this.lens = GenePoolLens.create({ items: () => this.lensItems(), jar: null, letters: ['C', 'c'], names: { look: 'Look', genes: 'Genes', jars: 'Jars' }, label: 'Gene pool lens',
-        onChange: m => { const s = this.sim.s; if (m !== 'look' && (s.phase === 'hunt' || s.phase === 'dawn')) { if (typeof Whisper !== 'undefined') Whisper.say(this.content.whispers.lens, 'lens'); this.lens.set('look'); } } });
-    }
+    this.lens = null;   // the Look / Genes / Jars lens was cut (D6 decision 9): the dusk line names the copy and moth shares instead
     this.dock(); this.hud(true);
     if (typeof Ghost !== 'undefined' && n < 2) this.ghost = Ghost.show({ verb: 'tap', at: () => this.ghostAt(), until: () => this.sim.s.eaten > 0 || this.sim.s.phase !== 'hunt' && this.sim.s.phase !== 'dawn' });
     if (typeof Ghost !== 'undefined' && n === 2) this.ghost = Ghost.show({ verb: 'tap', at: () => this.px(SOOTK.JOINTS[0][0], SOOTK.JOINTS[0][1] + 6), until: () => this.sim.s.batches.length > 0 || this.sim.s.used > 0 });
@@ -757,20 +711,16 @@ const CH_SOOT_V2 = {
     if (typeof Dock === 'undefined') return;
     const s = this.sim.s, L = this.content.labels, b = [];
     if (s.level < 2) {
-      // the lens control shows only when it can work: from dusk to the next dawn (in the hunt the genes are not shown)
-      const lensNow = s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post';
-      if (lensNow && this.lens && typeof GenePoolLens !== 'undefined' && GenePoolLens.control) b.push({ id: 'lens', el: this._lensEl || (this._lensEl = GenePoolLens.control(this.lens)) });
       if (s.ask) b.push({ id: 'lock', label: L.lock, key: 'Enter', primary: true, fn: () => { if (typeof Predict !== 'undefined') Predict.commit(); } });
       else if (s.phase === 'dusk') b.push({ id: 'skip', label: L.skip, key: 'Enter', fn: () => Sim.act(this, { k: 'skip' }) });
-      else if (s.unt || s.auto || s.thawed || (typeof Fx !== 'undefined' && Fx.lastInput === 'key')) b.push({ id: 'auto', label: L.auto, key: 'A', pressed: !!s.auto, aria: 'Let the jay hunt by contrast', disabled: !(s.phase === 'hunt' || s.phase === 'dawn'), why: this.w('whispers', 'lens'), fn: () => Sim.act(this, { k: 'auto', on: !s.auto }) });
-    } else if (s.phase === 'conclude' || s.phase === 'over') {   // the ideas and the confidence pips are on the canvas; the dock goes back or submits
+      else if (s.unt || s.auto || s.thawed || (typeof Fx !== 'undefined' && Fx.lastInput === 'key')) b.push({ id: 'auto', label: L.auto, key: 'A', pressed: !!s.auto, aria: 'Let the jay hunt by contrast', disabled: !(s.phase === 'hunt' || s.phase === 'dawn'), why: this.w('whispers', 'auto'), fn: () => Sim.act(this, { k: 'auto', on: !s.auto }) });
+    } else if (s.phase === 'conclude' || s.phase === 'over') {   // the idea cards are on the canvas; the dock goes back or submits
       if (s.used < s.budget && s.stock > 0) b.push({ id: 'back', label: L.back, disabled: s.phase !== 'conclude', fn: () => Sim.act(this, { k: 'back' }) });
-      b.push({ id: 'submit', label: L.submit, key: 'Enter', primary: true, disabled: !(s.hyp && s.conf) || s.phase !== 'conclude', why: this.content.hud.submit, fn: () => Sim.act(this, { k: 'submit' }) });
+      b.push({ id: 'submit', label: L.submit, key: 'Enter', primary: true, disabled: !s.hyp || s.phase !== 'conclude', why: this.content.hud.submit, fn: () => Sim.act(this, { k: 'submit' }) });
     } else {   // four short labels: they must fit a 390 px dock without the label running under the next button
       b.push({ id: 'w-soot', label: L.wSoot, key: 'W', pressed: s.wood6 === 'soot', disabled: !!s.batches.length && s.wood6 !== 'soot', why: this.w('whispers', 'wood'), fn: () => Sim.act(this, { k: 'wood', w: 'soot' }) });
       b.push({ id: 'w-clean', label: L.wClean, pressed: s.wood6 === 'clean', disabled: !!s.batches.length && s.wood6 !== 'clean', why: this.w('whispers', 'wood'), fn: () => Sim.act(this, { k: 'wood', w: 'clean' }) });
-      if (s.ask) b.push({ id: 'lock', label: L.lock, key: 'Enter', primary: true, fn: () => { if (typeof Predict !== 'undefined') Predict.commit(); } });
-      else b.push({ id: 'night', label: L.night, key: 'N', primary: true, aria: 'Run the night', disabled: !s.batches.length || s.phase !== 'place', why: this.w('whispers', 'none'), fn: () => Sim.act(this, { k: 'night' }) });
+      b.push({ id: 'night', label: L.night, key: 'N', primary: true, aria: 'Run the night', disabled: !s.batches.length || s.phase !== 'place', why: this.w('whispers', 'none'), fn: () => Sim.act(this, { k: 'night' }) });
       b.push({ id: 'conclude', label: L.conclude, key: 'C', disabled: s.phase !== 'place', fn: () => Sim.act(this, { k: 'conclude' }) });
     }
     const sig = b.map(x => x.id + (x.pressed ? '+' : '') + (x.disabled ? '-' : '')).join(',');
@@ -781,36 +731,37 @@ const CH_SOOT_V2 = {
     const s = this.sim.s, C = this.content.hud, h = s.hist ? s.hist[s.hist.length - 1] : null;
     let text = '', num = '';
     if (s.level === 2) {
-      text = s.ask ? C.l6ask : s.phase === 'night' ? C.night : s.phase === 'tally' ? C.tally : s.phase === 'conclude' ? (s.used >= s.budget || s.stock <= 0 ? C.out : C.conclude) : s.phase === 'over' ? this.verdictLine() : s.batches.length ? C.l6more : C.l6;
-      num = this.w('labels', 'nights', { n: s.budget - s.used });   // the stock of moths sits on the power panel, so the HUD line keeps its room
+      text = s.phase === 'night' ? C.night : s.phase === 'tally' ? C.tally : s.phase === 'conclude' ? (s.used >= s.budget || s.stock <= 0 ? C.out : C.conclude) : s.phase === 'over' ? this.verdictLine() : s.batches.length ? C.l6more : C.l6;
+      num = this.w('labels', 'nights', { n: s.budget - s.used });   // the stock of moths sits on its own pill, so the HUD line keeps its room
     } else {
-      if (s.ask) text = C[s.ask.hud];
+      if (s.ask) text = this.askLine(s.ask);
       else if (s.thawed && s.lever && (s.gen === s.thawGen || s.autoAll) && s.phase !== 'over') text = this.w('hud', 'whatif', { lever: (this.content.levers || {})[s.lever] || s.lever });   // say what changed, while the jay hunts for you
       else if (s.phase === 'hunt' || s.phase === 'dawn') {
         if (s.gen === 1 && s.eaten === 0) text = s.level === 1 ? C.l5 : this.content.firstWords;
+        else if (s.level === 0 && s.passed === s.gen && s.eaten === 0) text = C.passKey;   // the key equation, plainly, when black has just passed half (D6 decision 9)
         else text = this.w('hud', 'hunt', { n: Math.max(0, s.quota - s.eaten) });
         num = s.eaten + '/' + s.quota;
-      } else if (s.phase === 'dusk') text = C.dusk;
+      } else if (s.phase === 'dusk') {   // the key numbers at every dusk: copy share against moth share (dominance in one line)
+        const pc = x => Math.round(100 * clamp(x, 0, 1));
+        text = !h || s.dom === 'rec' ? C.dusk : s.level === 0 ? this.w('hud', 'duskC', { p: pc(h.p), b: pc(h.B) }) : this.w('hud', 'duskQ', { q: pc(1 - h.p), w: pc(1 - h.B) });
+      }
       else if (s.phase === 'post') text = C.post;
       else text = C.wait;
       if (!num && h && s.gen > 1) num = 'black ' + Math.round(h.B * 100) + '%';
     }
     if (force || text !== this._hudT || num !== this._hudN) { this._hudT = text; this._hudN = num; HUD.say(text, num); const el = typeof document !== 'undefined' && document.getElementById ? document.getElementById('hud') : null; this._hudPx = el && el.offsetHeight ? el.offsetHeight : 56; }
   },
-  verdictLine() {   // "Your data: Camouflage 94%. You said 80%." — the evidence for the idea the player chose, from their own recaptures
+  askLine(A) {   // the one ask's line, with the rise it is compared against ("Black rose past half in n generations")
+    if (A.hud !== 'askX50') return this.w('hud', A.hud);
+    const d = this.mirrorData(), k = d ? d.findIndex(q => q[1] < 0.5) : -1;
+    return this.w('hud', 'askX50', { n: k > 0 ? k : 5 });
+  },
+  verdictLine() {   // "Your data back Camouflage: 94%." — the evidence for the idea the player chose, from their own recaptures
     const s = this.sim.s, C = this.content.hud, P = s.post; if (!P || !s.hyp) return C.done;
-    const key = { rev: 'hRev', black: 'hBlack', pale: 'hPale', none: 'hNone' }[s.hyp], v = { idea: this.w('labels', key), a: Math.round(100 * (P[s.hyp] || 0)), b: Math.round(100 * s.conf) };
+    const key = { rev: 'hRev', black: 'hBlack', pale: 'hPale', none: 'hNone' }[s.hyp], v = { idea: this.w('labels', key), a: Math.round(100 * (P[s.hyp] || 0)) };
     return this.w('hud', P.rev < 0.8 ? 'thin' : 'verdict', v);
   },
   ghostAt() { const s = this.sim.s; if (!s.trunk) return null; const i = this.sim.mostVisible(); if (i < 0) return null; const p = s.pos[i]; return [p[0] * Stage.w, p[1] * Stage.h]; },
-  lensItems() {   // survivors on your trunk where they sit; the rest of the wood's survivors fly in from the top edge
-    const s = this.sim.s, sim = this.sim, out = []; if (!s.trunk) return out;
-    const r = this.size(), on = {}, ap = m => [this.sim.cc(m.g) >= 1 ? 0 : 1, this.sim.cc(m.g) === 2 ? 0 : 1];
-    s.trunk.forEach((j, i) => { on[j] = 1; const m = s.pop[j]; if (m.dead) return; const p = s.pos[i]; out.push({ x: p[0] * Stage.w, y: p[1] * Stage.h, r, a: ap(m) }); });
-    let k = 0; const top = this.hudH() + 8;
-    for (let j = 0; j < s.pop.length; j++) { if (on[j] || s.pop[j].dead) continue; out.push({ x: 12 + (k * 37) % Math.max(40, Stage.w - 24), y: top + 6 * ((k * 7) % 4), r: 6, a: ap(s.pop[j]) }); k++; }
-    return out;
-  },
   size() { return Math.max(29, Math.min(64, 0.08 * Math.min(Stage.w, 1.2 * Stage.h))); },   // moths ≈ 8% of the stage unit (D1 §3.1)
 
   update(dt) {
@@ -850,12 +801,12 @@ const CH_SOOT_V2 = {
     if (A.kind === 'x') start = Math.min(A.hi, s.gen + 1);   // starts where tapping the ghost cannot be a free hit
     else if (A.kind === 'y') start = h ? h.B : 0.5;   // L6 has no hist: the ghost starts at even survival
     else if (A.kind === 'tri') start = A.id === 't5' ? [0.06, 0.06, 0.88] : [0.6, 0.3, 0.1];
-    if (this.lens && (A.id === 'a3' || A.id === 'b2')) this.lens.set('jars');
+
     // on a phone a chart-0 ask shows that chart alone, in a strip one chart high, so the scene (the jars) stays in view above it
     this._solo = typeof Strip !== 'undefined' && Strip.phone && Strip.phone() && A.chart === 0;
     if (typeof Strip !== 'undefined') Strip.redraw();
     this._askSoft = unt || A.first ? null : 12;   // the level's first prediction is untimed: the player is still reading
-    Predict.ask({ id: A.id, chart: A.chart, kind: A.kind, axis, start, tol: A.tol, at: A.at, soft: this._askSoft, say: this.content.hud[A.hud] });
+    Predict.ask({ id: A.id, chart: A.chart, kind: A.kind, axis, start, tol: A.tol, at: A.at, soft: this._askSoft, say: this.askLine(A) });
     if (this._solo) this.compactStrip();
     if (typeof Snd2 !== 'undefined') Snd2.play('tick', { x: Stage.w / 2, y: Stage.h / 2 });
   },
@@ -883,7 +834,7 @@ const CH_SOOT_V2 = {
       if (e.hungry > 0) { this.whisper('hungry'); for (let k = SOOTK.CHICKS - e.hungry; k < SOOTK.CHICKS; k++) { const c = this.chickPos(k); if (F) F.ring(c[0], c[1], 15, { dashed: true }); } }
       if (!s.thawed && !s.auto) { v.idle = e.eaten ? 0 : v.idle + 1; if (v.idle >= 2) this.whisper('idle'); }   // a nudge for a player who has not played two mornings running
       if (typeof Live !== 'undefined') Live.say(Txt.f('Dusk. {n} moths survive to breed.', { n: e.surv }));
-    } else if (e.k === 'ask') { if (typeof Live !== 'undefined') Live.say(this.content.hud[s.ask.hud]); }
+    } else if (e.k === 'ask') { if (typeof Live !== 'undefined') Live.say(this.askLine(s.ask)); }
     else if (e.k === 'pred') {
       let moved = true; if (typeof Predict !== 'undefined') { for (let i = 0; i < 3; i++) { const r = Predict.overlay(i); if (r && r.id === e.id) moved = !!r.moved; } Predict.reveal(e.id, e.exp, e.tol); }
       if (this._askSoft && !moved && v.t - v.askT0 >= this._askSoft - 0.25) this.whisper('timeup');
@@ -900,7 +851,6 @@ const CH_SOOT_V2 = {
     } else if (e.k === 'rel') {
       const p = this.px(e.x, e.y); if (F) { F.burst('dust', p[0], p[1], 3); F.ring(p[0], p[1], 26); F.pop(this.w('labels', 'batch'), p[0], p[1] - 36, 0); }   // what one tap releases
       if (typeof Snd2 !== 'undefined') Snd2.play('wing', { x: p[0], y: p[1] });
-      this.whisper(e.crowd ? 'crowd' : e.site === 'trunk' ? 'trunk' : 'branch');
     } else if (e.k === 'full' || e.k === 'none' || e.k === 'woodno' || e.k === 'stock') { this.whisper(e.k === 'woodno' ? 'wood' : e.k); if (F) F.shake(3, 120); }
     else if (e.k === 'night') { v.night = { t: 0 }; if (typeof Snd2 !== 'undefined') Snd2.play('dusk', { x: W / 2, y: H / 2 }); }
     else if (e.k === 'tally') {   // only now does the card learn tonight's numbers, and they count up as the survivors reach the trap
@@ -947,7 +897,7 @@ const CH_SOOT_V2 = {
     const s = this.sim.s; this.v.lastTap = [x, y];
     if (s.level === 2) {
       if (s.phase === 'place') Sim.act(this, { k: 'release', x: x / Stage.w * 390, y: y / Stage.h * 540 });
-      if (s.phase === 'conclude') { const L = this.concludeLayout(); for (const c of L.cards) if (x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.ht) Sim.act(this, { k: 'hyp', h: c.id }); for (const p of L.pips) if (Math.abs(x - p.x) <= p.r + 6 && Math.abs(y - p.y) <= p.r + 8) Sim.act(this, { k: 'conf', v: p.v }); }
+      if (s.phase === 'conclude') { const L = this.concludeLayout(); for (const c of L.cards) if (x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.ht) Sim.act(this, { k: 'hyp', h: c.id }); }
       return;
     }
     if (s.phase !== 'hunt' && s.phase !== 'dawn') return;   // a late tap at dusk must not wipe the eggs: Skip (or Enter) does that
@@ -964,7 +914,7 @@ const CH_SOOT_V2 = {
     if ((k === 'n' || k === 'N') && s.level === 2) { Sim.act(this, { k: 'night' }); return true; }
     if ((k === 'w' || k === 'W') && s.level === 2) { Sim.act(this, { k: 'wood', w: s.wood6 === 'soot' ? 'clean' : 'soot' }); return true; }
     if ((k === 'c' || k === 'C') && s.level === 2) { Sim.act(this, { k: 'conclude' }); return true; }
-    if (s.level === 2 && s.phase === 'conclude' && /^[1-9]$/.test(k)) { const d = +k; if (d <= 4) Sim.act(this, { k: 'hyp', h: (s.order6 || ['rev', 'black', 'pale', 'none'])[d - 1] }); else Sim.act(this, { k: 'conf', v: d / 10 }); return true; }
+    if (s.level === 2 && s.phase === 'conclude' && /^[1-4]$/.test(k)) { Sim.act(this, { k: 'hyp', h: (s.order6 || ['rev', 'black', 'pale', 'none'])[+k - 1] }); return true; }
     return false;
   },
 
@@ -1000,7 +950,6 @@ const CH_SOOT_V2 = {
     c.fillStyle = frac < 0.25 ? '#D27A4C' : '#E8DFC9'; c.fillRect(v.flinch * 4, top, w * frac, 5);   // cream, rust when the morning is nearly over (never a data ink)
     // moths
     const size = this.size(), dusk = s.phase === 'dusk' || s.phase === 'ask' || s.phase === 'post' || s.phase === 'over';
-    const lensOn = this.lens && this.lens.mode !== 'look' && dusk;
     s.trunk.forEach((j, i) => {
       const m = s.pop[j], p = s.pos[i], x = p[0] * w, y = p[1] * h;
       if (m.dead) {
@@ -1020,7 +969,6 @@ const CH_SOOT_V2 = {
       if (m.mig && born < 1) { c.strokeStyle = 'rgba(232,223,201,' + (1 - born) + ')'; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(w + 10, y - 40); c.quadraticCurveTo((x + w) / 2, y - 60, x, y); c.stroke(); c.setLineDash([]); }
     });
     if (dusk) this.drawDusk(c, w, h);
-    if (lensOn) { if (this.lens.mode === 'jars') { const J = this.jarBox(); if (J.compact) this.drawPQ(c, J); else { this.lens.o.jar = J; this.lens.draw(c); } } else this.lens.draw(c); }
     if (s.phase === 'dawn' || v.title > 0) this.drawTitle(c, w, h);
     for (const f of v.flecks) { c.fillStyle = 'rgba(20,18,16,' + (0.8 * (1 - f.a / f.life)) + ')'; c.fillRect(f.x, f.y, 2.5, 2.5); }
     if (v.cursor && typeof Fx !== 'undefined' && Fx.lastInput === 'key') { const cu = v.cursor; c.strokeStyle = '#E8DFC9'; c.lineWidth = 2; c.beginPath(); c.arc(cu[0], cu[1], 16, 0, TAU); c.moveTo(cu[0] - 22, cu[1]); c.lineTo(cu[0] - 10, cu[1]); c.moveTo(cu[0] + 10, cu[1]); c.lineTo(cu[0] + 22, cu[1]); c.stroke(); }
@@ -1058,19 +1006,6 @@ const CH_SOOT_V2 = {
   },
   chickPos(k) { const H = Stage.h; return [24 + k * 30, H - 26]; },
   drawerBox() { const W = Stage.w, H = Stage.h, x = 146; return { x, y: H - 52, w: W - x - 12, h: 42 }; },
-  jarBox() {   // always inside the slice of canvas the strip leaves visible (an open phone strip covers the lower stage); room for the pills above and below
-    const W = Stage.w, H = Stage.h, g = Stage.zones && Stage.zones.graph, top = this.skyBottom() + 30, floor = (g && g.h > 0 ? g.y : H - 58) - 26, room = floor - top;
-    const h = clamp(room, 24, H * 0.3);
-    return { x: W * 0.14, y: floor - h, w: W * 0.72, h, compact: room < 72 };
-  },
-  drawPQ(c, J) {   // the jars folded into one p|q bar, for a slice too thin for jars: survivors' C copies (blue) and c copies (amber)
-    const L = this.lens, n = L ? L.counts() : [0, 0], t = (n[0] || 0) + (n[1] || 0) || 1, f = (n[0] || 0) / t, y = J.y + J.h / 2 - 9;
-    c.fillStyle = 'rgba(21,33,32,.86)'; rrect(c, J.x - 6, y - 24, J.w + 12, 60, 8); c.fill();
-    c.fillStyle = 'rgb(47,95,208)'; c.fillRect(J.x, y, J.w * f, 18); c.fillStyle = 'rgb(232,180,22)'; c.fillRect(J.x + J.w * f, y, J.w * (1 - f), 18);
-    c.strokeStyle = '#E8DFC9'; c.lineWidth = 1.5; c.strokeRect(J.x + 0.5, y + 0.5, J.w - 1, 17);
-    Lbl.put('pq-C', 'C ' + (n[0] || 0), J.x, y + 28, { size: 12, align: 'left' }); Lbl.put('pq-c', 'c ' + (n[1] || 0), J.x + J.w, y + 28, { size: 12, align: 'right' });
-    Lbl.put('pq-q', 'q = ' + Math.round((1 - f) * 100) / 100, J.x + J.w / 2, y - 12, { size: 12, mono: true });
-  },
   drawBand(c, w, h) {   // the nest and the specimen drawer: one column per generation, black below and pale above (the in-scene graph)
     const s = this.sim.s, v = this.v, y0 = h - 58;
     c.fillStyle = 'rgba(21,33,32,.86)'; c.fillRect(0, y0, w, 58); c.fillStyle = 'rgba(232,223,201,.25)'; c.fillRect(0, y0, w, 1);
@@ -1128,7 +1063,7 @@ const CH_SOOT_V2 = {
     c.globalAlpha = 1;
   },
 
-  /* L6: a tree in the chosen wood, release batches, the night, the light trap, tallies and the power meter */
+  /* L6: a tree in the chosen wood, release batches, the night, the light trap, and the tally card */
   draw6(c, w, h) {
     const s = this.sim.s, v = this.v, soot = clamp(v.soot, 0, 1), top = this.skyBottom();
     c.drawImage(this.ground(w, h, soot, (g, B, a) => this.tree6(g, w, h, B, a)), 0, 0, w, h);   // the far wood, the release tree and its branches: one cached layer
@@ -1156,25 +1091,24 @@ const CH_SOOT_V2 = {
         const k = (t - 1.8) / 1.15; Rig.draw(c, 'tit', {}, lerp(-30, w + 30, k), h * 0.34 + 40 * Det.sin(k * 6), { size: 46 }); Rig.draw(c, 'tit', { carry: true }, lerp(w + 30, -30, k), h * 0.62 + 30 * Det.sin(k * 5 + 1), { size: 42, flip: true });
       }
     }
-    for (const bt of s.batches) {   // a packed batch's outline is drawn broken and amber: it will be set aside
-      const p = this.px(bt.x, bt.y); c.strokeStyle = bt.crowd ? 'rgba(217,164,65,.95)' : 'rgba(232,223,201,.55)'; c.setLineDash(bt.crowd ? [2, 5] : [4, 4]); c.lineWidth = bt.crowd ? 2.5 : 1.5;
+    for (const bt of s.batches) {   // each released batch, outlined
+      const p = this.px(bt.x, bt.y); c.strokeStyle = 'rgba(232,223,201,.55)'; c.setLineDash([4, 4]); c.lineWidth = 1.5;
       c.beginPath(); c.ellipse(p[0], p[1], size * 1.8, size * 0.95, 0, 0, TAU); c.stroke(); c.setLineDash([]);
     }
     this.drawTrap(c, w, h);
     this.drawTally(c, w, h);
-    this.drawPower(c, w, h);
+    this.drawStock(c, w, h);
     if (s.phase === 'conclude' || s.phase === 'over') this.drawConclude(c, w, h);
     const wb = Lbl.put('wood', this.w('labels', s.wood6 === 'soot' ? 'sooty' : 'cleanw'), 10, top + 16, { size: 14, align: 'left' });
     Lbl.put('xn', this.w('labels', 'xn6'), (wb ? wb.x + wb.w : 110) + 6, top + 16, { size: 12, align: 'left', mono: true });
-    if (s.used > 0 || s.batches.some(b => b.crowd)) Lbl.put('debate', this.w('labels', 'debate'), 10, top + 86, { size: 12, align: 'left', ink: '#1B1612', bg: '#D9A441' });   // the Contested pill (D0 §3): no star depends on it
+    if (s.used > 0) Lbl.put('debate', this.w('labels', 'debate'), 10, top + 86, { size: 12, align: 'left', ink: '#1B1612', bg: '#D9A441' });   // the Contested pill (D0 §3): no star depends on it
     if (v.cursor && typeof Fx !== 'undefined' && Fx.lastInput === 'key') { const cu = v.cursor; c.strokeStyle = '#E8DFC9'; c.lineWidth = 2; c.beginPath(); c.arc(cu[0], cu[1], 16, 0, TAU); c.stroke(); }
   },
-  concludeLayout() {   // four idea cards (2 × 2, in the seed's order) and five confidence pips, in canvas px; card: {id, key, x, y, w, ht}
-    const W = Stage.w, H = Stage.h, top = this.skyBottom() + 108, gap = 10, cw = Math.min(260, (W - 3 * gap) / 2), ch = clamp((H - top - 150) / 2, 64, 96), x0 = (W - 2 * cw - gap) / 2;
+  concludeLayout() {   // four idea cards (2 × 2, in the seed's order), in canvas px; card: {id, key, x, y, w, ht}
+    const W = Stage.w, H = Stage.h, top = this.skyBottom() + 108, gap = 10, cw = Math.min(260, (W - 3 * gap) / 2), ch = clamp((H - top - 110) / 2, 64, 96), x0 = (W - 2 * cw - gap) / 2;
     const keys = { rev: 'hRev', black: 'hBlack', pale: 'hPale', none: 'hNone' }, order = this.sim.s.order6 || ['rev', 'black', 'pale', 'none'];
     const cards = order.map((id, i) => ({ id, key: keys[id], x: x0 + (i % 2) * (cw + gap), y: top + Math.floor(i / 2) * (ch + gap), w: cw, ht: ch }));
-    const py = top + 2 * ch + gap + 34, pw = Math.min(64, (W - 40) / 5), pips = [0.5, 0.6, 0.7, 0.8, 0.9].map((v, i) => ({ v, x: W / 2 + (i - 2) * pw, y: py, r: 20 }));
-    return { cards, pips };
+    return { cards };
   },
   drawConclude(c, w, h) {   // each idea drawn as what it predicts in each wood (▲ on the colour that survives better, = for neither); after Submit, each card fills to what your data say
     const s = this.sim.s, L = this.concludeLayout(), over = s.phase === 'over', P = over ? s.post : null;
@@ -1190,23 +1124,17 @@ const CH_SOOT_V2 = {
         const bx = k.x + 10 + i * (k.w - 20) / 2, by = k.y + 32, bw = (k.w - 30) / 2, bh = hh - 42;
         c.fillStyle = i === 0 ? '#2B2621' : '#B8B9A2'; rrect(c, bx, by, bw, bh, 6); c.fill();
         const sq = Math.min(14, bh * 0.36), ys = by + bh / 2 - sq / 2 + 4;
-        c.fillStyle = '#121010'; c.fillRect(bx + bw * 0.28 - sq / 2, ys, sq, sq); c.fillStyle = css(t2rgb(0.74, 0.84)); c.fillRect(bx + bw * 0.72 - sq / 2, ys, sq, sq);
-        c.strokeStyle = '#E8DFC9'; c.lineWidth = 1; c.strokeRect(bx + bw * 0.28 - sq / 2 + 0.5, ys + 0.5, sq - 1, sq - 1); c.strokeStyle = '#1B1612'; c.strokeRect(bx + bw * 0.72 - sq / 2 + 0.5, ys + 0.5, sq - 1, sq - 1);
+        this.mothIcon(c, true, bx + bw * 0.28, ys + sq / 2, sq); this.mothIcon(c, false, bx + bw * 0.72, ys + sq / 2, sq);   // real moths, not swatches (D6 decision 10)
         const ax = d > 0 ? bx + bw * 0.28 : d < 0 ? bx + bw * 0.72 : bx + bw / 2, ay = ys - 4;
         c.fillStyle = '#D9A441'; c.strokeStyle = '#1B1612';
         if (d) { c.beginPath(); c.moveTo(ax - 5, ay); c.lineTo(ax + 5, ay); c.lineTo(ax, ay - 8); c.closePath(); c.fill(); c.stroke(); }
         else { c.fillRect(ax - 5, ay - 7, 10, 2); c.fillRect(ax - 5, ay - 3, 10, 2); }
       });
-      if (P) {   // the evidence bar: how strongly your recaptures support this idea (hatched when the design had under 80% power)
+      if (P) {   // the evidence bar: how strongly your recaptures support this idea
         const f = clamp(P[k.id] || 0, 0, 1), bx = k.x + 10, by = k.y + hh - 9, bw = k.w - 20;
         c.fillStyle = 'rgba(10,14,13,.55)'; c.fillRect(bx, by, bw, 6); c.fillStyle = '#D9A441'; c.fillRect(bx, by, bw * f, 6);
-        if (s.powerAt < 0.8) { c.save(); c.beginPath(); c.rect(bx, by, bw * f, 6); c.clip(); c.strokeStyle = 'rgba(27,22,18,.7)'; c.lineWidth = 1; for (let q = -6; q < bw; q += 4) { c.beginPath(); c.moveTo(bx + q, by + 6); c.lineTo(bx + q + 6, by); c.stroke(); } c.restore(); }
         Lbl.put('p-' + k.id, this.w('labels', 'pct', { n: Math.round(f * 100) }), k.x + k.w - 10, k.y + 16, { size: 12, align: 'right', mono: true });
       }
-    }
-    for (const p of L.pips) {
-      const sel = s.conf === p.v; c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.fillStyle = sel ? '#E8DFC9' : 'rgba(28,42,40,.95)'; c.fill(); c.lineWidth = sel ? 3 : 1.2; c.strokeStyle = sel ? '#1B1612' : 'rgba(232,223,201,.6)'; c.stroke();
-      Lbl.put('c-' + p.v, this.w('labels', 'c' + Math.round(p.v * 100)), p.x, p.y, { size: 12, pill: false, ink: sel ? '#1B1612' : '#E8DFC9', mono: true, weight: 700 });
     }
   },
   tree6(g, w, h, B, soot) {   // the far wood dimmed by distance; a lit trunk with side branches (moths rest under branches in nature)
@@ -1223,6 +1151,10 @@ const CH_SOOT_V2 = {
       g.fillStyle = 'rgba(0,0,0,.28)'; g.beginPath(); g.ellipse(p[0], p[1] + 8, 26, 9, 0, 0, TAU); g.fill();   // the shade under the joint: a natural resting spot
     }
   },
+  mothIcon(c, black, x, y, sq) {   // a small carbonaria or typica moth for the read-outs (a square swatch only if the rig is missing)
+    if (typeof Rig !== 'undefined') { Rig.draw(c, 'moth', black ? { carb: true, tone: 0.06 } : { tone: 0.72, hue: SOOTK.HUE, mot: 0.68, morph: 'speck' }, x, y, { size: sq * 1.9, rot: 0, id: black ? 'ib' : 'ip' }); return; }
+    c.fillStyle = black ? '#121010' : css(t2rgb(0.74, 0.84)); c.fillRect(x - sq / 2, y - sq / 2, sq, sq);
+  },
   trapPos() { return [Stage.w * 0.5, Stage.h - 46]; },
   drawTrap(c, w, h) {   // a Robinson light trap at the foot of the tree
     const p = this.trapPos(), s = this.sim.s, glow = s.phase === 'night' || s.phase === 'tally';
@@ -1233,35 +1165,27 @@ const CH_SOOT_V2 = {
   },
   drawTally(c, w, h) {   // what the trap has counted in each wood (spaced batches), on a paper card: back of sent, by colour; counts up at the tally
     const s = this.sim.s, v = this.v, x0 = w - 128, y0 = this.skyBottom() + 6, sw = 12, S = v.shown || { data: s.data, aside: s.aside }, F0 = v.shownFrom || S, k = clamp(v.shownT, 0, 1);
-    const num = (wd, f) => f === 'nb' || f === 'np' ? s.data[wd][f] : Math.round(lerp(F0.data[wd][f], S.data[wd][f], k)), set = wd => S.aside[wd].nb + S.aside[wd].np;   // sent is known at release; back counts up at the tally
-    const hasAside = set('soot') + set('clean') > 0, H = hasAside ? 100 : 86;
+    const num = (wd, f) => f === 'nb' || f === 'np' ? s.data[wd][f] : Math.round(lerp(F0.data[wd][f], S.data[wd][f], k));   // sent is known at release; back counts up at the tally
+    const H = 86;
     c.fillStyle = 'rgba(232,223,201,.94)'; rrect(c, x0 - 6, y0, 128, H, 8); c.fill(); c.strokeStyle = 'rgba(27,22,18,.4)'; c.lineWidth = 1; c.stroke();
     Lbl.put('t-hb', this.w('labels', 'hBack') + '/' + this.w('labels', 'hSent'), x0 + 18, y0 + 9, { size: 12, align: 'left', pill: false, ink: '#1B1612', weight: 600 });   // column heads
     [['soot', 'sooty'], ['clean', 'cleanw']].forEach(([wd, lab], r) => {
       const y = y0 + 22 + r * 34, cur = s.wood6 === wd;
       Lbl.put('t-' + wd, this.w('labels', lab), x0 + 2, y, { size: 12, align: 'left', pill: false, ink: '#1B1612', weight: cur ? 800 : 600 });
-      c.fillStyle = '#1C1A18'; c.fillRect(x0 + 2, y + 11, sw, sw); c.fillStyle = css(t2rgb(0.72, 0.84)); c.fillRect(x0 + 60, y + 11, sw, sw); c.strokeStyle = '#1B1612'; c.strokeRect(x0 + 60.5, y + 11.5, sw - 1, sw - 1);
+      this.mothIcon(c, true, x0 + 2 + sw / 2, y + 11 + sw / 2, sw * 0.72); this.mothIcon(c, false, x0 + 60 + sw / 2, y + 11 + sw / 2, sw * 0.72);
       Lbl.put('tb-' + wd, this.w('labels', 'tally', { a: num(wd, 'sb'), b: num(wd, 'nb') }), x0 + 18, y + 17, { size: 12, align: 'left', pill: false, ink: '#1B1612', mono: true });
       Lbl.put('tp-' + wd, this.w('labels', 'tally', { a: num(wd, 'sp'), b: num(wd, 'np') }), x0 + 76, y + 17, { size: 12, align: 'left', pill: false, ink: '#1B1612', mono: true });
     });
-    if (hasAside) Lbl.put('t-aside', this.w('labels', 'aside', { n: set('soot') + set('clean') }), x0 + 2, y0 + 90, { size: 12, align: 'left', pill: false, ink: '#7A5A1A', weight: 600 });
   },
-  drawPower(c, w, h) {   // the Evidence power meter (D4 §4.2 look): hatched to 80%, a diamond for the power of your design so far
-    const pw = this.sim.power6(), x = 12, y = this.skyBottom() + 50, bw = Math.min(150, w * 0.36), bh = 12;
-    c.fillStyle = 'rgba(21,33,32,.86)'; rrect(c, x - 6, y - 22, bw + 12, 42, 8); c.fill();
-    c.save(); c.beginPath(); c.rect(x, y, bw * 0.8, bh); c.clip(); c.strokeStyle = 'rgba(232,223,201,.35)'; c.lineWidth = 1; for (let k = -bh; k < bw; k += 5) { c.beginPath(); c.moveTo(x + k, y + bh); c.lineTo(x + k + bh, y); c.stroke(); } c.restore();
-    c.strokeStyle = '#E8DFC9'; c.lineWidth = 1.2; c.strokeRect(x + 0.5, y + 0.5, bw - 1, bh - 1);
-    c.setLineDash([3, 2]); c.beginPath(); c.moveTo(x + bw * 0.8, y - 3); c.lineTo(x + bw * 0.8, y + bh + 3); c.stroke(); c.setLineDash([]);
-    const dx = x + bw * clamp(pw, 0, 1); c.fillStyle = '#1C2A28'; c.beginPath(); c.moveTo(dx, y - 4); c.lineTo(dx + 7, y + bh / 2); c.lineTo(dx, y + bh + 4); c.lineTo(dx - 7, y + bh / 2); c.closePath(); c.fill(); c.stroke();
-    Lbl.put('pw', this.w('labels', 'power', { n: Math.round(pw * 100) }), x, y - 11, { size: 12, align: 'left', pill: false, ink: '#E8DFC9' });
-    Lbl.put('stk', this.w('labels', 'stock', { n: this.sim.s.stock }), x + bw, y - 11, { size: 12, align: 'right', pill: false, ink: '#E8DFC9', mono: true });   // the bred stock left
+  drawStock(c, w, h) {   // the bred stock left (the power meter was cut, D6 decision 9: the tally card is the evidence)
+    Lbl.put('stk', this.w('labels', 'stock', { n: this.sim.s.stock }), 10, this.skyBottom() + 44, { size: 12, align: 'left', mono: true });
   },
 
   /* ---------- the live graph (notes() feeds the strip; never pauses) ---------- */
   notes() {
     const s = this.sim.s; if (!s) return { stats: [], charts: [] };
     if (s.level === 2) {   // the chart and the numbers learn a night's result at the tally, as the card does (no number before the change is seen)
-      const P = this.sim.power6(), ser = [], live = s.phase === 'night' || s.phase === 'nightgo', nights = live ? s.nights.slice(0, -1) : s.nights;
+      const ser = [], live = s.phase === 'night' || s.phase === 'nightgo', nights = live ? s.nights.slice(0, -1) : s.nights;
       const S = (this.v && this.v.shown) || { data: s.data, aside: s.aside }, D = S.data, A = S.aside;
       for (const [wd, lab, ink] of [['soot', 'sooty', 'ink'], ['clean', 'clean', 'mig']]) {
         const d = []; nights.forEach((n, i) => { if (n.wood === wd && n.sb + n.sp > 0) d.push([i + 1, n.sb / (n.sb + n.sp)]); });
@@ -1269,9 +1193,9 @@ const CH_SOOT_V2 = {
       }
       const trace = { type: 'trace', title: 'Black share of survivors', x: { lo: 1, hi: s.budget + 1, label: 'night', fmt: 'int' }, y: { lo: 0, hi: 1, label: 'black', fmt: 'pct' },
         series: ser, ghost: [{ d: [[1, 0.5], [s.budget + 1, 0.5]] }], frame: 'designed' };
-      const row = (lab, wd) => [lab, D[wd].sb + '/' + D[wd].nb + ' black, ' + D[wd].sp + '/' + D[wd].np + ' pale', 'Came back of sent, spaced batches only.' + (A[wd].nb ? ' Set aside (packed): ' + (A[wd].nb + A[wd].np) + ' moths.' : '')];
+      const row = (lab, wd) => [lab, D[wd].sb + '/' + D[wd].nb + ' black, ' + D[wd].sp + '/' + D[wd].np + ' pale', 'Came back of sent. Survival = back ÷ sent.'];
       const stats = [['Nights left', String(s.budget - s.used), 'Each night takes up to four batches of 5 black and 5 pale moths.'], ['Moths left', s.stock + ' batches', 'The bred stock for every night.'],
-        ['Power', Math.round(P * 100) + '%', 'Chance your design shows both differences, if they are real.'], row('Sooty wood', 'soot'), row('Clean wood', 'clean')];
+        row('Sooty wood', 'soot'), row('Clean wood', 'clean')];
       if (s.phase === 'over' && s.post) stats.push(['Your data', ['rev', 'black', 'pale', 'none'].map(k => this.w('labels', { rev: 'hRev', black: 'hBlack', pale: 'hPale', none: 'hNone' }[k]) + ' ' + Math.round(100 * s.post[k]) + '%').join(', '), 'How strongly your recaptures support each idea; the rest fits none of them.']);
       return { stats, charts: [trace] };
     }
@@ -1284,11 +1208,7 @@ const CH_SOOT_V2 = {
       series: [{ d: black, ink: 'ink', label: 'black' }, { d: cop, ink: 'A', label: 'C' }], ghost, frame: 'designed', marks: s.passed ? [s.passed] : s.crossGen ? [s.crossGen] : [] };
     const h = H[H.length - 1], pts = [];
     H.slice(-6).forEach(r => { pts.push({ f: r.G, kind: 'dawn' }); if (r.dusk) pts.push({ f: r.dusk.G, kind: 'dusk' }); });
-    let side = { type: 'tri', title: 'Genotypes', variant: 'hw', corners: ['CC', 'Cc', 'cc'], pts, trail: H.map(r => r.G), frame: 'designed' };
-    // t5: the pattern triangle is blank while the ask is open (the player recalls the Lichen Wood mix); the Lichen Wood point appears with the reveal
-    // L5 generation 1 shows the wood's pale patterns before the soot; at t5 (generation 2) the triangle is blank, and the point returns with the reveal
-    const t5 = s.level === 1 && (s.gen === 1 || (ask && ask.id === 't5') || (s.askAt && s.askAt.t5 === s.gen && s.pred.hasOwnProperty('t5')));
-    if (t5) side = { type: 'tri', title: 'Pale patterns', variant: 'simplex', corners: ['banded', 'mottled', 'speckled'], pts: ask && ask.id === 't5' ? [] : [{ f: s.morph0 || sootMix(s.wood), kind: 'dawn', label: s.wood.saved ? 'Lichen Wood' : 'before soot' }], frame: 'designed' };
+    const side = { type: 'tri', title: 'Genotypes', variant: 'hw', corners: ['CC', 'Cc', 'cc'], pts, trail: H.map(r => r.G), frame: 'designed' };
     const two = s.dom === 'rec', solo = this._solo && typeof Strip !== 'undefined' && Strip.isOpen;
     return {
       stats: [['Generation', s.gen + ' of up to ' + s.gens, 'Each morning is one generation.'], ['Black moths', Math.round(h.B * 100) + '%', two ? 'At dawn. Two C copies make a moth black.' : 'At dawn. One C copy makes a moth black.'],
@@ -1309,8 +1229,12 @@ const CH_SOOT_V2 = {
     const cut = d.findIndex(q => s.level === 0 ? q[1] >= 0.5 : q[1] < 0.5); if (cut >= 0) d.length = Math.min(d.length, cut + 2);   // the line ends just past the crossing
     this._proj = { id, lv: s.level, n: s.morn.length, d }; return d;
   },
-  mirror() {   // L5, after b1: L4's rise of a dominant colour, flipped onto this graph. Same start distance from 0 or 1, same bird (designed rule, 12 meals)
+  mirror() {   // L5, after b1: L4's rise of a dominant colour, flipped onto this graph (the line is never drawn before the call)
     const s = this.sim.s; if (s.level !== 1 || s.exp.b1 == null || s.thawed) return null;
+    return this.mirrorData();
+  },
+  mirrorData() {   // L4's rise from the same start distance, same bird (designed rule, 12 meals), flipped: the ask names its span
+    const s = this.sim.s; if (s.level !== 1 || !s.hist || !s.hist.length) return null;
     if (this._mir && this._mir.lv === s.level) return this._mir.d;
     const h0 = s.hist[0], p0 = 1 - Math.sqrt(clamp(h0.B, 0, 1)), tp = s.wood.tone[0];
     const up = sootProject(p0, 14, () => 1, x => sootRho([], 'soot', x, tp), SOOTK.QUOTA, true, 0), d = up.map((b, i) => [1 + i, 1 - b]);   // no migrant either way: a pure mirror
@@ -1327,5 +1251,5 @@ if (!Url.v1) {
   BRIDGE.soot = 'You were the jay in the Lichen Wood. Now soot blackens the bark, and one dominant allele sets the pace.';
   MODEL.soot = 'History compressed: about 4 years a generation in both levels. Carbonaria is one dominant allele that arose once. One pale migrant joins each generation; a black one only if carbonaria is lost early. You eat about 40% of each generation, far more than real birds.';
   RECALL.soot = { q: 'Black moths are 96% of a wood, and pale is now favoured. Why does pale return slowly at first?', opts: [['hid', 'Most pale copies hide in black moths'], ['mut', 'Pale needs new mutations'], ['dom', 'Pale is dominant']], ans: 'hid', why: 'Pale shows only with two typica copies. When pale is rare, most typica copies sit unseen in black Cc moths, so selection reaches few of them.' };
-  delete TRANSFER.soot;   // rebuilt as L4's opening gesture: "When will black pass half?" on the live graph (D2 §8)
+  delete TRANSFER.soot;   // rebuilt as Clean air's one prediction: "When will black fall below half?" on the live graph (D2 §8, D6 decision 9)
 }

@@ -5,6 +5,8 @@
    the tangent from any founders (and stopping at the best founder without mutation); the winter-night dynamic programme; nothing
    in the state foretells the next prey; determinism, replay and snapshots; the expert earning every star offered; no bot's union
    across the unit reaching three stars; the first action that cannot fail; untimed paths; What if? runs earning nothing.
+   D6 decision 9: four levels (level numbers 0–3 run model kinds 0, 1, 2, 4; the evening flock is cut) and one prediction
+   (the far orchard's best leaving time); the HUD's key lines are checked against the model.
    FG_FAST=1 runs fewer seeds. */
 'use strict';
 module.exports = function (G, t) {
@@ -81,18 +83,19 @@ module.exports = function (G, t) {
     t.ok(ok, 'hawk round: realised mean food matches the exact expectation (' + notes.join('; ') + ')');
     const pst = sim.riskStar(); t.ok(pst > 0.15 && pst < 0.25, `the two rules tie at a danger of ${(100 * pst).toFixed(1)}% per field trip`); }
 
-  /* 6. the flock finds the tangent from any founders; without mutation it stops at the best founder */
-  { const t4 = sim.tStar(4); let near = 0, tot = 0, bestOk = 0, totB = 0;
-    for (const you of [1.5, 3, 4.5, 7, 9, 12]) for (let seed = 1; seed <= (FAST ? 6 : 20); seed++) {
-      for (const mu of [sim.P().mu.v, 0]) {
-        G.reset(3, seed); const s = sim.s; s.rec[0].stays = [you, you, you, you]; sim.flockStart(s, []); s.mu = mu; while (s.gen < 30) sim.flockGen(s);
-        const m = s.fh[s.fh.length - 1].m;
-        if (mu > 0) { tot++; if (Math.abs(m - t4) <= 0.5) near++; }
-        else { const fs = [you, 2, 10].map(x => sim.stayOf(sim.binOf(x))).sort((a, b) => sim.rateAt(b, 4) - sim.rateAt(a, 4)); if (sim.rateAt(fs[0], 4) < 1.02 * sim.rateAt(fs[1], 4)) continue; totB++; if (Math.abs(m - fs[0]) < 0.3) bestOk++; }   // a clear best founder (≥ 2% ahead)
-      }
-    }
-    t.ok(near / tot >= 0.9, `with mutation the flock's mean leaving time is within 0.5 s of the tangent (${t4.toFixed(2)} s) by year 30 in ${near} of ${tot} runs`);
-    t.ok(bestOk / totB >= 0.9, `without mutation the flock settles at the best founder in ${bestOk} of ${totB} runs`); }
+  /* 6. D6 decision 9: only the far orchard asks (once); the HUD's key lines agree with the model */
+  { let bad = 0, asked = 0; const n = FAST ? 6 : 16;
+    for (let seed = 1; seed <= n; seed++) for (let lv = 0; lv < 4; lv++) { const r = G.run(lv, { seed, bot: 'threshold' }); const ids = r.s.asks; if (lv === 1) { if (ids.length === 1 && ids[0] === 'b1') asked++; else bad++; } else if (ids.length) bad++; }
+    t.ok(bad === 0 && asked === n, `D6: only the far orchard asks, once (${asked} of ${n} seeds; ${bad} stray asks)`);
+    G.reset(1, 2); const ask = (() => { const s = sim.s; let k = 0; while (!s.ask && k < 40000) { const A = sim.actions(); const a = A.length ? sim.bots.threshold(s, A) : null; if (a) sim.act(a); sim.step(sim.dt); k++; } return s.ask; })();
+    t.ok(ask && Math.abs((ask.lo + ask.hi) / 2 - sim.tStar(10)) > ask.tol && Math.abs(ask.start - sim.tStar(10)) > ask.tol, `the far-orchard ask: mid-axis ${(ask.lo + ask.hi) / 2} s and the start ${ask.start} s both miss the tangent ${sim.tStar(10).toFixed(2)} s ± ${ask.tol}`);
+    const H = ch.content.hud; ch.level = 0; G.reset(0, 1); const s0 = sim.s;
+    const lines = [0, 1, 2].map(i => { s0.i = i; return ch.keyLine(s0); }), want = sim.cfg(0).rd.map(r => 60 * r.b < 15 ? H.takeSmall : H.passSmall);
+    t.ok(lines.every((l, i) => l.indexOf(want[i]) >= 0) && 60 * sim.dietStar() === 15, 'hedge key line: "take them" only below 15 big ones a minute (' + lines.map(l => l.split(': ').pop()).join(' / ') + ')');
+    ch.level = 2; G.reset(2, 1); const s2 = sim.s; const hl = [0, 1].map(i => { s2.i = i; return ch.keyLine(s2); });
+    t.ok(hl[0].indexOf(H.fieldPays) >= 0 && hl[1].indexOf(H.hedgePays) >= 0, 'hawk key line: take field food at 1% danger, stay in the hedge at 50%');
+    ch.level = 3; G.reset(3, 1); const s3 = sim.s; let okN = true; for (let i = 0; i < 4; i++) { sim.newEve(s3, []); s3.i = i; const [e, need] = sim.cfg(4).rd[i]; s3.e = e; s3.need = need; s3.v = 10; const l = ch.keyLine(s3); if (l.indexOf(e + 20 >= need ? H.playSafe : H.gamble) < 0) okN = false; }
+    t.ok(okN, 'night key line: "play steady" exactly when steady feeding reaches the line'); }
 
   /* 7. the winter night: the dynamic programme, the energy-budget rule, and the expectation the ask reads */
   { t.near(sim.V(2, 10, 24), 0.7539, 0.0001, `chance of dawn from 2 with the line at 24: ${sim.V(2, 10, 24).toFixed(4)}`);
@@ -100,14 +103,14 @@ module.exports = function (G, t) {
     t.ok(sim.V(4, 10, 22) === 1 && sim.V(6, 10, 24) === 1, 'safe nights: steady feeding reaches the line for sure');
     let rule = true; for (let need = 18; need <= 30; need++) for (let e = 0; e <= 30; e++) for (let v = 1; v <= 10; v++) { const q0 = sim.Q(0, e, v, need), q1 = sim.Q(1, e, v, need); if (e + 2 * v >= need && q1 > q0 + 1e-12) rule = false; }
     t.ok(rule, 'when steady feeding is enough, the gamble never beats it (energy-budget rule, positive budget)');
-    const sv = []; for (let seed = 1; seed <= (FAST ? 40 : 200); seed++) sv.push(G.run(4, { seed, bot: 'expert' }).s.nights.filter(x => x.ok).length);
+    const sv = []; for (let seed = 1; seed <= (FAST ? 40 : 200); seed++) sv.push(G.run(3, { seed, bot: 'expert' }).s.nights.filter(x => x.ok).length);
     const ex = sim.cfg(4).rd.reduce((a, [e, need]) => a + sim.V(e, 10, need), 0);
     t.near(mean(sv), ex, 3 * se(sv) + 0.05, `best play survives ${mean(sv).toFixed(2)} of 4 nights; the programme expects ${ex.toFixed(2)}`); }
 
   /* 8. determinism, replay and snapshots */
   { const a = G.run(1, { seed: 9, bot: 'expert' }), b = G.run(1, { seed: 9, bot: 'expert' });
     t.eq(a.s.deps, b.s.deps, 'same seed and actions give the same orchard run');
-    for (const lv of [0, 2, 3, 4]) {
+    for (const lv of [0, 2, 3]) {
       const r1 = G.run(lv, { seed: 11, bot: 'threshold' }), log = r1.s.log.slice(), want = JSON.stringify([r1.s.food, r1.s.eat, r1.s.rec, r1.s.fh || null, r1.s.nights || null]);
       G.reset(lv, 11); let i = 0, tick = 0;
       while (!sim.result() && tick < 60000) { while (i < log.length && log[i][0] === tick) sim.act(log[i++][1]); sim.step(sim.dt); tick++; }
@@ -116,14 +119,14 @@ module.exports = function (G, t) {
     const snap = sim.snapshot(); sim.restore(snap); t.eq(sim.snapshot(), snap, 'snapshot round trip is exact'); t.ok(snap.length < 60000, `end snapshot ${snap.length} characters`); }
 
   /* 9. the expert earns every star its level offers; no level offers all three */
-  { const want = [3, 3, 3, 5, 5], got = [0, 0, 0, 0, 0], n = FAST ? 8 : 20;
-    let three = 0; for (let lv = 0; lv < 5; lv++) for (let seed = 1; seed <= n; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; if (r.result && r.result.mask === 7) three++; }
+  { const want = [1, 3, 1, 5], got = [0, 0, 0, 0], n = FAST ? 8 : 20;
+    let three = 0; for (let lv = 0; lv < 4; lv++) for (let seed = 1; seed <= n; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; if (r.result && r.result.mask === 7) three++; }
     t.ok(three === 0, 'no level offers all three stars (the expert never earns 7 in one level)');
     got.forEach((g, lv) => t.ok(g / n >= 0.8, `L${lv + 1}: the expert earns every offered star (${want[lv]}) on ${g} of ${n} seeds`)); }
 
   /* 10. no bot's union across the unit reaches three stars (lessons rule 5), via ch.unitStars */
   { const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'lazy', 'bestNoThink'], worst = {};
-    for (const b of bots) { worst[b] = 0; for (let seed = 1; seed <= (FAST ? 6 : 16); seed++) { const lv = []; for (let l = 0; l < 5; l++) { const r = G.run(l, { seed, bot: b }); lv.push(r.result ? r.result.mask & 7 : 0); if (r.result && (r.result.mask & 7) === 7) worst[b] = 9; } const u = ch.unitStars(lv); worst[b] = Math.max(worst[b], (u & 1) + ((u >> 1) & 1) + ((u >> 2) & 1)); } }
+    for (const b of bots) { worst[b] = 0; for (let seed = 1; seed <= (FAST ? 6 : 16); seed++) { const lv = []; for (let l = 0; l < 4; l++) { const r = G.run(l, { seed, bot: b }); lv.push(r.result ? r.result.mask & 7 : 0); if (r.result && (r.result.mask & 7) === 7) worst[b] = 9; } const u = ch.unitStars(lv); worst[b] = Math.max(worst[b], (u & 1) + ((u >> 1) & 1) + ((u >> 2) & 1)); } }
     t.ok(Object.values(worst).every(v => v < 3), 'no bot reaches three unit stars: ' + bots.map(b => b + ' ' + worst[b]).join(', ')); }
 
   /* 11. the first action cannot fail; untimed paths */
@@ -134,17 +137,16 @@ module.exports = function (G, t) {
     const u = G.reset(0, 6); sim.act({ k: 'unt', on: true }); let k = 0; while (k < 3000 && !(u.prey && !u.prey.wait)) { if (u.prey && u.prey.wait) sim.act({ k: 'take' }); sim.step(sim.dt); k++; }
     const id = u.prey && u.prey.id; for (let j = 0; j < 300; j++) sim.step(sim.dt); t.ok(u.prey && u.prey.id === id, 'untimed: a caterpillar waits for take or pass');
     const o = G.reset(1, 6); sim.act({ k: 'unt', on: true }); const tt0 = o.tt; for (let j = 0; j < 300; j++) sim.step(sim.dt); const still = o.tt === tt0; sim.act({ k: 'stay' }); t.ok(still && o.tt === tt0 + 15, 'untimed orchard: time in the tree moves only by Stay, half a second at a time');
-    const un = G.run(4, { seed: 2, bot: 'expert', untimed: true }); t.ok(!!un.result, 'the boss plays to the end untimed'); }
+    const un = G.run(3, { seed: 2, bot: 'expert', untimed: true }); t.ok(!!un.result, 'the boss plays to the end untimed'); }
 
   /* 12. What if? runs earn no stars and report their own numbers */
   { let ok = true; const notes = [];
-    for (const [lv, levers] of [[0, ['takeall', 'bigonly']], [1, ['quick', 'slow']], [2, ['bold', 'nohawk']], [3, ['nomut', 'far']], [4, ['steady', 'gamble']]]) for (const lever of levers) for (let seed = 1; seed <= (FAST ? 2 : 5); seed++) {
+    for (const [lv, levers] of [[0, ['takeall', 'bigonly']], [1, ['quick', 'slow']], [2, ['bold', 'nohawk']], [3, ['steady', 'gamble']]]) for (const lever of levers) for (let seed = 1; seed <= (FAST ? 2 : 5); seed++) {
       const base = G.run(lv, { seed, bot: 'expert' }); const snap = sim.snapshot();
       G.reset(lv, seed, { thaw: { gen: 1, snap, lever } }); let j = 0; while (!sim.result() && j < 40000) { sim.step(sim.dt); j++; }
       const r = sim.result(), s = sim.s; if (!r || r.mask !== 0) { ok = false; notes.push(lv + lever + seed + ' mask'); continue; }
       if (lv === 0 && !(s.rec[2] && s.rec[2].sun > 0)) { ok = false; notes.push('L1 no swarm rerun'); }
-      if (lv === 3 && lever === 'far' && Math.abs(s.fh[s.fh.length - 1].m - sim.tStar(20)) > 0.8) { ok = false; notes.push('far flock ' + s.fh[s.fh.length - 1].m); }
-      if (lv === 4 && lever === 'steady' && s.wfix[1] !== 0) { ok = false; notes.push('steady short night'); }
+      if (lv === 3 && lever === 'steady' && s.wfix[1] !== 0) { ok = false; notes.push('steady short night'); }
       void base;
     }
     t.ok(ok, 'every What if? run ends, earns no stars and matches its lever' + (notes.length ? ' (' + notes.join(', ') + ')' : '')); }

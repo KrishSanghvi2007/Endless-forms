@@ -7,15 +7,16 @@
        and the end card names the real cause of a loss (eaten or chance);
      3 dawn black share = 1 − (1 − p)² within sampling error, and the copy share sits below the black share;
      4 transmission: tomorrow's p = survivors' p × (1 − 1/N) within sampling error (the dominant-allele recursion, L4 and L5);
-     5 the expectations the stars use (a3, t4, a2) match Monte Carlo breeding from the same survivors;
+     5 tomorrow's newborns are in HW proportions from the survivors' copies (Monte Carlo breeding), and black needing two
+       copies would be far rarer (the dusk line's claim);
      6 dominance over a symmetric span: from 6.6% of the favoured colour to half, the rise (dominant) is faster than the
        fall on bark clean at once (recessive), and the slow-cleaning bark adds more; L4 and L5 are finishable;
      7 the L5 MODEL card's path and the Why? pace numbers are the model's own deterministic projections;
-     8 L6: stock binds, power needs both woods, packed batches are set aside, the posterior comes from the player's own
-       recaptures (strong data → camouflage; one wood or thin data → no confident call), and the verdict is Brier-scored;
+     8 L6: stock binds, power needs both woods, every batch counts (no packing rule since D6 decision 9), the posterior
+       comes from the player's own recaptures (strong data → camouflage; one wood or thin data → no confident call);
      9 What if? levers: pale dominant keeps the frozen black share; instant clean bark cleans the bark;
-    10 a player who marks the expectation earns Predict; the stars never read the realised outcome of a prediction;
-       the fingertip floor widens a band only within its cap and replays from the log. */
+    10 D6 decision 9: the chapter's one prediction is Clean air's "when will black fall below half?"; a player who marks
+       the expectation earns Predict; the stars never read the realised outcome of a prediction. */
 'use strict';
 module.exports = function (G, t) {
   const TB = G.TB, ch = G.ch, sim = G.sim, seeds = n => Array.from({ length: n }, (_, i) => i + 1);
@@ -88,12 +89,12 @@ module.exports = function (G, t) {
   // 5. the expectations the stars use match breeding from the same survivors
   {
     G.reset(0, 8); let n = 0; while (!(sim.s.phase === 'dusk' && sim.s.gen === 5) && n++ < 20000) { const A = sim.actions(), b = ch.sim.bots.greedy(sim.s, A); if (b) sim.act(b); sim.step(sim.dt); }
-    const ask3 = { id: 'a3', kind: 'y' }, askT = { id: 't4', kind: 'y' }, askG = { id: 'a2', kind: 'tri' }, e3 = sim.expect(ask3), eT = sim.expect(askT), eG = sim.expect(askG), sn = sim.snapshot();
+    const p = sim.s.hist[sim.s.hist.length - 1].dusk.p, f = 1 - 1 / N, q = 1 - p, eG = [f * p * p, f * 2 * p * q, f * q * q + (1 - f)], e3 = 1 - eG[2], eT = eG[0], sn = sim.snapshot();
     const B = [], CC = [], G3 = [[], [], []];
     for (let k = 0; k < 400; k++) { sim.restore(sn); TB.seed(1000 + k); sim.breed([]); const st = sim.stats(sim.s.pop); B.push(st.B); CC.push(st.G[0]); st.G.forEach((x, i) => G3[i].push(x)); }
-    t.near(mean(B), e3, 0.008, `a3 expectation (black tomorrow ${e3.toFixed(3)}) = mean of 400 breedings (${mean(B).toFixed(3)})`);
-    t.near(mean(CC), eT, 0.008, `t4 expectation (two copies needed: CC share ${eT.toFixed(3)}) = mean CC share (${mean(CC).toFixed(3)})`);
-    t.ok(eG.every((x, i) => Math.abs(x - mean(G3[i])) < 0.01), 'a2 expectation (HW newborns from the survivors) = mean genotype shares of 400 breedings');
+    t.near(mean(B), e3, 0.008, `black tomorrow from the survivors' copies, 1 − q² (${e3.toFixed(3)}) = mean of 400 breedings (${mean(B).toFixed(3)})`);
+    t.near(mean(CC), eT, 0.008, `if two copies were needed: CC share ${eT.toFixed(3)} = mean CC share (${mean(CC).toFixed(3)})`);
+    t.ok(eG.every((x, i) => Math.abs(x - mean(G3[i])) < 0.01), 'HW newborns from the survivors = mean genotype shares of 400 breedings');
     t.ok(eT < e3 - 0.15, `if black needed two copies it would be far rarer tomorrow (${eT.toFixed(2)} vs ${e3.toFixed(2)})`);
   }
 
@@ -127,7 +128,7 @@ module.exports = function (G, t) {
     t.ok(pn[0] === iUp && pn[1] === iClean && pn[2] === iLag - iClean, `the Why? pace text (about ${pn.join(', ')}) matches the projections`);
   }
 
-  // 8. L6: stock, power, packed batches, posterior from the player's own data, Brier-scored verdict
+  // 8. L6: stock, power, every batch counted, posterior from the player's own data, the verdict
   {
     G.reset(2, 4); const P0 = sim.power6();
     t.eq(P0, 0, 'no moths released → no power');
@@ -147,13 +148,14 @@ module.exports = function (G, t) {
     t.ok(split >= 99, `one wood alone cannot tell camouflage from "black is tougher" (posteriors equal in ${split} of 100)`);
     t.ok(thin >= 60, `one batch per wood is too thin for a confident call (posterior < 0.8 in ${thin} of 100 seeds)`);
     G.reset(2, 7); sim.act({ k: 'release', x: 150, y: 222 }); sim.act({ k: 'release', x: 160, y: 230 }); const b = sim.s.batches;
-    t.ok(b.length === 2 && b[0].crowd && b[1].crowd && sim.risk6('soot', false, b[0]) - sim.risk6('soot', true, b[0]) > 0.3 + 0.05, 'a packed batch draws birds and widens the gap (designed)');
-    sim.act({ k: 'night' }); if (sim.s.ask) sim.act({ k: 'predict', id: sim.s.ask.id, v: 0.6 });
+    t.ok(b.length === 2 && sim.risk6('soot', false) - sim.risk6('soot', true) > 0.29 && sim.risk6('clean', true) - sim.risk6('clean', false) > 0.29, 'birds take more of the colour that stands out on each bark (designed gap ×3)');
+    sim.act({ k: 'night' }); t.ok(!sim.s.ask && sim.s.phase === 'night', 'the night runs at once: no prediction before it (D6 decision 9)');
     for (let i = 0; i < 400 && sim.s.phase !== 'place'; i++) sim.step(sim.dt);
-    t.ok(sim.s.data.soot.nb === 0 && sim.s.aside.soot.nb === 10, 'packed batches are counted but set aside from the evidence');
+    t.ok(sim.s.data.soot.nb === 10 && sim.s.aside.soot.nb === 0, 'every released batch is counted as evidence (the packing rule was cut)');
     const strong = { rev: 0.99, black: 0, pale: 0, none: 0 }, weak = { rev: 0.6, black: 0.1, pale: 0.1, none: 0.1 };
-    const st = (hyp, conf, post) => ch.stars.transfer({ hyp, conf, post, brier: sim.brier6(hyp, conf, post) }, 2);
-    t.ok(st('rev', 0.9, strong) && !st('rev', 0.5, strong) && !st('rev', 0.9, weak) && !st('rev', 0.6, weak) && !st('black', 0.9, strong), 'the verdict is Brier-scored against the posterior: strong data and a matching confidence win; thin data or a mismatched confidence do not');
+    const st = (hyp, post) => ch.stars.transfer({ hyp, post }, 2);
+    t.ok(st('rev', strong) && !st('rev', weak) && !st('black', strong), 'the verdict: camouflage with strong evidence wins; thin data or the wrong idea does not');
+    G.reset(2, 7); sim.act({ k: 'conclude' }); sim.act({ k: 'submit' }); t.eq(sim.s.phase, 'conclude', 'Submit needs an idea first'); sim.act({ k: 'hyp', h: 'rev' }); sim.act({ k: 'submit' }); t.eq(sim.s.phase, 'over', 'an idea and Submit end the level (no confidence pips)');
     const gr = G.run(2, { seed: 3, bot: 'greedy' }); t.ok(gr.result && gr.result.outcome.post != null && gr.s.post && Math.abs(gr.s.post.rev - gr.result.outcome.post) < 1e-12, 'the posterior shown at the verdict is computed from the run’s own recaptures');
   }
 
@@ -172,18 +174,17 @@ module.exports = function (G, t) {
 
   // 10. stars against the expectation; the fingertip floor
   {
-    let pred = 0;
+    let pred = 0, asks = [0, 0, 0], mirror = 0;
+    const smart = (s, acts) => { if (s.ask) { const e = sim.expect(s.ask); return { k: 'predict', id: s.ask.id, v: s.ask.kind === 'x' ? Math.round(e) : e }; } return ch.sim.bots.greedy(s, acts); };
     for (const sd of seeds(20)) {
-      const smart = (s, acts) => { if (s.ask) { const e = sim.expect(s.ask); return { k: 'predict', id: s.ask.id, v: Array.isArray(e) ? e : s.ask.kind === 'x' ? Math.round(e) : e }; } return ch.sim.bots.greedy(s, acts); };
-      const r = G.run(0, { seed: sd, policy: smart }); if (r.result && (r.result.mask & 2)) pred++;
+      for (const lv of [0, 2]) asks[lv] += G.run(lv, { seed: sd, policy: smart }).s.asks.length;
+      const r = G.run(1, { seed: sd, policy: smart }); asks[1] += r.s.asks.length; if (r.result && (r.result.mask & 2)) pred++;
+      const m = G.run(1, { seed: sd, policy: (s, acts) => s.ask ? { k: 'predict', id: s.ask.id, v: Math.min(s.ask.hi, 1 + 5) } : ch.sim.bots.greedy(s, acts) }); if (m.result && (m.result.mask & 2)) mirror++;
     }
-    t.eq(pred, 20, 'a player who marks the expectation earns the Predict star in L4 (20 of 20 seeds)');
+    t.eq(asks, [0, 20, 0], 'one prediction in the chapter: Clean air asks once (b1); the Black Country and the evidence ask nothing');
+    t.eq(pred, 20, 'a player who marks the expectation earns the Predict star in Clean air (20 of 20 seeds)');
+    t.ok(mirror <= 6, `the naive mirror ("pale returns as fast as black rose") mostly misses: ${mirror} of 20 hit`);
     const src = String(ch.stars.predict) + String(ch.stars.transfer);
     t.ok(!/hist\[|\.B\b|\.p\b/.test(src), 'Predict and Transfer read hit flags and the evidence, never the realised trajectory');
-    const atA3 = () => { G.reset(0, 8); let n = 0; while (!(sim.s.ask && sim.s.ask.id === 'a3') && n++ < 20000) { const A = sim.actions(), b = sim.s.ask ? { k: 'predict', id: sim.s.ask.id, v: A[0].v } : ch.sim.bots.greedy(sim.s, A); if (b) sim.act(b); sim.step(sim.dt); } return sim.expect(sim.s.ask); };
-    let e = atA3(); sim.act({ k: 'predict', id: 'a3', v: e + 0.085 }); const miss = !sim.s.hit.a3;
-    e = atA3(); sim.act({ k: 'tolfloor', id: 'a3', v: 0.09 }); sim.act({ k: 'predict', id: 'a3', v: e + 0.085 }); const hit = sim.s.hit.a3;
-    e = atA3(); sim.act({ k: 'tolfloor', id: 'a3', v: 0.5 }); const capped = Math.abs(sim.s.ask.tolEff - 0.06 * K.TOLCAP) < 1e-9;
-    t.ok(miss && hit && capped, 'a 13 px fingertip floor widens a thin band (logged, so a replay scores the same), never past 1.6 × the science band');
   }
 };

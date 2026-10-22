@@ -2,12 +2,10 @@
    Run: node tests/oracle.js BUILD.html raffle          (RF_FAST=1 for a quicker pass)
    D5's acceptance lines:
      A. a greedy allocation (each unit to the female where it buys most) is within 1% of the Lagrange optimum;
-     B. the L2 benchmark is an expectation over the hidden queue: the planner sees three cards and takes each hidden female at
-        the queue's distribution; it is checked against the omniscient plan and against the queue it was scored on.
-   Plus: the fair-raffle maths (s/(s + R), the marginal gain, the legacy L1 plan of R7 A19); later-male risk raises a virgin's
-   best pour (Parker 1990); the dung fly curve (80% at 36 min, Parker 1970; best time 41.4 min with 156.5 min of search and
-   guarding, Parker and Stuart 1976) and the marginal value theorem; her storage (R acts like z·R ÷ y); the egg draws and the
-   later males match the expectations the stars read; determinism and snapshot replay; an expert earns every star the unit
+   (D6 decision 9, 22 Oct 2026: the old L2 "Who comes next?" and its hidden-queue benchmark are cut; three levels remain.)
+   Plus: the fair-raffle maths (s/(s + R), the marginal gain, the legacy L1 plan of R7 A19); the dung fly curve (80% at 36 min, Parker 1970; best time 41.4 min with 156.5 min of search and
+   guarding, Parker and Stuart 1976) and the marginal value theorem; her storage (R acts like z·R ÷ y); the egg draws match
+   the expectations the stars read; determinism and snapshot replay; an expert earns every star the unit
    offers; no level offers three stars and no bot's union across the unit reaches three; fixed strategies miss Discover;
    every Interesting and What if? text matches its own run. */
 'use strict';
@@ -19,9 +17,6 @@ module.exports = function (G, t) {
   const lag = (Rs, B) => { const f = l => Rs.map(R => R === 0 ? 1 : Math.max(1, Math.sqrt(R / l) - R)); let lo = 1e-9, hi = 10; for (let k = 0; k < 200; k++) { const m = Math.sqrt(lo * hi), tt = f(m).reduce((a, b) => a + b, 0); if (tt > B) lo = m; else hi = m; } return f(hi); };
   const greedyAlloc = (fs, B) => { const s = fs.map(() => 1); let left = B - fs.length; while (left > 0) { let bi = 0, bg = -1; fs.forEach((F, i) => { const g = E * (share(F, s[i] + 0.1) - share(F, s[i])); if (g > bg) { bg = g; bi = i; } }); s[bi] += 0.1; left -= 0.1; } return s; };
   const run = (lv, seed, bot, extra) => G.run(lv, Object.assign({ seed, bot }, extra || {}));
-  const margL2 = (F, x) => { const A = x + F.R, Bb = A + 20; return E * ((1 - F.q) * F.R / (A * A) + F.q * (F.R + 20) / (Bb * Bb)); };
-  const atL2 = (F, l) => { if (margL2(F, 1) <= l) return 1; if (margL2(F, 100) >= l) return 100; let a = 1, b = 100; for (let k = 0; k < 50; k++) { const m = (a + b) / 2; if (margL2(F, m) > l) a = m; else b = m; } return (a + b) / 2; };
-  const omniL2 = fs => { let lo = 1e-9, hi = 1e3; for (let k = 0; k < 90; k++) { const m = Math.sqrt(lo * hi); if (fs.reduce((x, F) => x + atL2(F, m), 0) > 100) lo = m; else hi = m; } return fs.map(F => atL2(F, hi)); };
   const stars3 = m => ((m & 1) ? 1 : 0) + ((m & 2) ? 1 : 0) + ((m & 4) ? 1 : 0);
 
   /* ---------- the fair raffle (L1) ---------- */
@@ -37,7 +32,7 @@ module.exports = function (G, t) {
     const fs = Rs.map(R => ({ R })), g = eggs(fs, greedyAlloc(fs, 100)), l = eggs(fs, lag(Rs, 100));
     t.ok(Math.abs(g - l) / l <= 0.01, `A. greedy allocation ${g.toFixed(2)} eggs is within 1% of the Lagrange optimum ${l.toFixed(2)} (rivals ${Rs.join(', ')})`);
   }
-  { const fs = [[20, 0.05, 1], [60, 1, 0.05], [40, 1, 1], [20, 1, 1], [60, 0.5, 1]].map(a => ({ R: a[0], y: a[1], z: a[2] })), S = ch.sim; S.reset(3, {}); S.s.fem = fs.map(F => Object.assign({ s: 0, eggs: -1 }, F));
+  { const fs = [[20, 0.05, 1], [60, 1, 0.05], [40, 1, 1], [20, 1, 1], [60, 0.5, 1]].map(a => ({ R: a[0], y: a[1], z: a[2] })), S = ch.sim; S.reset(2, {}); S.s.fem = fs.map(F => Object.assign({ s: 0, eggs: -1 }, F));
     const g = eggs(fs, greedyAlloc(fs, 100)), l = S.bestEggs(S.s); t.ok(Math.abs(g - l) / l <= 0.01, `A. her drum: greedy ${g.toFixed(2)} within 1% of the plan ${l.toFixed(2)}`);
     const eff = lag(fs.map(F => F.z * F.R / F.y), 100); t.ok(Math.abs(eggs(fs, eff) - l) < 0.05, 'her storage: the plan equals the fair raffle with each R replaced by z·R ÷ y'); }
 
@@ -47,41 +42,28 @@ module.exports = function (G, t) {
       const r = run(0, sd, 'threshold'); for (const F of r.s.fem) tot += F.eggs - E * share(F, F.s);
     }
     t.ok(Math.abs(tot / (n * 6)) < 0.12, `egg draws: realised minus expected eggs averages ${(tot / (n * 6)).toFixed(3)} per female over ${n} runs (unbiased)`);
-    let c9 = 0, n9 = 0, c1 = 0, n1 = 0; for (let sd = 1; sd <= n; sd++) { const r = run(1, sd, 'even'); for (const F of r.s.fem) { if (F.q > 0.5) { n9++; c9 += F.later ? 1 : 0; } else { n1++; c1 += F.later ? 1 : 0; } } }
-    t.near(c9 / n9, 0.9, 0.03, `L2: a later male came to ${(100 * c9 / n9).toFixed(1)}% of the 9-in-10 females`); t.near(c1 / n1, 0.1, 0.03, `and to ${(100 * c1 / n1).toFixed(1)}% of the 1-in-10 females`); }
+    let tb = 0; for (let sd = 1; sd <= N(200); sd++) { const r = run(2, sd, 'threshold'); for (const F of r.s.fem) { const y = F.y, z = F.z, K = y * F.s, Rr = z * F.R; tb += F.eggs - E * (K > 0 ? K / (K + Rr) : 0); } }
+    t.ok(Math.abs(tb / (N(200) * 5)) < 0.15, `her stores: realised minus expected eggs averages ${(tb / (N(200) * 5)).toFixed(3)} per female (draws use only the sperm she stored)`); }
 
-  /* ---------- L2: risk, and the benchmark (B) ---------- */
-  { const S = ch.sim; let worst = 1, rvs = 0, n = N(200), heavy = 0;
-    for (let sd = 1; sd <= n; sd++) {
-      G.reset(1, sd); const s = S.s, fs = s.fem, P = S.bestPlan(s), omni = eggs(fs, omniL2(fs));
-      const pe = eggs(fs, P); worst = Math.min(worst, pe / omni);
-      if (P[s.risky] >= P[s.safe] + 5) rvs++;
-      if (Math.abs(P.reduce((a, b) => a + b, 0) - 100) > 1e-6) heavy++;
-    }
-    t.ok(worst >= 0.96 && worst <= 1 + 1e-9, `B. the planner (three cards, the hidden queue at its expectation) wins ${(100 * worst).toFixed(1)}%+ of the omniscient plan on ${n} queues`);
-    t.eq(heavy, 0, 'B. the planner spends exactly the supply on every queue');
-    t.ok(rvs === n, `L2: the planner gives the risky virgin at least 5 units more than the safe virgin on ${rvs} of ${n} queues (Parker 1990)`);
-    // the spec's numbers: at the multiplier where a mated female with 20 rival units gets 15, a virgin at 9 in 10 gets about 15–22 and one at 1 in 10 gets 1
-    const lam = margL2({ R: 20, q: 0.5 }, 15), v9 = atL2({ R: 0, q: 0.9 }, lam), v1 = atL2({ R: 0, q: 0.1 }, lam); t.ok(v9 > 10 && v9 < 25 && v1 <= 1.0001, `risk: a virgin at 9 in 10 earns ${v9.toFixed(1)} units, one at 1 in 10 earns ${v1.toFixed(1)} (D1: about 22 and about 1)`); }
-
-  /* ---------- L3: the dung fly curve and the marginal value theorem ---------- */
-  { const S = ch.sim, D = (S.reset(2, {}), S.s), F0 = D.fem[0];
+  /* ---------- L2: the dung fly curve and the marginal value theorem ---------- */
+  { const S = ch.sim;
     // read the curve through the sim: mate exactly t minutes
-    const shareAt = mins => { G.reset(2, 1); const s = S.s; for (let k = 0; k < 40 && s.phase !== 'pour'; k++) S.step(1 / 30); S.act({ k: 'add', n: 40 }); s.mins = mins; S.act({ k: 'mate' }); return s.fem[0].x; };
-    t.near(shareAt(36), 0.80, 0.005, 'L3: a 36-minute mating gives the last male 80% of her store (Parker 1970)');
+    const shareAt = mins => { G.reset(1, 1); const s = S.s; for (let k = 0; k < 40 && s.phase !== 'pour'; k++) S.step(1 / 30); S.act({ k: 'add', n: 40 }); s.mins = mins; S.act({ k: 'mate' }); return s.fem[0].x; };
+    t.near(shareAt(36), 0.80, 0.005, 'L2: a 36-minute mating gives the last male 80% of her store (Parker 1970)');
     const rate = (m, T) => shareAt(m) / (T + m);
     let bt = 0, bv = -1; for (let m = 20; m <= 70; m += 0.2) { const v = rate(m, 156.5); if (v > bv) { bv = v; bt = m; } }
-    t.near(bt, 41.4, 0.3, `L3: eggs per minute peak at ${bt.toFixed(1)} min with 156.5 min of search and guarding (Parker and Stuart 1976: about 41)`);
-    t.near(S.expect({ fem: [] }, 'p3'), 41.4, 0.1, 'and the Predict star is scored against the tangent point, 41.4 min');
+    t.near(bt, 41.4, 0.3, `L2: eggs per minute peak at ${bt.toFixed(1)} min with 156.5 min of search and guarding (Parker and Stuart 1976: about 41)`);
+    const am = ts => ({ level: 1, fem: ts.map(x => ({ t: x, x: 0, T: 156.5 })).concat([{}, {}, {}]) });
+    t.ok(ch.stars.discover(am([36, 41, 47]), 1) && ch.stars.discover(am([47, 47, 47]), 1) && !ch.stars.discover(am([30, 30, 30]), 1) && !ch.stars.discover(am([50, 50, 50]), 1), 'and L2 Discover is scored against the tangent point, 41.4 min (a morning average within 6 min)');
     let bt2 = 0, bv2 = -1; for (let m = 10; m <= 50; m += 0.2) { const v = rate(m, 40); if (v > bv2) { bv2 = v; bt2 = m; } }
-    t.near(bt2, 26.1, 0.3, `L3: with a 40-minute afternoon search the best mating falls to ${bt2.toFixed(1)} min (the Transfer's target)`);
+    t.near(bt2, 26.1, 0.3, `L2: with a 40-minute afternoon search the best mating falls to ${bt2.toFixed(1)} min (the Transfer's target)`);
     const a = shareAt(120); t.ok(a < 0.894 && a > 0.88, `about one earlier sperm in nine stays out of reach: share at 120 min ${a.toFixed(3)} < 0.894`);
     // constant random displacement: d(share)/dt = k (a − share)
     const s1 = shareAt(20), s2 = shareAt(20.5); t.near((s2 - s1) / 0.5, 0.0627036 * (0.8934849 - (s1 + s2) / 2), 2e-4, 'random displacement: the share rises at k·(a − share), slowing as your own sperm are flushed');
   }
 
   /* ---------- determinism and snapshot replay ---------- */
-  for (const lv of [0, 1, 2, 3]) {
+  for (const lv of [0, 1, 2]) {
     const a = run(lv, 11, 'expert'), b = run(lv, 11, 'expert');
     t.eq(a.s, b.s, `L${lv + 1}: the same seed and actions give the same final state`);
     const S = ch.sim; G.reset(lv, 12); const pol = G.bot('expert'), rnd = () => 0.5; let ticks = 0, snap = null, at = 0;
@@ -92,35 +74,34 @@ module.exports = function (G, t) {
   }
 
   /* ---------- stars: per level, the expert, the bots ---------- */
-  const offers = [3, 3, 6, 5];   // L1 D+P, L2 D+P, L3 P+T, L4 D+T: no level offers all three
+  const offers = [3, 5, 1];   // L1 D+P, L2 D+T, L3 D: no level offers all three
   const seeds = N(20), bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'even', 'noChange'];
-  for (let lv = 0; lv < 4; lv++) {
+  for (let lv = 0; lv < 3; lv++) {
     let all = 0; for (let sd = 1; sd <= seeds; sd++) { const r = run(lv, sd, 'expert'); if ((r.result.mask & offers[lv]) === offers[lv]) all++; }
-    t.eq(all, seeds, `L${lv + 1}: the expert earns every star the level offers (${['D+P', 'D+P', 'P+T', 'D+T'][lv]}) on ${seeds} of ${seeds} seeds`);
+    t.eq(all, seeds, `L${lv + 1}: the expert earns every star the level offers (${['D+P', 'D+T', 'D'][lv]}) on ${seeds} of ${seeds} seeds`);
   }
-  { const lv = [0, 1, 2, 3].map(l => run(l, 3, 'expert').result.mask); t.eq(ch.unitStars(lv), 7, 'the expert\'s levels add up to all three unit stars'); }
+  { const lv = [0, 1, 2].map(l => run(l, 3, 'expert').result.mask); t.eq(ch.unitStars(lv), 7, 'the expert\'s levels add up to all three unit stars'); }
   for (const b of bots) {
     let worst = 0, three = 0, off = 0;
     for (let sd = 1; sd <= seeds; sd++) {
-      const masks = [0, 1, 2, 3].map(l => { const r = run(l, sd, b); const m = r.result ? r.result.mask : 0; if (stars3(m) === 3) three++; if (m & ~offers[l]) off++; return m; });
+      const masks = [0, 1, 2].map(l => { const r = run(l, sd, b); const m = r.result ? r.result.mask : 0; if (stars3(m) === 3) three++; if (m & ~offers[l]) off++; return m; });
       worst = Math.max(worst, stars3(ch.unitStars(masks)));
     }
     t.ok(three === 0 && off === 0 && worst < 3, `bot ${b}: no level gives three stars, none outside its offer, and its union across the unit is at most ${worst} star(s)`);
   }
-  for (const [lv, b] of [[1, 'even'], [1, 'greedy'], [3, 'even'], [3, 'greedy'], [0, 'threshold'], [1, 'threshold'], [3, 'threshold']]) {
+  for (const [lv, b] of [[2, 'even'], [2, 'greedy'], [0, 'threshold'], [1, 'threshold'], [1, 'greedy'], [2, 'threshold']]) {
     let d = 0; for (let sd = 1; sd <= seeds; sd++) if (run(lv, sd, b).result.mask & 1) d++;
     t.eq(d, 0, `fixed strategy "${b}" never earns L${lv + 1} Discover (${seeds} seeds)`);
   }
-  { let p = 0; for (let sd = 1; sd <= seeds; sd++) if (run(1, sd, 'noChange').result.mask & 2) p++; t.eq(p, 0, 'L2: calling "no male after her" (all 20 eggs) never earns Predict'); }
-  { let p = 0, tr = 0; for (let sd = 1; sd <= seeds; sd++) { const r = run(2, sd, 'threshold'); if (r.result.mask & 4) tr++; const r2 = run(3, sd, 'noChange'); if (r2.result.mask & 4) p++; }
-    t.eq(tr, 0, 'L3: one fixed 30-minute mating all day never earns the afternoon Transfer'); t.eq(p, 0, 'L4: the fair-raffle answer (30 units) never earns the boss Transfer'); }
+  { let p = 0; for (let sd = 1; sd <= seeds; sd++) if (run(0, sd, 'noChange').result.mask & 2) p++; t.eq(p, 0, 'L1: calling "half her eggs" every time never earns Predict'); }
+  { let tr = 0, ev = 0; for (let sd = 1; sd <= seeds; sd++) { if (run(1, sd, 'threshold').result.mask & 4) tr++; if (run(1, sd, 'even').result.mask & 4) ev++; }
+    t.eq(tr, 0, 'L2: one fixed 30-minute mating all day never earns the afternoon Transfer'); t.eq(ev, 0, 'L2: 41-minute matings all day (the morning answer) never earn it either'); }
 
   /* ---------- Interesting results say what happened ---------- */
   { let bad = 0, seen = {};
-    for (const b of bots.concat(['expert'])) for (let sd = 1; sd <= N(12); sd++) for (let lv = 0; lv < 4; lv++) {
+    for (const b of bots.concat(['expert'])) for (let sd = 1; sd <= N(12); sd++) for (let lv = 0; lv < 3; lv++) {
       const r = run(lv, sd, b), k = r.result.interesting, s = r.s, L = s.fem; if (!k) continue; seen[k] = (seen[k] || 0) + 1;
-      const ok = k === 'virgins' ? L.filter(F => !F.R).reduce((a, F) => a + F.s, 0) >= 10 : k === 'dry' ? L.some(F => F.s <= 0) : k === 'crowd' ? L[3].s > 26 : k === 'safe' ? L[s.safe].s >= 10
-        : k === 'riskyCame' ? L[s.risky].later && L[s.risky].s < 5 : k === 'riskyLucky' ? !L[s.risky].later && L[s.risky].s < 5 : k === 'short' ? ch.sim.amMean(s) < 22 : k === 'long' ? ch.sim.amMean(s) > 70
+      const ok = k === 'virgins' ? L.filter(F => !F.R).reduce((a, F) => a + F.s, 0) >= 10 : k === 'dry' ? L.some(F => F.s <= 0) : k === 'crowd' ? L[3].s > 26 : k === 'short' ? ch.sim.amMean(s) < 22 : k === 'long' ? ch.sim.amMean(s) > 70
         : k === 'same' ? true : k === 'pocket' ? L.some(F => F.y <= 0.2 && F.s >= 10) : k === 'favoured' ? L.some(F => F.z <= 0.15 && share(F, F.s) >= 0.75) : false;
       if (!ok) bad++;
     }
@@ -129,11 +110,12 @@ module.exports = function (G, t) {
   /* ---------- What if?: the reruns do what their texts say ---------- */
   { const S = ch.sim, wi = (lv, lever) => { G.reset(lv, 5); const snap = S.snapshot(); const r = G.run(lv, { seed: 5, reset: { thaw: { snap, lever } } }); return r; };
     const a = wi(0, 'later'); t.ok(a.result && a.result.mask === 0 && S.wiVars(a.s).v > 1, `What if? males follow: the best plan gives each virgin ${S.wiVars(a.s).v} units, not 1 (no stars on a thaw)`);
-    const b = wi(2, 'scarce'); t.near(b.s.fem[0].t, 53.96, 0.3, 'What if? scarce females (400 min search): the best mating is about 54 min');
-    const c = wi(2, 'quick'); t.ok(c.s.fem[0].t < 26, `What if? a 20-minute search: the best mating falls to ${c.s.fem[0].t.toFixed(1)} min`);
-    const d = wi(1, 'norisk'); t.ok(d.s.fem.filter(F => !F.R).every(F => Math.abs(F.s - 1) < 1e-6), 'What if? no later males: every virgin gets 1 unit');
-    const e = wi(3, 'choosy'), f = wi(3, 'fair'); t.ok(S.wiVars(e.s).e < S.wiVars(f.s).e, `What if? very choosy females (${S.wiVars(e.s).e} eggs) leave you fewer eggs than females who keep everything (${S.wiVars(f.s).e})`); }
+    const b = wi(1, 'scarce'); t.near(b.s.fem[0].t, 53.96, 0.3, 'What if? scarce females (400 min search): the best mating is about 54 min');
+    const c = wi(1, 'quick'); t.ok(c.s.fem[0].t < 26, `What if? a 20-minute search: the best mating falls to ${c.s.fem[0].t.toFixed(1)} min`);
+    { G.reset(0, 5); const r0 = run(0, 5, 'expert'); t.ok(r0.s.fem.filter(F => !F.R).every(F => Math.abs(F.s - 1) < 1e-6), 'L1 best play: with no rival sperm stored, every virgin gets 1 unit'); }
+    const e = wi(2, 'choosy'), f = wi(2, 'fair'); t.ok(S.wiVars(e.s).e < S.wiVars(f.s).e, `What if? very choosy females (${S.wiVars(e.s).e} eggs) leave you fewer eggs than females who keep everything (${S.wiVars(f.s).e})`); }
 
   /* ---------- result codes fit in 30 bits ---------- */
-  { const r = run(1, 4, 'expert'); const bits = ch.resultBits(r.s, 1); t.ok(bits >= 0 && bits < (1 << 30) && (bits & 7) === r.result.mask, 'resultBits packs the mask, the eggs and the call into 30 bits'); }
+  { const r = run(0, 4, 'expert'); const bits = ch.resultBits(r.s, 0); t.ok(bits >= 0 && bits < (1 << 30) && (bits & 7) === r.result.mask && ((bits >> 13) & 127) > 0, 'resultBits packs the mask, the eggs and the call into 30 bits'); }
+  { t.eq(ch.levels.length, 3, 'three levels (D6 decision 9)'); t.eq(Object.keys(ch.content.levelStars).length, 3, 'a star line for each level'); }
 };

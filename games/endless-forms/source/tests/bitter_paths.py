@@ -61,7 +61,7 @@ with sync_playwright() as p:
     check('keyboard', r['eatenAll'] >= 6 and (r['gen'] >= 2 or r['phase'] != 'hunt'), r, pg); ctx.close()
 
     # 3. a real mouse drag on the strip moves the prediction ghost; a tap on the ghost commits it through the sim
-    ctx, pg = page(b, '?unit=bitter&intro=0&level=3&seed=6', 1280, 720)
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=2&seed=6', 1280, 720)
     pg.evaluate("""()=>{ const ch=TB.REG.bitter; for (let k=0;k<4000;k++){ const s=ch.sim.s; if (s.ask) break; if (s.phase==='hunt'||s.phase==='dawn'){ const i=ch.sim.autoPick(); if (i>=0) TB.Sim.act(ch,{k:'tap',i}); } window.__advance(120); } window.__advance(600); }""")
     box = pg.evaluate("()=>{ const cv=TB.Strip.canvas(0); if (!cv) return null; const r=cv.getBoundingClientRect(); return {x:r.left, y:r.top, w:r.width, h:r.height}; }")
     if box:
@@ -89,8 +89,8 @@ with sync_playwright() as p:
     r = pg.evaluate("()=>{ const ch=TB.REG.bitter, g0=ch.sim.s.gen; ch.teacherStep(); const s=ch.sim.s; return { g0, g1: s.gen, ask: !!s.ask, phase: s.phase }; }")
     check('teacher', r['g1'] > r['g0'] or r['ask'], r, pg); ctx.close()
 
-    # 6. What if?: finish L5, open the final card, thaw "Scatter B"; the rerun ends with a text chosen from it and no stars
-    ctx, pg = page(b, '?unit=bitter&intro=0&level=4&seed=9')
+    # 6. What if?: finish the boss (L4), open the final card, thaw "Scatter B"; the rerun ends with a text chosen from it and no stars
+    ctx, pg = page(b, '?unit=bitter&intro=0&level=3&seed=9')
     c1 = pg.evaluate(FINISH)
     r = pg.evaluate("""()=>{ const card=document.querySelector('#cards.on .card'); if (!card) return {err:'no card'};
        const wi=[...card.querySelectorAll('.card-btns button')].find(b=>/what if/i.test(b.textContent)); if (!wi) return {err:'no what if'}; wi.click(); window.__advance(400);

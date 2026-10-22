@@ -337,3 +337,22 @@ Engine request 1 (`ch.unitStars`) is still open, and it is now the only thing be
 - **The boss's lesson:** no single quitting point is ever stable. A beach of differing fixed quitters with the ESS spread is as stable as crabs that each vary. This contrasts with L4, where one rule (Hawk) takes the beach.
 - **Misconceptions** now include "an arbitrary convention cannot be stable" (L5) and "your crabs change when you change" (the cohorts in L2).
 - **Playtest:** colleagues without a settings screen can add `?untimed=1` to turn the clocks off.
+
+## Simplification (D6 decision 9), 22 October 2026
+
+Six levels became four: **The tide pool, The mutant, Big shells, Owners** (`HK_LV`, 1317 → ~960 lines).
+
+**Removed or merged, and why**
+- **The unbeatable beach (old L3, mixing within each crab) is cut.** It made the same point as The mutant, where hawks settle at V/C. The mixed-ESS idea now sits in one MODEL line and the Bishop–Cannings check stays in the oracle.
+- **War of attrition (old L6, the boss) is cut**, with its hold-to-persist verb, ruler and tally drawing, and the histogram chart. It was a second verb and the longest level. D6 decision 9 asks for one verb, and Tap Hawk or Dove is it. Owners is now the last level and carries the final card.
+- **Prediction interludes:** only one is left, the aha. On Big shells the player marks where hawks will settle on a new beach (shell 6, injury 8). The answer is V/C = 0.75 (`HK_ASK.nb`, tolerance 0.08). The old quantity, projection and Monte Carlo expectation asks are gone, and so is the L1 ask.
+- **Key number shown plainly:** on The mutant a dashed rope is labelled `V/C = 4/10`, with one whisper: "Rope: V/C. There Hawk and Dove earn equally." Every take line and end-card body names the key number. Owners plots kin share against a ghost line labelled "a third".
+- **Controls:** the Space hold, the levers chip row and the mixed-rule slider are gone. The dock has two buttons, Dove and Hawk.
+
+**Stars rebalanced** (≤2 per level, 3 across the unit): Discover on The tide pool, The mutant and Big shells (the tragedy: everyone worse off). Predict on Big shells only (call 0.75 within 0.08). Transfer on Owners (owner-wins kin reach a third).
+
+**Science:** no model change. The four kept levels use the same payoffs as before. The war of attrition's MODEL and refs left with its level, and Maynard Smith 1974 is still cited in Owners' Why?.
+
+**Tests:** oracle 57 passed (calling 0.75 earns Predict on 10/10 seeds, calling 0.6 never; the no-change, midpoint and all-hawk bots never do). hawks_paths 37 ok. Bots on seeds 1–40: no bot earns three stars. Monkey seeds 1, 2 and 3 at 390×780 and 1280×720: 6 of 6 reach the end card, with no console errors. lint_text and dup_globals are clean. Screenshots (390×780) are in the scratchpad, `s3/simp_hawks_census_casino/hawks/`.
+
+**Cross-unit note:** anything that pointed at "Hawks L6, war of attrition" (lessons or plan notes) now has no target.

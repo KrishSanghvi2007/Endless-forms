@@ -100,7 +100,7 @@ def main():
         check(not errs, 'no page errors (%s)' % (errs[:2],))
         ctx.close()
 
-        # ---- the school: fish choice by keys, the plate limit ----
+        # ---- L2 (three fish, two plates): fish choice by keys, the plate limit ----
         ctx, pg, errs = page(b, 1280, 720)
         play(pg, 1)
         pg.evaluate("()=>window.__advance(900)")
@@ -126,7 +126,7 @@ def main():
         pg.keyboard.press(' '); pg.evaluate("()=>window.__advance(700)")
         st = pg.evaluate("()=>TB.REG.jaws.sim.s.att")
         check(st >= 1, 'untimed: Space strikes and the wave resolves (%d attacks)' % st)
-        play(pg, 4)
+        play(pg, 3)
         pg.evaluate("()=>window.__advance(12000)")
         st = pg.evaluate("()=>{ const s = TB.REG.jaws.sim.s; return [s.sAtt, s.cur.map(q => q.k)]; }")
         check(st[0] == 0 and (('Y' in st[1]) or st[1] == []), 'untimed boss: a yellow sneaker waits for your lunge (%s)' % st)
@@ -135,7 +135,7 @@ def main():
 
         # ---- the boss by keys ----
         ctx, pg, errs = page(b, 1280, 720)
-        play(pg, 4)
+        play(pg, 3)
         lunged = pg.evaluate("""()=>{ const ch = TB.REG.jaws; let n = 0; for (let i = 0; i < 400; i++) { const s = ch.sim.s; const y = s.cur && s.cur.find(q => q.k === 'Y'); if (y && (!s.guard || s.guard.side !== y.side) && y.tb - s.T < 0.45) { window.dispatchEvent(new KeyboardEvent('keydown', {key: y.side ? 'ArrowRight' : 'ArrowLeft'})); n++; } window.__advance(40); } return [n, ch.sim.s.blk, ch.sim.s.att]; }""")
         check(lunged[0] >= 2 and lunged[1] >= 1, 'boss: arrow keys lunge at sneakers (%d lunges, %d of %d blocked)' % tuple(lunged))
         check(not errs, 'no page errors in the boss (%s)' % (errs[:2],))
