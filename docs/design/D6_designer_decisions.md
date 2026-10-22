@@ -78,3 +78,9 @@ Each part is 1–2 sentences, at most about 35 words, so about 100 words in tota
 - **Show the key number.** Each chapter must show the key number or equation plainly when it matters (for example R = h²S, the ESS ratio V/C, or q̂ = √(μ/s)), with a one-line plain meaning.
 - **No unexplained controls.** If a playtester could not explain what to do from the intro card and the first ghost-hand demo, simplify.
 - **Keep the worlds.** The distinct worlds, art and UI (decision 7) stay. Every new chapter gets its own unique world in the same spirit.
+
+**10. Real biology, not symbols** (22 October 2026, binding). Games must show **real organisms and real biological processes**, not symbolic stand-ins.
+- **The Raffle:** not a fairground drum with paper tickets. Show sperm entering the female dung fly's sperm-storage organs (spermathecae), and eggs being fertilised as they pass, with the drum kept at most as a small read-out.
+- **Drift Casino:** not just marbles in jars on a felt table. Show real populations: Buri's *Drosophila* bottles with flies whose eye colour is actually visible, a real founder event (anoles rafting to an islet), and real bottlenecked animals.
+- **Everywhere else:** wherever a chapter uses chips, tokens, beads, tickets or abstract dots as the main picture, replace them with the organisms, cells, gametes, genes or chromosomes they stand for. Abstract read-outs (bars, graphs, jars of allele copies) are allowed **beside** the biology, never instead of it.
+- **Theme versus biology:** a themed frame (casino, drum, workshop) may stay as light flavour only if the real biology is what the player watches and acts on.
