@@ -69,3 +69,12 @@
 - **How to play:** the controls and the goal.
 
 Each part is 1–2 sentences, at most about 35 words, so about 100 words in total. The card has a big Play button, and a "?" button in the dock reopens it during play. The ghost hand still demonstrates the first action once play starts. Chapters supply the text as `content.intro = {game, biology, how}`, and `00_entry.js` draws the card for every v2 chapter.
+
+## Addendum, 22 October 2026: simplicity (binding)
+
+**9. Simple beats clever.** The designer likes the new worlds and UI, but some gameplay is uninteresting, confusing or too complicated. The app's purpose is to convey each concept **as simply as possible**, along with the key stats and science behind it. So:
+- **Prediction interludes.** Remove the "drag the diamond / drag the marker on the graph" prediction interludes unless one genuinely produces the chapter's aha moment. Keep at most one per chapter, and make it trivial to understand. This overrides D5 decisions 9 and §3 item 3 (a Predict on every level) and the Predict star where it forces extra steps.
+- **One verb per chapter.** Each chapter has one clear core verb, and each level teaches one idea. Cut levels, sub-mechanics, side panels and fiddly controls that don't directly serve that idea. **3–4 levels is the norm.**
+- **Show the key number.** Each chapter must show the key number or equation plainly when it matters (for example R = h²S, the ESS ratio V/C, or q̂ = √(μ/s)), with a one-line plain meaning.
+- **No unexplained controls.** If a playtester could not explain what to do from the intro card and the first ghost-hand demo, simplify.
+- **Keep the worlds.** The distinct worlds, art and UI (decision 7) stay. Every new chapter gets its own unique world in the same spirit.
