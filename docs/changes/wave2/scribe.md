@@ -130,3 +130,48 @@
 4. L3: stamp both drug plates and pick the matching colony. Was matching spots fun or fiddly on your device?
 5. Boss: did the new-sugar winners surprise you? Did the patients question connect to the jackpots?
 6. Rate enjoyment 1–5, mark any moment you were bored or lost, and note any science wording you would challenge.
+
+## Simplification (D6 decision 9), 23 October 2026
+
+I played all four levels at 390 × 780 first (screenshots in the session scratchpad: `s3/simp_clinic_scribe/before/scribe/`, then `after/scribe/`). The night bench, the lamp, the replication-fork zipper, the colony with its violet wedges, the phage plates, the velvet block and the new-sugar dish all stayed. What made the chapter heavy was the asking: six predictions on four gestures (a harm/none/help triangle, an empty-plate count, a log μ ruler, a velvet share, a new-sugar share, a patient count), plus a flag-every-plate step in Jackpots and a rack of ten patients bolted onto the boss. The session-3 partial edit (`v2_wip/scribe_simplify_partial.js.txt`) had already cut most of this but left the oracle on the old design; I started from it, fixed what it missed and brought the oracle, paths and shots tests into line.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| The harm / no effect / help triangle ask | L1 Sparks | A simplex gesture that did not make the aha. The key number is now shown when the dish fills: "Dish full. Your fates so far: 72% harm, 26% no effect, 2% help." The model and virus ghosts appear on the fates chart only then. |
+| **Kept: "how many plates stay empty?"** | L2 Jackpots | **The chapter's one prediction**, asked after the tubes grow and before pouring. Under "the phage caused it" almost no plate is empty; the model expects 20e^(−m) ≈ 5.4. It carries the Predict star (±2.5 plates). |
+| The flag-every-plate step and the μ ruler ask | L2 | Fiddly, and a second idea (estimating μ). After the last pour the HUD gives the key number: "Spread: 10.9× the mean. A phage-caused process would give about 1." m = −ln p₀ stays in Why? maths and is checked in the oracle. |
+| The velvet share ask | L3 Velvet | Its answer (all or nothing) is the reveal itself; the stamp onto plate C now follows the pick directly. |
+| The new-sugar share ask, the patient ask and the ten patients | L4 New sugar | Two asks and a second idea (the Luria–Delbrück transfer to patients). The key line is shown after the move: "6 of 23 living lineages win on the new sugar; 5 did nothing on glucose." The patient maths stays as one line in Why? maths. |
+| A miscount | L4 | The boss body and key line said "{w} of {n} living ones won" with n = all fates (lethal included); they now use the living lineages moved (`np`). |
+
+The levels stay **L1 Sparks, L2 Jackpots, L3 Velvet, L4 New sugar**, one experiment each (tag, pour, stamp and pick). The intro card's "How to play" ends "Once, predict how many plates stay empty."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 Sparks | follow at least 30 tagged sparks to their fates | — (was the triangle) | — |
+| L2 Jackpots | — (was "flag every plate"; pouring all 20 is no discovery) | **the one prediction**, empty plates ±2.5 | — |
+| L3 Velvet | build a resistant line from the matching master colony | — (was the share call) | — |
+| L4 New sugar | — | — | tag at least 16 sparks and move their lineages (was both boss calls) |
+
+Unit stars: Discover in Sparks and Velvet; Predict = Jackpots; Transfer = New sugar. No level offers more than one star now, so no bot can reach three in a level; the oracle checks every bot's union across the unit stays under three.
+
+### Science
+No model change. The DFE, the fluctuation test (variance ÷ mean ≈ 1 if induced, ≫ 1 if pre-existing, over 10⁴ racks), the p₀ estimator, the velvet prints and the new-sugar odds are all still checked. The patient parameters left the boss MODEL card with the patients; the card now lists the harmful-turned-winner odds (10%, ×N).
+
+### Real biology (D6 decision 10)
+Already met: a real colony growing across agar with mutant sectors, real phage plates with colonies, real replica plating with velvet. The strip charts sit beside them.
+
+### Tests
+- `tests/oracle_scribe.js`: the old triangle, μ, velvet-share and patient checks replaced by: the ghosts stay hidden until the dish is full; the only ask is z1 in Jackpots; the spread key number and empty count are the run's own; the new-sugar key line counts the run; expert earns D, P, D, T on every seed. **60 passed, 0 failed.**
+- `tests/scribe_paths.py`: the ask opens after growth; all 20 poured winds up with the spread key number in the HUD; no flagging. **0 failed.** `tests/scribe_shots.py` drops the flag, ruler and patient shots.
+- Lint 0/0; `dup_globals` ok; bot sweep seeds 1–40 PASS; monkey seeds 1–3 at 390 × 780 and 1280 × 720 reach the end card.
+
+### Playtest script (replaces the one above)
+1. L1: tag sparks. When the dish fills, does the harm / no effect / help line surprise you?
+2. L2: make the empty-plate call, then pour. Did the empty plates and the jackpot convince you the mutants came first?
+3. L3: stamp both drug plates and pick the matching colony. Fun or fiddly?
+4. L4: did lineages that did nothing on glucose winning on the new sugar land?

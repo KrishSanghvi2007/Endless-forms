@@ -13,11 +13,10 @@ CHROME = {"executable_path": "/opt/pw-browsers/chromium"} if os.path.exists("/op
 
 STEP = """()=>{ const ch = TB.REG.scribe, s = ch.sim.s, card = document.querySelector('#cards.on .card');
   if (card) return {card: card.className};
-  if (s.ask) { const A = s.ask, i = {d1: 0, z1: 0, u1: 1, c1: 0, b1: 0, b2: 1}[A.id] || 0; return {ask: A.id, chart: i}; }
+  if (s.ask) return {ask: s.ask.id, chart: 0};
   const lit = (s.sp || []).filter(p => !p.tag && !p.gone);
   if (s.kind === 'dish' && s.phase === 'run') { const p = lit.find(q => s.t - q.t0 > 0.45); if (p) TB.Sim.act(ch, {k: 'tag', id: p.id}); }
   else if (s.phase === 'plate') { if (Math.round(s.t * 30) % 9 === 0) TB.Sim.act(ch, {k: 'plate'}); }
-  else if (s.phase === 'flag') { const a = ch.sim.bots.expert(s, ch.sim.actions(), Math.random); if (a && Math.round(s.t * 30) % 6 === 0) TB.Sim.act(ch, a); }
   else if (s.phase === 'stamp' || s.phase === 'stamp2') { if (s.t > 1.2 && !ch.v.vel) TB.Sim.act(ch, {k: 'stamp'}); }
   else if (s.phase === 'pick') { if (s.t > 2.5) TB.Sim.act(ch, {k: 'pick', i: s.m1.findIndex(q => q.res)}); else ch.v.sel = s.m1.findIndex(q => q.res); }
   return {phase: s.phase, kind: s.kind, tags: s.tags || 0, fates: s.fates || 0, plated: s.plated || 0, st: s.st || 0, t: s.t, full: !!s.full, lit: lit.length, pa: !!s.pa, pt: !!s.pt}; }"""
@@ -93,12 +92,10 @@ def main():
                         if ph == 'run' and st['full'] and once('full'): shot('full')
                         if ph == 'patch' and st['t'] > 1.2 and once('patch1'): shot('patch1')
                         if ph == 'patch' and st['t'] > 5 and once('patch2'): shot('patch2')
-                        if ph == 'pat' and st['t'] > 2.8 and once('pat'): shot('pat')
                     if k == 'tubes':
                         if ph == 'grow' and st['t'] > 1.5 and once('grow'): shot('grow')
                         if ph == 'plate' and st['plated'] == 8 and once('plate8'): pg.evaluate("()=>window.__advance(500)"); shot('plate8')
-                        if ph == 'flag' and once('flag0'): pg.evaluate("()=>window.__advance(900)"); shot('flag0')
-                        if ph == 'end' and once('ruler'): pg.evaluate("()=>window.__advance(700)"); shot('ruler')
+                        if ph == 'end' and once('end'): pg.evaluate("()=>window.__advance(700)"); shot('end')
                     if k == 'velvet':
                         if ph == 'stamp' and st['st'] == 0 and st['t'] > 1.25 and once('vel'): pg.evaluate("()=>window.__advance(260)"); shot('stampA')
                         if ph == 'pick' and once('pick'): pg.evaluate("()=>window.__advance(700)"); shot('pick')

@@ -69,16 +69,7 @@ def main():
         ctx, pg, errs = page(b)
         pg.evaluate("()=>{ TB.Events.debug = true; TB.Events.clear && TB.Events.clear(); }")
         play(pg, 0)
-        check(pg.evaluate("()=>TB.REG.clinic.sim.s.phase") == 'dish', 'L1 opens on the lab dish with a prediction open')
-        box = pg.evaluate("()=>{ const c = TB.Strip.canvas(0); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }")
-        if box:
-            x, y, w, h = box
-            pg.mouse.move(x + w * 0.5, y + h * 0.7); pg.mouse.down(); pg.mouse.move(x + w * 0.5, y + h * 0.3, steps=5); pg.mouse.up()
-            pg.evaluate("()=>window.__advance(100)")
-        pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(100)")
-        pred = pg.evaluate("()=>TB.REG.clinic.sim.s.pred.a0")
-        check(pred is not None, 'a drag on the strip and Enter lock in the dish call (%s)' % (None if pred is None else round(pred, 2)))
-        check(to_run(pg), 'after two dish days the patient phase begins')
+        check(pg.evaluate("()=>{ const s = TB.REG.clinic.sim.s; return s.phase === 'run' && !s.ask; }"), 'L1 opens straight on the patient: no prediction interlude (D6 decision 9)')
         x, y = xy(pg, 'dish'); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(80)")
         check(doses(pg) == [0], 'a real tap on the dish gives a low dose')
         pg.evaluate("()=>window.__advance(1500)")
@@ -94,9 +85,19 @@ def main():
         check(not errs, 'no page errors on L1 (%s)' % errs[:2])
         ctx.close()
 
-        # ---- L3: pumps and keys A, B ----
+        # ---- L3: the one prediction (a drag on the strip, Enter), then pumps and keys A, B ----
         ctx, pg, errs = page(b)
-        play(pg, 2); skip_ask(pg); to_run(pg)
+        play(pg, 2)
+        check(pg.evaluate("()=>{ const s = TB.REG.clinic.sim.s; return !!(s.ask && s.ask.q === 'ab'); }"), 'L3 opens with the chapter\'s one prediction: cells resisting both drugs')
+        box = pg.evaluate("()=>{ const c = TB.Strip.canvas(0); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }")
+        if box:
+            x, y, w, h = box
+            pg.mouse.move(x + w * 0.1, y + h * 0.35); pg.mouse.down(); pg.mouse.move(x + w * 0.1, y + h * 0.65, steps=5); pg.mouse.up()
+            pg.evaluate("()=>window.__advance(100)")
+        pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(100)")
+        pred = pg.evaluate("()=>TB.REG.clinic.sim.s.pred.a2")
+        check(pred is not None, 'a drag on the strip and Enter lock in the call (%s)' % (None if pred is None else round(pred, 2)))
+        skip_ask(pg); to_run(pg)
         x, y = xy(pg, 'pump', 0); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(80)")
         x, y = xy(pg, 'pump', 1); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(80)")
         d = pg.evaluate("()=>TB.REG.clinic.sim.s.beds[0].doses.map(q => q[1])")
@@ -106,9 +107,9 @@ def main():
         check(not errs, 'no page errors on L3')
         ctx.close()
 
-        # ---- L5: a fever treated by a tap, a bed isolated by a hold, the hand rub ----
+        # ---- L4 (the bay): a fever treated by a tap, the hand rub ----
         ctx, pg, errs = page(b)
-        play(pg, 4); skip_ask(pg); to_run(pg)
+        play(pg, 3); to_run(pg)
         f = -1
         for _ in range(80):
             f = pg.evaluate("()=>TB.REG.clinic.sim.s.beds.findIndex(b => b.fev && b.C < 1)")
@@ -116,18 +117,15 @@ def main():
             skip_ask(pg); pg.evaluate("()=>window.__advance(300)")
         if f >= 0:
             x, y = xy(pg, 'bed', f); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(80)")
-            check(pg.evaluate("(i)=>TB.REG.clinic.sim.s.beds[i].C >= 1", f), 'L5: a tap on a feverish bed gives the drug')
-        else: check(False, 'L5: a fever appeared within 24 s')
-        skip_ask(pg)
-        x, y = xy(pg, 'bed', 3); pg.mouse.move(x, y); pg.mouse.down(); pg.evaluate("()=>window.__advance(600)"); pg.mouse.up(); pg.evaluate("()=>window.__advance(80)")
-        iso = pg.evaluate("()=>TB.REG.clinic.sim.s.beds[3].iso")
-        st = pg.evaluate("()=>TB.REG.clinic.sim.s.ward.staff")
-        check(iso or st < 1, 'L5: holding a bed isolates it (or there is no staff time left)')
+            check(pg.evaluate("(i)=>TB.REG.clinic.sim.s.beds[i].C >= 1", f), 'L4: a tap on a feverish bed gives the drug')
+        else: check(False, 'L4: a fever appeared within 24 s')
         h0 = pg.evaluate("()=>TB.REG.clinic.sim.s.ward.hyg")
         x, y = xy(pg, 'rub'); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(80)")
         h1 = pg.evaluate("()=>TB.REG.clinic.sim.s.ward.hyg")
-        check(h1 >= 0.89 or pg.evaluate("()=>TB.REG.clinic.sim.s.ward.staff") < 2, 'L5: the dispenser runs a hand-rub round (%.2f → %.2f)' % (h0, h1))
-        check(not errs, 'no page errors on L5')
+        check(h1 >= 0.89, 'L4: the dispenser runs a hand-rub round (%.2f → %.2f)' % (h0, h1))
+        nb = pg.evaluate("()=>[...document.querySelectorAll('#dock button[data-id]')].map(x => x.textContent.trim())")
+        check(len(nb) <= 2, 'L4: the dock holds only Hand rub and Treat fever (%s)' % nb)
+        check(not errs, 'no page errors on L4')
         ctx.close()
 
         # ---- untimed: the day waits at dawn; Next day resumes ----
@@ -162,8 +160,8 @@ def main():
 
         # ---- Calm, the description card, ?v1=1, the learning layer ----
         ctx, pg, errs = page(b, calm=True)
-        play(pg, 5); pg.evaluate("()=>window.__advance(3000)")
-        check(not errs, 'Calm mode plays the boss without errors')
+        play(pg, 3); pg.evaluate("()=>window.__advance(3000)")
+        check(not errs, 'Calm mode plays the bay without errors')
         ctx.close()
         ctx, pg, errs = page(b, intro_off=False)
         pg.evaluate("()=>{ TB.App.open ? TB.App.open(TB.REG.clinic) : TB.App.playLevel(TB.REG.clinic, 0); window.__advance(500); }")

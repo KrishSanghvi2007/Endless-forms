@@ -4,11 +4,12 @@
                     lineage grows as a wedge that widens, keeps pace, pinches off or stops dead. Sparks look the same whatever their
                     effect; the DFE builds from your tags (Eyre-Walker & Keightley 2007; Sanjuán et al. 2004).
      L1 Jackpots    twenty tubes grown from 100 cells without phage, then plated on phage. Most plates are empty, a few are jackpots:
-                    the mutants were there before the phage (Luria & Delbrück 1943). μ from the share of empty plates, m = −ln p₀.
+                    the mutants were there before the phage (Luria & Delbrück 1943). The chapter's one prediction: how many plates
+                    stay empty? The key number is the spread, variance ÷ mean, against about 1 for a phage-caused process.
      L2 Velvet      a master plate never exposed to the drug is stamped onto drug plates with velvet: the same spots grow on each.
                     Pick the master colony at a spot; its offspring, which never met the drug, are resistant (Lederberg & Lederberg 1952).
      L3 New sugar   (boss) tag on glucose, then move the lineages to a new sugar: some that did nothing now win, and sparks come no
-                    faster. Then ten patients: most already carry a resistant cell before the first dose (the Luria–Delbrück transfer).
+                    faster. (D6 decision 9 cut the triangle, flag, μ, velvet-share, winner-share and patient asks and the patients.)
    Code shape (API_v2 §9): a headless sim (plain JSON; R(), Det, WF only; a run is (seed, level, actions)); all words in SC_TEXT;
    juice from Sim.run's events only. Every count is drawn when it happens (a spark when it flashes, a plate when it is poured),
    so nothing in the state foretells an outcome. Load rule: top-level code touches only legacy objects and lower-numbered v2 files;
@@ -20,38 +21,33 @@ const SC_TEXT = {
   intro: {
     game: 'Night in a microbiology lab. Under the lamp, bacteria copy their DNA and divide, and now and then a mutation sparks.',
     biology: 'Mutations arise from copying errors, DNA damage, faulty repair and jumping genes, whether or not they would help. Most do nothing or harm.',
-    how: 'Tap sparks to tag them, pour tubes onto plates, and stamp velvet from plate to plate. Drag on the graph to predict, then Lock in.'
+    how: 'Tap sparks to tag them, tap tubes to pour them onto phage plates, and drag velvet between plates. Once, predict how many plates stay empty.'
   },
   firstWords: 'A mutation just sparked at the colony’s edge. Tap the spark to tag that lineage.',
   hud: {
     tag: 'Tag sparks as they flash. Each tagged lineage shows its fate.',
     tagU: 'Each spark waits. Tap it to tag, or tap the agar to let it go.',
-    askD: 'Of all new mutations, what share harm, do nothing, or help? Drag the diamond.',
-    full: 'The dish is full. The last fates are coming in.',
+    full: 'Dish full. Your fates so far: {h}% harm, {z}% no effect, {b}% help.',
     grow: 'Twenty tubes, each started from 100 cells, grow overnight without phage.',
-    askZ: 'Tubes average about 11 resistant colonies. How many plates will stay empty?',
+    askZ: 'Tubes average about 11 resistant colonies. Drag: how many plates will stay empty?',
     plate: 'Tap a tube to pour it onto a phage plate.',
-    flag: 'Flag every plate the phage-caused idea could not produce. Then Done.',
-    askU: '{z} of 20 empty: about {m} mutations per tube of 13 million cells. Drag μ.',
+    end: 'Spread: {v}× the mean. A phage-caused process would give about 1.',
     stamp: 'Press the velvet on the master plate, then onto a drug plate.',
     stamp2: 'Stamp the velvet onto the second drug plate. Where will colonies grow?',
     pick: 'Pick the master colony that sits where drug colonies grew.',
     m2: 'Your pick, spread on a fresh plate. None of these cells has met the drug.',
-    askC: 'What share of these colonies will grow on the drug? Drag, then Lock in.',
     stampC: 'Stamp the new plate onto the drug and see.',
     test: 'The drug plate, read next morning.',
     boss: 'Glucose dish. Tag at least 16 sparks before the colony moves on.',
-    askB: 'Moved to a new sugar. What share of your living lineages will now win?',
     patch: 'The new sugar: same lineages, same spark rate, different food.',
-    askP: 'Ten patients each carry 100 million bacteria. How many already hold a resistant cell?',
-    pat: 'The patients’ samples, read before the first dose.',
+    patchW: '{w} of {np} living lineages win on the new sugar; {wn} did nothing on glucose.',
     auto: 'What if? The rest runs by itself.',
     over: 'Done.'
   },
   whispers: {
     drag: 'Drag the diamond first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
     miss: 'Tap right on the spark.', gone: 'That spark faded untagged.', win: 'A lineage raced ahead!', jack: 'A jackpot plate!',
-    empty: 'Empty: that tube had no mutant.', flag: 'Flag the empty plates and the jackpots.', same: 'The same spots on both plates.',
+    empty: 'Empty: that tube had no mutant.', same: 'The same spots on both plates.',
     nopick: 'Stamp both drug plates first.', grew: 'It grew: resistant all along.', died: 'Nothing grew: that colony was sensitive.',
     rate: 'Same spark rate on the new sugar.', full: 'The dish is full.', moved: 'Lineages moved to the new sugar.', plated: 'Plated already.'
   },
@@ -60,15 +56,14 @@ const SC_TEXT = {
     f0: 'stopped', f1: 'slowed', f2: 'kept pace', f3: 'raced ahead', s0: 'copying slip', s1: 'DNA damage', s2: 'faulty repair', s3: 'jumping gene',
     fork: 'copying fork', lock: 'Lock in', tag: 'Tag', letgo: 'Let go', plate: 'Plate', done: 'Done', stamp: 'Stamp', next: 'Next', pick: 'Pick',
     A: 'Drug A', B: 'Drug B', C: 'Drug C', master: 'Master', m2: 'Your pick', velvet: 'velvet', sugar: 'new sugar', glucose: 'glucose',
-    p0: 'share empty', m: 'mutations a tube', yourP: 'your plates', ff: 'Tap: faster', xn: '×N', drug: 'streptomycin', phage: 'phage',
-    nFates: '{n} fates', nPlated: '{n} of 20', nFlag: '{n} flagged', nTag: '{n} tagged', nStamp: '{n} stamps', nWin: '{n} won', nPat: '{n} of 10',
-    resYes: 'grew', resNo: 'did not grow', sparkN: 'sparks ×N', oddsN: 'odds ×N', resN: 'resistance ×N', jackpot: 'jackpot', patients: 'patients', win: 'won'
+    ff: 'Tap: faster', xn: '×N', drug: 'streptomycin', phage: 'phage',
+    nFates: '{n} fates', nPlated: '{n} of 20', nTag: '{n} tagged', nStamp: '{n} stamps', nWin: '{n} won',
+    resYes: 'grew', resNo: 'did not grow', sparkN: 'sparks ×N', oddsN: 'odds ×N', resN: 'resistance ×N', jackpot: 'jackpot', win: 'won'
   },
   interesting: {
     few: 'Fewer than 30 fates. Sparks came faster as the colony grew, so most flashed near the edge late on.',
     winner: 'One of your sparks helped. In this model about 1 in 100 does; in real genomes, usually fewer.',
     nojack: 'No giant plate this time. Yet the empty plates alone rule out the idea that the phage caused resistance.',
-    misflag: 'Some flags missed. Under the phage-caused idea almost no plate is empty, and none holds a huge count.',
     wrong: 'Your pick sat away from the drug colonies, so its offspring were sensitive. Resistance was already in particular cells.',
     nowin: 'None of your lineages won on the new sugar this time. In this model a sizeable minority usually do.'
   },
@@ -79,13 +74,13 @@ const SC_TEXT = {
     big: ['Biggest plate', '{n}', 'Colonies.'], spread: ['Spread', '{v}× the mean', 'Variance ÷ mean of the counts; chance alone gives about 1.'],
     stamps: ['Stamps', '{n}', 'Velvet prints made.'], spots: ['Drug spots', '{n}', 'Colonies on drug plate A.'],
     tags: ['Tagged', '{n}', 'Sparks followed.'], wins: ['New-sugar winners', '{w} of {n}', 'Living tagged lineages.'],
-    titles: { tri: 'Mutation effects', dfe: 'Fates so far', counts: 'Colonies per plate', mu: 'Mutation rate', share: 'Growing on drug', win: 'Winners, new sugar', pat: 'Patients carrying' },
-    ax: { fate: 'share', bin: 'colonies on a plate', plates: 'plates', mu: 'per division', share: 'share', pats: 'patients' },
-    lines: { model: 'model', virus: 'a virus', yours: 'your sparks', phage: 'if phage caused it', you: 'your plates', truth: 'model μ', exp: 'expected', yourLin: 'your lineages', real: 'real genomes: under 1%' }
+    titles: { dfe: 'Fates so far', counts: 'Colonies per plate', share: 'Growing on drug', win: 'Winners, new sugar' },
+    ax: { fate: 'share', bin: 'colonies on a plate', plates: 'plates', share: 'share' },
+    lines: { model: 'model', virus: 'a virus', yours: 'your sparks', phage: 'if phage caused it', exp: 'expected', real: 'real genomes: under 1%' }
   },
   levers: { bigU: 'Triple the rate', induced: 'Phage causes it', inducedD: 'Drug causes it', fixed: 'Effects fixed' },
   take: 'Mutations arise at random with respect to need; selection decides which ones spread.',
-  body: 'On glucose most of your lineages were harmed or unchanged. On the new sugar {w} of {n} living ones won, {wn} of them once neutral. Sparks came at the same rate.',
+  body: 'On glucose most of your lineages were harmed or unchanged. On the new sugar {w} of {np} living ones won, {wn} of them once neutral. Sparks came at the same rate.',
   whatifBody: {
     bigU: 'Three times the spark rate gave {n} fates: {h}% harm, {z}% no effect, {b}% help. More sparks, the same shape.',
     induced: 'If the phage caused resistance, the plates would look like this: {z} empty, the biggest {mx}. Your real plates had {z0} empty, the biggest {mx0}.',
@@ -95,15 +90,15 @@ const SC_TEXT = {
   law: { title: 'Blind to need' },
   boss: { inverts: 'Same sparks, new food: some that did nothing now win, and none came faster.' },
   stars: {
-    discover: 'Follow 30 fates, flag the plates, and build a resistant line.',
-    predict: 'Land the effects, plates and velvet predictions in two of three levels.',
-    transfer: 'Predict the new-sugar winners and the patients already carrying resistance.'
+    discover: 'Follow 30 fates, and build a resistant line from the master plate.',
+    predict: 'Predict how many of the 20 plates stay empty.',
+    transfer: 'Tag 16 sparks and move their lineages to the new sugar.'
   },
   levelStars: [
-    { discover: 'Follow at least 30 tagged sparks to their fates.', predict: 'Land the harm, no effect and help prediction in the band.' },
-    { discover: 'Plate all 20 tubes and flag every plate the phage idea cannot explain.', predict: 'Land both the empty-plate and the mutation-rate predictions.' },
-    { discover: 'Build a resistant line from a colony that never met the drug.', predict: 'Predict what share of your pick’s offspring grow on the drug.' },
-    { discover: 'Tag at least 16 sparks and move their lineages to the new sugar.', transfer: 'Land both the new-sugar and the patient predictions.' }
+    { discover: 'Follow at least 30 tagged sparks to their fates.' },
+    { predict: 'Predict how many plates stay empty, inside the band.' },
+    { discover: 'Build a resistant line from a colony that never met the drug.' },
+    { transfer: 'Tag at least 16 sparks and move their lineages to the new sugar.' }
   ],
   levelTake: [
     'Most new mutations harm or do nothing. Helpful ones are rare, and sparks look the same whatever their effect.',
@@ -112,7 +107,7 @@ const SC_TEXT = {
   ],
   levelBody: [
     'Your {n} fates: {h}% harm, {z}% no effect, {b}% help. The model’s mix is 65%, 34% and 1%. A virus measured one change at a time came close.',
-    '{z} of 20 plates stayed empty and the biggest held {mx}. The counts spread {vm} times the mean; a phage-caused process gives about 1. Your plates give μ ≈ {mu} × 10⁻⁷.',
+    '{z} of 20 plates stayed empty and the biggest held {mx}. The counts spread {vm} times the mean; a phage-caused process gives about 1.',
     'Plates A and B grew the same {k} spots. Your pick’s offspring {res} on the drug, though none of them had met it.'
   ],
   model: [
@@ -136,7 +131,7 @@ const SC_TEXT = {
       contested: false, refs: ['lederberg1952'] },
     { level: 3, simulated: 'Tagged lineages move from glucose to a new sugar. Each keeps its mutation, and its effect is redrawn for the new food.',
       simplification: 'A lineage wins on the new sugar by chance. The odds are 35% if it was neutral, 10% if harmful, 50% if helpful. Sparks keep their rate.',
-      params: [{ name: 'neutral turned winner', value: '35%', tag: 'xN', real: 'much rarer' }, { name: 'bacteria a patient', value: '100 million', tag: 'designed' }, { name: 'resistance mutations a patient', value: '1.5 on average', tag: 'designed' }],
+      params: [{ name: 'neutral turned winner', value: '35%', tag: 'xN', real: 'much rarer' }, { name: 'harmful turned winner', value: '10%', tag: 'xN', real: 'rarer' }],
       cannot: 'Stress raising mutation rates. Stressed bacteria can make more mutations, but they are not aimed at what would help.',
       nature: 'Gene effects change with conditions. In yeast, nearly every deletion slows growth in some condition. Mutations that help on one sugar can be neutral or costly on another.',
       contested: false, refs: ['hillenmeyer2008', 'ostrowski2005', 'cooper2000', 'foster2007'] }
@@ -162,8 +157,7 @@ const SC_VSV = [0.40, 0.29, 0.27, 0.04];   // single-nucleotide mutants of VSV, 
 const SC_SRC = [0.55, 0.25, 0.10, 0.10];   // copying slip, DNA damage, faulty repair, jumping gene (designed; effect never depends on it)
 const SC_GXE = [0, 0.10, 0.35, 0.5];       // chance a living lineage of each glucose class wins on the new sugar (designed, ×N)
 const SC_LD = { N0: 100, G: 17, mu: 1e-7, tubes: 20 };   // 100 × 2^17 ≈ 13.1 million cells a tube; m = μ(N_t − N0) ≈ 1.31
-const SC_PAT = { n: 10, m: 1.5 };          // patients; resistance mutations expected per patient before the first dose (designed)
-const SC_T = { dt: 1 / 30, vis: 1.2, fate: 2.5, askMax: 40, grow: 2.4, end: 2.2, m2: 1.6, patch: 6, pat: 3.6 };
+const SC_T = { dt: 1 / 30, vis: 1.2, fate: 2.5, askMax: 40, grow: 2.4, end: 3.2, m2: 1.6, patch: 6 };
 const SC_LV = [
   { kind: 'dish', r0: 0.18, r1: 0.92, T: 70, a: 0.3, b: 0.9 },
   { kind: 'tubes' },
@@ -178,7 +172,7 @@ const SC_INK = { bench: '#140E0A', wood: '#22170F', grain: '#2F2116', lamp: '255
 const CH_SCRIBE_V2 = {
   id: 'scribe', v2: true, role: 'experimenter', place: 'lab',
   accent: '#8F5CC2',   // colony violet: the chapter's chrome tint (D6 addendum 7); never a data ink
-  intro: { goal: 'Tag mutations, plate tubes and stamp velvet: is mutation blind to need?' },
+  intro: { goal: 'Tag mutations, pour tubes and stamp velvet: is mutation blind to need?' },
   content: SC_TEXT,
   P: {
     U: { v: 0.01, tag: 'xN', min: 0.001, max: 0.05, real: 'about 0.003 per genome per division (Drake 1991)', label: 'genome mutation rate' },
@@ -193,7 +187,7 @@ const CH_SCRIBE_V2 = {
     { name: 'Velvet', adds: 'replica plating', codes: ['M3'], minutes: 3 },
     { name: 'New sugar', adds: 'a new environment', codes: ['M4'], minutes: 4 }
   ],
-  keys: { Space: 'tag, plate or stamp', ArrowRight: 'next plate or colony', Enter: 'done or pick', P: 'predict' },
+  keys: { Space: 'tag, plate or stamp', ArrowRight: 'next colony', Enter: 'pick', P: 'predict' },
   untimed: true,
   teacher: { prompts: ['What does the mix of fates tell you about how mutations arise?', 'If bacteria became resistant because they met the phage, what would the 20 counts look like?', 'This model gives every neutral mutation the same chance on a new sugar. What would make that unrealistic?'], pool: 'dots' },
   starTraits: ['fate'],
@@ -217,7 +211,7 @@ const CH_SCRIBE_V2 = {
         asks: [], pred: {}, exp: {}, tol: {}, hits: {}, ask: null, resume: null, log: [] };
       const s = this.s;
       if (c.kind === 'dish') this.dishInit(s);
-      else if (c.kind === 'tubes') { s.phase = 'grow'; s.n = new Array(20).fill(-1); s.flag = new Array(20).fill(0); s.plated = 0; }
+      else if (c.kind === 'tubes') { s.phase = 'grow'; s.n = new Array(20).fill(-1); s.plated = 0; }
       else { s.phase = 'stamp'; s.m1 = this.colonies(c.n1, this.P().res.v); s.st = 0; s.pick = -1; s.m2 = null; s.m2res = 0; s.cdone = false; s.sel = 0; }
     },
     dishInit(s) { const c = this.cfg(s.level); s.phase = 'run'; s.t = 0; s.rho = c.r0; s.sp = []; s.pid = 0; s.seen = 0; s.miss = 0; s.tags = 0; s.fates = 0; s.cnt = [0, 0, 0, 0]; s.trail = []; s.full = false; },
@@ -245,8 +239,7 @@ const CH_SCRIBE_V2 = {
     rate(s) { const c = this.cfg(s.level); return (c.a + c.b * s.rho) * (s.whatif === 'bigU' ? 3 : 1); },   // sparks a second grow with the colony's edge
     dishStep(s, ev) {
       if (s.phase === 'move') { this.move(s, ev); return; }
-      if (s.phase === 'patch') { if (s.t >= SC_T.patch) { if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); } else this.openAsk(s, ev, 'b2', 'x', 0, SC_PAT.n, 1.2, 0, this.patExp(), 'pat'); } return; }
-      if (s.phase === 'pat') { if (s.t >= SC_T.pat) { s.phase = 'over'; ev.push({ k: 'over' }); } return; }
+      if (s.phase === 'patch') { if (s.t >= SC_T.patch) { s.phase = 'over'; ev.push({ k: 'over' }); } return; }
       if (s.phase !== 'run') return;
       const c = this.cfg(s.level);
       for (const p of s.sp) {
@@ -255,7 +248,6 @@ const CH_SCRIBE_V2 = {
       }
       s.sp = s.sp.filter(p => p.tag || !p.gone);
       if (s.trail.length > 60) s.trail.splice(0, s.trail.length - 60);
-      if (s.level === 0 && !s.auto && s.tags >= 2 && s.asks.indexOf('d1') < 0) { this.letGo(s, ev); this.openAsk(s, ev, 'd1', 'tri', 0, 1, 0.12, [0.02, 0.02, 0.96], [SC_DFE[0] + SC_DFE[1], SC_DFE[2], SC_DFE[3]], 'run'); return; }
       if (s.unt && s.sp.some(p => !p.tag && !p.gone)) return;   // untimed: the colony waits on a lit spark
       if (s.rho < c.r1 - 1e-9) {
         s.rho = Math.min(c.r1, s.rho + (c.r1 - c.r0) / c.T * this.dt);
@@ -284,17 +276,14 @@ const CH_SCRIBE_V2 = {
     living(s) { return s.sp.filter(p => p.tag && p.fate && p.cls > 0); },
     endGrow(s, ev) {
       if (!this.cfg(s.level).boss || s.auto && s.whatif !== 'fixed') { s.phase = 'over'; ev.push({ k: 'over' }); return; }
-      const L = this.living(s);
-      if (!s.auto && L.length) { this.openAsk(s, ev, 'b1', 'x', 0, 1, 0.08, 1, this.winExp(s), 'move'); return; }
       s.phase = 'move';
     },
     winExp(s) { const L = this.living(s), g = this.gxe(); return L.length ? Math.round(L.reduce((a, p) => a + g[p.cls], 0) / L.length * 1e4) / 1e4 : 0; },   // the model's expected share: no luck in it
     gxe() { const v = this.P().gxe.v; return [0, SC_GXE[1], v, SC_GXE[3]]; },
     move(s, ev) {   // living tagged lineages are patched onto the new sugar; each one's effect there is drawn now
-      const g = this.gxe(); s.pa = this.living(s).map(p => { const win = s.whatif === 'fixed' ? p.cls === 3 : R() < g[p.cls]; return { id: p.id, cls: p.cls, win: win ? 1 : 0 }; });
+      const g = this.gxe(); s.expWin = this.winExp(s); s.pa = this.living(s).map(p => { const win = s.whatif === 'fixed' ? p.cls === 3 : R() < g[p.cls]; return { id: p.id, cls: p.cls, win: win ? 1 : 0 }; });
       s.phase = 'patch'; s.t = 0; ev.push({ k: 'move', n: s.pa.length, w: s.pa.filter(q => q.win).length });
     },
-    patExp() { return Math.round(SC_PAT.n * (1 - Det.exp(-SC_PAT.m)) * 1e4) / 1e4; },   // 10(1 − e^(−m)): patients expected to carry a resistant cell
 
     /* ---------- L1: the fluctuation test ---------- */
     pw2(k) { let x = 1; for (let i = 0; i < k; i++) x *= 2; return x; },
@@ -307,7 +296,6 @@ const CH_SCRIBE_V2 = {
     ldM() { const L = SC_LD; return this.P().mu.v * L.N0 * (this.pw2(L.G) - 1); },                // expected mutations a tube, m ≈ 1.31
     pois(l, k) { let p = Det.exp(-l); for (let i = 1; i <= k; i++) p *= l / i; return p; },
     kHi() { const l = this.ldMean(); if (this._kh && this._kh[0] === l) return this._kh[1]; let F = 0, k = 0; while (1 - F >= 0.001 && k < 400) { F += this.pois(l, k); k++; } this._kh = [l, k]; return k; },   // P(X ≥ kHi) < 0.001 under a phage-caused (Poisson) process
-    central() { const l = this.ldMean(); let F = 0, k = 0, lo = 0; while (F < 0.005) { F += this.pois(l, k); k++; } lo = k; while (F < 0.995) { F += this.pois(l, k); k++; } return [Math.max(1, lo), k - 1]; },
     zExp() { return Math.round(SC_LD.tubes * Det.exp(-this.ldM()) * 1e4) / 1e4; },               // 20·e^(−m) empty plates
     tubesStep(s, ev) {
       if (s.phase === 'grow' && s.t >= SC_T.grow) { if (s.auto) { s.phase = 'plate'; s.t = 0; } else this.openAsk(s, ev, 'z1', 'y', 0, 20, 2.5, 20, this.zExp(), 'plate'); }
@@ -318,20 +306,14 @@ const CH_SCRIBE_V2 = {
       if (s.n[i] >= 0) { ev.push({ k: 'plated', i }); return; }
       const n = s.whatif === 'induced' ? WF.binom(SC_LD.N0 * this.pw2(SC_LD.G), this.ldMean() / (SC_LD.N0 * this.pw2(SC_LD.G))) : this.ldCount();
       s.n[i] = n; s.plated++; ev.push({ k: 'plate', i, n, jack: n >= this.kHi() });
-      if (s.plated >= 20) { s.phase = s.auto ? 'end' : 'flag'; s.t = 0; ev.push({ k: 'flagstart' }); }
-    },
-    flagOK(s) {   // every empty plate and every plate beyond the Poisson 99.9% range flagged; no flag on a plainly ordinary plate (central 99%)
-      if (!s.n || s.plated < 20) return false; const kh = this.kHi(), [lo, hi] = this.central(); let miss = 0, wrong = 0;
-      s.n.forEach((n, i) => { const must = n === 0 || n >= kh, fine = n >= lo && n <= hi; if (must && !s.flag[i]) miss++; if (fine && s.flag[i]) wrong++; });
-      return miss === 0 && wrong === 0;
+      if (s.plated >= 20) { s.phase = 'end'; s.t = 0; ev.push({ k: 'allplated' }); }
     },
     zeros(s) { return s.n ? s.n.filter(n => n === 0).length : 0; },
-    muHat(s) { const z = this.zeros(s), L = SC_LD; return z > 0 ? -Det.log(z / L.tubes) / (L.N0 * (this.pw2(L.G) - 1)) : null; },   // the p₀ estimator
     vmr(n) { const a = n.filter(x => x >= 0); if (a.length < 2) return 0; const m = a.reduce((x, y) => x + y, 0) / a.length; if (!m) return 0; const v = a.reduce((x, y) => x + (y - m) * (y - m), 0) / (a.length - 1); return v / m; },
 
     /* ---------- L2: velvet ---------- */
     velvetStep(s, ev) {
-      if (s.phase === 'm2' && s.t >= SC_T.m2) { if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); } else this.openAsk(s, ev, 'c1', 'y', 0, 1, 0.15, 0.5, s.m2res, 'stamp2'); }
+      if (s.phase === 'm2' && s.t >= SC_T.m2) { if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); } else { s.phase = 'stamp2'; s.t = 0; } }
       if (s.phase === 'test' && s.t >= SC_T.end) { s.phase = 'over'; ev.push({ k: 'over' }); }
     },
     stamp(s, ev) {
@@ -362,16 +344,14 @@ const CH_SCRIBE_V2 = {
         hit = this.err(A.kind, v, s.exp[id]) <= A.tol + 1e-9;
       } else v = null;
       s.pred[id] = v; s.hits[id] = hit; s.ask = null; s.phase = s.resume || 'run'; s.t = 0; ev.push({ k: 'commit', id });
-      if (id === 'b2') { s.pt = []; const q = 1 - Det.exp(-SC_PAT.m); for (let i = 0; i < SC_PAT.n; i++) s.pt.push(R() < q ? 1 : 0); ev.push({ k: 'patients', n: s.pt.filter(x => x).length }); }
-      if (id === 'u1') ev.push({ k: 'ruler' });
     },
     /* ---------- What if? (D1 G9): the finished level is frozen; one lever reruns it by itself ---------- */
     lever(k) {
       const s = this.s; s.whatif = k; s.auto = true; s.ask = null; s.t = 0;
       if (k === 'bigU') { this.dishInit(s); }
-      else if (k === 'induced') { s.z0 = this.zeros(s); s.mx0 = Math.max.apply(null, s.n); s.n = new Array(20).fill(-1); s.flag = new Array(20).fill(0); s.plated = 0; s.phase = 'plate'; }
+      else if (k === 'induced') { s.z0 = this.zeros(s); s.mx0 = Math.max.apply(null, s.n); s.n = new Array(20).fill(-1); s.plated = 0; s.phase = 'plate'; }
       else if (k === 'inducedD') { s.st = 0; s.pick = -1; s.m2 = null; s.cdone = false; s.phase = 'stamp'; }
-      else if (k === 'fixed') { s.phase = 'move'; s.pt = null; }
+      else if (k === 'fixed') s.phase = 'move';
     },
     autoAct(s, ev) {
       if (s.kind === 'dish' && s.phase === 'run') { for (const p of s.sp.filter(q => !q.tag && !q.gone)) this.tag(s, ev, p.id); }
@@ -386,8 +366,6 @@ const CH_SCRIBE_V2 = {
       if (a.k === 'tag' && s.kind === 'dish' && s.phase === 'run') this.tag(s, ev, a.id);
       else if (a.k === 'skip' && s.kind === 'dish' && s.phase === 'run') { if (s.unt) this.letGo(s, ev); else ev.push({ k: 'wait' }); }   // untimed only: let lit sparks go
       else if (a.k === 'plate') this.plate(s, ev, a.i);
-      else if (a.k === 'flag' && s.phase === 'flag' && a.i >= 0 && a.i < 20) { s.flag[a.i] = s.flag[a.i] ? 0 : 1; ev.push({ k: 'flag', i: a.i, on: s.flag[a.i] }); }
-      else if (a.k === 'done' && s.phase === 'flag') { const z = this.zeros(s); this.openAsk(s, ev, 'u1', 'x', -10, -5, 0.301, -5, Math.round(Det.log(this.P().mu.v) / Det.log(10) * 1e4) / 1e4, 'end'); s.zAt = z; }
       else if (a.k === 'stamp') this.stamp(s, ev);
       else if (a.k === 'pick') this.pick(s, ev, a.i);
       return ev;
@@ -400,7 +378,7 @@ const CH_SCRIBE_V2 = {
     interesting(s) {   // chosen from what happened (lessons §1.5)
       if (s.whatif) return null; const n = s.level;
       if (n === 0) return s.fates < 30 ? 'few' : s.cnt[3] > 0 ? 'winner' : null;
-      if (n === 1) { if (s.plated < 20) return null; if (Math.max.apply(null, s.n) < this.kHi()) return 'nojack'; return this.flagOK(s) ? null : 'misflag'; }
+      if (n === 1) return s.plated >= 20 && Math.max.apply(null, s.n) < this.kHi() ? 'nojack' : null;
       if (n === 2) return s.pick >= 0 && !s.m2res ? 'wrong' : null;
       return s.pa && s.pa.length && !s.pa.some(q => q.win) ? 'nowin' : null;
     },
@@ -417,20 +395,19 @@ const CH_SCRIBE_V2 = {
       if (s.auto) return out;
       if (s.kind === 'dish' && s.phase === 'run') { for (const p of s.sp) if (!p.tag && !p.gone) out.push({ k: 'tag', id: p.id }); if (s.unt && out.length) out.push({ k: 'skip' }); }
       else if (s.phase === 'plate') s.n.forEach((n, i) => { if (n < 0) out.push({ k: 'plate', i }); });
-      else if (s.phase === 'flag') { s.n.forEach((n, i) => out.push({ k: 'flag', i })); out.push({ k: 'done' }); }
       else if (s.phase === 'stamp' || s.phase === 'stamp2') out.push({ k: 'stamp' });
       else if (s.phase === 'pick') s.m1.forEach((q, i) => out.push({ k: 'pick', i }));
       return out;
     },
     /* bots (tests/bots.js): (s, acts, rnd) → action | null; 'random' is generic. No bot may earn three stars in a level, nor across the unit. */
     bots: {
-      alwaysA(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'lo', flag: 'none', pick: 'first' }); },
-      alwaysB(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'none', pred: 'hi', flag: 'all', pick: 'last' }); },
-      greedy(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'mid', flag: 'zero', pick: 'match' }); },
-      threshold(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'induced', flag: 'exact', pick: 'match' }); },   // skilled hands, the "need causes it" model in every prediction
-      lazy(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'still', flag: 'exact', pick: 'match' }); },
-      allIn(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'mid', flag: 'all', pick: 'random' }); },
-      expert(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'exact', flag: 'exact', pick: 'match' }); }   // test policy: reads s.exp (never in a sweep)
+      alwaysA(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'lo', pick: 'first' }); },
+      alwaysB(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'none', pred: 'hi', pick: 'last' }); },
+      greedy(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'mid', pick: 'match' }); },
+      threshold(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'induced', pick: 'match' }); },   // skilled hands, the "need causes it" model in the prediction
+      lazy(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'still', pick: 'match' }); },
+      allIn(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'mid', pick: 'random' }); },
+      expert(s, acts, rnd) { return CH_SCRIBE_V2.sim.bot(s, acts, rnd, { tag: 'all', pred: 'exact', pick: 'match' }); }   // test policy: reads s.exp (never in a sweep)
     },
     bot(s, acts, rnd, o) {
       if (typeof Save !== 'undefined' && Save.d && Save.d.ui && Save.d.ui.unt && !s.unt) return { k: 'unt', on: true };
@@ -438,18 +415,11 @@ const CH_SCRIBE_V2 = {
         const A = s.ask, id = A.id;
         if (o.pred === 'still') return { k: 'predict', id, v: A.start, moved: false };
         if (o.pred === 'exact') return { k: 'predict', id, v: s.exp[id] };
-        if (A.kind === 'tri') return { k: 'predict', id, v: o.pred === 'lo' ? [1, 0, 0] : o.pred === 'hi' ? [0, 0, 1] : o.pred === 'induced' ? [0.2, 0.2, 0.6] : [1 / 3, 1 / 3, 1 / 3] };
-        if (o.pred === 'induced') { const ind = { z1: 0, u1: -5, c1: 0, b1: 0, b2: 0 }; return { k: 'predict', id, v: ind[id] }; }   // need-driven: no plate empty, rate high, no resistance without the drug
+        if (o.pred === 'induced') return { k: 'predict', id, v: 0 };   // need-driven: under a phage-caused process almost no plate is empty
         return { k: 'predict', id, v: o.pred === 'lo' ? A.lo : o.pred === 'hi' ? A.hi : (A.lo + A.hi) / 2 };
       }
       if (s.kind === 'dish' && s.phase === 'run') { if (o.tag === 'none') return s.unt && acts.length ? { k: 'skip' } : null; const a = acts.find(x => x.k === 'tag'); return a || null; }
       if (s.phase === 'plate') return acts[0] || null;
-      if (s.phase === 'flag') {
-        if (o.flag === 'none') return { k: 'done' };
-        const kh = this.kHi(), want = i => o.flag === 'all' ? 1 : o.flag === 'zero' ? (s.n[i] === 0 ? 1 : 0) : (s.n[i] === 0 || s.n[i] >= kh ? 1 : 0);
-        for (let i = 0; i < 20; i++) if (s.flag[i] !== want(i)) return { k: 'flag', i };
-        return { k: 'done' };
-      }
       if (s.phase === 'stamp' || s.phase === 'stamp2') return { k: 'stamp' };
       if (s.phase === 'pick') { const n = s.m1.length, m = s.m1.findIndex(q => q.res); return { k: 'pick', i: o.pick === 'first' ? 0 : o.pick === 'last' ? n - 1 : o.pick === 'match' ? m : Math.floor(rnd() * n) }; }
       return null;
@@ -459,25 +429,25 @@ const CH_SCRIBE_V2 = {
   /* ---------- stars: pure functions of the final state, read against the model's expectations ---------- */
   stars: {
     discover: (s, n) => {
-      if (s.whatif) return false; const sim = CH_SCRIBE_V2.sim;
+      if (s.whatif) return false;
       if (n === 0) return s.fates >= 30;
-      if (n === 1) return s.plated >= 20 && sim.flagOK(s);
+      if (n === 1) return false;   // Jackpots offers Predict only: pouring every tube is no discovery
       if (n === 2) return s.pick >= 0 && !!s.m2res && s.cdone;
-      return s.fates >= 16 && !!s.pa;
+      return false;   // the boss offers Transfer only
     },
-    predict: (s, n) => { if (s.whatif || n > 2) return false; return n === 0 ? !!s.hits.d1 : n === 1 ? !!(s.hits.z1 && s.hits.u1) : !!s.hits.c1; },
-    transfer: (s, n) => !s.whatif && n === 3 && !!(s.hits.b1 && s.hits.b2)
+    predict: (s, n) => !s.whatif && n === 1 && !!s.hits.z1,   // the chapter's one prediction (D6 decision 9)
+    transfer: (s, n) => !s.whatif && n === 3 && s.fates >= 16 && !!s.pa
   },
-  unitStars(lv) {   // Discover in two of four levels; Predict in two of L0–L2 (D5: two of three); Transfer = the boss
-    const m = i => lv[i] | 0; let d = 0, p = 0; for (let i = 0; i < 4; i++) if (m(i) & 1) d++; for (let i = 0; i < 3; i++) if (m(i) & 2) p++;
-    return (d >= 2 ? 1 : 0) | (p >= 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
+  unitStars(lv) {   // Discover in Sparks and Velvet (the velvet pick needs reading the plates); Predict = the empty-plate call (L1); Transfer = the boss
+    const m = i => lv[i] | 0;
+    return (m(0) & 1 && m(2) & 1 ? 1 : 0) | (m(1) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
   /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 a level number (L0 fates, L1 empty plates ×10, L2 1 if the pick was resistant,
-     L3 winners), 14–20 first prediction as % of its axis, 21–27 second */
+     L3 winners), 14–20 the empty-plate prediction as % of its axis (L1; 127 when none), 21–27 unused (127) */
   resultBits(s, level) {
     if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v))), sim = this.sim;
     const x = n === 0 ? s.fates : n === 1 ? 10 * sim.zeros(s) : n === 2 ? (s.m2res ? 1 : 0) : (s.pa ? s.pa.filter(q => q.win).length : 0);
-    const pv = id => { const v = s.pred[id], A = { z1: [0, 20], u1: [-10, -5], c1: [0, 1], b1: [0, 1], b2: [0, 10] }[id]; if (id === 'd1') return v ? c(100 * v[0], 126) : 127; return v == null || !A ? 127 : c(100 * (v - A[0]) / (A[1] - A[0]), 126); };
+    const pv = id => { const v = s.pred[id], A = { z1: [0, 20] }[id]; return v == null || !A ? 127 : c(100 * (v - A[0]) / (A[1] - A[0]), 126); };
     return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv(s.asks[0]) << 14 | pv(s.asks[1]) << 21) >>> 0;
   },
 
@@ -485,8 +455,8 @@ const CH_SCRIBE_V2 = {
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
   startLevel(n, o) {
     o = o || {}; this.level = n; this._ended = false; this._pend = false; this._asking = null; this._hudSig = ''; this._dockSig = '';
-    this.v = { t: 0, ff: false, hold: -1, fold: 0, said: {}, bk: {}, bkSize: '', banner: null, fx: {}, beads: [], zflash: 0, links: [], bloom: {}, pour: {}, flags: {},
-      vel: null, drag: null, sel: 0, cell: 0, prints: {}, moveT: -1, patT: -1, ruler: 0, thaw: !!o.thaw, pops: [] };
+    this.v = { t: 0, ff: false, hold: -1, fold: 0, said: {}, bk: {}, bkSize: '', banner: null, fx: {}, beads: [], zflash: 0, links: [], bloom: {}, pour: {},
+      vel: null, drag: null, sel: 0, cell: 0, prints: {}, moveT: -1, thaw: !!o.thaw, pops: [] };
     Sim.start(this, n, o);
     const ui = Save.d && Save.d.ui;
     if (!o.thaw && !o.replay && ui && ui.unt) Sim.act(this, { k: 'unt', on: true });   // a setting enters the run as a logged action (lessons §1.6)
@@ -513,7 +483,7 @@ const CH_SCRIBE_V2 = {
     const v = this.v;
     for (const e of Sim.run(this, 0)) this.juice(e);
     if (v.hold >= 0) { v.hold += dt; if (!this.phoneStrip() || v.hold > 1.2) v.hold = -1; }
-    const s0 = this.sim.s, slow = /grow|m2|test|patch|pat|end/.test(s0.phase), ff = s0.auto ? 4 : v.ff && slow ? 3 : 1;
+    const s0 = this.sim.s, slow = /grow|m2|test|patch|end/.test(s0.phase), ff = s0.auto ? 4 : v.ff && slow ? 3 : 1;
     const ev = Sim.run(this, v.hold >= 0 ? 0 : dt * ff), s = this.sim.s;
     for (const e of ev) this.juice(e);
     v.t += dt; v.zflash = Math.max(0, v.zflash - dt);
@@ -524,8 +494,6 @@ const CH_SCRIBE_V2 = {
     v.pops = v.pops.filter(p => (p.t += dt) < 1.6);
     if (v.vel) { v.vel.t += dt / (s.auto ? 0.4 : 1); if (v.vel.t > 0.9) v.vel = null; }
     if (v.moveT >= 0) v.moveT += dt * ff;
-    if (v.patT >= 0) v.patT += dt * ff;
-    if (v.ruler > 0) v.ruler = Math.min(1, v.ruler + dt / 0.6);
     if (v.ghost0 && !v.banner) { v.ghost0 = false; this.teach(); }
     if (s.ask && this._asking !== s.ask.id) this.openAsk();
     if (!s.ask && this._asking) { this._asking = null; v.fold = 1; }
@@ -543,18 +511,15 @@ const CH_SCRIBE_V2 = {
   },
   hud() {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
-    let t = C.over, num = '';
+    let t = C.over, num = ''; const V = s.phase === 'patch' || s.full || s.phase === 'end' ? this.bodyVars() : null;   // the key number, said plainly when it matters (D6 decision 9)
     if (s.auto) t = C.auto;
-    else if (s.phase === 'ask') {
-      if (s.ask.id === 'u1') { const z = s.zAt != null ? s.zAt : this.sim.zeros(s), m = z > 0 ? (-Det.log(z / 20)).toFixed(1) : '3+'; t = Txt.f(C.askU, { z, m }); }
-      else t = { d1: C.askD, z1: C.askZ, c1: C.askC, b1: C.askB, b2: C.askP }[s.ask.id] || C.askD;
-    }
-    else if (s.kind === 'dish') t = s.phase === 'patch' ? C.patch : s.phase === 'pat' ? C.pat : s.full ? C.full : this.level === 3 ? C.boss : s.tags === 0 && this.level === 0 ? this.content.firstWords : s.unt ? C.tagU : C.tag;
-    else if (s.kind === 'tubes') t = s.phase === 'grow' ? C.grow : s.phase === 'plate' ? C.plate : s.phase === 'flag' ? C.flag : C.over;
+    else if (s.phase === 'ask') t = C.askZ;
+    else if (s.kind === 'dish') t = s.phase === 'patch' ? (this.v.moveT > 3 ? Txt.f(C.patchW, V) : C.patch) : s.full ? Txt.f(C.full, V) : this.level === 3 ? C.boss : s.tags === 0 && this.level === 0 ? this.content.firstWords : s.unt ? C.tagU : C.tag;
+    else if (s.kind === 'tubes') t = s.phase === 'grow' ? C.grow : s.phase === 'plate' ? C.plate : s.phase === 'end' ? Txt.f(C.end, { v: V.vm }) : C.over;
     else t = s.phase === 'stamp' ? (s.st === 0 ? C.stamp : C.stamp2) : s.phase === 'pick' ? C.pick : s.phase === 'm2' ? C.m2 : s.phase === 'stamp2' ? C.stampC : C.test;
     if (s.phase === 'over' && !s.auto) t = C.over;
     if (s.kind === 'dish') num = s.pa ? Txt.f(L.nWin, { n: s.pa.filter(q => q.win).length }) : Txt.f(this.level === 3 ? L.nTag : L.nFates, { n: this.level === 3 ? s.tags : s.fates });
-    else if (s.kind === 'tubes') num = s.phase === 'flag' ? Txt.f(L.nFlag, { n: s.flag.filter(x => x).length }) : Txt.f(L.nPlated, { n: s.plated });
+    else if (s.kind === 'tubes') num = Txt.f(L.nPlated, { n: s.plated });
     else num = Txt.f(L.nStamp, { n: s.st + (s.cdone ? 1 : 0) });
     const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
     const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
@@ -569,15 +534,13 @@ const CH_SCRIBE_V2 = {
     const A = a => () => Sim.act(this, a);
     if (s.kind === 'dish' && s.phase === 'run') { const b = [{ id: 'sc-tag', label: L.tag, key: ' ', fn: A({ k: 'tag' }) }]; if (s.unt) b.push({ id: 'sc-go', label: L.letgo, key: 'ArrowRight', fn: A({ k: 'skip' }) }); Dock.set(b); return; }
     if (s.phase === 'plate') { Dock.set([{ id: 'sc-plate', label: L.plate, key: ' ', fn: A({ k: 'plate' }) }]); return; }
-    if (s.phase === 'flag') { Dock.set([{ id: 'sc-done', label: L.done, key: 'Enter', primary: true, fn: A({ k: 'done' }) }]); return; }
     if (s.phase === 'stamp' || s.phase === 'stamp2') { Dock.set([{ id: 'sc-stamp', label: L.stamp, key: ' ', fn: A({ k: 'stamp' }) }]); return; }
     if (s.phase === 'pick') { Dock.set([{ id: 'sc-next', label: L.next, key: 'ArrowRight', fn: () => { this.v.sel = (this.v.sel + 1) % s.m1.length; } }, { id: 'sc-pick', label: L.pick, key: 'Enter', primary: true, fn: () => Sim.act(this, { k: 'pick', i: this.v.sel }) }]); return; }
     Dock.set([]);
   },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
-    const chart = { d1: 0, z1: 0, u1: 1, c1: 0, b1: 0, b2: 1 }[A.id] || 0, at = A.id === 'z1' ? 0 : A.id === 'c1' ? 2 : undefined;
-    if (A.id === 'u1') this.v.ruler = 0.01;
+    const chart = 0, at = 0;   // the one ask: empty plates, on the colonies-per-plate chart at its "0" bin
     Predict.ask({ id: A.id, chart, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, at, soft: s.unt ? null : 24, needMove: true, linger: 900,
       onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'predict', id: A.id, v: null, moved: false }), say: this.content.live.ask });
     if (typeof Live !== 'undefined') Live.say(this.content.live.ask);
@@ -601,8 +564,8 @@ const CH_SCRIBE_V2 = {
   },
   bodyVars() {
     const s = this.sim.s, sim = this.sim, n = this.level, pc = x => Math.round(100 * x);
-    if (s.kind === 'dish') { const sh = sim.shares(s), pa = s.pa || []; return { n: s.whatif === 'fixed' ? pa.length : s.fates, h: pc(sh[0]), z: pc(sh[1]), b: pc(sh[2]), w: pa.filter(q => q.win).length, wn: pa.filter(q => q.win && q.cls === 2).length }; }
-    if (s.kind === 'tubes') { const mh = sim.muHat(s), a = s.n.filter(x => x >= 0); return { z: sim.zeros(s), mx: a.length ? Math.max.apply(null, a) : 0, vm: (Math.round(sim.vmr(s.n) * 10) / 10).toFixed(1), mu: mh ? (Math.round(mh / 1e-8) / 10).toFixed(1) : 'over 3', z0: s.z0 != null ? s.z0 : 0, mx0: s.mx0 != null ? s.mx0 : 0 }; }
+    if (s.kind === 'dish') { const sh = sim.shares(s), pa = s.pa || []; return { n: s.whatif === 'fixed' ? pa.length : s.fates, h: pc(sh[0]), z: pc(sh[1]), b: pc(sh[2]), np: pa.length, w: pa.filter(q => q.win).length, wn: pa.filter(q => q.win && q.cls === 2).length }; }
+    if (s.kind === 'tubes') { const a = s.n.filter(x => x >= 0); return { z: sim.zeros(s), mx: a.length ? Math.max.apply(null, a) : 0, vm: (Math.round(sim.vmr(s.n) * 10) / 10).toFixed(1), z0: s.z0 != null ? s.z0 : 0, mx0: s.mx0 != null ? s.mx0 : 0 }; }
     const k = s.m1.filter(q => q.res).length, L = this.content.labels;
     if (s.whatif === 'inducedD') { const A = s.indA || [], B = s.indB || []; let m = 0; for (const b of B) if (A.some(a => (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) < 0.01)) m++; return { k: m, n: B.length }; }
     return { k, res: s.m2res ? L.resYes : L.resNo };
@@ -627,7 +590,6 @@ const CH_SCRIBE_V2 = {
       }
       case 'full': this.whisper('full'); if (F) F.tier(2, () => F.ring(P.cx, P.cy, P.R * 0.94, { ms: 600 })); return;
       case 'commit': if (this.phoneStrip()) v.hold = 0; this.reveal(e.id); return;
-      case 'ruler': v.ruler = Math.max(v.ruler, 0.01); return;
       case 'plate': {
         const c = P.cells[e.i]; v.pour[e.i] = 0; v.bloom[e.i] = 0;
         if (c) { snd('pour', c.x, c.y); if (F) F.burst('droplet', c.x, c.y, 5, { ink: SC_INK.agar2 }); }
@@ -638,8 +600,7 @@ const CH_SCRIBE_V2 = {
         this.redraw(); return;
       }
       case 'plated': this.whisper('plated'); return;
-      case 'flagstart': if (!s.auto) this.whisper('flag'); this.redraw(); return;
-      case 'flag': { const c = P.cells[e.i]; if (c) { v.flags[e.i] = 0; snd('tick', c.x, c.y); if (F) F.ring(c.x, c.y, c.r * 1.15, { ms: 160 }); } return; }
+      case 'allplated': if (F) F.tier(2); this.redraw(); return;
       case 'stamp': {
         const to = e.p === 'A' ? [P.ax, P.ay] : e.p === 'B' ? [P.bx, P.by] : [P.cxp, P.cyp]; v.vel = { from: e.p === 'C' ? [P.mx, P.my] : [P.mx, P.my], to, t: 0, p: e.p }; v.prints[e.p] = 0;
         snd('swish', to[0], to[1]); if (F) F.after(450, () => { F.burst('dust', to[0], to[1], 6, { ink: SC_INK.tagL }); v.prints[e.p] = 1; if (e.p === 'C') { if (e.res) { F.tier(3, () => F.ring(to[0], to[1], P.rd * 1.4, { ms: 900 })); snd('interesting', to[0], to[1]); this.whisper('grew'); } else { F.ring(to[0], to[1], P.rd * 1.1, { dashed: true, ms: 2000 }); this.whisper('died'); } } if (e.p === 'B') { this.whisper('same'); for (const q of s.m1.filter(q => q.res)) v.links.push({ k: 'ab', q, t: 0 }); F.tier(2); } });
@@ -649,7 +610,6 @@ const CH_SCRIBE_V2 = {
       case 'nopick': this.whisper('nopick'); return;
       case 'pick': { const q = s.m1[e.i], x = P.mx + q.x * P.mr * 0.92, y = P.my + q.y * P.mr * 0.92; if (F) { F.tier(1); F.ring(x, y, 16, { ms: 180 }); } snd('tock', x, y); v.m2T = 0; return; }
       case 'move': v.moveT = 0; this.whisper('moved'); if (F) F.tier(2, () => F.ring(P.cx, P.cy, P.R, { ms: 600 })); snd('pour', P.cx, P.cy); if (F) F.after(3200, () => { const w = (this.sim.s.pa || []).filter(q => q.win).length; if (w) F.tier(3, () => F.burst('spark', P.cx, P.cy, 12, { ink: SC_INK.tagL })); this.whisper('rate'); }); this.redraw(); return;
-      case 'patients': v.patT = 0; snd('count', Stage.w / 2, Stage.h - 40); this.redraw(); return;
       case 'unt': this._dockSig = ''; return;
       case 'over': this.redraw(); return;
     }
@@ -659,7 +619,7 @@ const CH_SCRIBE_V2 = {
   down(x, y) {
     const s = this.sim.s, v = this.v, P = this.pos();
     if (s.auto || s.phase === 'ask' || s.phase === 'over') { if (s.auto) v.ff = true; return; }
-    if (/grow|m2|test|patch|pat|end/.test(s.phase)) { v.ff = true; return; }
+    if (/grow|m2|test|patch|end/.test(s.phase)) { v.ff = true; return; }
     if (s.kind === 'dish' && s.phase === 'run') {
       let best = null, bd = 1e9; for (const p of s.sp) if (!p.tag && !p.gone) { const q = this.sparkXY(p.id); if (!q) continue; const d = (q[0] - x) * (q[0] - x) + (q[1] - y) * (q[1] - y); if (d < bd) { bd = d; best = p; } }
       const rr = Math.max(34, P.R * 0.14);
@@ -668,7 +628,7 @@ const CH_SCRIBE_V2 = {
       else if (best && !v.said.miss) { v.said.miss = 1; this.whisper('miss'); }
       return;
     }
-    if (s.kind === 'tubes') { const i = P.cells.findIndex(c => Math.abs(x - c.x) <= c.w / 2 && Math.abs(y - c.y) <= c.w / 2); if (i < 0) return; v.cell = i; if (s.phase === 'plate') Sim.act(this, { k: 'plate', i }); else if (s.phase === 'flag') Sim.act(this, { k: 'flag', i }); return; }
+    if (s.kind === 'tubes') { const i = P.cells.findIndex(c => Math.abs(x - c.x) <= c.w / 2 && Math.abs(y - c.y) <= c.w / 2); if (i < 0) return; v.cell = i; if (s.phase === 'plate') Sim.act(this, { k: 'plate', i }); return; }
     if (s.kind === 'velvet') {
       if (s.phase === 'stamp' || s.phase === 'stamp2') { const dm = Math.sqrt((x - P.mx) * (x - P.mx) + (y - P.my) * (y - P.my)), dv = Math.sqrt((x - P.vx) * (x - P.vx) + (y - P.vy) * (y - P.vy)); v.drag = { x, y, x0: x, y0: y, on: dm <= P.mr * 1.05 || dv <= 40 }; return; }
       if (s.phase === 'pick') { const i = this.colonyAt(x, y); if (i >= 0) { v.sel = i; Sim.act(this, { k: 'pick', i }); } }
@@ -683,8 +643,7 @@ const CH_SCRIBE_V2 = {
   },
   onKey(k) {
     const s = this.sim.s, v = this.v;
-    if (k === ' ' && /grow|m2|test|patch|pat|end/.test(s.phase)) { v.ff = true; return; }
-    if (s.phase === 'flag') { if (k === 'ArrowRight' || k === 'ArrowDown') v.cell = (v.cell + (k === 'ArrowDown' ? 5 : 1)) % 20; else if (k === 'ArrowLeft' || k === 'ArrowUp') v.cell = (v.cell + (k === 'ArrowUp' ? 15 : 19)) % 20; else if (k === ' ') Sim.act(this, { k: 'flag', i: v.cell }); return; }
+    if (k === ' ' && /grow|m2|test|patch|end/.test(s.phase)) { v.ff = true; return; }
     if (s.phase === 'pick') { if (k === 'ArrowRight') v.sel = (v.sel + 1) % s.m1.length; else if (k === 'ArrowLeft') v.sel = (v.sel + s.m1.length - 1) % s.m1.length; return; }
     if (k === ' ') { if (s.kind === 'dish') Sim.act(this, { k: 'tag' }); else if (s.phase === 'plate') Sim.act(this, { k: 'plate' }); else if (/stamp/.test(s.phase)) Sim.act(this, { k: 'stamp' }); }
     else if (k === 'ArrowRight' && s.kind === 'dish' && s.unt) Sim.act(this, { k: 'skip' });
@@ -702,10 +661,9 @@ const CH_SCRIBE_V2 = {
       const t2 = top + zipH + 18, avail = H - t2 - 12 - lower;
       P.R = Math.max(70, Math.min(W * 0.44, avail * 0.5)); P.cx = W / 2; P.cy = t2 + avail / 2; P.vy = H - lower / 2 - 6;
     } else if (s.kind === 'tubes') {
-      const rul = s.phase === 'end' || s.phase === 'over' || (s.ask && s.ask.id === 'u1') ? Math.min(78, H * 0.13) : 0, t2 = top + 6, avail = H - t2 - 8 - rul;
+      const t2 = top + 6, avail = H - t2 - 8;
       const cw = Math.max(48, Math.min(W / 5, avail / 4, 128)), x0 = W / 2 - cw * 2.5, y0 = t2 + (avail - cw * 4) / 2;
       P.cells = []; for (let i = 0; i < 20; i++) P.cells.push({ x: x0 + (i % 5 + 0.5) * cw, y: y0 + (Math.floor(i / 5) + 0.5) * cw, w: cw, r: cw * 0.38 });
-      P.ry = H - rul / 2 - 4; P.rh = rul; P.rx0 = Math.max(30, W * 0.1); P.rx1 = W - Math.max(34, W * 0.1);
     } else {
       const land = W > H * 1.05, avail = H - top - 8;
       if (land) { P.mr = Math.min(avail * 0.34, W * 0.2); P.mx = W * 0.3; P.my = top + avail * 0.5; P.rd = Math.min(avail * 0.2, W * 0.12); P.ax = W * 0.72; P.ay = top + avail * 0.26; P.bx = W * 0.72; P.by = top + avail * 0.74; P.vx = W * 0.52; P.vy = H - 46; }
@@ -790,7 +748,6 @@ const CH_SCRIBE_V2 = {
     }
     if (moved) this.drawPatches(c, P, mk);
     for (const l of v.links) if (l.k === 'zip' && l.t < 0.35) { const fx = this.forkX(P); c.save(); c.globalAlpha = 1 - l.t / 0.35; c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.8)'; c.lineWidth = 1.5; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(fx, P.zy + 6); c.lineTo(l.x, l.y); c.stroke(); c.restore(); }
-    if (s.pt) this.drawPatients(c, P);
     Lbl.put('sc-xn', this.content.labels[moved ? 'oddsN' : 'sparkN'], P.cx + P.R * 0.78, P.cy + P.R * 0.92, { c, size: 12 });
   },
   drawLineage(c, P, p, rho) {
@@ -854,16 +811,6 @@ const CH_SCRIBE_V2 = {
     });
     Lbl.put('sc-sugar', this.content.labels.sugar, P.cx, P.cy + P.R + 14, { c, size: 12 });
   },
-  drawPatients(c, P) {   // ten vials in a rack, read one by one; a resistant cell shows as a violet ring and dot
-    const s = this.sim.s, v = this.v, n = SC_PAT.n, sp = Math.min(34, (P.W - 40) / n), y = P.vy, shown = Math.floor(Math.max(0, v.patT) / 0.25);
-    c.save(); c.fillStyle = 'rgba(20,14,10,.6)'; rrect(c, P.W / 2 - sp * n / 2 - 10, y - 26, sp * n + 20, 50, 10); c.fill();
-    for (let i = 0; i < n; i++) {
-      const x = P.W / 2 + (i - (n - 1) / 2) * sp; c.fillStyle = 'rgba(255,248,232,.35)'; rrect(c, x - 7, y - 20, 14, 36, 5); c.fill(); c.strokeStyle = 'rgba(255,240,210,.8)'; c.lineWidth = 1.2; c.stroke();
-      c.fillStyle = 'rgba(214,190,138,.8)'; c.fillRect(x - 6, y - 2, 12, 17);
-      if (i < shown && s.pt[i]) { c.beginPath(); c.arc(x, y + 6, 4, 0, TAU); c.fillStyle = SC_INK.tag; c.fill(); c.beginPath(); c.arc(x, y + 6, 8, 0, TAU); c.strokeStyle = SC_INK.tagL; c.lineWidth = 2; c.stroke(); }
-    }
-    c.restore();
-  },
   drawTubes(c, P) {
     const s = this.sim.s, v = this.v, grow = s.phase === 'grow' ? Math.min(1, s.t / SC_T.grow) : 1, kh = this.sim.kHi();
     P.cells.forEach((cl, i) => {
@@ -873,10 +820,7 @@ const CH_SCRIBE_V2 = {
       if (!pl || (v.pour[i] != null && v.pour[i] < 1)) this.tube(c, cl, pl ? v.pour[i] : 0, grow);
       if (pl && (v.bloom[i] == null || v.bloom[i] > 0.6)) Lbl.put('sc-n', String(n), cl.x + cl.r * 0.75, cl.y - cl.r * 0.8, { c, size: n >= kh ? 14 : 12, weight: n >= kh ? 800 : 600, mono: true });
       if (pl && n >= kh) { c.save(); c.setLineDash([5, 4]); c.strokeStyle = 'rgba(' + SC_INK.lamp + ',.95)'; c.lineWidth = 2; c.beginPath(); c.arc(cl.x, cl.y, cl.r + 6, 0, TAU); c.stroke(); c.restore(); }
-      if (s.flag[i]) { c.save(); c.strokeStyle = SC_INK.tagL; c.lineWidth = 3; c.beginPath(); c.arc(cl.x, cl.y, cl.r + 3, 0, TAU); c.stroke(); c.beginPath(); c.moveTo(cl.x - cl.r * 0.5, cl.y + cl.r + 6); c.lineTo(cl.x + cl.r * 0.5, cl.y + cl.r + 6); c.lineWidth = 4; c.stroke(); c.restore(); }
-      if (s.phase === 'flag' && v.cell === i && typeof Fx !== 'undefined' && Fx.lastInput === 'key') { c.save(); c.setLineDash([4, 3]); c.strokeStyle = '#F4EEDD'; c.lineWidth = 2; c.strokeRect(cl.x - cl.w / 2 + 3, cl.y - cl.w / 2 + 3, cl.w - 6, cl.w - 6); c.restore(); }
     });
-    if (P.rh > 0) this.drawRuler(c, P);
   },
   tube(c, cl, pour, grow) {   // a culture tube standing on its plate; it tips and pours when plated; cloud rises overnight
     const h = cl.r * 1.7, w = Math.max(9, cl.r * 0.38), x = cl.x + cl.r * 0.62, y = cl.y - cl.r * 0.35, rot = pour * 1.9;
@@ -894,17 +838,8 @@ const CH_SCRIBE_V2 = {
     });
     if (!L) return; c.save(); c.globalAlpha = Math.min(1, k * 1.4); const sc = 0.4 + 0.6 * k; c.translate(cl.x, cl.y); c.scale(sc, sc); L.blit(c, -cl.r, -cl.r); c.restore();
   },
-  drawRuler(c, P) {   // the p₀ ruler: share of empty plates above, mutations a tube (m = −ln p₀) below; your plates marked
-    const s = this.sim.s, k = this.v.ruler || 1, y = P.ry, x0 = P.rx0, x1 = P.rx1, X = m => x0 + (x1 - x0) * m / 3, L = this.content.labels;
-    c.save(); c.globalAlpha = Math.min(1, k * 1.5); c.fillStyle = 'rgba(232,210,160,.92)'; rrect(c, x0 - 12, y - 24, x1 - x0 + 24, 48, 6); c.fill(); c.strokeStyle = SC_INK.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
-    for (const m of [0, 0.5, 1, 1.5, 2, 2.5, 3]) { c.beginPath(); c.moveTo(X(m), y); c.lineTo(X(m), y + 6); c.stroke(); Lbl.put('sc-rm', String(m), X(m), y + 14, { c, size: 12, pill: false, ink: SC_INK.ink, mono: true }); }
-    for (const p of [0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1]) { const x = X(-Det.log(p)); c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - 6); c.stroke(); Lbl.put('sc-rp', String(p), x, y - 14, { c, size: 12, pill: false, ink: SC_INK.ink, mono: true }); }
-    const z = this.sim.zeros(s); if (z > 0) { const x = X(Math.min(3, -Det.log(z / 20))); c.strokeStyle = SC_INK.tag; c.lineWidth = 3; c.beginPath(); c.moveTo(x, y - 22); c.lineTo(x, y + 22); c.stroke(); }
-    c.restore();
-    Lbl.put('sc-rl1', L.p0, x0 - 6, y - 30, { c, size: 12, align: 'left' }); Lbl.put('sc-rl2', L.m, x1 + 6, y - 30, { c, size: 12, align: 'right' });
-  },
   drawVelvet(c, P) {
-    const s = this.sim.s, v = this.v, L = this.content.labels, r2 = s.phase === 'm2' || s.phase === 'stamp2' || s.phase === 'test' || (s.ask && s.ask.id === 'c1') || (s.phase === 'over' && s.m2);
+    const s = this.sim.s, v = this.v, L = this.content.labels, r2 = s.phase === 'm2' || s.phase === 'stamp2' || s.phase === 'test' || (s.phase === 'over' && s.m2);
     const mc = (q, cx, cy, R) => [cx + q[0] * R * 0.92, cy + q[1] * R * 0.92], cs = R => Math.max(4.5, R * 0.06);
     const col = (x, y, r, fill) => { c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = fill; c.fill(); c.lineWidth = 1; c.strokeStyle = '#7A3A2A'; c.stroke(); };
     // the master plate (round 1) or your pick's plate (round 2)
@@ -947,20 +882,14 @@ const CH_SCRIBE_V2 = {
   notes() {
     const s = this.sim.s; if (!s) return { stats: [], charts: [] };
     const D = this.content.data, sim = this.sim, stats = [], row = (d, vars) => stats.push([d[0], Txt.f(d[1], vars), d[2] ? Txt.f(d[2], vars) : '']), pc = x => Math.round(100 * x);
-    if (s.kind === 'dish' && this.level === 0) { const sh = sim.shares(s); row(D.fates, { n: s.fates }); row(D.shares, { h: pc(sh[0]), z: pc(sh[1]), b: pc(sh[2]) }); row(D.miss, { n: s.miss }); return { stats, charts: [this.triSpec(), this.dfeSpec()] }; }
-    if (s.kind === 'dish') { row(D.tags, { n: s.tags }); if (s.pa) row(D.wins, { w: s.pa.filter(q => q.win).length, n: s.pa.length }); return { stats, charts: [this.winSpec(), this.patSpec()] }; }
-    if (s.kind === 'tubes') { const a = s.n.filter(x => x >= 0); row(D.plated, { n: s.plated }); row(D.empty, { n: sim.zeros(s) }); if (a.length) { row(D.big, { n: Math.max.apply(null, a) }); row(D.spread, { v: (Math.round(sim.vmr(s.n) * 10) / 10).toFixed(1) }); } return { stats, charts: [this.countSpec(), this.muSpec()] }; }
+    if (s.kind === 'dish' && this.level === 0) { const sh = sim.shares(s); row(D.fates, { n: s.fates }); row(D.shares, { h: pc(sh[0]), z: pc(sh[1]), b: pc(sh[2]) }); row(D.miss, { n: s.miss }); return { stats, charts: [this.dfeSpec()] }; }
+    if (s.kind === 'dish') { row(D.tags, { n: s.tags }); if (s.pa) row(D.wins, { w: s.pa.filter(q => q.win).length, n: s.pa.length }); return { stats, charts: [this.classSpec()] }; }
+    if (s.kind === 'tubes') { const a = s.n.filter(x => x >= 0); row(D.plated, { n: s.plated }); row(D.empty, { n: sim.zeros(s) }); if (a.length) { row(D.big, { n: Math.max.apply(null, a) }); row(D.spread, { v: (Math.round(sim.vmr(s.n) * 10) / 10).toFixed(1) }); } return { stats, charts: [this.countSpec()] }; }
     row(D.stamps, { n: s.st + (s.cdone ? 1 : 0) }); row(D.spots, { n: s.st ? s.m1.filter(q => q.res).length : 0 });
     return { stats, charts: [this.shareSpec()] };
   },
-  triSpec() {
-    const s = this.sim.s, D = this.content.data, L = this.content.labels, pts = [], done = s.hits.d1 !== undefined;
-    const small = typeof Strip !== 'undefined' && typeof Strip.phone === 'function' && Strip.phone() && !Strip.isOpen;
-    if (done && s.fates >= 3) pts.push({ f: this.sim.shares(s), kind: 'dusk', label: small ? '' : D.lines.yours });
-    return { type: 'tri', variant: 'simplex', title: D.titles.tri, corners: [L.harm, L.none, L.help], trail: done ? s.trail.slice() : [], pts, frame: 'designed' };
-  },
   dfeSpec() {
-    const s = this.sim.s, D = this.content.data, L = this.content.labels, n = Math.max(1, s.fates), done = s.hits.d1 !== undefined;
+    const s = this.sim.s, D = this.content.data, L = this.content.labels, n = Math.max(1, s.fates), done = !!s.full || s.phase === 'over' || !!s.whatif;   // the model's mix appears once the dish is full
     const bars = s.cnt.map((k, i) => ({ x: i, y: s.fates ? k / n : 0 }));
     const ticks = done ? SC_DFE.map((y, i) => ({ x: i, y, label: i === 3 ? D.lines.model : null })).concat(SC_VSV.map((y, i) => ({ x: i, y, dot: true, label: i === 3 ? D.lines.virus : null }))) : [];
     return { type: 'sc_xy', title: D.titles.dfe, fold: false, x: { lo: -0.5, hi: 3.5 }, xcat: [L.lethal, L.harmful, L.neutral, L.helps], xticks: [0, 1, 2, 3], y: { lo: 0, hi: 0.8, fmt: 'pct' }, frame: 'designed', bars, ticks, note: done ? { x: 3.45, y: 0.7, text: D.lines.real } : null };
@@ -970,32 +899,17 @@ const CH_SCRIBE_V2 = {
     const gh = SC_BINS.map((b, i) => { let p = 0; for (let k = b[0]; k <= Math.min(b[1], 200); k++) p += sim.pois(l, k); return [i, Math.round(20 * p * 100) / 100]; });
     return { type: 'sc_xy', title: D.titles.counts, x: { lo: -0.5, hi: 9.5, label: D.ax.bin }, xcat: SC_BINL, xticks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], y: { lo: 0, hi: 20, label: D.ax.plates, fmt: 'int' }, frame: 'designed', bars, lines: [{ pts: gh, dash: true, label: D.lines.phage }] };
   },
-  muSpec() {
-    const s = this.sim.s, sim = this.sim, D = this.content.data, vl = [];
-    if (s.hits.u1 !== undefined) { const mh = sim.muHat(s); vl.push({ x: Det.log(sim.P().mu.v) / Det.log(10), dash: true, label: D.lines.truth }); if (mh) vl.push({ x: Math.max(-10, Math.min(-5, Det.log(mh) / Det.log(10))), label: D.lines.you }); }
-    return { type: 'sc_xy', title: D.titles.mu, fold: false, x: { lo: -10, hi: -5, label: D.ax.mu }, xlog: true, xticks: [-10, -9, -8, -7, -6, -5], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
-  },
   shareSpec() {
     const s = this.sim.s, D = this.content.data, L = this.content.labels, k = s.m1.filter(q => q.res).length, n = s.m1.length, bars = [];
     if (s.st >= 1) bars.push({ x: 0, y: k / n }); if (s.st >= 2) bars.push({ x: 1, y: k / n }); if (s.cdone) bars.push({ x: 2, y: s.m2res ? 1 : 0 });
     return { type: 'sc_xy', title: D.titles.share, x: { lo: -0.5, hi: 2.5 }, xcat: [L.A, L.B, L.C], xticks: [0, 1, 2], y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', bars };
-  },
-  winSpec() {
-    const s = this.sim.s, D = this.content.data, vl = [];
-    if (s.pa && s.pa.length && (this.v.moveT > 3 || s.phase !== 'patch')) vl.push({ x: s.pa.filter(q => q.win).length / s.pa.length, label: D.lines.yourLin });
-    return { type: 'sc_xy', title: D.titles.win, x: { lo: 0, hi: 1, fmt: 'pct' }, xticks: [0, 0.25, 0.5, 0.75, 1], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
-  },
-  patSpec() {
-    const s = this.sim.s, D = this.content.data, vl = [];
-    if (s.pt && this.v.patT > 2.6) vl.push({ x: s.pt.filter(x => x).length, label: D.lines.yours });
-    return { type: 'sc_xy', title: D.titles.pat, fold: false, x: { lo: 0, hi: 10, label: D.ax.pats, fmt: 'int' }, xticks: [0, 2, 4, 6, 8, 10], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', vlines: vl };
   },
   classSpec() {   // the boss card: share of each glucose class that won on the new sugar, against the model's designed odds (×N)
     const s = this.sim.s, D = this.content.data, L = this.content.labels, g = this.sim.gxe(), bars = [], ticks = [];
     [1, 2, 3].forEach((c, i) => { const a = (s.pa || []).filter(q => q.cls === c); if (a.length) bars.push({ x: i, y: a.filter(q => q.win).length / a.length }); ticks.push({ x: i, y: g[c], label: i === 2 ? D.lines.model : null }); });
     return { type: 'sc_xy', title: D.titles.win, x: { lo: -0.5, hi: 2.5 }, xcat: [L.harmful, L.neutral, L.helps], xticks: [0, 1, 2], y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', bars, ticks };
   },
-  cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return s.whatif ? this.dfeSpec() : this.triSpec(); if (n === 1) return this.countSpec(); if (n === 2) return this.shareSpec(); return s.pa ? this.classSpec() : this.winSpec(); }
+  cardSpec() { const n = this.level; return n === 0 ? this.dfeSpec() : n === 1 ? this.countSpec() : n === 2 ? this.shareSpec() : this.classSpec(); }
 };
 V2.push(CH_SCRIBE_V2);
 

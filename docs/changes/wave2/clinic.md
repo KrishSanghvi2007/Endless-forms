@@ -145,3 +145,49 @@ D5 §3 lines 1–13: role environment; tap/hold with juice in 20–40 ms; no con
 6. L5: treat fevers, rub hands, isolate the carriers. Did you see the plasmid move on the nurse's hands?
 7. Boss: make the restriction call before you act, then try to beat the "restriction alone" line.
 8. Feedback form: enjoyment 1–5; the most and least clear moment; anything that felt like a worksheet; any science that looked wrong; time spent per level.
+
+## Simplification (D6 decision 9), 23 October 2026
+
+I played all six levels at 390 × 780 first (screenshots in the session scratchpad: `s3/simp_clinic_scribe/before/clinic/`, then `after/clinic/` and `after/clinic_desk/`). The night ward, the glowing eyepiece, the cyan drug tide, the bedside monitor with its hatched window and the ward map all stayed. What made the chapter heavy: a log-axis prediction on every level (six asks, starting with a lab-dish call before the player had done anything), a two-bed contested level with a practice ask, and a 90-day boss with twelve beds, a pre-run autumn, restriction, compensation, isolation by a hidden hold and a staff-time budget. The one verb is now **dose**: tap or hold the dish, tap a pump, tap a fever.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| The lab-dish opening and its "resistant share after two days" ask | L1 | A prediction on a log axis before the first action; the aha (low doses let the magenta cells take over) is visible in play. L1 now opens straight on the patient. The key number is shown after the first dose: "Window = MIC to MPC (1× to 16×): only resistant cells grow there." |
+| The Monday ask ("resistant cells after the weekend?") | L2 | Shown instead: "A fading dose spends ln 16 ÷ ln 8 = 32 h in the window." The weekend shading and the "at home" banner stay. |
+| **Kept: the both-drugs call** | L3 | **The chapter's one prediction**: "About {a} cells resist A and {b} resist B. Drag: how many resist both?" The aha is that the answer is about 0.001, not hundreds, which is why combinations work. The ghost starts on the single-drug count, the call needs a move, and it is scored against the Luria–Delbrück expectation (±1 decade). After the first dose the HUD gives the key number from the player's own counts: "Both ≈ a × b ÷ 10⁹ cells ≈ 0.001: almost surely none." |
+| Level "Already there" (two beds, contested hit-hard vs contain, practice ask) | — | A second idea with a second bed, a second budget and an ICU line; and a contested topic carrying a star. Its point survives in Why? (Read, Day and Huijben 2011). Its MODEL card, the high-level strain (tb3), the two-bed layout and the swap lever were removed. |
+| Level "The long winter" (boss: 12 beds, 90 days, restriction, compensated cost, reserve drug, pre-run autumn, two ghost projections) | — | Too many moving parts for one idea. Compensation survives as a line in the bay's MODEL card ("Costs are often compensated, so resistance can outlast the drug"; Andersson and Hughes 2010) and in Why?. |
+| The index-bed ask ("plasmid share in five days with no more drug") | The bay | Shown instead, once a treated bed's drug has worn off: "No drug: cost 0.45 + loss 0.02 beats transfer 0.3, so carriers fall." (Stewart and Levin's condition, with the card's numbers.) |
+| Isolation (hold a bed), staff time (6 a day, pips) | The bay | A hidden hold gesture and a side panel. The bay now has two controls, both on screen: tap a fever (or Treat fever) and tap the hand rub. A whisper names what a dose does in the gut the first time: "The drug selects carriers in this gut." |
+
+The levels are now **L1 The course, L2 Weekends at home, L3 Two drugs, L4 The bay** (`CL_LV`, 1235 → about 1000 lines). The intro card's "How to play" reads "Tap the dish for a low dose; hold it for a high one. Push the infection under the immune line; later, tap fevers and the hand rub." The bay's KPC fevers (chance = the bed's plasmid share at onset) do not respond to the carbapenem, so spreading the plasmid now shows up as untreatable fevers and moves to intensive care; with no reserve drug in the model, this is the honest outcome.
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 The course | clear within the 60-point budget | — (was the dish call) | — |
+| L2 Weekends at home | — | — (was the Monday call) | **clear despite the weekends** (L1's lesson carried across the gaps) |
+| L3 Two drugs | clear within the budget | **the one prediction**, inside ±1 decade of the expectation | — |
+| L4 The bay | plasmid in five patients or fewer, three ICU moves at most | — | — |
+
+Unit stars: Discover in two of L1, L3 and L4; Predict = L3; Transfer = L2. No level offers all three. Bay thresholds were set from the sim (80 seeds): treating each fever at once plus a morning hand-rub round earns Discover on 75%; treating without hand rubs on 10%; hand rubs without treatment on 2%. An expert who treats fevers immediately earns it on 11 of 12 oracle seeds.
+
+### Science
+No model equation changed; the bay simply has no compensation, isolation or reserve drug, and its MODEL card says so ("The plasmid's cost stays fixed"; "cannot: … compensation of the cost"). Removed with their levels: the contested containment claim (Read et al. 2011; Hansen et al. 2017 still cited in Why?), the boss's restriction projections, Sundqvist et al. 2010 and Snitkin et al. 2012 (no longer on screen). The HUD key numbers are checked in the oracle against the model (32 h window time, 1× to 16×, 0.45 + 0.02 vs 0.3, a × b ÷ 10⁹ within the call's band of the expectation).
+
+### Real biology (D6 decision 10)
+Already met: real TB cells (rods) in the eyepiece, real patients in beds, Klebsiella with their plasmid rings in each bed's dish, a nurse's hands carrying them. The monitor and strip charts are read-outs beside them.
+
+### Tests
+- `tests/oracle_clinic.js` rewritten for four levels: PK/PD, Luria–Delbrück and product rule unchanged; L1–L3 lessons; Stewart–Levin, gut selection and hands; new: the bay's lesson (treating without hand rubs spreads the plasmid to more patients; untreated fevers fill the ICU), the HUD key numbers, one prediction in the chapter (L3 only), a call more than a decade off never earns Predict, the no-rub What if? text matches its run. **119 passed, 0 failed.**
+- `tests/clinic_paths.py`: L1 opens with no interlude; the L3 call by a real drag and Enter; the bay's fever tap and hand rub; a two-button dock. **28 ok.** `tests/clinic_shots.py` shoots four levels.
+- Lint 0/0; `dup_globals` ok; bot sweep seeds 1–40 PASS (best cells D, T, DP for random's lucky calls, D); monkey seeds 1–3 at 390 × 780 and 1280 × 720 reach the end card.
+
+### Playtest script (replaces the one above)
+1. Read the card; press Play. L1: dose the patient; does the window line after your first dose explain why low doses failed?
+2. L2: plan for the shaded weekends. Did the 32 h line help?
+3. L3: make the both-drugs call before treating. Were you surprised by 0.001?
+4. L4: treat fevers and keep hands clean. Did you see a treated bed's carriers rise, then fall once the drug wore off?

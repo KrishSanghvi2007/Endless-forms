@@ -4,13 +4,14 @@
      A. untreated ×8 a day (resistant ×7);
      B. double mutants ≈ the product of the single-mutant rates;
      C. untreated loads under 10⁵ clear within 5 days;
-     D. a fixed-schedule bot cannot three-star L3 (here L4, "Already there"; no level offers three stars at all).
+     D. a fixed-schedule bot cannot three-star a level (no level offers three stars at all).
+   D6 decision 9 (22 Oct 2026) cut the unit to four levels (The course, Weekends at home, Two drugs, The bay) with one prediction
+   (L3: cells resisting both drugs); the contested two-bed level and the compensated-plasmid boss were removed.
    Plus the model's own claims: zero net growth at the MIC (and at the MPC for a single-step mutant); the window enriches mutants
    and doses above the MPC suppress both; every dose spends ln(MPC/MIC)/k in the window whatever its size; the Luria–Delbrück
    history (mean = the expectation, variance ≫ mean); low doses select resistance and spaced high doses cure; combinations hold
-   where one drug fails; containment buys bed 2 time where hitting hard releases the resistant strain; Stewart–Levin (a costly
-   plasmid falls without the drug, a compensated one does not); compensation in the boss; restriction alone falls far less than a
-   costly plasmid would; determinism, snapshot and replay; stars scored against the expectation ("no change" never earns Predict,
+   where one drug fails; Stewart–Levin (a costly plasmid falls without the drug); clean hands and treating fevers contain the
+   ward; the HUD's key numbers match the model; determinism, snapshot and replay; stars scored against the expectation ("no change" never earns Predict,
    an expert earns what each level offers); every bot finishes every level, none earns three stars in a level or across the unit;
    What if? runs end and their texts follow the run. */
 'use strict';
@@ -71,39 +72,38 @@ module.exports = function (G, t) {
   const both12 = s => s.tick % 27 === 0 && sum(s.beds[0].n) > 0 ? dose(0, 0, 2) : null, onlyA = s => { const b = s.beds[0]; return above(b) && b.C[0] < 2 ? dose(0, 0, 0) : null; };
   t.ok(rate(2, both12, s => s.beds[0].cured != null && s.beds[0].n[3] === 0) >= 0.95, 'L3: low doses of both drugs twice a day cure despite the weekends, with no double mutant');
   t.ok(rate(2, onlyA, s => s.beds[0].n[1] / Math.max(1, sum(s.beds[0].n)) >= 0.5) >= 0.95, 'L3: drug A alone: cells resisting A take over');
-  { // L4: hitting bed 2 hard releases its resistant strain; containment near the intensive-care line buys days
-    const hard = s => { const b = s.beds[1]; return s.tick === 0 ? dose(1, 1) : null; };
-    const contain = s => { const b = s.beds[1]; return sum(b.n) > 0.85 * 9e9 && b.C[0] < 0.5 ? dose(1, 0) : null; };
-    const icuOf = (f, n) => { const out = []; for (let sd = 1; sd <= (n || NS(12)); sd++) { const r = G.run(3, { seed: sd, policy: pol(f) }); out.push(r.s.beds[1].icu == null ? 99 : r.s.beds[1].icu); } return out; };
-    const H = icuOf(hard), C2 = icuOf(contain), N0 = icuOf(() => null);
-    t.ok(Math.max(...H) < 5, 'L4 (contested): hitting bed 2 hard sends it to intensive care by day ' + Math.max(...H).toFixed(1) + ' (competitive release)');
-    t.ok(Math.min(...C2) >= 6, 'L4 (contested): containment keeps bed 2 out until day ' + Math.min(...C2).toFixed(1) + ' or later, in this model');
-    t.ok(Math.max(...N0) < 3, 'L4: no drug at all: bed 2 reaches intensive care by day ' + Math.max(...N0).toFixed(1));
-    const r = G.run(3, { seed: 3, policy: pol(hard) }); t.ok(sim.resShare(r.s.beds[1]) > 0.99, 'L4: after hitting hard bed 2 is almost all resistant');
-  }
 
-  /* ---------- the ward: Stewart–Levin, gut selection, hands, compensation ---------- */
-  { G.reset(4, 1); const s = sim.s; for (const b of s.beds) { b.p = 0; b.iso = true; b.fev = null; b.C = 0; } s.beds[0].p = 0.5; s.beds[0].c = 0.45; s.beds[1].p = 0.5; s.beds[1].c = 0.28; s.beds[2].p = 0.05; s.beds[2].C = 8;
-    for (let k = 0; k < 45 * 5; k++) sim.wardTick(s, 1 / 45, { proj: true, hyg: 0.4 });
+  /* ---------- the ward: Stewart–Levin, gut selection, hands ---------- */
+  { G.reset(3, 1); const s = sim.s; for (const b of s.beds) { b.p = 0; b.fev = null; b.C = 0; } s.beds[0].p = 0.5; s.beds[0].c = 0.45; s.beds[1].p = 0.5; s.beds[1].c = 0.28; s.beds[2].p = 0.05; s.beds[2].C = 8;
+    for (let k = 0; k < 45 * 5; k++) sim.wardTick(s, 1 / 45, { proj: true, hyg: 1 });   // hands perfectly clean: no transfer between beds
     t.ok(s.beds[0].p < 0.3, `Ward: a costly plasmid (γ 0.3 < c 0.45 + δ 0.02) falls without the drug: 0.50 → ${s.beds[0].p.toFixed(2)} in 5 days (Stewart and Levin 1977)`);
-    t.ok(Math.abs(s.beds[1].p - 0.5) < 0.05, `Ward: compensated to c = 0.28, transfer balances cost plus loss: 0.50 → ${s.beds[1].p.toFixed(2)}`);
+    t.ok(Math.abs(s.beds[1].p - 0.5) < 0.05, `Ward (the card's compensation note): at c = 0.28 transfer balances cost plus loss: 0.50 → ${s.beds[1].p.toFixed(2)}`);
     t.ok(s.beds[2].p > 0.1, `Ward: one dose selects the plasmid in the gut: 0.05 → ${s.beds[2].p.toFixed(2)}`);
-    G.reset(4, 1); const s2 = sim.s; for (const b of s2.beds) { b.p = 0; b.iso = false; b.fev = null; } s2.beds[0].p = 0.9;
+    G.reset(3, 1); const s2 = sim.s; for (const b of s2.beds) { b.p = 0; b.fev = null; } s2.beds[0].p = 0.9;
     const after = hyg => { const z = JSON.parse(JSON.stringify(s2)); for (let k = 0; k < 45 * 3; k++) sim.wardTick(z, 1 / 45, { proj: true, hyg }); return sum(z.beds.slice(1).map(b => b.p)); };
     t.ok(after(0.4) > 3 * after(0.9), `Ward: hands at 40% compliance carry ${(after(0.4) / Math.max(1e-9, after(0.9))).toFixed(1)}× more plasmid to other beds than at 90%`);
-    const s3 = JSON.parse(JSON.stringify(s2)); s3.beds[0].iso = true; for (let k = 0; k < 45 * 3; k++) sim.wardTick(s3, 1 / 45, { proj: true, hyg: 0.4 }); t.ok(sum(s3.beds.slice(1).map(b => b.p)) === 0, 'Ward: an isolated carrier seeds no other bed');
   }
-  { const rows = []; let okC = 0, okA = 0, okG = 0, okReal = 0; const n = NS(16);
-    for (let sd = 1; sd <= n; sd++) { G.reset(5, sd); const s = sim.s, st = sim.summary(s), a = sim.project(s, st, false), c = sim.project(s, st, true); rows.push(s.c30); if (s.c30 > 0.285 && s.c30 < 0.37) okC++; if (a[a.length - 1] - c[c.length - 1] >= 0.15 && c[c.length - 1] < 0.05) okG++; if (a[a.length - 1] < s.w30) okA++; if (Math.abs(a[a.length - 1] - s.w30) >= 0.12) okReal++; }
-    t.ok(okC === n, `Boss: after the autumn the plasmid's cost has fallen from 0.45 towards 0.28 (mean ${(sum(rows) / n).toFixed(2)})`);
-    t.ok(okG === n, 'Boss: restriction alone ends at least 0.15 above the costly-plasmid ghost, which falls under 5%');
-    t.ok(okA >= 0.75 * n, `Boss: restriction alone does lower the ward share on ${okA} of ${n} seeds, but slowly`);
-    t.note(`Boss: the restriction call counts (moves ≥ 2 bands) on ${okReal} of ${n} seeds`);
+  { // the bay's lesson: treat every fever and keep hands clean; treating alone spreads the plasmid; doing nothing fills the ICU
+    const mk = th => s => { if (s.tick !== 0) return null; for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) return { k: 'dose', bed: i }; return s.ward.hyg < th ? { k: 'rub' } : null; };
+    const stat = f => { let seen = 0, icu = 0; const n = NS(30); for (let sd = 1; sd <= n; sd++) { const r = G.run(3, { seed: sd, policy: pol(f) }); seen += r.s.ward.seen; icu += r.s.ward.icu; } return [seen / n, icu / n]; };
+    const both = stat(mk(0.89)), treat = stat(mk(0)), none = stat(() => null);
+    t.ok(treat[0] > both[0] + 1.5, `Ward: treating fevers without hand rubs spreads the plasmid to ${treat[0].toFixed(1)} patients, against ${both[0].toFixed(1)} with daily rubs`);
+    t.ok(none[1] > both[1] + 3, `Ward: untreated fevers send ${none[1].toFixed(1)} patients to intensive care, against ${both[1].toFixed(1)} when treated`);
+  }
+  /* ---------- the HUD's key numbers (D6 decision 9) match the model ---------- */
+  { const H = ch.content.hud;
+    t.ok(/32 h/.test(H.key1) && Math.abs(PK.window(1, 16, Math.log(8)) * 24 - 32) < 0.01, 'key number L2: a fading dose spends ln 16 ÷ ln 8 days = 32 h in the window');
+    t.ok(/1× to 16×/.test(H.key0), 'key number L1: the window runs from the MIC to the MPC = 16× MIC');
+    t.ok(/0\.45/.test(H.key3) && /0\.02/.test(H.key3) && /0\.3\b/.test(H.key3), 'key number L4: cost 0.45 + loss 0.02 against transfer 0.3 (the model card values)');
+    G.reset(2, 1); const b = sim.s.beds[0], e = sim.ldExp(), est = b.n0[1] * b.n0[2] / sum(b.n0);
+    t.ok(Math.abs(Math.log10(Math.max(1e-9, est)) - Math.log10(e.ab)) < 1.5, `key number L3: a × b ÷ 10⁹ = ${est.toExponential(1)} sits within the call's band of the expectation ${e.ab.toExponential(1)} on this seed`);
+    let asks = 0, wrong = 0; for (let lv = 0; lv < 4; lv++) { G.reset(lv, 1); if (sim.s.asks.length) { asks++; if (lv !== 2) wrong++; } }
+    t.ok(asks === 1 && wrong === 0, 'one prediction in the chapter, at the start of L3 (D6 decision 9)');
   }
 
   /* ---------- determinism, snapshot and replay ---------- */
-  for (const lv of [0, 2, 3, 4, 5]) {
-    const f = lv >= 4 ? s => { for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) return { k: 'dose', bed: i }; return s.ward.hyg < 0.6 && s.ward.staff >= 2 ? { k: 'rub' } : null; } : lv === 2 ? both12 : lv === 3 ? s => s.tick === 0 ? dose(s.day % 2, s.day % 3 === 0) : null : highDay;
+  for (const lv of [0, 1, 2, 3]) {
+    const f = lv === 3 ? s => { for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) return { k: 'dose', bed: i }; return s.ward.hyg < 0.6 ? { k: 'rub' } : null; } : lv === 2 ? both12 : highDay;
     const a = G.run(lv, { seed: 11, policy: pol(f) }), b = G.run(lv, { seed: 11, policy: pol(f) });
     t.eq(JSON.stringify(a.s.hist), JSON.stringify(b.s.hist), `determinism: level ${lv + 1}, same seed and actions, same history`);
     // replay the logged actions on a fresh sim
@@ -121,43 +121,40 @@ module.exports = function (G, t) {
     highDay,
     s => { const b = s.beds[0]; return b.cured == null && above(b) && b.C[0] < 10 ? dose(0, 1) : null; },
     s => { const b = s.beds[0]; return above(b) && b.C[0] < 2 ? dose(0, 0, 2) : null; },
-    s => { const b0 = s.beds[0], b1 = s.beds[1]; if (b0.cured == null && above(b0) && b0.C[0] < 10 && s.tick === 0) return dose(0, 1); if (sum(b1.n) > 0.85 * 9e9 && b1.C[0] < 0.5) return dose(1, 0); return null; },
-    s => { for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) return { k: 'dose', bed: i }; if (s.ward.hyg < 0.75 && s.ward.staff >= 2) return { k: 'rub' }; for (let i = 0; i < s.beds.length; i++) if (s.beds[i].iso && s.beds[i].p < 0.15) return { k: 'iso', bed: i }; let w = -1; for (let i = 0; i < s.beds.length; i++) if (!s.beds[i].iso && s.beds[i].p >= 0.2 && (w < 0 || s.beds[i].p > s.beds[w].p)) w = i; return w >= 0 && s.beds.filter(b => b.iso).length < 2 ? { k: 'iso', bed: w } : null; },
-    null
+    s => { for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) return { k: 'dose', bed: i }; return s.tick === 0 && s.ward.hyg < 0.89 ? { k: 'rub' } : null; }   // treat each fever at once; a hand-rub round each morning
   ];
-  EXPERT[5] = s => { const f = EXPERT[4](s); if (f && f.k === 'iso' && s.beds.filter(b => b.iso).length >= 3) return null; if (f) return f; let w = -1; for (let i = 0; i < s.beds.length; i++) if (!s.beds[i].iso && s.beds[i].p >= 0.2 && (w < 0 || s.beds[i].p > s.beds[w].p)) w = i; return w >= 0 && s.beds.filter(b => b.iso).length < 3 ? { k: 'iso', bed: w } : null; };
-  const OFFER = [3, 3, 3, 5, 3, 6];   // D|P, D|P, D|P, D|T, D|P, P|T
-  for (let lv = 0; lv < 6; lv++) {
+  const OFFER = [1, 4, 3, 1];   // D, T, D|P, D
+  for (let lv = 0; lv < 4; lv++) {
     let full = 0, real = 0, nc = 0; const n = NS(12);
     for (let sd = 1; sd <= n; sd++) {
       const r = G.run(lv, { seed: sd, policy: (s, acts) => acts.length && acts[0].k === 'predict' ? expertCall(s, acts) : acts.length && acts[0].k === 'next' ? acts[0] : EXPERT[lv](s) });
       const m = r.result ? r.result.mask : 0; t.ok((m & ~OFFER[lv]) === 0, `level ${lv + 1} seed ${sd}: only the stars this level offers (mask ${m})`);
       if (m === OFFER[lv]) full++;
-      const id = 'a' + lv, A = r.s.askQ[id] ? 1 : 0; if (A && Math.abs(r.s.exp[id] - r.s.at0[id]) >= 2 * ({ dish: 0.5, wk: 0.5, ab: 1, rel: 0.1, sl: 0.07, ward: 0.06 })[r.s.askQ[id]] - 1e-9) real++;
+      const id = 'a' + lv, A = r.s.askQ[id] ? 1 : 0; if (A && Math.abs(r.s.exp[id] - r.s.at0[id]) >= 2 - 1e-9) real++;
       const q = G.run(lv, { seed: sd, bot: 'noChange' }); if (q.result && (q.result.mask & 2)) nc++;
     }
-    t.ok(full >= (lv === 3 ? 0.9 : lv === 5 ? 0.5 : 0.75) * n, `level ${lv + 1}: an expert earns every star the level offers on ${full} of ${n} seeds (calls that count: ${real})`);
+    t.ok(full >= 0.75 * n, `level ${lv + 1}: an expert earns every star the level offers on ${full} of ${n} seeds (calls that count: ${real})`);
     t.ok(nc === 0, `level ${lv + 1}: "no change" calls never earn Predict`);
   }
-  { const r = G.run(3, { seed: 2, policy: (s, acts) => acts.length && acts[0].k === 'predict' ? expertCall(s, acts) : EXPERT[3](s) }); t.ok(!(r.result.mask & 2), 'L4: the practice call never gives a Predict star, even when exact'); }
+  { let off = 0; for (let sd = 1; sd <= NS(12); sd++) { const r = G.run(2, { seed: sd, policy: (s, acts) => acts.length && acts[0].k === 'predict' ? sim.near(acts, -3.6) : EXPERT[2](s) }); const e = r.s.exp.a2; if (Math.abs(-3.6 - e) > 1 && (r.result.mask & 2)) off++; } t.ok(off === 0, 'L3: a call more than a decade from the expectation never earns Predict'); }
 
   /* ---------- bots: every bot finishes every level; none earns three stars in a level or across the unit ---------- */
   { const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'noChange']; let fin = true, three = false, unit = false; const n = NS(8);
-    for (const b of bots) for (let sd = 1; sd <= n; sd++) { const masks = []; for (let lv = 0; lv < 6; lv++) { const r = G.run(lv, { seed: sd, bot: b }); if (!r.result) fin = false; const m = r.result ? r.result.mask : 0; masks.push(m); if ((m & 7) === 7) three = true; } if (ch.unitStars(masks) === 7) unit = true; }
+    for (const b of bots) for (let sd = 1; sd <= n; sd++) { const masks = []; for (let lv = 0; lv < 4; lv++) { const r = G.run(lv, { seed: sd, bot: b }); if (!r.result) fin = false; const m = r.result ? r.result.mask : 0; masks.push(m); if ((m & 7) === 7) three = true; } if (ch.unitStars(masks) === 7) unit = true; }
     t.ok(fin, 'bots: every bot finishes every level inside 2 × its minutes');
     t.ok(!three, 'bots: no bot earns three stars in a level');
     t.ok(!unit, 'bots: no bot’s union across the unit (unitStars) reaches three stars');
   }
 
   /* ---------- What if?: thawed runs end, never score, and say what happened ---------- */
-  for (let lv = 0; lv < 6; lv++) {
+  for (let lv = 0; lv < 4; lv++) {
     const L = ch.levels[lv]; G.reset(lv, 5); let k = 0, snap = null;
-    while (!sim.result() && k < 30000) { const A = sim.actions(); const x = A.length ? (A[0].k === 'predict' ? A[0] : EXPERT[lv](sim.s)) : null; if (x) sim.act(x); sim.step(1 / 30); k++; if (!snap && sim.s.day >= (lv === 5 ? 32 : 2) && sim.s.tick === 1) snap = sim.snapshot(); }
-    for (const lever of ({ 0: ['lowOnly', 'stop'], 1: ['noWeekend', 'stop'], 2: ['onlyA'], 3: ['swap'], 4: ['noRub', 'noIso'], 5: ['costly'] })[lv]) {
+    while (!sim.result() && k < 30000) { const A = sim.actions(); const x = A.length ? (A[0].k === 'predict' ? A[0] : EXPERT[lv](sim.s)) : null; if (x) sim.act(x); sim.step(1 / 30); k++; if (!snap && sim.s.day >= 2 && sim.s.tick === 1) snap = sim.snapshot(); }
+    for (const lever of ({ 0: ['lowOnly', 'stop'], 1: ['noWeekend', 'stop'], 2: ['onlyA'], 3: ['noRub'] })[lv]) {
       TB.seed(5); sim.reset(lv, { thaw: { snap, lever } }); let j = 0; while (!sim.result() && j < 30000) { sim.step(1 / 30); j++; }
       const r = sim.result(); t.ok(r && r.mask === 0 && typeof r.interesting === 'string' && ch.content.interesting[r.interesting], `What if? level ${lv + 1} "${lever}" ends, scores nothing, says "${r && r.interesting}"`);
       if (lever === 'lowOnly') t.ok(r.interesting === (sim.s.beds[0].cured != null ? 'lowOnlyOk' : 'lowOnly'), 'What if? low-doses text matches the outcome');
-      if (lever === 'costly') t.ok(sim.wardShare(sim.s) < 0.1, `What if? the costly plasmid collapses (ward ${sim.wardShare(sim.s).toFixed(2)})`);
+      if (lever === 'noRub') t.ok(r.interesting === (sim.s.ward.seen > sim.s.wi0.ward.seen ? 'noRub' : 'noRubSame'), 'What if? no-rub text matches the outcome');
     }
   }
 

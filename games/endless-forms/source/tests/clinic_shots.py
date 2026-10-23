@@ -1,8 +1,8 @@
 """The Clinic (v2) screenshots: every level and its main phases at two viewports, plus colour-vision views.
 
-  GAME_HTML=/abs/build.html python3 tests/clinic_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3,4,5] [--cvd] [--calm]
+  GAME_HTML=/abs/build.html python3 tests/clinic_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3] [--cvd] [--calm]
 
-Plays each level with a scripted expert (spaced high doses, both drugs, contain bed 2, treat-rub-isolate on the ward) under
+Plays each level with a scripted expert (spaced high doses, both drugs, treat and rub on the ward) under
 virtual time, drags each prediction, and saves PNGs named L<n>_<phase>_<w>x<h>.png. Prints page errors; exit 1 on any."""
 import os, sys, argparse
 from playwright.sync_api import sync_playwright
@@ -13,17 +13,13 @@ CHROME = {"executable_path": "/opt/pw-browsers/chromium"} if os.path.exists("/op
 PLAY = """(lv)=>{ const ch = TB.REG.clinic, S = ch.sim, s = S.s, card = document.querySelector('#cards.on .card');
   if (card && card.classList.contains('ef-intro')) { if (card.dataset.armed === '1' || true) { const bs = card.querySelectorAll('.card-btns button'); bs[bs.length - 1].click(); } return {intro: 1}; }
   if (card) return {card: card.className};
-  if (s.ask || s.phase === 'dish') return {ask: s.ask ? s.ask.id : 'dish', phase: s.phase};
+  if (s.ask) return {ask: s.ask.id, phase: s.phase};
   const sum = a => a.reduce((x, y) => x + y, 0), A = a => TB.Sim.act(ch, a);
   if (s.phase === 'wait') A({k: 'next'});
   if (s.phase === 'run') {
     if (lv <= 1) { const b = s.beds[0]; if (b.cured == null && sum(b.n) >= 1e5 && b.C[0] < 10 && (lv === 1 || s.tick < 3)) A({k: 'dose', bed: 0, d: 0, hi: true}); }
     else if (lv === 2) { const b = s.beds[0]; if (sum(b.n) >= 1e5 && b.C[0] < 2) A({k: 'dose', bed: 0, d: 2}); }
-    else if (lv === 3) { const b0 = s.beds[0], b1 = s.beds[1]; if (b0.cured == null && sum(b0.n) >= 1e5 && b0.C[0] < 10 && s.tick < 3) A({k: 'dose', bed: 0, hi: true}); if (sum(b1.n) > 0.85 * 9e9 && b1.C[0] < 0.5) A({k: 'dose', bed: 1, hi: false}); }
-    else { for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) A({k: 'dose', bed: i}); if (s.ward.hyg < 0.7 && s.ward.staff >= 2) A({k: 'rub'});
-      let w = -1; for (let i = 0; i < s.beds.length; i++) if (!s.beds[i].iso && s.beds[i].p >= 0.3 && (w < 0 || s.beds[i].p > s.beds[w].p)) w = i;
-      const lim = lv === 4 ? 2 : 3; for (let i = 0; i < s.beds.length; i++) if (s.beds[i].iso && s.beds[i].p < 0.1) A({k: 'iso', bed: i});
-      if (w >= 0 && s.beds.filter(b => b.iso).length < lim) A({k: 'iso', bed: w}); if (s.tick === 5) A({k: 'sel', bed: s.day % s.beds.length}); }
+    else { for (let i = 0; i < s.beds.length; i++) if (s.beds[i].fev && s.beds[i].C < 1) A({k: 'dose', bed: i}); if (s.tick === 0 && s.ward.hyg < 0.89) A({k: 'rub'}); if (s.tick === 5) A({k: 'sel', bed: s.day % s.beds.length}); }
   }
   return {phase: s.phase, day: s.day, tick: s.tick}; }"""
 
@@ -32,7 +28,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--vp', default='390x780,1280x720')
-    ap.add_argument('--levels', default='0,1,2,3,4,5')
+    ap.add_argument('--levels', default='0,1,2,3')
     ap.add_argument('--cvd', action='store_true')
     ap.add_argument('--calm', action='store_true')
     ap.add_argument('--query', default='')
@@ -95,7 +91,7 @@ def main():
             if a.cvd:
                 for kind in ('mono', 'deut'):
                     pg.goto('file://' + html + '?cvd=' + kind); pg.evaluate("()=>window.__advance(600)")
-                    for lv in (0, 2, 4):
+                    for lv in (0, 2, 3):
                         pg.evaluate("(lv)=>{ TB.App.playLevel(TB.REG.clinic, lv, {seed: 7}); window.__advance(800); const ch = TB.REG.clinic, s = ch.sim.s; if (s.ask) { TB.Sim.act(ch, {k: 'void', id: s.ask.id}); } window.__advance(6000); }", lv)
                         pg.screenshot(path=os.path.join(a.out, 'L%d_cvd-%s_%s.png' % (lv + 1, kind, tag)))
             ctx.close()

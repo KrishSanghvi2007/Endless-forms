@@ -1,10 +1,12 @@
 /* tests/oracle_scribe.js: science and engineering oracle for The Scribe (v2). Run: node tests/oracle.js BUILD.html scribe
    D5 §4 item 13 acceptance: plate variance/mean ≈ 1 if induced and ≫ 1 if pre-existing (10⁴ seeds); the p₀ estimator unbiased
    within 10%; both DFE ghosts disclosed. Plus: DFE tallies match the designed shares and are independent of the source; the
-   Luria–Delbrück mean and p₀ match theory; the ask expectations (20e^(−m), log μ, 10(1 − e^(−1.5)), the new-sugar share) match
+   Luria–Delbrück mean and p₀ match theory; the one ask's expectation (20e^(−m) empty plates) and the new-sugar share match
    Monte Carlo; velvet prints match on A and B and not under the induced lever; determinism, replay and snapshots; the expert earns
    every star offered; no bot reaches three stars in a level or across the unit; result texts agree with their runs; untimed
-   paths finish; What if? runs earn nothing; the first spark waits. SC_FAST=1 runs fewer seeds. */
+   paths finish; What if? runs earn nothing; the first spark waits; the HUD's key numbers match the run.
+   D6 decision 9 (22 Oct 2026): one prediction in the chapter (Jackpots: how many plates stay empty); the triangle, flag, μ,
+   velvet-share, new-sugar and patient asks, the flagging step and the patients were cut. SC_FAST=1 runs fewer seeds. */
 'use strict';
 module.exports = function (G, t) {
   const { sim, ch, TB } = G, FAST = !!process.env.SC_FAST, NS = FAST ? 12 : 40, NMC = FAST ? 2000 : 10000;
@@ -37,7 +39,7 @@ module.exports = function (G, t) {
     const bias = mean(mh) / m - 1;
     t.ok(Math.abs(bias) < 0.10, `p₀ estimator: mean m̂ ${mean(mh).toFixed(4)} against m ${m.toFixed(4)}, bias ${(100 * bias).toFixed(1)}% (< 10%; ${zr} racks with no empty plate dropped)`);
     const within2 = mh.filter(x => x >= m / 2 && x <= 2 * m).length / mh.length;
-    t.ok(within2 > 0.9, `m̂ within a factor of 2 of m on ${(100 * within2).toFixed(1)}% of racks (the μ ask's band is fair to an honest reader)`);
+    t.ok(within2 > 0.9, `m̂ within a factor of 2 of m on ${(100 * within2).toFixed(1)}% of racks (the Why? estimate m = −ln p₀ is fair to an honest reader)`);
     t.near(sim.zExp(), 20 * Math.exp(-m), 1e-3, `empty-plate expectation 20e^(−m) = ${sim.zExp()}`);
     const kh = sim.kHi(); let tail = 0; for (let k = kh; k < 200; k++) { let p = Math.exp(-mu); for (let i = 1; i <= k; i++) p *= mu / i; tail += p; }
     t.ok(tail < 0.001 && kh > 15 && kh < 30, `jackpot line ${kh}: P(count ≥ ${kh}) = ${tail.toExponential(2)} under the phage-caused process`);
@@ -54,10 +56,9 @@ module.exports = function (G, t) {
     G.reset(0, 3); let k = 0; while (sim.s.seen === 0 && k < 100) { sim.step(sim.dt); k++; }
     for (let j = 0; j < 300; j++) sim.step(sim.dt);
     t.ok(sim.s.sp.some(p => p.wait && !p.gone), 'the first spark waits for its tag (the first action cannot fail)');
-    const ds = ch.dfeSpec ? null : null; G.reset(0, 4); sim.s.hits.d1 = false;
-    const tri = ch.triSpec.call(Object.assign(Object.create(ch), { sim }));
-    t.ok(tri.pts.length >= 0 && Array.isArray(tri.trail), 'the triangle spec builds after the ask');
-    const dfe = ch.dfeSpec.call(Object.assign(Object.create(ch), { sim }));
+    G.reset(0, 4); const view = Object.assign(Object.create(ch), { sim });
+    t.ok(ch.dfeSpec.call(view).ticks.length === 0, 'the model and virus ghosts stay hidden while the dish grows (no answer during play)');
+    sim.s.full = true; const dfe = ch.dfeSpec.call(view);
     t.ok(dfe.ticks.some(q => q.dot) && dfe.ticks.some(q => !q.dot) && dfe.note && /under 1%/.test(dfe.note.text), 'both ghosts disclosed on the fates chart: the model, a virus measured, and the genome-wide range');
   }
 
@@ -76,23 +77,27 @@ module.exports = function (G, t) {
   /* 5. velvet: A and B carry the same spots; the induced lever does not; the picked colony decides the line */
   { let same = 0, indMatch = [], right = 0;
     for (let seed = 1; seed <= NS; seed++) {
-      const r = G.run(2, { seed, bot: 'expert' }), s = r.s; if (s.m2res === 1 && s.m1[s.pick].res === 1 && r.result.mask === 3) right++;
+      const r = G.run(2, { seed, bot: 'expert' }), s = r.s; if (s.m2res === 1 && s.m1[s.pick].res === 1 && r.result.mask === 1) right++;
       G.reset(2, seed); const S = sim.s; sim.lever('inducedD'); for (let k = 0; k < 200 && S.phase !== 'over'; k++) sim.step(sim.dt);
       const A = sim.s.indA || [], B = sim.s.indB || []; let m = 0; for (const b of B) if (A.some(a => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 < 0.01)) m++; indMatch.push(B.length ? m / B.length : 0); same++;
     }
-    t.eq(right, NS, 'expert picks the matching colony: its line is resistant and earns Discover + Predict');
+    t.eq(right, NS, 'expert picks the matching colony: its line is resistant and earns Discover');
     t.ok(mean(indMatch) < 0.3, `under "the drug causes it", only ${(100 * mean(indMatch)).toFixed(0)}% of B's spots match A's`);
     let wrong = 0; for (let seed = 1; seed <= NS; seed++) { const r = G.run(2, { seed, bot: 'alwaysA' }), s = r.s; if (!s.m1[0].res && (s.m2res !== 0 || r.result.interesting !== 'wrong')) wrong++; }
     t.eq(wrong, 0, 'a wrong pick yields a sensitive line and the "wrong" text');
   }
 
-  /* 6. the boss: new-sugar expectation against Monte Carlo; patients 10(1 − e^(−1.5)) */
-  { const wins = [], exps = [], pats = [];
-    for (let seed = 1; seed <= NS * 3; seed++) { const r = G.run(3, { seed, bot: 'expert' }), s = r.s; if (s.pa && s.pa.length) { wins.push(s.pa.filter(q => q.win).length / s.pa.length); exps.push(s.exp.b1); } if (s.pt) pats.push(s.pt.filter(x => x).length); }
+  /* 6. the boss: new-sugar winners against the model's expectation; the HUD line says what happened */
+  { const wins = [], exps = []; let txt = 0, nb = 0;
+    for (let seed = 1; seed <= NS * 3; seed++) { const r = G.run(3, { seed, bot: 'expert' }), s = r.s; if (s.pa && s.pa.length) { wins.push(s.pa.filter(q => q.win).length / s.pa.length); exps.push(s.expWin); nb++;
+      const V = ch.bodyVars.call(Object.assign(Object.create(ch), { sim, level: 3 })); if (V.w === s.pa.filter(q => q.win).length && V.np === s.pa.length && V.wn === s.pa.filter(q => q.win && q.cls === 2).length) txt++; } }
     t.ok(Math.abs(mean(wins) - mean(exps)) < 0.05, `new-sugar winners ${mean(wins).toFixed(3)} against the expectation ${mean(exps).toFixed(3)}`);
-    t.near(sim.patExp(), 10 * (1 - Math.exp(-1.5)), 1e-3, `patients expected to carry resistance: ${sim.patExp()}`);
-    t.ok(Math.abs(mean(pats) - sim.patExp()) < 0.5, `realised patients ${mean(pats).toFixed(2)} against ${sim.patExp()}`);
+    t.eq(txt, nb, 'the new-sugar key line (w of n won; wn did nothing on glucose) counts the run itself');
+    G.reset(3, 1); t.ok(!('pt' in sim.s) && typeof sim.patExp !== 'function', 'the patients and their ask are gone (D6 decision 9)');
   }
+  /* 6b. one prediction in the chapter: Jackpots, before pouring; none elsewhere */
+  { const ids = [0, 1, 2, 3].map(lv => G.run(lv, { seed: 3, bot: 'expert' }).s.asks.join(','));
+    t.eq(ids, ['', 'z1', '', ''], 'the only ask is the empty-plate call in Jackpots (D6 decision 9)'); }
 
   /* 7. determinism, replay and snapshots */
   { for (const lv of [0, 1, 2, 3]) {
@@ -107,9 +112,9 @@ module.exports = function (G, t) {
     } }
 
   /* 8. stars: the expert earns every star offered; no bot earns three in a level or across the unit; What if? earns nothing */
-  { const offer = [3, 3, 3, 5]; let exp = 0;
+  { const offer = [1, 2, 1, 4]; let exp = 0;
     for (let seed = 1; seed <= NS; seed++) { const m = [0, 1, 2, 3].map(lv => G.run(lv, { seed, bot: 'expert' }).result.mask); if (m.every((x, i) => x === offer[i])) exp++; }
-    t.eq(exp, NS, `expert earns D+P, D+P, D+P, D+T on every seed (${NS})`);
+    t.eq(exp, NS, `expert earns D, P, D, T on every seed (${NS})`);
     const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'lazy', 'allIn']; let worst = 0, three = 0;
     for (const b of bots) for (let seed = 1; seed <= NS; seed++) {
       const m = [0, 1, 2, 3].map(lv => { const r = G.run(lv, { seed, bot: b }); return r.result ? r.result.mask : 0; });
@@ -129,7 +134,9 @@ module.exports = function (G, t) {
   { for (const lv of [0, 1, 2, 3]) { const r = G.run(lv, { seed: 2, bot: 'greedy', untimed: true }); t.ok(!r.capped && r.s.unt, `L${lv} untimed run finishes (${r.ticks} ticks)`); }
     for (const lv of [0, 1, 2, 3]) { let capped = 0; for (let seed = 1; seed <= NS; seed++) if (G.run(lv, { seed, bot: 'random' }).capped) capped++; t.eq(capped, 0, `L${lv}: a random clicker always reaches the end`); } }
 
-  /* 10. the L1 interesting text and Discover agree with the plates */
-  { let ok = 0; for (let seed = 1; seed <= NS; seed++) { const r = G.run(1, { seed, bot: 'expert' }), s = r.s, mx = Math.max.apply(null, s.n), I = r.result.interesting; if ((I === 'nojack') === (mx < sim.kHi()) && I !== 'misflag' && (r.result.mask & 1)) ok++; }
-    t.eq(ok, NS, 'L1: "no jackpot" text only when no plate passes the line; an exact flagger earns Discover'); }
+  /* 10. the L1 interesting text and the key number agree with the plates */
+  { let ok = 0, okV = 0; for (let seed = 1; seed <= NS; seed++) { const r = G.run(1, { seed, bot: 'expert' }), s = r.s, mx = Math.max.apply(null, s.n), I = r.result.interesting; if ((I === 'nojack') === (mx < sim.kHi()) && (r.result.mask & 2)) ok++;
+      const V = ch.bodyVars.call(Object.assign(Object.create(ch), { sim, level: 1 })); if (Math.abs(+V.vm - sim.vmr(s.n)) < 0.06 && V.z === s.n.filter(x => x === 0).length) okV++; }
+    t.eq(ok, NS, 'L1: "no jackpot" text only when no plate passes the line; the expert call earns Predict');
+    t.eq(okV, NS, 'L1: the spread key number (variance ÷ mean) and the empty count are the run\'s own'); }
 };
