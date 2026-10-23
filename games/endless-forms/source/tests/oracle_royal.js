@@ -1,7 +1,8 @@
 /* tests/oracle_royal.js: science and engineering oracle for The Royal Line (v2). Run: node tests/oracle.js BUILD.html royal
    D3 §5.2 oracles: the gap ratio is −½; p̄ = (2q_f + q_m)/3 is invariant; incidence at balance is 3μ/s ± 10%; carrier posteriors
    are exact. Plus: Morgan's crosses hatch in X-linked ratios (F1, F2, backcross, reverse); the realised cage tracks the recursion;
-   the asks' expectations are the recursion from the realised state; "no change" never sits inside a scored band; determinism,
+   only the reverse cross asks (D6 decision 9), with "no change" outside its band; the zigzag breeds on a tap; the lamp has no
+   battery in timed play; Helena Victoria's second judgment seals itself; determinism,
    replay and snapshots; the expert earns every star offered and no level offers three; no bot's union reaches three unit stars;
    untimed lamp; What if? runs earn nothing and match their lever; the opening card. RY_FAST=1 runs fewer seeds. */
 'use strict';
@@ -27,7 +28,7 @@ module.exports = function (G, t) {
   /* 2. mutation–selection balance with selection on males only: male incidence ≈ 3μ/s (D3: ± 10%), and the realised cage settles there */
   { const mu = sim.P().mu.v; for (const sel of [0.25, 0.5, 1]) { const e = sim.lampEq(0.2, 0.2, sel, mu), h = 3 * mu / sel; t.ok(Math.abs(e - h) / h <= 0.1, `balance with s = ${sel}: q_m = ${e.toFixed(4)} against 3μ/s = ${h.toFixed(4)}`); }
     const e = sim.lampEq(0.3, 0.3, 0.5, 0); t.ok(e < 1e-3, 'without mutation the white allele heads to loss under the lamp');
-    const tails = []; for (let seed = 1; seed <= (FAST ? 6 : 16); seed++) { const r = G.run(2, { seed, bot: 'expert' }), s = r.s; tails.push(mean(s.hist.slice(-20).map(h => h.wm)) / s.exp.bal); }
+    const tails = []; for (let seed = 1; seed <= (FAST ? 6 : 16); seed++) { const r = G.run(2, { seed, bot: 'expert' }), s = r.s; tails.push(mean(s.hist.slice(-20).map(h => h.wm)) / s.balE); }
     t.near(mean(tails), 1, 0.12, `realised white-eyed males over the last 20 generations ÷ the predicted balance: ${mean(tails).toFixed(3)}`);
     const wf = []; for (let seed = 1; seed <= 6; seed++) { const s = G.run(2, { seed, bot: 'expert' }).s, h = s.hist.slice(-20); wf.push(mean(h.map(x => x.wf)) / Math.max(1e-6, mean(h.map(x => x.wm)) ** 2)); }
     t.ok(mean(wf) > 0.3 && mean(wf) < 2, `white-eyed females run near q² (ratio to q_m² ${mean(wf).toFixed(2)})`); }
@@ -37,6 +38,7 @@ module.exports = function (G, t) {
     const r = G.run(3, { seed: 1, bot: 'expert' }), J = r.s.judg; let ok = J.length === 12;
     for (const j of J) { const w = want[j.id][j.st === 'prior' ? 0 : 1]; if (Math.abs(j.e - w) > 1e-9) ok = false; }
     t.ok(ok, 'priors and posteriors: Alice ½→1, Helena ½→⅕, Helena Victoria ⅒→⅒, Alice of Albany 1→1, Victoria of Hesse ½→⅕, Alix ½→1');
+    const hv = J.find(j => j.id === 'hv' && j.st === 'post'); t.ok(!!hv && hv.auto && sim.galScore(r.s).m === 11, 'Helena Victoria (no sons) is not asked twice: her second chance seals itself, so 11 judgments count');
     let f = true; for (let n = 0; n <= 6; n++) { const c = { sons: new Array(n).fill(['x', 0]) }; if (Math.abs(sim.postOf(c, 0.5) - 1 / (1 + Math.pow(2, n))) > 1e-12) f = false; } t.ok(f, 'postOf(½, n unaffected sons) = 1 ÷ (1 + 2ⁿ) for n = 0 to 6'); }
 
   /* 4. Morgan's crosses hatch in X-linked proportions (pooled over seeds) */
@@ -50,17 +52,18 @@ module.exports = function (G, t) {
     G.reset(0, 2); const s = sim.s; sim.act({ k: 'cross', f: 'wf', m: 'wm' }); t.ok(s.phase === 'hatch' && s.left === 5, 'a cross uses one vial and hatches');
     G.reset(0, 2); sim.act({ k: 'cross', f: 'wm', m: 'mm' }); t.ok(sim.s.left === 6 && sim.s.crosses.length === 0, 'two males cannot be crossed'); }
 
-  /* 5. the asks: expectations from the realised state; "no change" outside the scored band; voided when nothing would move */
-  { let ok = true, nc = true; const notes = [];
-    for (let seed = 1; seed <= NS; seed++) {
-      G.reset(1, seed); const s = sim.s; let k = 0;
-      while (!sim.result() && k < 20000) { if (s.ask) { const h = s.hist[s.hist.length - 1], id = s.ask.id, e = id === 't' ? (2 * s.th[0].qf + s.th[0].qm) / 3 : id[0] === 'm' ? h.qf : (h.qf + h.qm) / 2; if (Math.abs(e - s.exp[id]) > 1e-6) { ok = false; notes.push(id + seed); } if (Math.abs(s.ask.start - s.exp[id]) <= s.ask.tol) nc = false; sim.act({ k: 'predict', id, v: s.exp[id] }); } sim.step(sim.dt); k++; }
-    }
-    t.ok(ok, 'zigzag and transfer expectations are the recursion from the realised cage' + (notes.length ? ' (' + notes.slice(0, 4).join(', ') + ')' : ''));
-    t.ok(nc, 'L2: the ghost never starts inside the band (the start is "no change", or the naive midpoint for the transfer)');
-    let bal = true; for (let seed = 1; seed <= NS; seed++) for (const b of ['expert', 'random', 'alwaysA']) { const r = G.run(2, { seed, bot: b }), s = r.s; const cur = s.atAsk ? s.hist[s.atAsk.hl - 1].qm : null; if (cur != null && cur >= s.exp.bal / 1.5 && cur <= s.exp.bal * 1.5) bal = false; }
-    t.ok(bal, 'L3: "no change" at the balance ask always misses (the lamp share is chosen so it does)');
-    G.reset(0, 4); const s0 = sim.s; sim.act({ k: 'cross', f: 'wf', m: 'mm' }); t.ok(!s0.ask, 'L1: the F1 cross asks nothing (both models agree there)'); }
+  /* 5. one prediction in the chapter (D6 decision 9): the reverse cross; the zigzag breeds on a tap; the lamp's clock is its only limit */
+  { let only = true; for (let seed = 1; seed <= NS; seed++) for (const lv of [0, 1, 2, 3]) { const r = G.run(lv, { seed, bot: 'expert' }); const a = r.s.asks.filter(id => !r.s.voids[id]); if (lv === 0 ? a.join() !== 'b' : a.length) only = false; }
+    t.ok(only, 'only the reverse cross asks (once, in L1); the zigzag, the lamp and the gallery ask nothing');
+    G.reset(0, 4); const s0 = sim.s; sim.act({ k: 'cross', f: 'wf', m: 'mm' }); t.ok(!s0.ask, 'L1: the F1 cross asks nothing');
+    let st = true; for (let seed = 1; seed <= NS; seed++) { const r = G.run(0, { seed, policy: (s, A) => s.ask ? (Math.abs(s.ask.start - s.exp.b) <= s.ask.tol ? (st = false, null) : { k: 'predict', id: 'b', v: s.ask.start }) : null }); void r; }
+    t.ok(st, 'the reverse-cross ghost starts at "red sons, as in the F1", outside the band (the answer is all sons white)');
+    G.reset(1, 2); const z = sim.s; for (let k = 0; k < 90; k++) sim.step(sim.dt); const g0 = z.g; sim.act({ k: 'breed' }); sim.step(sim.dt);
+    t.ok(g0 === 0 && z.g === 1, 'the zigzag waits for a tap, and a tap breeds the next generation');
+    for (let k = 0; k < 6.2 / sim.dt; k++) sim.step(sim.dt); t.ok(z.g === 2, 'an untouched generation breeds by itself after six seconds (play never stalls)');
+    G.reset(2, 3); const L = sim.s, f = L.flies.find(x => x.w); let held = 0;
+    if (f) { for (let k = 0; k < 4 / sim.dt && L.phase === 'court'; k++) { const p = sim.flyPos(f, L.ct); sim.act({ k: 'beam', x: p[0], y: p[1] }); sim.step(sim.dt); held++; } }
+    t.ok(!!f && f.c && L.bat === L.bat0, `timed lamp: a beam held on a white-eyed male catches him and spends no battery`); }
 
   /* 6. determinism, replay and snapshots */
   { for (const lv of [0, 1, 2, 3]) {
@@ -73,7 +76,7 @@ module.exports = function (G, t) {
     const snap = sim.snapshot(); sim.restore(snap); t.eq(sim.snapshot(), snap, 'snapshot round trip is exact'); t.ok(snap.length < 80000, `end snapshot ${snap.length} characters`); }
 
   /* 7. the expert earns every star its level offers; no level offers all three; per-level offers */
-  { const want = [3, 6, 3, 5], got = [0, 0, 0, 0], n = FAST ? 6 : 16; let three = 0;
+  { const want = [3, 0, 1, 5], got = [0, 0, 0, 0], n = FAST ? 6 : 16; let three = 0;
     for (let lv = 0; lv < 4; lv++) for (let seed = 1; seed <= n; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; if (r.result && r.result.mask === 7) three++; if (!r.result) t.note(`L${lv + 1} seed ${seed} capped`); }
     t.ok(three === 0, 'no level offers all three stars');
     got.forEach((g, lv) => t.ok(g / n >= 0.85, `L${lv + 1}: the expert earns every offered star (${want[lv]}) on ${g} of ${n} seeds`)); }
@@ -95,7 +98,7 @@ module.exports = function (G, t) {
       G.run(lv, { seed, bot: 'expert' }); const snap = sim.snapshot(), base = sim.s.hist[sim.s.hist.length - 1];
       G.reset(lv, seed, { thaw: { gen: 1, snap, lever } }); let j = 0; while (!sim.result() && j < 40000) { sim.step(sim.dt); j++; }
       const r = sim.result(), s = sim.s, last = s.hist[s.hist.length - 1]; if (!r || r.mask !== 0) { ok = false; notes.push(lv + lever + 'mask'); continue; }
-      if (lever === 'auto' && (Math.abs(s.hist[1].qf - 0.5) > 0.05 || Math.abs(last.qm - 0.5) > 0.06)) { ok = false; notes.push('auto ' + last.qm); }
+      if (lever === 'auto' && (Math.abs(s.hist[1].qf - 0.5) > 0.05 || Math.abs(last.qm - 0.5) > 0.08)) { ok = false; notes.push('auto ' + last.qm); }   // 10 generations of drift at N = 1,000: SD about 0.025
       if (lever === 'flip' && Math.abs((2 * last.qf + last.qm) / 3 - 2 / 3) > 0.05) { ok = false; notes.push('flip ' + last.qf); }
       if (lever === 'nomut' && !(last.wm < base.wm)) { ok = false; notes.push('nomut ' + last.wm + ' vs ' + base.wm); }
       if (lever === 'all' && Math.abs(last.wm - sim.lampEq(0.2, 0.2, 1, sim.P().mu.v)) > 0.02) { ok = false; notes.push('all ' + last.wm); }
@@ -105,7 +108,7 @@ module.exports = function (G, t) {
   /* 11. result texts follow the run (lessons §1.5) */
   { G.reset(0, 1); const s = sim.s; s.goals = { f1: 1, f2: 1, wf: 0, rev: 0 }; s.phase = 'over'; t.eq(sim.result().interesting, 'nowhite', 'L1: no white daughter → "nowhite"');
     s.goals = { f1: 1, f2: 1, wf: 1, rev: 0 }; t.eq(sim.result().interesting, 'norev', 'L1: white daughters, no reverse cross → "norev"');
-    const r = G.run(3, { seed: 2, bot: 'threshold' }); t.ok(['sons', 'father', 'grand', 'cvmiss', null].indexOf(r.result.interesting) >= 0 && r.result.interesting !== null, `boss: a bot that ignores priors gets a reason (${r.result.interesting})`); }
+    const r = G.run(3, { seed: 2, bot: 'threshold' }); t.ok(['sons', 'father', 'grand'].indexOf(r.result.interesting) >= 0, `boss: a bot that ignores priors gets a reason (${r.result.interesting})`); }
 
   /* 12. the opening card and the chapter's own world (D6 addendum, 21 Oct 2026) */
   { const I = ch.content.intro || {}, wc = x => String(x || '').split(/\s+/).filter(Boolean).length, sc = x => (String(x || '').match(/[.!?](\s|$)/g) || []).length;

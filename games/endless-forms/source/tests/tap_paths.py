@@ -1,4 +1,4 @@
-"""The Leaky Tap (v2) input paths in a real browser: real canvas taps dive, keys (arrows, Space, L, E, D), the lens blocks dives,
+"""The Leaky Tap (v2) input paths in a real browser: real canvas taps dive, keys (arrows, Space, E, D), no lens toggle (D6 decision 9),
 ?untimed=1 freezes the chicks, Calm (reduced motion) plays, the opening card shows, What if? runs, and ?v1=1 has no tap chapter.
 
   GAME_HTML=/abs/build.html python3 tests/tap_paths.py      exit 1 on any failure or page error"""
@@ -41,15 +41,15 @@ def main():
                 got = pg.evaluate("()=>TB.REG.tap.sim.s.caught") > before; break
             pg.evaluate("()=>window.__advance(80)")
         ok(got, 'a real tap on a chick tottering at the edge is a catch')
-        # 2. keys: arrows move the cursor, L turns the lens (L2), Space under the lens is blocked, E ends the dusk
+        # 2. keys: arrows move the cursor, Space dives on its nest (no lens toggle: L does nothing), E ends the dusk
         pg.evaluate("()=>{ TB.App.playLevel(TB.REG.tap, 1, {seed: 3}); window.__advance(2500); }")
         pg.keyboard.press('ArrowRight'); pg.keyboard.press('ArrowRight')
         ok(pg.evaluate("()=>TB.REG.tap.v.cur") == 2, 'arrow keys move the nest cursor')
         pg.keyboard.press('l'); pg.evaluate("()=>window.__advance(100)")
         lens = pg.evaluate("()=>TB.REG.tap.sim.s.lens"); d0 = pg.evaluate("()=>TB.REG.tap.sim.s.dives")
         pg.keyboard.press(' '); pg.evaluate("()=>window.__advance(100)")
-        ok(lens and pg.evaluate("()=>TB.REG.tap.sim.s.dives") == d0, 'L turns the lens on, and Space cannot dive under it')
-        pg.keyboard.press('l'); pg.keyboard.press('e'); pg.evaluate("()=>window.__advance(300)")
+        ok((not lens) and pg.evaluate("()=>TB.REG.tap.sim.s.dives") == d0 - 1, 'L does nothing while hunting, and Space dives on the cursor nest')
+        pg.evaluate("()=>window.__advance(800)"); pg.keyboard.press('e'); pg.evaluate("()=>window.__advance(300)")
         ok(pg.evaluate("()=>TB.REG.tap.sim.s.dusk") >= 1 and pg.evaluate("()=>TB.REG.tap.sim.s.phase") in ('dawn', 'dusk'), 'E ends the dusk')
         # 3. the boss: D shuts the drum
         pg.evaluate("()=>{ TB.App.playLevel(TB.REG.tap, 3, {seed: 2}); window.__advance(2500); }")

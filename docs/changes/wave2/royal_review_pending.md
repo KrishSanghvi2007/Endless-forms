@@ -1,4 +1,6 @@
-# The Royal Line: review findings NOT yet applied
+# The Royal Line: review findings (applied 23 October 2026)
+
+*Status: verified and applied, or overtaken by the simplification, on 23 October 2026. See `royal.md`, section "Simplification (D6 decision 9)", table "The 19 review findings".*
 
 *The session ended before the fix round. The next session should verify and apply these, then run the full review (playtest + science) on tap, swamp and dig, which got none.*
 

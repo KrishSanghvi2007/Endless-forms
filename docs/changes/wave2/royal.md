@@ -106,9 +106,9 @@ Medical genetics is told neutrally (D6 decision 5); no human-population content 
 
 **What students do.** Repeat Morgan's 1910 crosses with a vial budget (and discover the backcross that makes a white-eyed daughter); predict the white share of sons; watch the X-linked approach to equilibrium leapfrog beside an autosomal control; act as a lamp that selects only white-eyed males and predict the mutation–selection balance; then compute exact carrier odds for six women in Queen Victoria's family.
 
-**Key ideas.** Hemizygous males show recessive X-linked alleles; sons' X comes from the mother; the reciprocal cross differs; q_m′ = q_f, q_f′ = (q_f + q_m)/2; the gap halves and flips; p̄ = (2q_f + q_m)/3; selection on males alone is slow because two-thirds of copies sit in females; balance near 3μ/s; incidence q in men and q² in women; Bayesian updating from sons.
+**Key ideas.** Hemizygous males show recessive X-linked alleles; sons' X comes from the mother; the reciprocal cross differs; q_m′ = q_f, q_f′ = (q_f + q_m)/2; the gap halves and flips; p̄ = (2q_f + q_m)/3; every hemizygous male exposes the allele, so selection purges a recessive X-linked allele much faster than an autosomal one (Δq ≈ −sq/3 against −sq²), and mutation holds it at a far lower balance, 3μ/s against √(μ/s) (corrected 23 Oct 2026: the first draft said the opposite); incidence q in men and q² in women; Bayesian updating from sons.
 
-**Prompts (rising Bloom).** (1) Why do X-linked recessive conditions show far more often in men? (2) Why does selection on males alone remove a recessive X-linked allele slowly? (3) This pedigree ignores new mutations and X inactivation: when would that mislead a genetic counsellor?
+**Prompts (rising Bloom).** (1) Why do X-linked recessive conditions show far more often in men? (2) Why is a recessive X-linked allele purged faster than an autosomal one, yet never lost? (3) This pedigree ignores new mutations and X inactivation: when would that mislead a genetic counsellor?
 
 **Projector moment.** In the boss, the class sets Helena's posterior together before Seal (most say 0 or 50%; the plaque says 20%).
 
@@ -126,3 +126,69 @@ Medical genetics is told neutrally (D6 decision 5); no human-population content 
 ## Session status
 
 Built; oracle (48/48), bots (timed and untimed), paths (11/11), lint (clean) and monkey (6/6 at two sizes) pass on the unit build; screenshots looked at and fixed over three rounds (final set in the scratchpad `royal/final`). Still to do: the three-reviewer round, the full-build checks (`golden.py check` legacy 48 and `--v1`), a 1024 × 768 monkey pass, `?cvd=mono/deut` screenshot pass, and Coordinator A sign-off on the claims table.
+
+## Simplification (D6 decision 9), 23 October 2026
+
+Before changing anything I played all four levels at 390 × 780 (and later at 360 × 640, 780 × 390 and 1280 × 720); the screenshots are in the session scratchpad (`s3/simp_royal_tap/royal0` before, `royal1`–`royal3` after). The fly room, the lamp dish, the gallery, the portraits and the juice stay. What was heavy:
+- **Seven prediction interludes, on three kinds of gesture** (two in L1, five zigzag asks plus a "new cage" transfer in L2, a balance ask in L3, a colour-blindness ask at the end of the boss). On a phone the strip covered the cage before the player had seen it.
+- **L2 had no verb of its own**: the player watched and was quizzed.
+- **The lamp had two limits at once** (a 6 s round and a shrinking battery), and the battery label collided with the pills on small phones.
+- **The L1 hints used jargon** ("Next: the F2") and the shelf named bottles "Cross 2 ♀", so a player could waste vials not knowing which bottle was the F1 daughter.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| The F2 ask ("F1 daughters × red males: white sons?") | L1 | **One prediction is kept for the chapter: the reverse cross** ("White-eyed mothers × red-eyed fathers: what share of their sons will have white eyes?"). It is the aha: under an autosomal model the answer would be "none, as in the F1"; on the X every son is white. The ghost starts at 0% ("as in the F1"), outside the ±12-point band. It carries the Predict star. |
+| Five zigzag asks and the "new cage" transfer ask | L2 | Replaced by a verb and the key equation shown plainly. **Tap Breed** (the dock button, the cage, Space or Enter) breeds each of the first four generations; the HUD reads the rule with that generation's numbers ("Sons copy their mothers: 50%. Daughters average both parents: 50%."), and the X-copy read-out has the equations beside its rows (q♀′ = (q♀+q♂)÷2, q♂′ = q♀). Generations 5–10 then run, and the HUD names the settling point: "Both settle at (2q♀ + q♂) ÷ 3 = 33%: females hold two X copies." A generation breeds by itself after 6 s untouched, so play never stalls. The male line on the strip chart is now dashed, so the leapfrog reads in the folded phone strip. |
+| The balance ask (and the ½ / ¼ / all lamp share chosen to dodge "no change") | L3 | The lamp now always catches half the white males after the five rounds (P.s = 0.5). While the 60 generations run the HUD says "Every white-eyed male is exposed to the lamp, so white is purged fast", then shows the key number: "Balance: q♂ ≈ 3μ ÷ s = 3 × 0.01 ÷ 0.5 = 6.0%". The chart draws the 3μ ÷ s line from generation 25. |
+| The lamp battery (timed play) | L3 | The 6 s round is the only limit; the beam stays on while the pointer is down. The battery survives only as the flash budget in untimed play (labelled "Flashes"), where something must end a round. The catch tally is labelled ("caught 2/12") and sits under the pills, or above the dish on short screens; "Mutation ×1000" moves to the top left on a phone. |
+| The colour-blindness ask at the end of the boss | Boss | A transfer gesture that was not the boss's idea. The q-in-men, q²-in-women point stays where it already lived: L3's card body and the boss's Why? card (8% of men, q² = 0.64% predicted, about 0.4% seen because two genes are involved). |
+| Helena Victoria's second judgment | Boss | She had no children, so the player was made to re-set the slider with no new evidence. Her "after sons" chance now seals itself at her prior ("No sons, so nothing new: her chance stays 10%"), and it is not scored. The boss now has **11** judgments. |
+| Hint texts and bottle labels | L1 | The HUD names the next pair ("Next, the F2: cross an F1 ♀ bottle with a wild red-eyed male.", "Next: cross an F1 ♀ bottle with the white-eyed male.", "Last: cross the white-eyed ♀ bottle with a red-eyed male."). New bottles are labelled "F1 ♀" and "F2 ♀" by the cross that made them. |
+
+The four levels stay (each teaches one idea: the reciprocal cross, the X-linked approach to equilibrium, selection on hemizygous males against mutation, Bayesian carrier risk). Equilibrium's MODEL card points here for the leapfrogging sexes, so the zigzag level is kept, now short and tap-driven. `content.intro.how` now reads "Drag a female bottle onto a male bottle to cross them; once, drag on the chart to predict. Later you breed a cage, sweep a lamp and set carrier odds."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 Morgan's bottles | white-eyed daughter and reverse cross within six vials (unchanged) | **the one prediction**: the reverse cross's white sons, ±12 points (was both key crosses) | — |
+| L2 The zigzag | — | — (was 4 of 5 zigzag asks) | — (was the new cage) |
+| L3 The lamp | catch at least half the white-eyed males (unchanged) | — (was the balance ask) | — |
+| Boss | every certain carrier marked, odds lowered after unaffected sons (unchanged; now counts 11 judgments) | — | **10 of 11** odds within 10 points (was 11 of 12 plus the colour-blind share) |
+
+Unit stars: Discover in two of L1, L3 and the boss; Predict = L1; Transfer = the boss. No level offers all three. L2 offers no star: it is a short demonstration with one verb, and its card shows no "still to earn" line.
+
+### The 19 review findings (`royal_review_pending.md`), verified
+
+| # | Finding | Verdict and action |
+|---|---|---|
+| P1 | Boss HUD counter "0/0" unlabelled | Real. Now "±10 pts n/m", hidden until the first seal. |
+| P2 | L2 first ask after 1.4 s, strip hides the cage | Overtaken: the zigzag asks are gone; the level opens on the cage with "Tap Breed" and a ghost hand on the cage. |
+| P3 | Helena Victoria re-set with no new evidence | Real. Her second chance seals itself and is not scored (above). |
+| P4 | Lamp labels collide at 360 × 640 and 780 × 390 | Real. The battery is gone in timed play; the tally moved; "Mutation ×1000" moved to the top left on phones. Checked at both sizes. A transient whisper can still sit over the tally for a second on 360 × 640. |
+| P5 | L1 banner over the goals and vials; vials shown three times | Real. On phones the banner sits over the empty plate and the in-scene "Vials" pill is dropped (the HUD and the tubes carry it); the tubes moved below the goals card. The 780 × 390 landscape bench stays cramped (the plate is cut off at the foot): not fixed here. |
+| P6 | L1 chart points at 0% / 100% half-clipped; "you"/"expected" overprint | Partly fixed: the x range is inset (−5% to 105%) so the markers are whole. The "you"/"expected" pair at 100% is drawn by the engine's `Predict.reveal` and still touches on a phone (engine request). |
+| P7 | Zigzag unreadable in the folded strip | Fixed in part: males dashed, females solid; the jars and the HUD now give the numbers each generation. |
+| P8 | L1 bottles unnamed; HUD jargon | Real. Bottles "F1 ♀", "F2 ♀"; the HUD names the pair. |
+| P9 | Two-worlds bar reversed against the slider | Real. The bar keeps the slider's 0% left / 100% right labels; "carrier" and "not carrier" are written inside their own fills. |
+| P10 | Card chart y labels overprinted | Fixed for the odds chart (x range from 0, leaving room for the labels); the colour-vision chart is gone. |
+| S1 | **L3 lesson backwards** ("selection on males alone removes white slowly") | **Real, high.** A recessive X-linked allele is exposed in every hemizygous male: Δq ≈ −sq/3 (linear) against −sq² for an autosomal recessive, and the balance is 3μ/s against √(μ/s) (Haldane 1935; Hartl & Clark 2007). Rewritten: chapter take ("A recessive gene on the X shows in sons and hides in daughters. Exposed in males, it is purged fast."), L3 take, L3 body (adds the autosomal √(μ ÷ s) for comparison, from the run's μ and s), the "No new mutations" What if? body, teacher prompt 2, a new L3 Why? chunk (μ = 10⁻⁵, s = ½: 0.45% autosomal against 0.006% on the X) and this log's instructor note. |
+| S2 | "Mosaic carrier females" in a fly MODEL | Real (Drosophila compensates dosage by hyper-transcribing the male X; no X inactivation). Replaced by "any cost to white-eyed females". |
+| S3 | q² = 0.64% labelled "exact" | Overtaken: the colour-vision ask and its chart are gone; the Why? card already says q² predicts 0.64% and about 0.4% is seen (two genes). |
+| S4 | "It removes half of them" when the share could be ¼ or all | Overtaken: the share is always ½ now, and the "low"/"high" texts went with the ask. |
+| S5 | "Exact" posteriors ignore daughters' and grandsons' evidence | Real. The boss MODEL simplification now says so. Scoring unchanged (Victoria of Hesse with Prince Philip's evidence would be ≈ 16%, inside 10 points of 20%). |
+| S6 | Morgan 1910 did not name the X | Real. Now "By 1911 these crosses led him to place a gene on a chromosome, the X. Bridges proved it in 1916." (`bridges1916` added to the refs.) |
+| S7 | "{a}% white" read as eye colour in the autosomal What if? | Real. Now "{a}% white copies". |
+
+### Science
+Changed claims are listed above (S1, S2, S5, S6, S7). The model, the recursion, the posteriors and the 3μ/s balance are unchanged and still checked by the oracle.
+
+### Real biology (D6 decision 10)
+Already met: real *Drosophila* with visible eye colour in milk bottles, a courtship dish, portraits of the real family. The X-copy rods and the charts are read-outs beside them.
+
+### Tests (build `V2_ONLY='0*,zz_*,royal.js,tap.js' python3 build.py <scratch>/rt.html`)
+- `tests/oracle_royal.js` updated: only the reverse cross asks, once; its ghost starts outside the band; the zigzag waits for a tap and breeds by itself after 6 s; timed lamp spends no battery; Helena Victoria seals herself and 11 judgments count; star offers `[3, 0, 1, 5]`; the realised lamp cage settles at the recursion's balance (`s.balE`); the autosomal What if? tolerance widened to 0.08 (10 generations of drift at N = 1,000 have SD ≈ 0.025). **51/51.**
+- `tests/royal_paths.py`: 12 ok (a real tap on the cage and the dock "Breed" each breed a generation; the pointer sweep spends no battery). `tests/royal_shots.py` unchanged (the expert policy now taps Breed).
+- Lint 0/0; `dup_globals` ok; bot sweep (seeds 1–20, 7 bots) PASS, best masks L1 DP- (random, rare), L2 ---, L3 D--, boss ---; untimed sweep PASS; monkey seeds 1–3 at 390 × 780 and 1280 × 720: 6 of 6 reach the end card.

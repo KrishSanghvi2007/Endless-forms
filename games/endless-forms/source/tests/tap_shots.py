@@ -14,7 +14,7 @@ STEP = """(o)=>{ const ch = TB.REG.tap, s = ch.sim.s, card = document.querySelec
   if (card) return {card: card.className};
   if (s.ask) return {ask: s.ask.id, phase: s.phase, chart: s.ask.chart, kind: s.ask.kind, lo: s.ask.lo, hi: s.ask.hi, exp: s.exp[s.ask.id]};
   const a = ch.sim.bots.expert(s, ch.sim.actions(), Math.random);
-  if (a && a.k !== 'predict' && !(o.lens && a.k === 'lens' && !a.on)) TB.Sim.act(ch, a);
+  if (a && a.k !== 'predict') TB.Sim.act(ch, a);
   return {phase: s.phase, dusk: s.dusk, gen: s.gen, lens: s.lens, busy: s.busy, net: s.net, drum: s.drum, caught: s.caught, si: s.si, note: s.note || ''}; }"""
 
 
@@ -53,7 +53,7 @@ def main():
                 shot('start')
                 asks = 0
                 for step in range(12000):
-                    st = pg.evaluate(STEP, {'lens': lv == 1 and 'lens' not in have})
+                    st = pg.evaluate(STEP, {})
                     if 'card' in st:
                         pg.evaluate("()=>window.__advance(1500)")
                         shot('card'); break
@@ -78,14 +78,15 @@ def main():
                     if ph == 'dusk' and st.get('dusk') == 1 and once('dusk1'): pg.evaluate("()=>window.__advance(1500)"); shot('dusk1')
                     if ph == 'dusk' and st.get('busy', 0) > 9 and once('dive'): shot('dive')
                     if ph == 'dusk' and st.get('busy', 0) > 0 and st.get('busy') < 6 and once('carry'): shot('carry')
-                    if ph == 'dusk' and st.get('lens') and once('lens'): pg.evaluate("()=>window.__advance(300)"); shot('lens')
+                    if ph == 'lapse' and st.get('lens') and once('lens'): pg.evaluate("()=>window.__advance(1200)"); shot('lens')
                     if ph == 'dawn' and once('dawn'): shot('dawn')
                     if ph == 'pause' and once('pause_' + st.get('note', '')): pg.evaluate("()=>window.__advance(700)"); shot('pause_' + st.get('note', ''))
                     if ph == 'lapse' and st.get('gen', 0) >= 8 and once('lapse8'): shot('lapse8')
                     if ph == 'lapse' and st.get('gen', 0) >= 24 and once('lapse24'): shot('lapse24')
                     if ph == 'dusk' and st.get('gen', 0) >= 20 and lv < 2 and once('bal'): pg.evaluate("()=>window.__advance(1200)"); shot('bal')
-                    if lv == 3 and st.get('gen', 0) >= 15 and st.get('drum') and once('drumhint'): pg.evaluate("()=>window.__advance(300)"); shot('drumhint')
-                    if lv == 3 and st.get('gen', 0) >= 10 and not st.get('drum') and once('plugged'): shot('plugged')
+                    if lv == 3 and st.get('gen', 0) >= 10 and st.get('drum') and once('drumhint'): pg.evaluate("()=>window.__advance(300)"); shot('drumhint')
+                    if lv == 3 and st.get('gen', 0) >= 10 and not st.get('drum') and once('plugged'): pg.evaluate("()=>window.__advance(600)"); shot('plugged')
+                    if lv < 3 and ph == 'lapse' and st.get('gen', 0) >= 12 and once('key'): shot('key')
                     pg.evaluate("()=>window.__advance(40)")
                 warn = pg.evaluate("()=>({lbl: (TB.Lbl && TB.Lbl.warnings || []).slice(0, 5), wh: (TB.Whisper && TB.Whisper.warnings || []).slice(0, 5), hud: (TB.HUD && TB.HUD.warnings || []).slice(0, 5), lg: (TB.LiveGraph && TB.LiveGraph.errors || []).slice(0, 3)})")
                 if any(warn.values()): print('L%d %s warnings:' % (lv + 1, tag), warn)

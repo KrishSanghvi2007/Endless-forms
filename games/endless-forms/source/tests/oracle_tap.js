@@ -2,9 +2,10 @@
    D5 §4 item 14 / D3 §5.3 acceptance: q̂ within 10% of μ/(hs) (dominant) and √(μ/s) (recessive); load within 15% of 2μ
    (dominant) and μ (recessive) at equilibrium, whatever s; the textbook values at a real μ. Plus: the Wright–Fisher colony's
    long-run mean tracks the recursion; relaxed selection raises q by about μ(1 − q) a generation and the doubling time the ask
-   reads is the recursion's; the boss load spikes under harder hunting and returns to the drip line; shutting the drum halves
+   the HUD names is the recursion's; the boss load spikes under harder hunting and returns to the drip line; shutting the drum halves
    it; determinism, replay and snapshots; the expert earns every star offered; no level offers three; no bot's union reaches
-   three; the first action cannot fail; untimed play ends; What if? runs earn nothing. TP_FAST=1 runs fewer seeds. */
+   three; only the boss asks (D6 decision 9: one prediction per chapter); the first action cannot fail; untimed play ends;
+   What if? runs earn nothing. TP_FAST=1 runs fewer seeds. */
 'use strict';
 module.exports = function (G, t) {
   const { sim, ch } = G, FAST = !!process.env.TP_FAST, NS = FAST ? 6 : 20;
@@ -51,10 +52,10 @@ module.exports = function (G, t) {
     const d = sim.doubling(q0, 0, 0.02); t.near(d, Math.log(0.6 / 0.8) / Math.log(0.98), 0.02, `doubling from 0.2 takes ${d.toFixed(2)} generations (closed form ${(Math.log(0.6 / 0.8) / Math.log(0.98)).toFixed(2)})`);
     const ends = []; for (let seed = 1; seed <= (FAST ? 6 : 20); seed++) { const S = G.reset(2, seed), qE0 = S.qE; for (let g = 0; g < 30; g++) sim.generation(S, [], 0); ends.push(S.q - S.qE); void qE0; }
     t.ok(Math.abs(mean(ends)) < 0.01, `after 30 generations under the net the colony sits ${mean(ends).toFixed(4)} from the recursion on average`);
-    const starts = new Set(); for (let seed = 1; seed <= 30; seed++) starts.add(G.reset(2, seed).q0); t.ok(starts.size === 3, `L3 opens at three balances by seed (${[...starts].join(', ')}), so no fixed doubling answer fits every run`); }
+    const starts = new Set(); for (let seed = 1; seed <= 30; seed++) starts.add(G.reset(2, seed).q0); t.ok(starts.size === 3, `L3 opens at three balances by seed (${[...starts].join(', ')}), so the doubling time differs by seed`); }
 
   /* 6. the boss: harder hunting spikes the load, then it returns to the drip line; shutting the drum halves it */
-  { for (const mt of [0.014, 0.02, 0.026]) {
+  { for (const mt of [0.012, 0.018, 0.024]) {
       let q = Math.sqrt(mt / 0.5), Ls = []; const h = 0;
       for (let g = 0; g < 40; g++) { const s = g < 5 ? 0.5 : 0.9, mu = g < 25 ? mt : mt / 2; Ls.push(1000 * sim.load(q, s, h)); q = sim.qn(q, s, h, mu); }
       t.ok(Ls[5] > 1.5 * Ls[4], `μ ${mt}: the load spikes when the gulls join (${Ls[4].toFixed(1)} → ${Ls[5].toFixed(1)} per 1000)`);
@@ -76,30 +77,32 @@ module.exports = function (G, t) {
     const snap = sim.snapshot(); sim.restore(snap); t.eq(sim.snapshot(), snap, 'snapshot round trip is exact'); t.ok(snap.length < 40000, `end snapshot ${snap.length} characters`); }
 
   /* 8. the expert earns every star its level offers; no level offers all three */
-  { const want = [3, 3, 3, 5], got = [0, 0, 0, 0], n = FAST ? 8 : 20; let three = 0;
+  { const want = [1, 1, 1, 6], got = [0, 0, 0, 0], n = FAST ? 8 : 20; let three = 0;
     for (let lv = 0; lv < 4; lv++) for (let seed = 1; seed <= n; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; if (r.result && r.result.mask === 7) three++; }
     t.ok(three === 0, 'no level offers all three stars');
     got.forEach((g, lv) => t.ok(g / n >= 0.8, `L${lv + 1}: the expert earns every offered star (${want[lv]}) on ${g} of ${n} seeds`)); }
 
   /* 9. no bot's union across the unit reaches three stars (lessons rule 5), via ch.unitStars */
-  { const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'lensAlways', 'line', 'halfNow'], worst = {};
+  { const bots = ['alwaysA', 'alwaysB', 'random', 'greedy', 'threshold', 'slow', 'line', 'halfNow'], worst = {};
     for (const b of bots) { worst[b] = 0; for (let seed = 1; seed <= (FAST ? 5 : 14); seed++) { const lv = []; for (let l = 0; l < 4; l++) { const r = G.run(l, { seed, bot: b }); lv.push(r.result ? r.result.mask & 7 : 0); if (r.result && (r.result.mask & 7) === 7) worst[b] = 9; } const u = ch.unitStars(lv); worst[b] = Math.max(worst[b], (u & 1) + ((u >> 1) & 1) + ((u >> 2) & 1)); } }
     t.ok(Object.values(worst).every(v => v < 3), 'no bot reaches three unit stars: ' + bots.map(b => b + ' ' + worst[b]).join(', ')); }
 
-  /* 10. the asks: never pre-answered; "no change" never counts; a never-diving hunter cannot predict */
+  /* 10. the one ask (D6 decision 9): only the boss asks, once; it opens as an ask phase; "no change" from the spiked meter misses */
   { const s0 = G.reset(0, 3); t.ok(!s0.ask && s0.phase === 'dusk', 'L1 opens on a dusk, with no ask open');
-    let ok = true; for (let seed = 1; seed <= NS; seed++) for (const lv of [0, 1]) { const r = G.run(lv, { seed, bot: 'line' }); if (r.s.hits[['a1', 'b1'][lv]]) ok = false; }
-    t.ok(ok, '"no change" answers never earn the balance predictions');
-    let ok2 = true; for (let seed = 1; seed <= NS; seed++) { const r = G.run(0, { seed, policy: (s, A) => s.ask ? { k: 'predict', id: s.ask.id, v: s.exp[s.ask.id] } : s.phase === 'dusk' && s.busy === 0 ? { k: 'end' } : null }); if (r.s.hits.a1) ok2 = false; }
-    t.ok(ok2, 'a gull that never dives cannot earn Predict, even with the exact answer (the ask does not count)'); }
+    let ok = true; for (let seed = 1; seed <= NS; seed++) for (const lv of [0, 1, 2]) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.s.asks.length) ok = false; }
+    t.ok(ok, 'L1–L3 ask nothing; their key numbers are shown, not asked');
+    let ok2 = true, ph = true; for (let seed = 1; seed <= NS; seed++) { let saw = false; const r = G.run(3, { seed, policy: (s, A) => { if (s.ask) { if (s.phase !== 'ask') ph = false; saw = true; return { k: 'predict', id: s.ask.id, v: s.now[s.ask.id] }; } return null; } }); if (!saw || r.s.asks.length !== 1 || !r.s.cnt.t1 || r.s.hits.t1) ok2 = false; }
+    t.ok(ok2, 'the boss asks once; it counts on every seed, and "no change" from the spiked load misses');
+    t.ok(ph, 'an open ask holds the sim in its ask phase'); }
 
-  /* 11. the first action cannot fail; untimed play ends; the lens blocks dives */
+  /* 11. the first action cannot fail; untimed play ends; the lens shows only while L2's generations run */
   { const s = G.reset(0, 4); let k = 0; while (k < 200 && !s.vis.some(c => c.alive && c.aff && c.ex && c.tm > 0.3)) { sim.step(sim.dt); k++; }
     const i = s.vis.findIndex(c => c.alive && c.aff && c.ex && c.tm > 0.3); sim.act({ k: 'dive', i }); for (let j = 0; j < 10; j++) sim.step(sim.dt);
     t.ok(i >= 0 && s.caught === 1, 'a dive on a chick tottering at the edge is a catch');
     const u = G.run(1, { seed: 5, bot: 'alwaysB', untimed: true }); t.ok(!!u.result, 'untimed: a gull that never dives still reaches the end');
     const e = G.run(3, { seed: 5, bot: 'expert', untimed: true }); t.ok(!!e.result, 'untimed: the boss plays to the end');
-    const L = G.reset(1, 6); sim.act({ k: 'lens', on: true }); const before = L.dives; sim.act({ k: 'dive', i: 0 }); t.ok(L.dives === before && L.lensUsed, 'the lens blocks dives'); }
+    const L = G.reset(1, 6), lensDusk = L.lens; let k2 = 0; while (L.phase !== 'lapse' && k2 < 20000) { if (L.phase === 'dusk' && L.busy === 0 && L.t > 0.5) sim.act({ k: 'end' }); sim.step(sim.dt); k2++; }
+    t.ok(!lensDusk && L.phase === 'lapse' && L.lens, 'the lens is off while hunting and on while L2’s generations run (no toggle)'); }
 
   /* 12. What if? runs end, earn no stars and move the way their lever says */
   { let ok = true; const notes = [];

@@ -3,16 +3,19 @@
    lamplight) and a Victorian portrait gallery (sepia portraits in gold frames on a burgundy wall). Role: investigator in L1,
    L2 and the boss; the selective environment (the lamp) in L3 (D1 G1).
      L0 Morgan's bottles   drag a female bottle onto a male bottle to cross them; flies hatch into four trays (sex × eye).
-                           Goals: F1, F2, a white-eyed daughter, the reverse cross, within six vials (Morgan 1910).
+                           Goals: F1, F2, a white-eyed daughter, the reverse cross, within six vials (Morgan 1910). The
+                           chapter's one prediction: the white sons of the reverse cross (D6 decision 9).
      L1 The zigzag         red-eyed females meet white-eyed males in a cage of 1,000 of each sex beside an autosomal control;
-                           tap the next white share in sons and daughters; the gap halves and flips sign; the mean
-                           (2q_f + q_m)/3 never moves. Transfer: where a new cage settles.
+                           tap Breed for each of the first four generations (the HUD names the rule with the numbers), then
+                           the rest run: the gap halves and flips sign; the mean (2q_f + q_m)/3 never moves.
      L2 The lamp           sweep a lamp beam over the courtship dish: white-eyed males under it court poorly (selection on
-                           males only); mutation (×1000) brings white back; predict the male share at balance (≈ 3μ/s).
+                           males only); mutation (×1000) brings white back; the HUD shows the balance, q_m ≈ 3μ/s, far
+                           below an autosomal recessive's √(μ/s) because every white-eyed male is exposed.
      L3 The Queen's        boss: six women in Queen Victoria's family (haemophilia B, an F9 variant; Rogaev et al. 2009).
         carriers           Set each one's carrier chance before and after her sons are shown; the exact Bayesian answer is
-                           revealed on a brass plaque. Inverts "a carrier is a carrier": evidence moves the odds. Transfer
-                           gesture: red–green colour blindness, q in men and q² in women.
+                           revealed on a brass plaque. Inverts "a carrier is a carrier": evidence moves the odds.
+   Simplified 23 Oct 2026 (D6 decision 9): one prediction; no zigzag asks, transfer cage, lamp battery, balance ask or
+   colour-blindness ask; the review findings of 22 Oct applied (docs/changes/wave2/royal.md).
    Notation (D2 §15): q is the white (w) allele's share of X copies; q_f in females (two X each), q_m in males (one X, from
    the mother). Allele read-outs use the fixed inks (blue +, amber w) only inside jars and charts (D6 addendum 7).
    Code shape (API_v2 §9): a headless sim (plain JSON; R(), Det, WF only; a run is (seed, level, actions)); all words in
@@ -24,49 +27,48 @@ const RY_TEXT = {
   intro: {   // the opening card (D6 addendum 8)
     game: 'You work in Thomas Hunt Morgan’s fly room in 1910, then in a gallery of royal portraits. You cross flies, watch a gene spread, and read a family tree.',
     biology: 'Females carry two X chromosomes; males carry one, from their mother. A recessive variant on the X therefore shows in far more sons than daughters.',
-    how: 'Drag a female bottle onto a male bottle to cross them, and drag on the chart to predict. Later you sweep a lamp and set carrier odds.'
+    how: 'Drag a female bottle onto a male bottle to cross them; once, drag on the chart to predict. Later you breed a cage, sweep a lamp and set carrier odds.'
   },
   firstWords: 'Morgan’s white-eyed male waits on the shelf. Drag the wild red-eyed female bottle onto him to cross them.',
   hud: {
     pick: 'Drag a female bottle onto a male bottle to cross them.',
-    next: 'Next: {goal}. Drag a female bottle onto a male bottle.',
+    nextF2: 'Next, the F2: cross an F1 ♀ bottle with a wild red-eyed male.',
+    nextWF: 'Next: cross an F1 ♀ bottle with the white-eyed male.',
+    nextRev: 'Last: cross the white-eyed ♀ bottle with a red-eyed male.',
     hatch: 'The flies hatch and drop into trays by sex and eye colour.',
-    askA: 'F1 daughters × red males. What share of their sons will have white eyes?',
-    askB: 'The reverse cross: white-eyed females × red males. What share of sons will be white?',
+    askB: 'White-eyed mothers × red-eyed fathers. What share of their sons will have white eyes?',
     sorted: 'Sorted. New bottles join the shelf.',
-    cage: 'Red-eyed females meet white-eyed males. Watch the white X spread through the cage.',
-    askM: 'What share of the sons’ X copies will carry white? Drag on the chart.',
-    askF: 'And the daughters’ X copies? Drag your guess, then Lock in.',
-    run: 'The generations run. Watch the gap between the sexes.',
-    askT: 'White X: {f}% in females, {m}% in males. Where will both sexes settle?',
-    trun: 'The new cage runs.',
+    cage: 'Red-eyed females meet white-eyed males. Tap Breed for the next generation.',
+    rule: 'Sons copy their mothers: {m}%. Daughters average both parents: {f}%.',
+    run: 'The gap halves and flips each generation. Watch the sexes meet.',
+    settle: 'Both settle at (2q♀ + q♂) ÷ 3 = {c}%: females hold two X copies.',
     court: 'Sweep the lamp over white-eyed males. In bright light they court poorly.',
-    courtU: 'Tap to flash the lamp on white-eyed males. Each flash costs battery.',
+    courtU: 'Tap to flash the lamp on white-eyed males. Flashes are limited.',
     bred: 'The next generation hatches.',
-    askBal: 'Now the lamp catches {f} white males. Where will their share settle?',
-    fH: 'half the', fQ: 'a quarter of the', fA: 'all the',
-    auto: 'Sixty generations under the lamp. Watch the white males.',
+    auto: 'Every white-eyed male is exposed to the lamp, so white is purged fast.',
+    bal: 'Balance: q♂ ≈ 3μ ÷ s = 3 × {mu} ÷ {s} = {e}%.',
     prior: '{name}. Before her sons are known, drag her chance of being a carrier.',
     sons: 'Her sons step forward.',
     nosons: 'She had no children.',
     post: 'Now set her carrier chance again, knowing her sons.',
     reveal: 'The exact chance is on the plaque.',
-    cv: 'About 8% of northern European men are red–green colour blind. Predict the share of women.',
+    nonews: 'No sons, so nothing new: her chance stays {p}%.',
     whatif: 'What if? The cage runs again with one thing changed.',
     over: 'Done.'
   },
   whispers: {
     drag: 'Drag the marker first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
     pickF: 'Start from a female bottle.', drop: 'Drop it on a male bottle.', noVials: 'No vials left.', stumble: 'He stumbles and loses her.',
-    battery: 'The lamp battery is flat.', seal: 'Sealed.', wd: 'White-eyed daughters at last!', setFirst: 'Drag the brass slider first.',
+    seal: 'Sealed.', wd: 'White-eyed daughters at last!', setFirst: 'Drag the brass slider first.',
     done: 'All four crosses done.', obligate: 'Her father had haemophilia.', aff: 'A son with haemophilia.', fine: 'An unaffected son.'
   },
   labels: {
-    wildF: 'Wild ♀', wildM: 'Wild ♂', mutM: 'White ♂', cF: 'Cross {n} ♀', wF: 'White ♀',
+    wildF: 'Wild ♀', wildM: 'Wild ♂', mutM: 'White ♂', cF: 'Cross {n} ♀', f1F: 'F1 ♀', f2F: 'F2 ♀', wF: 'White ♀',
     fr: '♀ red', fw: '♀ white', mr: '♂ red', mw: '♂ white', vials: 'Vials',
     g1: 'F1 hatched', g2: 'F2 hatched', g3: 'White daughter', g4: 'Reverse cross',
     goal1: 'the F1', goal2: 'the F2', goal3: 'a white-eyed daughter', goal4: 'the reverse cross',
-    nextF: 'Next ♀', xRed: 'Red ♂', xWhite: 'White ♂', lock: 'Lock in', breed: 'Breed now', seal: 'Seal', faster: 'Faster', crossN: 'Cross {n}', battery: 'Battery', gen: 'Generation {n}',
+    nextF: 'Next ♀', xRed: 'Red ♂', xWhite: 'White ♂', lock: 'Lock in', breed: 'Breed now', breed1: 'Breed', seal: 'Seal', faster: 'Faster', crossN: 'Cross {n}', battery: 'Flashes', gen: 'Generation {n}',
+    eqM: 'q♂′ = q♀', eqF: 'q♀′ = (q♀+q♂)÷2', caught: 'caught {a}/{b}', score: '±10 pts {n}/{m}',
     ctl: 'Autosome cage', xcage: 'X cage', fem: '♀ X copies', male: '♂ X copies', carrier: 'carrier', notc: 'not carrier',
     aff: 'haemophilia', none: 'no children', chance: 'Carrier chance', clear: 'assumed clear', xN: 'Mutation ×1000', exact: 'exact {p}%', youP: 'you {p}%',
     obligate: 'father affected', newcage: 'New cage', dish: 'Courtship dish', wm: 'white-eyed ♂ {n}%', wfem: 'white-eyed ♀ {n}%',
@@ -77,14 +79,10 @@ const RY_TEXT = {
     norev: 'You made white-eyed females but never crossed them with red males. That reverse cross gives every son white eyes.',
     nof2: 'You skipped crossing red F1 daughters with red males. That F2 shows white eyes only in sons.',
     fathers: 'You expected sons to copy their white-eyed fathers. A son gets his only X from his mother; his father gives a Y.',
-    midpoint: 'You split the difference between the sexes. Females hold two X copies for every male one, so the settling point leans their way.',
-    dim: 'The lamp caught fewer than half the white males it could. Sweep where the white eyes are, before the battery fades.',
-    low: 'You expected the lamp to nearly clear white. Copies in carrier females never meet the lamp, and new mutations keep arriving.',
-    high: 'You expected more white males than the lamp allows. It removes half of them each generation; carriers and mutation replace them.',
+    dim: 'The lamp caught fewer than half the white males it could. Hold the beam on white eyes until each male stumbles.',
     sons: 'Unaffected sons are evidence. Each one halves the carrier side of the odds before you renormalise.',
     father: 'A daughter of a man with haemophilia always carries it. The only X he can give her carries the variant.',
-    grand: 'A granddaughter’s chance starts at half of her mother’s chance, not half of certainty.',
-    cvmiss: 'Women show it only with the variant on both X copies: about q², not q, of them.'
+    grand: 'A granddaughter’s chance starts at half of her mother’s chance, not half of certainty.'
   },
   live: {
     ask: 'Prediction open. Press P, then the arrows.', hatch: '{n} flies hatched.', gen: 'Generation {n}. White X: females {f}%, males {m}%.',
@@ -98,39 +96,39 @@ const RY_TEXT = {
     titles: { sons: 'White sons by cross', hatch: 'This hatch', zig: 'White X share', copies: 'X copies now', inc: 'White-eyed share', where: 'Where white X sits', odds: 'Carrier odds', err: 'Your error', cv: 'Women affected' },
     ax: { share: 'white sons', cross: 'cross', gen: 'generation', p: 'chance', pct: 'women', judg: 'judgment', n: 'flies', sh: 'share' },
     lines: { fem: 'females', male: 'males', ctl: 'autosome', pbar: 'average', exp: 'expected', you: 'you', inF: 'in females', inM: 'in males',
-      exact: 'exact', prior: 'before sons', post: 'after sons', daus: 'daughters', sons: 'sons', bal: 'balance', wm: 'white males', wf: 'white females', ten: '10 points' }
+      exact: 'exact', prior: 'before sons', post: 'after sons', daus: 'daughters', sons: 'sons', bal: '3μ ÷ s', wm: 'white males', wf: 'white females', ten: '10 points' }
   },
   levers: { auto: 'Autosomal gene', flip: 'White females first', nomut: 'No new mutations', all: 'Catch every white' },
   whatifBody: {
-    auto: 'The same cage, with the gene on an autosome instead. Both sexes reached {a}% white in one generation and stayed there. On the X the sexes leapfrogged for generations.',
+    auto: 'The same cage, with the gene on an autosome instead. Both sexes reached {a}% white copies in one generation and stayed there. On the X the sexes leapfrogged for generations.',
     flip: 'White-eyed females with red-eyed males this time. The cage settled near {a}% white, two-thirds of the way to the females’ start. Females hold two of every three X copies.',
-    nomut: 'No new mutations. After the lamp’s sixty generations {a}% of males had white eyes, against {b}% with mutation. Selection on males alone removes white slowly.',
+    nomut: 'No new mutations. After the lamp’s sixty generations {a}% of males had white eyes, against {b}% with mutation. Every white-eyed son is exposed, so selection clears white fast; only mutation holds it up.',
     all: 'The lamp caught every white male. Their share still settled near {a}%, about three times the mutation rate. Carrier mothers and new mutations keep making white sons.'
   },
-  take: 'A recessive gene on the X shows in sons, hides in daughters, and responds slowly to selection.',
+  take: 'A recessive gene on the X shows in sons and hides in daughters. Exposed in males, it is purged fast.',
   body: 'Your carrier odds were within 10 points of the exact answer {n} times out of {m}. Each unaffected son halved the carrier side of the odds. A son with haemophilia made his mother a certain carrier.',
   law: { title: 'Sons show, daughters carry' },
   boss: { inverts: 'A carrier is not fixed in advance: each son changes the odds.' },
   stars: {
     discover: 'Run Morgan’s crosses, work the lamp, and spot the certain carriers.',
-    predict: 'Predict the crosses, the zigzag and the balance, in two of three levels.',
-    transfer: 'Find where a new cage settles, and read the royal pedigree exactly.'
+    predict: 'Predict the white sons of the reverse cross.',
+    transfer: 'Read the royal pedigree: 10 of 11 carrier odds within 10 points.'
   },
   levelStars: [
-    { discover: 'Get a white-eyed daughter and run the reverse cross within six vials.', predict: 'Predict the white sons of both key crosses.' },
-    { predict: 'Land four of five zigzag predictions inside the band.', transfer: 'Predict where a new cage settles.' },
-    { discover: 'Catch at least half the white-eyed males under the lamp.', predict: 'Predict the balance within a factor of 1.5.' },
-    { discover: 'Mark every certain carrier, and lower the odds after unaffected sons.', transfer: 'Land 11 of 12 odds within 10 points, and the colour-blind share.' }
+    { discover: 'Get a white-eyed daughter and run the reverse cross within six vials.', predict: 'Predict the white sons of the reverse cross.' },
+    {},
+    { discover: 'Catch at least half the white-eyed males under the lamp.' },
+    { discover: 'Mark every certain carrier, and lower the odds after unaffected sons.', transfer: 'Land 10 of 11 carrier odds within 10 points of the exact answer.' }
   ],
   levelTake: [
     'Sons show the X their mother gave. The reverse cross differs because males have one X.',
     'Sons copy their mothers; daughters average both parents. The gap halves and flips each generation.',
-    'Selection on males alone leaves white lingering: two of every three copies hide in females.'
+    'Every white-eyed male is exposed, so selection purges white fast. Mutation holds it low: q ≈ 3μ ÷ s.'
   ],
   levelBody: [
     'Your F2 sons were {a}% white-eyed, the daughters {b}%. In the reverse cross {c}% of sons had white eyes. The gene sits on the X, and a male carries one copy, from his mother.',
     'Your cage’s gap between the sexes went from {a} to {b} points in ten generations. Both settled near {c}%. That is the average over all X copies: two in each female, one in each male.',
-    'You caught {a}% of the white males in the dish. Then white-eyed males settled near {b}%, and white-eyed females near {c}%. That is q in males, about q² in females.'
+    'You caught {a}% of the white males in the dish. White-eyed males then settled near {b}%, close to 3μ ÷ s = {e}%. White-eyed females sat near {c}%: q in males, about q² in females. An autosomal recessive would settle far higher, at √(μ ÷ s) = {r}%.'
   ],
   model: [
     { level: 0, simulated: 'Bottles of flies crossed in batches. Each hatch gives 40 flies. Sex and eye colour are drawn at random, by the rules for a gene on the X.',
@@ -138,7 +136,7 @@ const RY_TEXT = {
       params: [{ name: 'flies per hatch', value: 40, tag: 'designed' }, { name: 'vials', value: 6, tag: 'designed' }, { name: 'white allele', value: 'recessive, on the X', tag: 'realistic' }],
       cannot: 'Morgan’s real F2 had fewer white-eyed flies than expected, because white-eyed flies survive less well.',
       nature: 'Morgan found one white-eyed male in 1910. His F2 had 3,470 red-eyed flies and 782 white-eyed ones, all of them males.',
-      contested: false, refs: ['morgan1910'] },
+      contested: false, refs: ['morgan1910', 'bridges1916'] },
     { level: 1, simulated: 'A cage of 1,000 flies of each sex. Each daughter takes an X from each parent; each son takes his X from his mother.',
       simplification: 'Random mating, no selection, and generations that do not overlap. A second cage carries the same variant on an autosome.',
       params: [{ name: 'flies of each sex', value: 1000, tag: 'designed' }, { name: 'start', value: 'red females, white males', tag: 'designed' }],
@@ -146,13 +144,13 @@ const RY_TEXT = {
       nature: 'In real populations the sexes reach the same X-linked frequencies within a few generations of mixing.',
       contested: false, refs: ['hartl2007'] },
     { level: 2, simulated: 'The same cage under a lamp. White-eyed males caught by the beam fail to mate, and new white mutations arise each generation.',
-      simplification: 'Only males are selected. The flies in the dish stand for the whole cage. After five rounds the lamp catches a fixed share, usually half.',
-      params: [{ name: 'mutation to white', value: '1 in 100 copies', tag: 'xN', real: 'about 1 in 100,000 per gene per generation, or fewer' }, { name: 'selection on white males', value: 'half (a quarter or all in some runs) after five rounds', tag: 'designed' }, { name: 'flies of each sex', value: 1000, tag: 'designed' }],
-      cannot: 'The poorer survival of white-eyed flies of both sexes, or mosaic carrier females.',
+      simplification: 'Only males are selected. The flies in the dish stand for the whole cage. After five rounds the lamp catches half the white males.',
+      params: [{ name: 'mutation to white', value: '1 in 100 copies', tag: 'xN', real: 'about 1 in 100,000 per gene per generation, or fewer' }, { name: 'selection on white males', value: 'half, after five rounds', tag: 'designed' }, { name: 'flies of each sex', value: 1000, tag: 'designed' }],
+      cannot: 'The poorer survival of white-eyed flies of both sexes, or any cost to white-eyed females.',
       nature: 'White-eyed Drosophila males mate less often than red-eyed ones, and laboratory cages lose the white allele over generations.',
       contested: false, refs: ['sturtevant1915', 'reed1950', 'haldane1935'] },
     { level: 3, simulated: 'Six women in Queen Victoria’s family. Each carrier chance is computed exactly from her parents, then from her sons.',
-      simplification: 'No new mutations after Victoria. Sons who died in infancy are left out. Every man with the variant shows haemophilia B.',
+      simplification: 'No new mutations after Victoria. Sons who died in infancy, and evidence from daughters and grandsons, are left out. Every man with the variant shows haemophilia B.',
       params: [{ name: 'pedigree', value: 'Queen Victoria’s descendants', tag: 'realistic' }, { name: 'variant', value: 'F9, haemophilia B', tag: 'realistic' }, { name: 'colour blindness in men', value: '8%', tag: 'realistic' }],
       cannot: 'X inactivation, which makes some carrier women bleed more easily than others.',
       nature: 'In 2009, DNA from the Romanov remains showed the royal disease was haemophilia B, an F9 variant. Alexandra carried it; Alexei had it.',
@@ -165,11 +163,12 @@ const RY_TEXT = {
       'Suppose a share q of X copies carry a variant. Then a share q of men show it, but only q² of women. With q = 0.08 that is 0.64% of women.']
   },
   levelWhy: [
-    { real: ['Morgan found the white-eyed male in May 1910. These crosses tied a gene to a particular chromosome for the first time.'],
+    { real: ['Morgan found the white-eyed male in May 1910. By 1911 these crosses led him to place a gene on a chromosome, the X. Bridges proved it in 1916.'],
       maths: ['A son’s X comes from his mother. So the share of white sons equals the white share of the mothers’ X copies. A daughter needs white from both parents.'] },
     { real: ['Real populations mix generations, so the zigzag is damped further. The sexes still match within a few generations.'],
       maths: ['q_m′ = q_f and q_f′ = (q_f + q_m)/2. The gap q_f − q_m becomes −½ of itself each generation. The average (2q_f + q_m)/3 never moves.'] },
-    { real: ['In 1935 Haldane used this balance to estimate a human mutation rate. He started from how often boys with haemophilia are born.'],
+    { real: ['In 1935 Haldane used this balance to estimate a human mutation rate. He started from how often boys with haemophilia are born.',
+        'On an autosome a recessive settles at √(μ ÷ s), hidden in carriers. With μ = 10⁻⁵ and s = ½ that is 0.45%, against 3μ ÷ s = 0.006% on the X.'],
       maths: ['Each generation selection removes about s × q ÷ 3 white copies, since only males show it. Mutation adds μ. They balance when q ≈ 3μ/s.'] }
   ]
 };
@@ -187,7 +186,7 @@ const RY_CASES = [
 ];
 const RY_LV = ['cross', 'cage', 'lamp', 'gallery'];
 /* timings in seconds: hatch per fly, a cage generation, auto generations, the courtship round, an ask's backstop, a son's walk-in */
-const RY_T = { dt: 1 / 30, hatch: 0.1, sorted: 0.9, gen: 1.25, run: 0.75, trun: 0.4, court: 6, bred: 1.1, auto: 0.11, askMax: 40, son: 0.85, reveal: 2.4, beamR: 0.14, expo: 0.2 };
+const RY_T = { dt: 1 / 30, hatch: 0.1, sorted: 0.9, wait: 6, taps: 4, run: 0.75, court: 6, bred: 1.1, auto: 0.11, askMax: 40, son: 0.85, reveal: 2.4, beamR: 0.14, expo: 0.2 };   // wait: a zigzag generation breeds on a tap, or by itself after this
 /* the fly room's colours (view only): walnut, brass, lamplight, cream glass, banana mash; the gallery's burgundy and gold */
 const RY_C = { wall: '#2A2019', wall2: '#3A2B20', bench: '#7A5534', bench2: '#5C3F27', brass: '#C9A04A', brassD: '#8C6A2A', lamp: '#FFE2A6',
   glass: 'rgba(222,232,226,0.28)', glassE: 'rgba(240,246,242,0.75)', mash: '#D9C27A', plug: '#EFE7D6', red: '#A8332B', white: '#F6F3EC', body: '#B98E52', band: '#4A3624',
@@ -214,7 +213,7 @@ const CH_ROYAL_V2 = {
   ],
   keys: { 1: 'pick a bottle (1–7)', Space: 'beam or faster', ArrowLeft: 'move beam or slider', Enter: 'lock in or seal', P: 'predict' },
   untimed: true,
-  teacher: { prompts: ['Why do X-linked recessive conditions show far more often in men?', 'Why does selection on males alone remove a recessive X-linked allele slowly?', 'This pedigree ignores new mutations and X inactivation. When would that mislead a counsellor?'], pool: 'trace' },
+  teacher: { prompts: ['Why do X-linked recessive conditions show far more often in men?', 'Why is a recessive X-linked allele purged faster than an autosomal one, yet never lost?', 'This pedigree ignores new mutations and X inactivation. When would that mislead a counsellor?'], pool: 'trace' },
   starTraits: ['eye'],
   encodings: [   // eye colour reads by luminance (dark red against bright white); sex by abdomen shape and the ♀/♂ trays; no hue carries a score alone
     { k: 'eye', rgb: [168, 51, 43], channels: ['colour', 'luminance'] }, { k: 'white', rgb: [246, 243, 236], channels: ['colour', 'luminance'] },
@@ -257,8 +256,7 @@ const CH_ROYAL_V2 = {
       s.left--; const qf = this.r6(this.qOf(F)), qm = this.qOf(M), type = this.typeOf(F, M);
       const c = { no: s.crosses.length + 1, f: F.id, m: M.id, qf, qm, fw: F.white, type, kids: [0, 0, 0, 0], n: this.P().brood.v, i: 0 };
       s.cur = c; s.crosses.push(c); ev.push({ k: 'cross', f: F.id, m: M.id, no: c.no });
-      if (!s.auto && type === 'f2' && s.asks.indexOf('a') < 0 && qf >= 0.3) this.openAsk(s, ev, 'a', 'x', 0, 1, 0.12, 0, qf, 'hatch', this.P().vials.v + 1 - c.no);
-      else if (!s.auto && type === 'rev' && s.asks.indexOf('b') < 0) this.openAsk(s, ev, 'b', 'x', 0, 1, 0.12, 0, 1, 'hatch', this.P().vials.v + 1 - c.no);
+      if (!s.auto && type === 'rev' && s.asks.indexOf('b') < 0) this.openAsk(s, ev, 'b', 'x', 0, 1, 0.12, 0, 1, 'hatch', this.P().vials.v + 1 - c.no);
       else { s.phase = 'hatch'; s.t = 0; }
     },
     crossStep(s, ev) {
@@ -276,7 +274,7 @@ const CH_ROYAL_V2 = {
       if (c.type === 'f1') s.goals.f1 = 1; if (c.type === 'f2') s.goals.f2 = 1; if (c.type === 'rev') s.goals.rev = 1;
       const add = (sex, g, white) => {
         g = g.map(x => this.r6(x)); if (s.stocks.some(x => x.sex === sex && x.g.every((v, i) => Math.abs(v - g[i]) < 1e-6))) return;
-        const st = { id: 'c' + c.no + (sex === 'f' ? (white ? 'w' : 'r') : (white ? 'W' : 'R')), sex, g, lab: white ? 'wF' : 'cF', no: c.no, white };
+        const st = { id: 'c' + c.no + (sex === 'f' ? (white ? 'w' : 'r') : (white ? 'W' : 'R')), sex, g, lab: white ? 'wF' : c.type === 'f1' ? 'f1F' : c.type === 'f2' ? 'f2F' : 'cF', no: c.no, white };
         s.stocks.push(st); ev.push({ k: 'stock', id: st.id, white });
         if (sex === 'f' && white && !s.goals.wf) { s.goals.wf = 1; ev.push({ k: 'wd' }); }
         const fem = s.stocks.filter(x => x.sex === 'f'); if (fem.length > 4) { const ok = x => x.id !== 'wf' && !x.white && x.id !== st.id, old = fem.find(x => ok(x) && Math.abs(x.g[1] - 1) > 1e-6) || fem.find(ok); if (old) s.stocks.splice(s.stocks.indexOf(old), 1); }   // the shelf holds four female bottles: wild, white and the carriers stay longest
@@ -293,7 +291,7 @@ const CH_ROYAL_V2 = {
       const N = this.P().N.v; s.N = N;
       s.cage = { F: [N, 0, 0], M: [0, N] };                 // red-eyed (homozygous) females with white-eyed males
       s.ctl = { F: [N, 0, 0], M: [0, 0, N] };               // the same start with the variant on an autosome (males diploid)
-      s.g = 0; s.hist = [this.cageStat(s)]; s.phase = 'gen'; s.t = 0; s.plan = [['m1', 1], ['f1', 1], ['m2', 2], ['f2', 2], ['f3', 3]]; s.tc = null;
+      s.g = 0; s.hist = [this.cageStat(s)]; s.phase = 'gen'; s.t = 0; s.go = false;
     },
     qF(F, N) { return (F[1] + 2 * F[2]) / (2 * N); }, qM(M, N) { return M.length === 3 ? (M[1] + 2 * M[2]) / (2 * N) : M[1] / N; },
     cageStat(s) { const N = s.N, o = { qf: this.r6(this.qF(s.cage.F, N)), qm: this.r6(this.qM(s.cage.M, N)), wm: this.r6(s.cage.M.length === 3 ? s.cage.M[2] / N : s.cage.M[1] / N), wf: this.r6(s.cage.F[2] / N) }; if (s.ctl) { o.cf = this.r6(this.qF(s.ctl.F, N)); o.cm = this.r6(this.qM(s.ctl.M, N)); } return o; },
@@ -303,34 +301,13 @@ const CH_ROYAL_V2 = {
       const mo = mut(qf), pa = mut(fa); cage.F = this.diploid(N, mo, pa); const w = WF.binom(N, mo); cage.M = [N - w, w];
     },
     aGen(cage, N) { const qf = this.qF(cage.F, N), qm = this.qM(cage.M, N); cage.F = this.diploid(N, qf, qm); cage.M = this.diploid(N, qf, qm); },   // autosomal: both sexes alike
-    cageStep(s, ev) {
-      if (s.phase === 'gen') {
-        if (!s.auto && s.g === 0 && s.t < 1.4 && s.asks.length === 0) return;   // a moment to see the cage before the first ask
-        if (!s.auto) { const p = s.plan.find(x => x[1] === s.g + 1 && s.asks.indexOf(x[0]) < 0); if (p) { if (this.cageAsk(s, ev, p[0])) return; } }
-        if (s.t < (s.g >= 3 || s.auto ? RY_T.run : RY_T.gen) / (s.ff ? 3 : 1)) return;
-        s.t = 0; if (s.auts) this.aGen(s.cage, s.N); else this.xGen(s.cage, s.N, 0, 0); if (s.ctl && !s.auts) this.aGen(s.ctl, s.N);
-        s.g++; s.hist.push(this.cageStat(s)); ev.push({ k: 'gen', g: s.g });
-        if (s.g >= 10) { if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); } else this.tcStart(s, ev); }
-        return;
-      }
-      if (s.phase === 'tgen') {
-        if (s.t < RY_T.trun / (s.ff ? 3 : 1)) return; s.t = 0; this.xGen(s.tc, s.N, 0, 0); s.tg++; const N = s.N;
-        s.th.push({ qf: this.r6(this.qF(s.tc.F, N)), qm: this.r6(this.qM(s.tc.M, N)) }); ev.push({ k: 'tgen', g: s.tg });
-        if (s.tg >= 10) { s.phase = 'over'; ev.push({ k: 'over' }); }
-      }
-    },
-    cageAsk(s, ev, id) {   // the next sons' (m) or daughters' (f) white share, from the realised cage now; counted only when "no change" misses
-      const h = s.hist[s.hist.length - 1], m = id[0] === 'm', exp = this.r6(m ? h.qf : (h.qf + h.qm) / 2), start = m ? h.qm : h.qf;
-      if (Math.abs(exp - start) < 0.09) { s.voids[id] = true; s.asks.push(id); return false; }
-      this.openAsk(s, ev, id, 'y', 0, 1, 0.06, start, exp, 'gen', s.g + 1); return true;
-    },
-    tcStart(s, ev) {   // the transfer cage: one of four starts, drawn once; the settling point is (2q_f + q_m)/3
-      const pre = [[0.8, 0.2], [0.9, 0.3], [0.2, 0.8], [0.1, 0.7]][Math.min(3, Math.floor(R() * 4))], N = s.N, a = pre[0], b = pre[1];
-      const f2 = Math.round(N * a * a), f1 = Math.round(N * 2 * a * (1 - a)), m1 = Math.round(N * b);
-      s.tc = { F: [N - f1 - f2, f1, f2], M: [N - m1, m1] }; s.tg = 0; const qf = this.qF(s.tc.F, N), qm = this.qM(s.tc.M, N);
-      s.th = [{ qf: this.r6(qf), qm: this.r6(qm) }]; s.tpre = pre;
-      this.openAsk(s, ev, 't', 'y', 0, 1, 0.05, this.r6((qf + qm) / 2), this.r6((2 * qf + qm) / 3), 'tgen', 10);
-      ev.push({ k: 'tcage' });
+    cageStep(s, ev) {   // the first four generations breed on a tap (or by themselves after RY_T.wait), the rest run (D6 decision 9: no asks)
+      if (s.phase !== 'gen') return;
+      if (!s.auto && s.g < RY_T.taps) { if (!s.go && s.t < RY_T.wait) return; s.go = false; }
+      else if (s.t < RY_T.run / (s.ff ? 3 : 1)) return;
+      s.t = 0; if (s.auts) this.aGen(s.cage, s.N); else this.xGen(s.cage, s.N, 0, 0); if (s.ctl && !s.auts) this.aGen(s.ctl, s.N);
+      s.g++; s.hist.push(this.cageStat(s)); ev.push({ k: 'gen', g: s.g });
+      if (s.g >= 10) { s.phase = 'over'; ev.push({ k: 'over' }); }
     },
 
     /* ---------- L2: the lamp (selection on white males only; mutation brings white back) ---------- */
@@ -347,7 +324,7 @@ const CH_ROYAL_V2 = {
         s.flies.push({ cx: this.r6(0.5 + r * Det.cos(a)), cy: this.r6(0.5 + r * Det.sin(a)), ax: this.r6(amp * (0.6 + 0.8 * R())), ay: this.r6(amp * (0.6 + 0.8 * R())), wx: this.r6(0.5 + 0.9 * R()), wy: this.r6(0.5 + 0.9 * R()), p1: this.r6(6.28 * R()), p2: this.r6(6.28 * R()), w: false, ex: 0, c: false });
       }
       for (let k = 0; k < nw; k++) { const j = Math.floor(R() * nm); let q = j; while (s.flies[q].w) q = (q + 1) % nm; s.flies[q].w = true; }   // white-eyed males scattered through the dish
-      s.nw = nw; s.cg = 0; s.ct = 0; s.bat0 = this.r6(2.8 * Det.pow(0.85, s.g)); s.bat = s.bat0; s.beam = { on: false, x: 0.5, y: 0.5 }; s.phase = 'court'; s.t = 0;
+      s.nw = nw; s.cg = 0; s.ct = 0; s.bat0 = this.r6(2.8 * Det.pow(0.85, s.g)); s.bat = s.bat0; s.beam = { on: false, x: 0.5, y: 0.5 }; s.phase = 'court'; s.t = 0;   // bat: the flash budget, untimed play only
       ev.push({ k: 'court', g: s.g + 1, nw });
     },
     flyPos(f, t) { return [f.cx + f.ax * Det.sin(f.wx * t + f.p1), f.cy + f.ay * Det.sin(f.wy * t + f.p2)]; },
@@ -363,11 +340,11 @@ const CH_ROYAL_V2 = {
       if (s.phase === 'court') {
         if (s.unt) { if (s.bat < 0.5 - 1e-9 || s.cg >= s.nw && s.nw > 0 && s.t > 0.6) this.breed(s, ev); return; }
         s.ct = this.r6(s.ct + this.dt);
-        if (s.beam.on && s.bat > 0) { s.bat = this.r6(Math.max(0, s.bat - this.dt)); this.catchAt(s, ev, s.beam.x, s.beam.y, RY_T.beamR, RY_T.expo); if (s.bat <= 0) ev.push({ k: 'flat' }); }
-        if (s.ct >= RY_T.court || (s.bat <= 0 && s.ct > 0.3) || (s.nw > 0 && s.cg >= s.nw && s.ct > 0.8)) this.breed(s, ev);
+        if (s.beam.on) this.catchAt(s, ev, s.beam.x, s.beam.y, RY_T.beamR, RY_T.expo);   // the round's clock is the only limit (no battery)
+        if (s.ct >= RY_T.court || (s.nw > 0 && s.cg >= s.nw && s.ct > 0.8)) this.breed(s, ev);
         return;
       }
-      if (s.phase === 'bred') { if (s.t >= RY_T.bred / (s.ff ? 3 : 1)) { if (s.g < 5) this.courtStart(s, ev); else this.balAsk(s, ev); } return; }
+      if (s.phase === 'bred') { if (s.t >= RY_T.bred / (s.ff ? 3 : 1)) { if (s.g < 5) this.courtStart(s, ev); else this.autoStart(s, ev); } return; }
       if (s.phase === 'auto') {
         if (s.t < RY_T.auto) return; s.t = 0; this.xGen(s.cage, s.N, s.sAuto, s.mu); s.g++; s.hist.push(this.cageStat(s)); ev.push({ k: 'gen', g: s.g });
         if (s.g >= 65) { s.phase = 'over'; ev.push({ k: 'over' }); }
@@ -379,12 +356,10 @@ const CH_ROYAL_V2 = {
     },
     xRec(qf, qm, sel, mu) { sel = sel || 0; mu = mu || 0; const mut = q => q + mu * (1 - q), fa = sel > 0 ? qm * (1 - sel) / (1 - sel * qm) : qm, a = mut(qf), b = mut(fa); return [(a + b) / 2, a]; },   // the expected next [q_f, q_m]: what xGen samples around
     lampEq(qf, qm, sel, mu) { for (let g = 0; g < 3000; g++) [qf, qm] = this.xRec(qf, qm, sel, mu); return qm; },   // deterministic recursion to its balance
-    balAsk(s, ev) {
-      // the lamp's share from now: half, unless "no change" would already sit inside the band; then a quarter, else all (lessons rule 4)
-      const h = s.hist[s.hist.length - 1], cur = h.qm; let sel = 0.5, e = 0;
-      for (const c of [0.5, 0.25, 1]) { e = this.r6(this.lampEq(h.qf, h.qm, c, s.mu)); sel = c; if (!(cur >= e / 1.8 && cur <= e * 1.8)) break; }   // a margin beyond the band, so a nudge from "no change" is not a hit
-      s.sAuto = sel; s.atAsk = { F: s.cage.F.slice(), M: s.cage.M.slice(), g: s.g, hl: s.hist.length };
-      this.openAsk(s, ev, 'bal', 'y', 0, 0.4, this.r6(e * 0.45), cur, e, 'auto', 65);
+    autoStart(s, ev) {   // after five rounds the lamp catches half the white males for sixty generations; the HUD names the balance
+      const h = s.hist[s.hist.length - 1]; s.sAuto = this.P().s.v; s.balE = this.r6(this.lampEq(h.qf, h.qm, s.sAuto, s.mu));
+      s.atAsk = { F: s.cage.F.slice(), M: s.cage.M.slice(), g: s.g, hl: s.hist.length };   // where a What if? rewinds to
+      s.phase = 'auto'; s.t = 0; ev.push({ k: 'auto' });
     },
 
     /* ---------- L3 (boss): the Queen's carriers ---------- */
@@ -403,16 +378,17 @@ const CH_ROYAL_V2 = {
       if (s.phase === 'sons') {
         if (s.t < (c.sons.length ? RY_T.son : 0.9) / (s.ff ? 3 : 1)) return; s.t = 0;
         if (s.son < c.sons.length) { const so = c.sons[s.son]; s.son++; ev.push({ k: 'son', i: s.son - 1, aff: so[1] }); return; }
+        if (!c.sons.length) { const pr = s.cur.prior; s.judg.push({ id: c.id, st: 'post', v: pr, e: pr, auto: true }); s.post[c.id] = pr; s.phase = 'reveal'; s.t = 0; ev.push({ k: 'seal', st: 'post', v: pr, e: pr, auto: true }); return; }   // no sons: nothing new, so no second judgment
         s.phase = 'post'; ev.push({ k: 'post' }); return;
       }
       if (s.phase === 'reveal') {
         if (s.t < RY_T.reveal / (s.ff ? 3 : 1)) return;
         if (s.ci + 1 < RY_CASES.length) { s.ci++; this.caseStart(s, ev); return; }
-        this.openAsk(s, ev, 'cv', 'x', 0, 0.05, 0.003, 0.04, 0.0064, 'end', null); return;
+        s.phase = 'end'; s.t = 0; return;
       }
       if (s.phase === 'end' && s.t >= 1.2) { s.phase = 'over'; ev.push({ k: 'over' }); }
     },
-    galScore(s) { const j = s.judg || []; let n = 0; for (const x of j) if (Math.abs(x.v - x.e) <= 0.1 + 1e-9) n++; return { n, m: j.length }; },
+    galScore(s) { const j = (s.judg || []).filter(x => !x.auto); let n = 0; for (const x of j) if (Math.abs(x.v - x.e) <= 0.1 + 1e-9) n++; return { n, m: j.length }; },   // eleven judgments: Helena Victoria has no sons, so no second one
 
     /* ---------- predictions: the sim opens the ask; the expectation is the model's, never the realised run ---------- */
     openAsk(s, ev, id, kind, lo, hi, tol, start, expect, resume, at) {
@@ -420,14 +396,14 @@ const CH_ROYAL_V2 = {
     },
     commit(s, ev, id, v) {
       if (!s.ask || s.ask.id !== id) return; const A = s.ask, e = s.exp[id]; let hit = false;
-      if (v != null && isFinite(+v)) { v = Math.max(A.lo, Math.min(A.hi, +v)); hit = id === 'bal' ? v >= e / 1.5 - 1e-9 && v <= e * 1.5 + 1e-9 : Math.abs(v - e) <= A.tol + 1e-9; } else v = null;
+      if (v != null && isFinite(+v)) { v = Math.max(A.lo, Math.min(A.hi, +v)); hit = Math.abs(v - e) <= A.tol + 1e-9; } else v = null;
       s.pred[id] = v; s.hits[id] = hit; s.ask = null; s.phase = s.resume; s.t = 0; ev.push({ k: 'commit', id });
     },
 
     /* ---------- What if? (D1 G9): the finished level reruns with one lever pulled, at speed ---------- */
     lever(k) {
       const s = this.s; s.whatif = k; s.ask = null; s.t = 0; s.auto = true;
-      if (s.level === 1) { const N = s.N; s.auts = k === 'auto'; s.cage = k === 'flip' ? { F: [0, 0, N], M: [N, 0] } : k === 'auto' ? { F: [N, 0, 0], M: [0, 0, N] } : { F: [N, 0, 0], M: [0, N] }; s.ctl = null; s.g = 0; s.hist = [this.cageStat(s)]; s.tc = null; s.th = null; s.phase = 'gen'; }
+      if (s.level === 1) { const N = s.N; s.auts = k === 'auto'; s.cage = k === 'flip' ? { F: [0, 0, N], M: [N, 0] } : k === 'auto' ? { F: [N, 0, 0], M: [0, 0, N] } : { F: [N, 0, 0], M: [0, N] }; s.ctl = null; s.g = 0; s.hist = [this.cageStat(s)]; s.go = false; s.phase = 'gen'; }
       else if (s.level === 2 && s.atAsk) { s.base = s.hist[s.hist.length - 1]; s.cage = { F: s.atAsk.F.slice(), M: s.atAsk.M.slice() }; s.g = s.atAsk.g; s.hist = s.hist.slice(0, s.atAsk.hl); if (k === 'nomut') s.mu = 0; else s.sAuto = 1; s.phase = 'auto'; }
       else s.phase = 'over';
     },
@@ -438,8 +414,9 @@ const CH_ROYAL_V2 = {
       if (a.k === 'ff') { s.ff = !!a.on; return ev; }
       if (s.auto || s.phase === 'ask') return ev;
       if (s.kind === 'cross' && a.k === 'cross') this.cross(s, ev, a.f, a.m);
+      else if (s.kind === 'cage' && a.k === 'breed' && s.phase === 'gen' && s.g < RY_T.taps) s.go = true;
       else if (s.kind === 'lamp' && s.phase === 'court') {
-        if (a.k === 'beam' && !s.unt) { s.beam.on = s.bat > 0; s.beam.x = this.r6(Math.max(0, Math.min(1, +a.x || 0))); s.beam.y = this.r6(Math.max(0, Math.min(1, +a.y || 0))); }
+        if (a.k === 'beam' && !s.unt) { s.beam.on = true; s.beam.x = this.r6(Math.max(0, Math.min(1, +a.x || 0))); s.beam.y = this.r6(Math.max(0, Math.min(1, +a.y || 0))); }
         else if (a.k === 'off') s.beam.on = false;
         else if (a.k === 'flash' && s.unt && s.bat >= 0.5 - 1e-9) { s.bat = this.r6(s.bat - 0.5); s.beam.x = this.r6(+a.x || 0); s.beam.y = this.r6(+a.y || 0); ev.push({ k: 'flash', x: s.beam.x, y: s.beam.y }); this.catchAt(s, ev, s.beam.x, s.beam.y, RY_T.beamR * 1.25, 0); }
         else if (a.k === 'breed') this.breed(s, ev);
@@ -455,12 +432,11 @@ const CH_ROYAL_V2 = {
     interesting(s) {   // chosen from what happened (lessons §1.5)
       if (s.whatif) return null; const n = s.level, st = CH_ROYAL_V2.stars;
       if (n === 0) { if (st.discover(s, 0)) return null; const g = s.goals; return !g.wf ? 'nowhite' : !g.rev ? 'norev' : !g.f2 ? 'nof2' : null; }
-      if (n === 1) { if (s.pred.m1 != null && s.pred.m1 > 0.5) return 'fathers'; if (s.pred.t != null && !s.hits.t && s.ask == null && Math.abs(s.pred.t - (s.tpre[0] + s.tpre[1]) / 2) < 0.04) return 'midpoint'; return null; }
-      if (n === 2) { if (s.shown > 0 && s.caught / s.shown < 0.5) return 'dim'; const v = s.pred.bal, e = s.exp.bal; if (v != null && !s.hits.bal) return v < e ? 'low' : 'high'; return null; }
+      if (n === 1) return null;
+      if (n === 2) return s.shown > 0 && s.caught / s.shown < 0.5 ? 'dim' : null;
       const J = s.judg || [], miss = id => J.some(x => x.id === id && Math.abs(x.v - x.e) > 0.1);
       if (miss('albany')) return 'father'; if (miss('hv')) return 'grand';
       if (J.some(x => x.st === 'post' && (x.id === 'helena' || x.id === 'voh') && Math.abs(x.v - x.e) > 0.1)) return 'sons';
-      if (s.pred.cv != null && !s.hits.cv) return 'cvmiss';
       return null;
     },
     snapshot() { return Snap.enc({ s: this.s, rs: R.state() }); },
@@ -469,6 +445,7 @@ const CH_ROYAL_V2 = {
       const s = this.s, out = []; if (!s || s.auto) return out;
       if (s.ask) { const A = s.ask, n = 50; for (let k = 0; k <= n; k++) out.push({ k: 'predict', id: A.id, v: Math.round((A.lo + (A.hi - A.lo) * k / n) * 1e5) / 1e5 }); return out; }
       if (s.kind === 'cross' && s.phase === 'pick' && s.left > 0) { for (const F of s.stocks) if (F.sex === 'f') for (const M of s.stocks) if (M.sex === 'm') out.push({ k: 'cross', f: F.id, m: M.id }); }
+      else if (s.kind === 'cage' && s.phase === 'gen' && s.g < RY_T.taps) out.push({ k: 'breed' });
       else if (s.kind === 'lamp' && s.phase === 'court') {
         for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) out.push({ k: s.unt ? 'flash' : 'beam', x: 0.1 + 0.2 * i, y: 0.1 + 0.2 * j });
         out.push({ k: 'off' }, { k: 'breed' });
@@ -492,9 +469,10 @@ const CH_ROYAL_V2 = {
         const A = s.ask, P = acts.filter(a => a.k === 'predict'), near = v => P.reduce((b, a) => (Math.abs(a.v - v) < Math.abs(b.v - v) ? a : b));
         if (pred === 'still') return { k: 'predict', id: A.id, v: A.start, moved: false };
         if (pred === 'exact') return { k: 'predict', id: A.id, v: s.exp[A.id] };
-        if (pred === 'auto') { const h = s.hist && s.hist[s.hist.length - 1], v = A.id === 'a' ? 0.25 : A.id === 'b' ? 0 : A.id === 't' ? A.start : A.id === 'bal' ? (h ? h.qm : A.start) : A.id === 'cv' ? 0.04 : h ? (h.qf + h.qm) / 2 : 0.5; return near(v); }
+        if (pred === 'auto') return near(0);   // the reverse cross as if the gene were autosomal: red sons, like the F1
         return near(pred === 'lo' ? A.lo : pred === 'hi' ? A.hi : (A.lo + A.hi) / 2);
       }
+      if (s.kind === 'cage') return acts.find(a => a.k === 'breed') || null;
       if (s.kind === 'cross') {
         const C = acts.filter(a => a.k === 'cross'); if (!C.length) return null;
         if (cross === 'first') return C[0]; if (cross === 'last') return C[C.length - 1];
@@ -530,7 +508,7 @@ const CH_ROYAL_V2 = {
       if (n === 2) { const h = s.hist[s.hist.length - 1]; return s.shown > 0 && s.caught / s.shown >= 0.5 && s.g >= 65 && h.qm > 0; }
       if (n === 3) {
         const J = s.judg || [], post = id => (J.find(x => x.id === id && x.st === 'post') || {}).v, pri = id => (J.find(x => x.id === id && x.st === 'prior') || {}).v;
-        if (J.length < 12) return false;
+        if (CH_ROYAL_V2.sim.galScore(s).m < 11) return false;
         const sure = ['alice', 'albany', 'alix'].every(id => post(id) >= 0.9) && pri('albany') >= 0.9;
         const down = ['helena', 'voh'].every(id => post(id) <= pri(id) - 0.15);
         return sure && down;
@@ -539,28 +517,25 @@ const CH_ROYAL_V2 = {
     },
     predict: (s, n) => {
       if (s.whatif) return false;
-      if (n === 0) return !!(s.hits.a && s.hits.b);
-      if (n === 1) { const ids = ['m1', 'f1', 'm2', 'f2', 'f3'].filter(id => !s.voids[id]), hit = ids.filter(id => s.hits[id]).length; return ids.length >= 3 && hit >= Math.min(4, ids.length); }
-      if (n === 2) return !!s.hits.bal;
+      if (n === 0) return !!s.hits.b;   // the chapter's one prediction (D6 decision 9)
       return false;
     },
     transfer: (s, n) => {
       if (s.whatif) return false;
-      if (n === 1) return !!s.hits.t;
-      if (n === 3) { const sc = CH_ROYAL_V2.sim.galScore(s); return sc.m === 12 && sc.n >= 11 && !!s.hits.cv; }
+      if (n === 3) { const sc = CH_ROYAL_V2.sim.galScore(s); return sc.m === 11 && sc.n >= 10; }
       return false;
     }
   },
-  unitStars(lv) {   // D3: Discover in two of L1, L3, boss; Predict in two of L1–L3; Transfer = the new cage and the boss
+  unitStars(lv) {   // Discover in two of L1, L3, boss; Predict = the reverse cross (L1); Transfer = the pedigree (boss)
     const m = i => lv[i] | 0, cnt = (ids, bit) => ids.filter(i => m(i) & bit).length;
-    return (cnt([0, 2, 3], 1) >= 2 ? 1 : 0) | (cnt([0, 1, 2], 2) >= 2 ? 2 : 0) | ((m(1) & 4) && (m(3) & 4) ? 4 : 0);
+    return (cnt([0, 2, 3], 1) >= 2 ? 1 : 0) | (m(0) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
   /* result code (30 bits): 0–1 level, 2–4 mask, 5–12 a level number (L0 crosses used, L1 final gap ×100 + 100, L2 caught %,
      L3 judgments within 10 points), 13–19 first prediction ×100 of its axis span, 20–26 second */
   resultBits(s, level) {
     if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
     let x = 0; if (n === 0) x = (s.crosses || []).length; else if (n === 1) { const h = s.hist[s.hist.length - 1]; x = 100 * (h.qf - h.qm) + 100; } else if (n === 2) x = s.shown ? 100 * s.caught / s.shown : 0; else x = this.sim.galScore(s).n;
-    const span = { a: 1, b: 1, m1: 1, f1: 1, m2: 1, f2: 1, f3: 1, t: 1, bal: 0.4, cv: 0.05 }, pv = id => { const v = s.pred[id]; return v == null || !span[id] ? 127 : c(100 * v / span[id], 126); }, ids = s.asks.filter(id => !s.voids[id]);
+    const span = { b: 1 }, pv = id => { const v = s.pred[id]; return v == null || !span[id] ? 127 : c(100 * v / span[id], 126); }, ids = s.asks.filter(id => !s.voids[id]);
     return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 2 | c(x, 255) << 5 | pv(ids[0]) << 13 | pv(ids[1]) << 20) >>> 0;
   },
 
@@ -618,6 +593,7 @@ const CH_ROYAL_V2 = {
   teach() {   // the ghost hand demonstrates the verb this level adds (a known verb is skipped by Ghost itself)
     if (typeof Ghost === 'undefined') return; const n = this.level, s = this.sim.s;
     if (n === 0) Ghost.show({ verb: 'drag', key: '1', at: () => this.bottleXY('wf'), to: () => this.bottleXY('mm'), until: () => s.crosses.length > 0 || !!this.v.drag });
+    else if (n === 1) Ghost.show({ verb: 'tap', key: ' ', at: () => [this.pos().cage.x, this.pos().cage.y], until: () => s.g > 0 });
     else if (n === 2) Ghost.show({ verb: 'sweep', key: ' ', at: () => { const D = this.pos().dish; return [D.x - D.r * 0.4, D.y]; }, to: () => { const D = this.pos().dish; return [D.x + D.r * 0.4, D.y - D.r * 0.2]; }, until: () => s.cg > 0 || s.g > 0 || this.v.beamOn });
     else if (n === 3) Ghost.show({ verb: 'slide', key: 'ArrowRight', at: () => { const S = this.pos().sl; return [S.x + S.w * 0.3, S.y]; }, to: () => { const S = this.pos().sl; return [S.x + S.w * 0.6, S.y]; }, until: () => this.v.slider != null || s.judg.length > 0 });
   },
@@ -625,11 +601,15 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     let t = '', num = '';
     if (s.auto) t = C.whatif;
-    else if (s.phase === 'ask') t = { a: C.askA, b: C.askB, m1: C.askM, m2: C.askM, f1: C.askF, f2: C.askF, f3: C.askF, bal: Txt.f(C.askBal, { f: s.sAuto === 0.25 ? C.fQ : s.sAuto === 1 ? C.fA : C.fH }), cv: C.cv }[s.ask.id] || (s.ask.id === 't' ? Txt.f(C.askT, { f: Math.round(100 * s.th[0].qf), m: Math.round(100 * s.th[0].qm) }) : C.askF);
-    else if (s.kind === 'cross') { const g = s.goals, nx = !g.f1 ? L.goal1 : !g.f2 ? L.goal2 : !g.wf ? L.goal3 : L.goal4; t = s.phase === 'hatch' ? C.hatch : s.phase === 'sorted' ? C.sorted : s.crosses.length === 0 ? this.content.firstWords : Txt.f(C.next, { goal: nx }); num = Txt.f(L.vials, {}) + ' ' + s.left; }
-    else if (s.kind === 'cage') { t = s.phase === 'tgen' ? C.trun : s.g === 0 ? C.cage : C.run; num = Txt.f(L.gen, { n: s.phase === 'tgen' ? s.tg : s.g }); }
-    else if (s.kind === 'lamp') { t = s.phase === 'court' ? (s.unt ? C.courtU : C.court) : s.phase === 'auto' ? C.auto : C.bred; num = Txt.f(L.gen, { n: s.g + (s.phase === 'court' ? 1 : 0) }); }
-    else { const c = RY_CASES[s.ci]; t = s.phase === 'prior' ? Txt.f(C.prior, { name: c.name }) : s.phase === 'sons' ? (c.sons.length ? C.sons : C.nosons) : s.phase === 'post' ? C.post : C.reveal; const sc = this.sim.galScore(s); num = sc.n + '/' + sc.m; }
+    else if (s.phase === 'ask') t = C.askB;
+    else if (s.kind === 'cross') { const g = s.goals; t = s.phase === 'hatch' ? C.hatch : s.phase === 'sorted' ? C.sorted : !g.f1 ? this.content.firstWords : !g.f2 ? C.nextF2 : !g.wf ? C.nextWF : C.nextRev; num = Txt.f(L.vials, {}) + ' ' + s.left; }
+    else if (s.kind === 'cage') {   // the rule, with this generation's numbers (D6 decision 9: show the key equation plainly)
+      const h = s.hist[s.hist.length - 1], pc = x => Math.round(100 * x), h0 = s.hist[0];
+      t = s.g === 0 ? C.cage : s.g < RY_T.taps ? Txt.f(C.rule, { m: pc(h.qm), f: pc(h.qf) }) : s.g < 7 ? C.run : Txt.f(C.settle, { c: pc((2 * h0.qf + h0.qm) / 3) }); num = Txt.f(L.gen, { n: s.g }); }
+    else if (s.kind === 'lamp') {
+      const f2 = x => String(Math.round(100 * x) / 100);
+      t = s.phase === 'court' ? (s.unt ? C.courtU : C.court) : s.phase === 'auto' || s.phase === 'over' ? (s.g < 25 ? C.auto : Txt.f(C.bal, { mu: f2(s.mu), s: f2(s.sAuto), e: (Math.round(1000 * 3 * s.mu / s.sAuto) / 10).toFixed(1) })) : C.bred; num = Txt.f(L.gen, { n: s.g + (s.phase === 'court' ? 1 : 0) }); }
+    else { const c = RY_CASES[s.ci], jq = s.judg.find(x => x.id === c.id && x.st === 'post'); t = s.phase === 'prior' ? Txt.f(C.prior, { name: c.name }) : s.phase === 'sons' ? (c.sons.length ? C.sons : C.nosons) : s.phase === 'post' ? C.post : jq && jq.auto ? Txt.f(C.nonews, { p: Math.round(100 * jq.e) }) : C.reveal; const sc = this.sim.galScore(s); num = sc.m ? Txt.f(L.score, sc) : ''; }
     if (s.phase === 'over' && !s.auto) t = C.over;
     const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
     const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
@@ -637,23 +617,23 @@ const CH_ROYAL_V2 = {
   },
   dock() {
     if (typeof Dock === 'undefined') return; const s = this.sim.s, L = this.content.labels;
-    const sig = s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '') + (this.v.slider != null ? 's' : '');
+    const sig = s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '') + (this.v.slider != null ? 's' : '') + (s.kind === 'cage' && s.g < RY_T.taps ? 't' : '');
     if (sig === this._dockSig) return; this._dockSig = sig;
     if (s.ask) { Dock.set([{ id: 'ry-lock', label: L.lock, key: 'Enter', primary: true, fn: () => this.lockIn() }]); return; }
     if (s.auto || s.phase === 'over') { Dock.set([]); return; }
     if (s.kind === 'cross' && s.phase === 'pick') {   // the non-drag path (keys and dock): pick a female, then cross her with a red or a white male
       const go = m => { const f = this.v.sel || 'wf'; Sim.act(this, { k: 'cross', f, m }); this.v.sel = null; };
       Dock.set([{ id: 'ry-fsel', label: L.nextF, key: 'f', fn: () => this.nextFemale() }, { id: 'ry-xr', label: L.xRed, key: 'r', fn: () => go('wm') }, { id: 'ry-xw', label: L.xWhite, key: 'w', fn: () => go('mm') }]); return; }
+    if (s.kind === 'cage' && s.phase === 'gen' && s.g < RY_T.taps) { Dock.set([{ id: 'ry-gen', label: L.breed1, key: 'Enter', primary: true, fn: () => Sim.act(this, { k: 'breed' }) }]); return; }
     if (s.kind === 'lamp' && s.phase === 'court') { Dock.set([{ id: 'ry-breed', label: L.breed, key: 'Enter', fn: () => Sim.act(this, { k: 'breed' }) }]); return; }
     if (s.kind === 'gallery' && (s.phase === 'prior' || s.phase === 'post')) { Dock.set([{ id: 'ry-seal', label: L.seal, key: 'Enter', primary: true, disabled: this.v.slider == null, why: this.content.whispers.setFirst, fn: () => this.sealIt() }]); return; }
-    if (/hatch|gen|tgen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Dock.set([{ id: 'ry-ff', label: L.faster, key: ' ', fn: () => Sim.act(this, { k: 'ff', on: true }) }]); return; }
+    if (/hatch|gen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Dock.set([{ id: 'ry-ff', label: L.faster, key: ' ', fn: () => Sim.act(this, { k: 'ff', on: true }) }]); return; }
     Dock.set([]);
   },
   nextFemale() { const s = this.sim.s, F = s.stocks.filter(x => x.sex === 'f'), i = F.findIndex(x => x.id === this.v.sel); this.v.sel = F[(i + 1) % F.length].id; if (typeof Live !== 'undefined') Live.say(this.stockLabel(F[(i + 1) % F.length])); },
   sealIt() { const v = this.v; if (v.slider == null) { this.whisper('setFirst'); return; } Sim.act(this, { k: 'judge', v: Math.round(v.slider * 100) / 100 }); },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
-    if ((A.id === 't' || A.id === 'cv') && Predict.clear) Predict.clear(0);   // chart 0 changes meaning for the transfer asks
     Predict.ask({ id: A.id, chart: 0, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, at: A.at, soft: s.unt ? null : 26, needMove: true, linger: 1000,
       onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'predict', id: A.id, v: null, moved: false }), say: this.content.live.ask });
     if (typeof Live !== 'undefined') Live.say(this.content.live.ask);
@@ -662,8 +642,7 @@ const CH_ROYAL_V2 = {
   lockIn() { const s = this.sim.s; if (!s.ask || typeof Predict === 'undefined') return; const ov = Predict.overlay(0); if (ov && ov.id === s.ask.id && !ov.moved) { this.whisper('drag'); return; } Predict.commit(s.ask.id); },
   reveal(id) {
     const s = this.sim.s; if (typeof Predict === 'undefined' || s.exp[id] == null) return;
-    const tol = id === 'bal' ? s.exp[id] * 0.45 : s.tol[id];
-    Predict.reveal(id, s.exp[id], tol); this.whisper(s.pred[id] == null ? 'none' : s.hits[id] ? 'hit' : 'out'); this.redraw();
+    Predict.reveal(id, s.exp[id], s.tol[id]); this.whisper(s.pred[id] == null ? 'none' : s.hits[id] ? 'hit' : 'out'); this.redraw();
   },
 
   /* ---------- the level card ---------- */
@@ -681,7 +660,7 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s, n = this.level, pc = x => Math.round(100 * x);
     if (n === 0) { const sh = (c, i, j) => c ? pc(c.kids[i] / Math.max(1, c.kids[i] + c.kids[j])) : 0, f2 = s.crosses.find(c => c.type === 'f2'), rv = s.crosses.find(c => c.type === 'rev'); return { a: sh(f2, 3, 2), b: sh(f2, 1, 0), c: sh(rv, 3, 2) }; }
     if (n === 1) { const h = s.hist, last = h[h.length - 1]; if (s.whatif) return { a: pc((last.qf * 2 + last.qm) / 3) }; return { a: pc(Math.abs(h[0].qf - h[0].qm)), b: Math.abs(pc(last.qf - last.qm)), c: pc((2 * last.qf + last.qm) / 3) }; }
-    if (n === 2) { const last = s.hist[s.hist.length - 1]; if (s.whatif) return { a: (Math.round(1000 * last.wm) / 10).toFixed(1), b: s.base ? (Math.round(1000 * s.base.wm) / 10).toFixed(1) : '' }; const tail = s.hist.slice(-20), m = k => tail.reduce((a, b) => a + b[k], 0) / tail.length; return { a: s.shown ? pc(s.caught / s.shown) : 0, b: (Math.round(1000 * m('wm')) / 10).toFixed(1), c: (Math.round(1000 * m('wf')) / 10).toFixed(1) }; }
+    if (n === 2) { const last = s.hist[s.hist.length - 1]; if (s.whatif) return { a: (Math.round(1000 * last.wm) / 10).toFixed(1), b: s.base ? (Math.round(1000 * s.base.wm) / 10).toFixed(1) : '' }; const tail = s.hist.slice(-20), m = k => tail.reduce((a, b) => a + b[k], 0) / tail.length, p1 = x => (Math.round(1000 * x) / 10).toFixed(1); return { e: p1(3 * s.mu / s.sAuto), r: p1(Math.sqrt(s.mu / s.sAuto)), a: s.shown ? pc(s.caught / s.shown) : 0, b: (Math.round(1000 * m('wm')) / 10).toFixed(1), c: (Math.round(1000 * m('wf')) / 10).toFixed(1) }; }
     const sc = this.sim.galScore(s); return { n: sc.n, m: sc.m };
   },
 
@@ -704,13 +683,12 @@ const CH_ROYAL_V2 = {
       case 'wd': { this.whisper('wd'); if (F) F.tier(3, () => this.banner(this.content.labels.wF, 1200)); snd('interesting', P.W / 2, P.H / 2); return; }
       case 'novials': this.whisper('noVials'); return;
       case 'badcross': this.whisper('drop'); return;
-      case 'gen': case 'tgen': {
-        const h = e.k === 'gen' ? s.hist[s.hist.length - 1] : s.th[s.th.length - 1]; v.glow = 0.4;
+      case 'gen': {
+        const h = s.hist[s.hist.length - 1]; v.glow = 0.4;
         if (s.kind === 'cage') snd('tick', P.cage.x, P.cage.y);
         if (typeof Live !== 'undefined' && (e.g % 2 === 0 || e.g < 4)) Live.say(Txt.f(this.content.live.gen, { n: e.g, f: Math.round(100 * h.qf), m: Math.round(100 * h.qm) }));
         this.redraw(); return;
       }
-      case 'tcage': if (F) F.tier(2, () => this.banner(this.content.labels.newcage, 1100)); this.redraw(); return;
       case 'court': v.stumbles = {}; if (typeof Live !== 'undefined') Live.say(Txt.f(this.content.live.court, { n: e.g, w: e.nw })); if (e.g > 1) snd('wing', P.dish.x, P.dish.y); this.redraw(); return;
       case 'stumble': {
         v.stumbles[e.i] = 0; const f = s.flies[e.i], p = this.flyXY(f), x = p[0], y = p[1];
@@ -718,7 +696,7 @@ const CH_ROYAL_V2 = {
         if (!v.said.st) { v.said.st = 1; this.whisper('stumble'); } return;
       }
       case 'flash': { const D = P.dish; v.flash = { t: 0, x: D.x + (e.x - 0.5) * 2 * D.r, y: D.y + (e.y - 0.5) * 2 * D.r }; snd('swish', v.flash.x, v.flash.y); return; }
-      case 'flat': this.whisper('battery'); if (S2) S2.play('tock', { x: P.lampX, y: P.lampY }); return;
+      case 'auto': if (F) F.ring(P.dish.x, P.dish.y, P.dish.r * 0.9, { ms: 400 }); this.redraw(); return;
       case 'bred': snd('peep', P.dish.x, P.dish.y); if (F) F.ring(P.dish.x, P.dish.y, P.dish.r * 0.9, { ms: 400 }); this.redraw(); return;
       case 'case': { v.sons = []; v.portraitIn = 0; snd('tock', P.W / 2, P.H * 0.4); if (typeof Live !== 'undefined') Live.say(Txt.f(this.content.live.caseL, { name: RY_CASES[e.i].name })); if (RY_CASES[e.i].fatherAff && !v.said['ob' + e.i]) { v.said['ob' + e.i] = 1; if (F && F.after) F.after(700, () => this.whisper('obligate')); else this.whisper('obligate'); } this.redraw(); return; }
       case 'son': {
@@ -740,7 +718,8 @@ const CH_ROYAL_V2 = {
   down(x, y) {
     const s = this.sim.s, v = this.v, P = this.pos(); v.px = x; v.py = y; v.pdown = true;
     if (s.auto || s.phase === 'ask' || s.phase === 'over') return;
-    if (/hatch|gen|tgen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Sim.act(this, { k: 'ff', on: true }); return; }
+    if (s.kind === 'cage' && s.phase === 'gen' && s.g < RY_T.taps) { Sim.act(this, { k: 'breed' }); return; }   // tap the cage (or anywhere) to breed
+    if (/hatch|gen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Sim.act(this, { k: 'ff', on: true }); return; }
     if (s.kind === 'cross' && s.phase === 'pick') {
       const id = this.bottleAt(x, y);
       if (id) { const st = this.sim.stock(s, id); if (st.sex === 'f') { v.drag = { id, x, y, moved: false }; v.sel = id; } else if (v.sel) { Sim.act(this, { k: 'cross', f: v.sel, m: id }); v.sel = null; } else this.whisper('pickF'); }
@@ -761,14 +740,15 @@ const CH_ROYAL_V2 = {
   },
   up(x, y) {
     const s = this.sim.s, v = this.v; v.pdown = false;
-    if (s.ff && /hatch|gen|tgen|bred|auto|sons|reveal|sorted/.test(s.phase)) { /* faster stays on until the phase ends */ }
+    if (s.ff && /hatch|gen|bred|auto|sons|reveal|sorted/.test(s.phase)) { /* faster stays on until the phase ends */ }
     if (v.drag) { const d = v.drag; v.drag = null; if (d.moved) { const id = this.bottleAt(x, y), st = id && this.sim.stock(s, id); if (st && st.sex === 'm') { Sim.act(this, { k: 'cross', f: d.id, m: id }); v.sel = null; } else this.whisper('drop'); } return; }
     if (v.beamOn) { v.beamOn = false; Sim.act(this, { k: 'off' }); }
     v.sliding = false;
   },
   onKey(k) {
     const s = this.sim.s, v = this.v;
-    if (k === ' ' && /hatch|gen|tgen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Sim.act(this, { k: 'ff', on: true }); return; }
+    if ((k === ' ' || k === 'Enter') && s.kind === 'cage' && s.phase === 'gen' && s.g < RY_T.taps) { Sim.act(this, { k: 'breed' }); return; }
+    if (k === ' ' && /hatch|gen|bred|auto|sons|reveal|sorted/.test(s.phase)) { Sim.act(this, { k: 'ff', on: true }); return; }
     if (s.kind === 'cross' && s.phase === 'pick' && /^[1-9]$/.test(k)) { const B = this.shelf(), b = B[+k - 1]; if (!b) return; const st = this.sim.stock(s, b.id); if (st.sex === 'f') v.sel = b.id; else if (v.sel) { Sim.act(this, { k: 'cross', f: v.sel, m: b.id }); v.sel = null; } else this.whisper('pickF'); return; }
     if (s.kind === 'lamp' && s.phase === 'court') {
       const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[k];
@@ -792,7 +772,7 @@ const CH_ROYAL_V2 = {
     P.plate = { x: ph ? W / 2 : W * 0.64, y: ph ? P.benchY + 8 + phh / 2 : P.benchY + (bot - P.benchY) / 2, w: pw, h: phh };
     P.cross = { w: P.bw * 1.35, h: P.bw * 1.95 }; P.cross.x = ph ? W * 0.17 : W * 0.25; P.cross.y = ph ? P.benchY - P.cross.h / 2 + 2 : P.benchY + P.cross.h * 0.5 + 24;
     P.goals = ph ? { x: W * 0.36, y: P.band + 4, w: W * 0.62, cols: 2 } : { x: 18, y: P.band - 6, w: Math.min(W * 0.22, 230), cols: 1 };
-    P.vials = ph ? { x: W * 0.36 + 6, y: P.band + 58 } : { x: P.cross.x - 50, y: P.benchY + P.cross.h + 70 };
+    P.vials = ph ? { x: W * 0.36 + 6, y: P.band + 68 } : { x: P.cross.x - 50, y: P.benchY + P.cross.h + 70 };
     P.lampX = W - Math.max(40, W * 0.12); P.lampY = top + 6;
     // the cage (L1): a big cage bottle and the small autosome control
     const cr = Math.max(80, Math.min((bot - top) * (ph ? 0.3 : 0.38), W * (ph ? 0.4 : 0.22)));
@@ -832,7 +812,7 @@ const CH_ROYAL_V2 = {
     const s = this.sim.s; if (!s) return;
     if (s.kind === 'cross') this.drawCross(c, w, h); else if (s.kind === 'cage') this.drawCage(c, w, h); else if (s.kind === 'lamp') this.drawLamp(c, w, h); else this.drawGallery(c, w, h);
     const v = this.v; if (typeof Lbl === 'undefined') return;
-    if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; const P = this.pos(), by = s.kind === 'cross' ? P.benchY - 26 : s.kind === 'gallery' ? P.frame.y : this.hudH() + 34; c.save(); c.globalAlpha = a; Lbl.put('ry-banner', b.text, w / 2, by, { size: 22, c, weight: 700 }); c.restore(); }
+    if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; const P = this.pos(), by = s.kind === 'cross' ? (P.ph ? P.plate.y : P.benchY - 26) : s.kind === 'gallery' ? P.frame.y : this.hudH() + 34; c.save(); c.globalAlpha = a; Lbl.put('ry-banner', b.text, w / 2, by, { size: 22, c, weight: 700 }); c.restore(); }
   },
   bake(key, w, h, fn) {   // static layers, baked once per size and key (never in the frame loop)
     const v = this.v, sz = Math.round(w) + 'x' + Math.round(h) + ':' + Math.round(this.hudH()); if (v.bgk !== sz) { v.bgk = sz; v.bgs = {}; } if (v.bgs[key]) return v.bgs[key];
@@ -935,7 +915,7 @@ const CH_ROYAL_V2 = {
     ['g1', 'g2', 'g3', 'g4'].forEach((k, i) => { const col = G0.cols === 2 ? i % 2 : 0, row = G0.cols === 2 ? i >> 1 : i, xx = G0.x + 10 + col * cw, yy = G0.y + 17 + row * 24; this.tick(c, xx + 6, yy, done[i]); Lbl.put('ry-g' + i, L[k], xx + 18, yy, { size: 12, c, pill: false, ink: '#2A2019', align: 'left' }); });
     const V0 = P.vials, nv = this.sim.P().vials.v;
     for (let i = 0; i < nv; i++) { const full = i < s.left, x = V0.x + i * 16; c.fillStyle = full ? 'rgba(222,232,226,0.55)' : 'rgba(222,232,226,0.1)'; c.fillRect(x, V0.y, 10, 28); c.strokeStyle = 'rgba(240,246,242,0.7)'; c.lineWidth = 1; c.strokeRect(x, V0.y, 10, 28); if (full) { c.fillStyle = RY_C.mash; c.fillRect(x + 1, V0.y + 19, 8, 8); c.fillStyle = RY_C.plug; c.fillRect(x - 1, V0.y - 3, 12, 4); } }
-    Lbl.put('ry-vl', L.vials + ' ' + s.left, V0.x + nv * 16 + 34, V0.y + 14, { size: 12, c });
+    if (!P.ph) Lbl.put('ry-vl', L.vials + ' ' + s.left, V0.x + nv * 16 + 34, V0.y + 14, { size: 12, c });   // the HUD and the tubes carry it on a phone
     if (s.phase === 'ask') { c.fillStyle = 'rgba(10,8,6,0.18)'; c.fillRect(0, 0, w, h); }
   },
   tick(c, x, y, on) { c.save(); c.strokeStyle = on ? '#2F6B3A' : 'rgba(90,80,60,0.6)'; c.lineWidth = on ? 2.5 : 1.2; c.strokeRect(x - 6, y - 6, 12, 12); if (on) { c.beginPath(); c.moveTo(x - 4, y); c.lineTo(x - 1, y + 4); c.lineTo(x + 6, y - 6); c.stroke(); } c.restore(); },
@@ -955,22 +935,23 @@ const CH_ROYAL_V2 = {
     if (lab) Lbl.put('ry-cl' + Math.round(x), lab, x, y + r + 16, { size: 12, c });
     c.restore();
   },
-  jars(c, x, y, qf, qm, jw) {   // allele read-out: X copies as rods, blue + and amber w (D6: allele inks only here); ♀ row and ♂ row, ten rods each
+  jars(c, x, y, qf, qm, jw, eq) {   // eq: write the X-linked rule beside each row (the key equation, shown plainly)   // allele read-out: X copies as rods, blue + and amber w (D6: allele inks only here); ♀ row and ♂ row, ten rods each
     const T = typeof Pal !== 'undefined' ? Pal : null, A = T ? String(T.A) : '#6B97FF', a = T ? String(T.a) : '#F2C94C', L = this.content.labels, n = 10, st = jw / n, wR = st * 0.72, rh = 24;
     c.fillStyle = 'rgba(20,14,10,0.55)'; c.fillRect(x - jw / 2 - 10, y - rh - 30, jw + 66, 2 * rh + 64);
     const row = (yy, q, k, lab) => { const nw = Math.round(n * q); for (let i = 0; i < n; i++) { const xx = x - jw / 2 + i * st; c.fillStyle = i < n - nw ? A : a; c.fillRect(xx, yy - rh / 2, wR, rh); c.strokeStyle = RY_C.ink; c.lineWidth = 1; c.strokeRect(xx, yy - rh / 2, wR, rh); }
-      Lbl.put('ry-jl' + k, lab, x - jw / 2 + 2, yy - rh / 2 - 9, { size: 12, c, pill: false, ink: RY_C.paper, align: 'left' }); Lbl.put('ry-jp' + k, Math.round(100 * q) + '%', x + jw / 2 + 26, yy, { size: 13, c, weight: 700 }); };
+      Lbl.put('ry-jl' + k, lab, x - jw / 2 + 2, yy - rh / 2 - 9, { size: 12, c, pill: false, ink: RY_C.paper, align: 'left' }); Lbl.put('ry-jp' + k, Math.round(100 * q) + '%', x + jw / 2 + 26, yy, { size: 13, c, weight: 700 });
+      if (eq) Lbl.put('ry-je' + k, k ? L.eqM : L.eqF, x + jw / 2, yy - rh / 2 - 9, { size: 12, c, pill: false, ink: RY_C.lamp, align: 'right' }); };
     row(y - rh * 0.6, qf, 0, L.fem); row(y + rh * 1.3, qm, 1, L.male);
   },
   drawCage(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels, N = s.N;
     c.drawImage(this.bake('room2', w, h, (cc, W, H) => this.roomBg(cc, W, H, P, true)), 0, 0, w, h);
     this.lampLight(c, P, P.cage.x, P.cage.y - P.cage.r, Math.max(w, h) * 0.6, 1 + v.glow);
-    const tc = s.phase === 'tgen' || (s.ask && s.ask.id === 't') || (s.phase === 'over' && s.tc), cage = tc ? s.tc : s.cage;
-    this.drawCageBottle(c, P.cage.x, P.cage.y, P.cage.r, this.cageFlies(cage, N, 44, (tc ? 'T' : 'C') + (tc ? s.tg : s.g)), v.t, tc ? L.newcage : s.auts ? L.ctl : L.xcage);
-    if (s.ctl && !tc) this.drawCageBottle(c, P.ctl.x, P.ctl.y, P.ctl.r, this.cageFlies(s.ctl, N, 12, 'A' + s.g), v.t, L.ctl);
-    const qf = this.sim.qF(cage.F, N), qm = this.sim.qM(cage.M, N), hide = s.ask && s.ask.id !== 't';   // during a zigzag ask the jars show the cage now, never the answer
-    void hide; this.jars(c, P.jars.x, P.jars.y, qf, qm, P.jars.s);
+    const cage = s.cage;
+    this.drawCageBottle(c, P.cage.x, P.cage.y, P.cage.r, this.cageFlies(cage, N, 44, 'C' + s.g), v.t, s.auts ? L.ctl : L.xcage);
+    if (s.ctl) this.drawCageBottle(c, P.ctl.x, P.ctl.y, P.ctl.r, this.cageFlies(s.ctl, N, 12, 'A' + s.g), v.t, L.ctl);
+    const qf = this.sim.qF(cage.F, N), qm = this.sim.qM(cage.M, N);
+    this.jars(c, P.jars.x, P.jars.y, qf, qm, P.jars.s, !s.auts);
     if (s.phase === 'ask') { c.fillStyle = 'rgba(10,8,6,0.16)'; c.fillRect(0, 0, w, h); }
   },
   /* the lamp: the courtship dish under the brass lamp; the beam is where the pointer is */
@@ -983,7 +964,7 @@ const CH_ROYAL_V2 = {
     c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(D.x + 6, D.y + 10, D.r * 1.02, D.r * 1.02, 0, 0, TAU); c.fill();
     c.fillStyle = '#5A5246'; c.beginPath(); c.arc(D.x, D.y, D.r, 0, TAU); c.fill();
     const g = c.createRadialGradient(D.x, D.y, D.r * 0.1, D.x, D.y, D.r); g.addColorStop(0, '#6E665A'); g.addColorStop(1, '#4A443A'); c.fillStyle = g; c.beginPath(); c.arc(D.x, D.y, D.r * 0.97, 0, TAU); c.fill();
-    const on = s.phase === 'court' && s.beam.on && s.bat > 0, bx = D.x + (s.beam.x - 0.5) * 2 * D.r, by = D.y + (s.beam.y - 0.5) * 2 * D.r, br = RY_T.beamR * 2 * D.r;
+    const on = s.phase === 'court' && s.beam.on, bx = D.x + (s.beam.x - 0.5) * 2 * D.r, by = D.y + (s.beam.y - 0.5) * 2 * D.r, br = RY_T.beamR * 2 * D.r;
     if (on) { const bg = c.createRadialGradient(bx, by, br * 0.2, bx, by, br * 1.25); bg.addColorStop(0, 'rgba(255,240,200,0.85)'); bg.addColorStop(0.75, 'rgba(255,226,166,0.5)'); bg.addColorStop(1, 'rgba(255,226,166,0)'); c.fillStyle = bg; c.beginPath(); c.arc(bx, by, br * 1.25, 0, TAU); c.fill(); c.strokeStyle = 'rgba(255,240,200,0.35)'; c.lineWidth = 2; c.beginPath(); c.moveTo(P.lampX, P.lampY + 24); c.lineTo(bx - br, by); c.moveTo(P.lampX, P.lampY + 24); c.lineTo(bx + br, by); c.stroke(); }
     if (v.flash) { const k = 1 - v.flash.t / 0.5; c.fillStyle = 'rgba(255,240,200,' + (0.8 * k).toFixed(3) + ')'; c.beginPath(); c.arc(v.flash.x, v.flash.y, br * 1.25, 0, TAU); c.fill(); }
     // females (view only: the dish holds a few; white-eyed ones are rare, about q²) and the males (the sim's flies)
@@ -996,18 +977,18 @@ const CH_ROYAL_V2 = {
       if (f.w && !f.c && lit) { c.strokeStyle = 'rgba(255,240,200,0.9)'; c.lineWidth = 2; c.beginPath(); c.arc(p[0], p[1], 12, -1.57, -1.57 + TAU * Math.min(1, f.ex / RY_T.expo)); c.stroke(); }   // the exposure ring fills before he stumbles
     });
     else if (s.phase === 'auto' || s.phase === 'ask' || s.phase === 'over') { const fl = this.cageFlies(s.cage, N, 30, 'L' + s.g); fl.forEach((f, i) => { if (!f.male) return; const a = (f.h % 628) / 100 + v.t * 0.2, rr = 0.25 + 0.6 * ((f.h >>> 9) % 100) / 100; this.fly(c, D.x + Det.cos(a) * D.r * rr * 0.85, D.y + Det.sin(a) * D.r * rr * 0.85, Math.max(15, D.r * 0.13), { white: f.white, male: true, rot: a + 1.57 }); void i; }); }
-    // the battery gauge (brass), the catch tally, the mutation tag
+    // the catch tally (and, in untimed play only, the flash budget), the mutation tag
     if (s.phase === 'court') {
-      const gx = P.ph ? 12 : Math.max(16, D.x - D.r - 70), gy = P.ph ? h - 24 : D.y - D.r * 0.6, gw = P.ph ? w * 0.3 : 26, gh = P.ph ? 14 : D.r * 1.2, k = s.bat0 > 0 ? s.bat / s.bat0 : 0;
-      c.fillStyle = '#2A2019'; c.fillRect(gx, gy, gw, gh); c.fillStyle = RY_C.lamp; if (P.ph) c.fillRect(gx + 2, gy + 2, (gw - 4) * k, gh - 4); else c.fillRect(gx + 2, gy + 2 + (gh - 4) * (1 - k), gw - 4, (gh - 4) * k);
-      c.strokeStyle = RY_C.brass; c.lineWidth = 2; c.strokeRect(gx, gy, gw, gh); Lbl.put('ry-bat', L.battery, P.ph ? gx + gw / 2 : gx + gw / 2, P.ph ? gy - 12 : gy + gh + 16, { size: 12, c });
-      Lbl.put('ry-ct', s.cg + ' / ' + s.nw, P.ph ? w * 0.5 : D.x + D.r + 50, P.ph ? gy + gh / 2 - 4 : D.y - D.r * 0.5, { size: 16, c, weight: 700 });
+      if (s.unt) { const gx = P.ph ? 12 : Math.max(16, D.x - D.r - 70), gy = P.ph ? h - 24 : D.y - D.r * 0.6, gw = P.ph ? w * 0.3 : 26, gh = P.ph ? 14 : D.r * 1.2, k = s.bat0 > 0 ? s.bat / s.bat0 : 0;
+        c.fillStyle = '#2A2019'; c.fillRect(gx, gy, gw, gh); c.fillStyle = RY_C.lamp; if (P.ph) c.fillRect(gx + 2, gy + 2, (gw - 4) * k, gh - 4); else c.fillRect(gx + 2, gy + 2 + (gh - 4) * (1 - k), gw - 4, (gh - 4) * k);
+        c.strokeStyle = RY_C.brass; c.lineWidth = 2; c.strokeRect(gx, gy, gw, gh); Lbl.put('ry-bat', L.battery, gx + gw / 2, P.ph ? gy - 12 : gy + gh + 16, { size: 12, c }); }
+      const below = D.y + D.r + 46, ty = below <= h - 12 ? below : Math.max(P.top + 30, D.y - D.r - 14);   // phone: under the pills, else above the dish (short screens)
+      Lbl.put('ry-ct', Txt.f(L.caught, { a: s.cg, b: s.nw }), P.ph ? (s.unt ? w * 0.62 : w * 0.5) : D.x + D.r + 60, P.ph ? ty : D.y - D.r * 0.5, { size: 15, c, weight: 700 });
     }
     const last = s.hist[s.hist.length - 1];
     Lbl.put('ry-wm', Txt.f(L.wm, { n: (Math.round(1000 * last.wm) / 10).toFixed(1) }), P.ph ? w * 0.27 : D.x + D.r + 80, P.ph ? D.y + D.r + 16 : D.y + D.r * 0.2, { size: 13, c });
     Lbl.put('ry-wf', Txt.f(L.wfem, { n: (Math.round(1000 * last.wf) / 10).toFixed(1) }), P.ph ? w * 0.73 : D.x + D.r + 80, P.ph ? D.y + D.r + 16 : D.y + D.r * 0.2 + 26, { size: 13, c });
-    Lbl.put('ry-xn', L.xN, w - 12, h - 14, { align: 'right', size: 12, c });
-    if (s.phase === 'ask') { c.fillStyle = 'rgba(10,8,6,0.18)'; c.fillRect(0, 0, w, h); }
+    Lbl.put('ry-xn', L.xN, P.ph ? 12 : w - 12, P.ph ? P.top + 12 : h - 14, { align: P.ph ? 'left' : 'right', size: 12, c });   // on a phone, clear of the pills and the tally
   },
   /* the gallery: burgundy damask, gold frames, sepia portraits; the pedigree is read one woman at a time */
   galleryBg(c, W, H, P) {
@@ -1089,9 +1070,10 @@ const CH_ROYAL_V2 = {
       c.fillStyle = RY_C.paper; c.fillRect(S.x, S.y - 7, S.w * cs / tot, 14); c.fillStyle = 'rgba(239,230,210,0.22)'; c.fillRect(S.x + S.w * cs / tot, S.y - 7, S.w * ns / tot, 14); c.strokeStyle = RY_C.gold; c.lineWidth = 1; c.strokeRect(S.x, S.y - 7, S.w, 14);
       knob(jq.v, true); c.strokeStyle = RY_C.gold; c.lineWidth = 3; c.beginPath(); c.moveTo(xe, S.y - 14); c.lineTo(xe, S.y + 14); c.stroke();
       Lbl.put('ry-ex', Txt.f(L.exact, { p: Math.round(100 * ex) }), xe, S.y - 26, { size: 14, c, weight: 700 });
-      Lbl.put('ry-wc', L.carrier, S.x, S.y + 22, { size: 12, c, align: 'left' }); Lbl.put('ry-wn', L.notc, S.x + S.w, S.y + 22, { size: 12, c, align: 'right' });
+      Lbl.put('ry-s0', '0%', S.x, S.y + 22, { size: 12, c }); Lbl.put('ry-s1', '100%', S.x + S.w, S.y + 22, { size: 12, c });
+      const wc = S.w * cs / tot; if (wc > 64) Lbl.put('ry-wc', L.carrier, S.x + wc / 2, S.y, { size: 12, c, pill: false, ink: RY_C.ink }); if (S.w - wc > 84) Lbl.put('ry-wn', L.notc, S.x + wc + (S.w - wc) / 2, S.y, { size: 12, c, pill: false, ink: RY_C.paper });
     }
-    if (s.phase === 'ask' || s.phase === 'end') { c.fillStyle = 'rgba(10,6,6,0.3)'; c.fillRect(0, 0, w, h); }
+    if (s.phase === 'end') { c.fillStyle = 'rgba(10,6,6,0.3)'; c.fillRect(0, 0, w, h); }
   },
 
   /* ---------- the live strip (notes() is the LiveGraph data provider) ---------- */
@@ -1100,41 +1082,37 @@ const CH_ROYAL_V2 = {
     const D = this.content.data, n = this.level, stats = [], row = (d, vars) => stats.push([d[0], Txt.f(d[1], vars), d[2] ? Txt.f(d[2], vars) : '']), pc = x => Math.round(100 * x);
     if (n === 0) { row(D.vials, { n: s.left }); row(D.crosses, { n: s.crosses.length }); return { stats, charts: [this.sonsSpec(), this.hatchSpec()] }; }
     if (n === 1) { const h = s.hist[s.hist.length - 1]; row(D.qf, { p: pc(h.qf) }); row(D.qm, { p: pc(h.qm) }); row(D.gap, { d: pc(h.qf - h.qm) }); return { stats, charts: [this.zigSpec(), this.copiesSpec()] }; }
-    if (n === 2) { const h = s.hist[s.hist.length - 1]; row(D.qm, { p: pc(h.qm) }); row(D.caught, { a: s.caught + (s.phase === 'court' ? s.cg : 0), b: s.shown + (s.phase === 'court' ? s.nw : 0) }); if (s.phase === 'court') row(D.bat, { p: pc(s.bat0 ? s.bat / s.bat0 : 0) }); return { stats, charts: [this.incSpec(), this.whereSpec()] }; }
-    const sc = this.sim.galScore(s); row(D.score, sc); return { stats, charts: [s.ask && s.ask.id === 'cv' || s.phase === 'end' || (s.phase === 'over' && s.pred.cv !== undefined) ? this.cvSpec() : this.oddsSpec(), this.errSpec()] };
+    if (n === 2) { const h = s.hist[s.hist.length - 1]; row(D.qm, { p: pc(h.qm) }); row(D.caught, { a: s.caught + (s.phase === 'court' ? s.cg : 0), b: s.shown + (s.phase === 'court' ? s.nw : 0) }); if (s.phase === 'court' && s.unt) row(D.bat, { p: pc(s.bat0 ? s.bat / s.bat0 : 0) }); return { stats, charts: [this.incSpec(), this.whereSpec()] }; }
+    const sc = this.sim.galScore(s); row(D.score, sc); return { stats, charts: [this.oddsSpec(), this.errSpec()] };
   },
   sonsSpec() {   // L0: white share of sons (discs) and daughters (squares) per cross; the expectation dashed only after the ask is scored
     const s = this.sim.s, D = this.content.data, dots = [], lines = [], nC = this.sim.P().vials.v;
     const row = no => nC + 1 - no, rl = [];   // cross 1 on the top row, as in a notebook
     s.crosses.forEach(c => { const ns = c.kids[2] + c.kids[3], nd = c.kids[0] + c.kids[1]; rl.push({ y: row(c.no), text: String(c.no) }); if (ns) dots.push({ x: c.kids[3] / ns, y: row(c.no), shape: 'disc' }); if (nd) dots.push({ x: c.kids[1] / nd, y: row(c.no), shape: 'square' }); });
-    for (const id of ['a', 'b']) if (s.hits[id] !== undefined && s.atOf && s.atOf[id]) { const y = s.atOf[id]; lines.push({ pts: [[s.exp[id], y - 0.38], [s.exp[id], y + 0.38]], label: id === 'b' || !lines.length ? D.lines.exp : null }); }
-    return { type: 'ry_xy', title: D.titles.sons, x: { lo: 0, hi: 1, label: D.ax.share, fmt: 'pct' }, y: { lo: 0.4, hi: nC + 0.6, label: D.ax.cross }, noY: true, rowLabels: rl, frame: 'designed', dots, lines, legend: [['disc', D.lines.sons], ['square', D.lines.daus]] };
+    for (const id of ['b']) if (s.hits[id] !== undefined && s.atOf && s.atOf[id]) { const y = s.atOf[id]; lines.push({ pts: [[s.exp[id], y - 0.38], [s.exp[id], y + 0.38]], label: D.lines.exp }); }
+    return { type: 'ry_xy', title: D.titles.sons, x: { lo: -0.05, hi: 1.05, label: D.ax.share, fmt: 'pct' }, xticks: [0, 0.2, 0.4, 0.6, 0.8, 1], y: { lo: 0.4, hi: nC + 0.6, label: D.ax.cross }, noY: true, rowLabels: rl, frame: 'designed', dots, lines, legend: [['disc', D.lines.sons], ['square', D.lines.daus]] };
   },
   hatchSpec() { const s = this.sim.s, D = this.content.data, L = this.content.labels, k = s.cur ? s.cur.kids : [0, 0, 0, 0], mx = Math.max(10, s.cur ? s.cur.n * 0.6 : 10); return { type: 'ry_xy', title: D.titles.hatch, fold: false, x: { lo: 0, hi: 4 }, y: { lo: 0, hi: mx, label: D.ax.n, fmt: 'int' }, noX: true, frame: 'designed', bars: [L.fr, L.fw, L.mr, L.mw].map((lab, i) => ({ x: i + 0.5, y: k[i], label: lab, hatch: i % 2 === 1 })) }; },
-  zigSpec() {   // L1: white share of X copies in females (discs) and males (squares) by generation; the control faint; the average dashed after the asks
-    const s = this.sim.s, D = this.content.data, tc = s.th && (s.phase === 'tgen' || s.phase === 'over' || (s.ask && s.ask.id === 't'));
-    if (tc) { const th = s.th, ser = [{ pts: th.map((h, i) => [i, h.qf]), shape: 'disc', label: D.lines.fem }, { pts: th.map((h, i) => [i, h.qm]), shape: 'square', label: D.lines.male }], lines = []; if (s.hits.t !== undefined) { const e = s.exp.t; lines.push({ pts: [[0, e], [10, e]], label: D.lines.pbar }); } return { type: 'ry_xy', title: D.titles.zig, x: { lo: 0, hi: 10, label: D.ax.gen, fmt: 'int' }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series: ser, lines, nextX: s.ask ? 10 : null }; }
-    const h = s.hist, ser = [{ pts: h.map((q, i) => [i, q.qf]), shape: 'disc', label: s.auts ? D.lines.ctl : D.lines.fem }, { pts: h.map((q, i) => [i, q.qm]), shape: 'square', label: D.lines.male }], lines = [];
+  zigSpec() {   // L1: white share of X copies in females (discs, solid) and males (squares, dashed) by generation; the control faint; the average after generation 3
+    const s = this.sim.s, D = this.content.data, h = s.hist, ser = [{ pts: h.map((q, i) => [i, q.qf]), shape: 'disc', label: s.auts ? D.lines.ctl : D.lines.fem }, { pts: h.map((q, i) => [i, q.qm]), shape: 'square', dash: true, label: D.lines.male }], lines = [];
     if (h[0].cf != null && !s.auts) ser.push({ pts: h.map((q, i) => [i, (q.cf + q.cm) / 2]), faint: true, label: D.lines.ctl });
-    if (s.asks.indexOf('f3') >= 0 && !s.ask || s.g > 3) { const e = (2 * h[0].qf + h[0].qm) / 3; lines.push({ pts: [[0, e], [10, e]], label: D.lines.pbar }); }
-    return { type: 'ry_xy', title: D.titles.zig, x: { lo: 0, hi: 10, label: D.ax.gen, fmt: 'int' }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series: ser, lines, nextX: s.ask ? s.ask.at : null };
+    if (s.g > 3) { const e = (2 * h[0].qf + h[0].qm) / 3; lines.push({ pts: [[0, e], [10, e]], label: D.lines.pbar }); }
+    return { type: 'ry_xy', title: D.titles.zig, x: { lo: 0, hi: 10, label: D.ax.gen, fmt: 'int' }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series: ser, lines };
   },
-  copiesSpec() { const s = this.sim.s, D = this.content.data, tc = s.th && (s.phase === 'tgen' || s.phase === 'over'), h = tc ? s.th[s.th.length - 1] : s.hist[s.hist.length - 1]; return { type: 'ry_xy', title: D.titles.copies, fold: false, x: { lo: 0, hi: 2 }, y: { lo: 0, hi: 1, fmt: 'pct' }, noX: true, frame: 'designed', bars: [{ x: 0.5, y: h.qf, label: D.lines.fem, ink: 'a' }, { x: 1.5, y: h.qm, label: D.lines.male, ink: 'a', hatch: true }] }; },
-  incSpec() {   // L2: white-eyed males (squares) and white-eyed females (discs) by generation; the balance dashed after the ask
-    const s = this.sim.s, D = this.content.data, h = s.hist, lines = [], vl = [];
-    if (s.hits.bal !== undefined) lines.push({ pts: [[0, s.exp.bal], [65, s.exp.bal]], label: D.lines.bal });
-    vl.push({ x: 5, dash: true });
-    return { type: 'ry_xy', title: D.titles.inc, x: { lo: 0, hi: 65, label: D.ax.gen, fmt: 'int' }, y: { lo: 0, hi: 0.4, fmt: 'pct' }, frame: 'designed', series: [{ pts: h.map((q, i) => [i, q.wm]), shape: 'square', label: D.lines.wm }, { pts: h.map((q, i) => [i, q.wf]), shape: 'disc', label: D.lines.wf }], lines, vlines: vl, nextX: s.ask ? 65 : null };
+  copiesSpec() { const s = this.sim.s, D = this.content.data, h = s.hist[s.hist.length - 1]; return { type: 'ry_xy', title: D.titles.copies, fold: false, x: { lo: 0, hi: 2 }, y: { lo: 0, hi: 1, fmt: 'pct' }, noX: true, frame: 'designed', bars: [{ x: 0.5, y: h.qf, label: D.lines.fem, ink: 'a' }, { x: 1.5, y: h.qm, label: D.lines.male, ink: 'a', hatch: true }] }; },
+  incSpec() {   // L2: white-eyed males (squares) and white-eyed females (discs) by generation; the 3μ ÷ s balance once the HUD names it
+    const s = this.sim.s, D = this.content.data, h = s.hist, lines = [], vl = [{ x: 5, dash: true }];
+    if (s.balE != null && s.g >= 25) lines.push({ pts: [[5, s.balE], [65, s.balE]], label: D.lines.bal });
+    return { type: 'ry_xy', title: D.titles.inc, x: { lo: 0, hi: 65, label: D.ax.gen, fmt: 'int' }, y: { lo: 0, hi: 0.4, fmt: 'pct' }, frame: 'designed', series: [{ pts: h.map((q, i) => [i, q.wm]), shape: 'square', label: D.lines.wm }, { pts: h.map((q, i) => [i, q.wf]), shape: 'disc', label: D.lines.wf }], lines, vlines: vl };
   },
   whereSpec() { const s = this.sim.s, D = this.content.data, h = s.hist[s.hist.length - 1], a = 2 * h.qf, b = h.qm, t = a + b || 1; return { type: 'ry_xy', title: D.titles.where, fold: false, x: { lo: 0, hi: 2 }, y: { lo: 0, hi: 1, fmt: 'pct' }, noX: true, frame: 'designed', bars: [{ x: 0.5, y: a / t, label: D.lines.inF, ink: 'a' }, { x: 1.5, y: b / t, label: D.lines.inM, ink: 'a', hatch: true }] }; },
   oddsSpec() {   // boss: your before-sons (rings) and after-sons (discs) odds for each woman; the exact odds dashed once sealed
     const s = this.sim.s, D = this.content.data, dots = [], lines = [];
     for (const j of s.judg) { const i = RY_CASES.findIndex(q => q.id === j.id) + 1; dots.push({ x: i + (j.st === 'prior' ? -0.15 : 0.15), y: j.v, shape: j.st === 'prior' ? 'ring' : 'disc' }); lines.push({ pts: [[i + (j.st === 'prior' ? -0.35 : -0.05), j.e], [i + (j.st === 'prior' ? 0.05 : 0.35), j.e]] }); }
     if (lines.length) lines[lines.length - 1].label = D.lines.exact;
-    return { type: 'ry_xy', title: D.titles.odds, x: { lo: 0.4, hi: 6.6, label: '', fmt: 'int' }, xticks: [1, 2, 3, 4, 5, 6], y: { lo: -0.05, hi: 1.3, fmt: 'pct' }, yt: [0, 0.5, 1], frame: 'designed', dots, lines, legend: [['ring', D.lines.prior], ['disc', D.lines.post]] };
+    return { type: 'ry_xy', title: D.titles.odds, x: { lo: 0, hi: 6.6, label: '', fmt: 'int' }, xticks: [1, 2, 3, 4, 5, 6], y: { lo: -0.05, hi: 1.3, fmt: 'pct' }, yt: [0, 0.5, 1], frame: 'designed', dots, lines, legend: [['ring', D.lines.prior], ['disc', D.lines.post]] };
   },
   errSpec() { const s = this.sim.s, D = this.content.data; return { type: 'ry_xy', title: D.titles.err, fold: false, x: { lo: 0, hi: 12.6 }, y: { lo: 0, hi: 0.6, fmt: 'pct' }, noX: true, frame: 'designed', bars: s.judg.map((j, i) => ({ x: i + 0.8, y: Math.abs(j.v - j.e), w: 0.32 })), lines: [{ pts: [[0, 0.1], [12.6, 0.1]], label: D.lines.ten }] }; },
-  cvSpec() { const s = this.sim.s, D = this.content.data, lines = []; if (s.hits.cv !== undefined) lines.push({ pts: [[0.0064, 0], [0.0064, 1]], label: D.lines.exact }); return { type: 'ry_xy', title: D.titles.cv, x: { lo: 0, hi: 0.05, label: D.ax.pct, fmt: v => (Math.round(v * 1000) / 10) + '%' }, xticks: [0, 0.01, 0.02, 0.03, 0.04, 0.05], y: { lo: 0, hi: 1 }, noY: true, frame: 'designed', lines }; },
   cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return this.sonsSpec(); if (n === 1) return this.zigSpec(); if (n === 2) return this.incSpec(); return s.judg && s.judg.length ? this.oddsSpec() : null; }
 };
 V2.push(CH_ROYAL_V2);
@@ -1161,8 +1139,8 @@ if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.ry_xy) LiveG
     for (const l of spec.lines || []) { if (!l.pts || !l.pts.length) continue; c.beginPath(); l.pts.forEach((q, i) => { const x = G.X(q[0]), y = G.Y(q[1]); if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke(); const q = l.pts[l.pts.length - 1]; if (l.label) ends.push({ y: G.Y(q[1]), text: l.label, col: I.text, dash: true }); }
     c.setLineDash([]);
     for (const sr of spec.series || []) {
-      if (!sr.pts || !sr.pts.length) continue; c.lineWidth = (sr.faint ? 1.5 : 3) * T.k; c.strokeStyle = sr.faint ? wgRgba(I.text, 0.4) : I.text;
-      c.beginPath(); sr.pts.forEach((q, i) => { const x = G.X(q[0]), y = G.Y(q[1]); if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke();
+      if (!sr.pts || !sr.pts.length) continue; c.lineWidth = (sr.faint ? 1.5 : 3) * T.k; c.strokeStyle = sr.faint ? wgRgba(I.text, 0.4) : I.text; c.setLineDash(sr.dash ? [7, 5] : []);
+      c.beginPath(); sr.pts.forEach((q, i) => { const x = G.X(q[0]), y = G.Y(q[1]); if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke(); c.setLineDash([]);
       if (!sr.faint) { const step = Math.max(1, Math.ceil(sr.pts.length / 14)); sr.pts.forEach((q, i) => { if (i % step && i !== sr.pts.length - 1) return; const r = 3.5 * T.k, x = G.X(q[0]), y = G.Y(q[1]); c.beginPath(); if (sr.shape === 'square') c.rect(x - r, y - r, 2 * r, 2 * r); else c.arc(x, y, r, 0, TAU); c.fillStyle = sr.shape === 'square' ? I.surface : I.text; c.fill(); c.lineWidth = 1.5; c.strokeStyle = I.text; c.stroke(); }); }
       const q = sr.pts[sr.pts.length - 1]; if (sr.label) ends.push({ y: G.Y(q[1]), text: sr.label, col: sr.faint ? wgRgba(I.text, 0.6) : I.text, role: sr.shape === 'square' ? 'a' : 'ink' });
     }

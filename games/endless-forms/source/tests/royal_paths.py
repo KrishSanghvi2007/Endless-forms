@@ -66,7 +66,7 @@ def main():
         st2 = pg.evaluate("()=>{ const s = TB.REG.royal.sim.s; return {cg: s.cg, bat: s.bat}; }")
         check(st2['cg'] >= 1 and abs(st2['bat'] - (st0['bat'] - 0.5)) < 1e-6, 'L3 untimed: a tap on a white-eyed male flashes the lamp and catches him (%s)' % st2)
         ctx.close()
-        # 4. L3 timed: a real sweep with the pointer catches white males and drains the battery
+        # 4. L3 timed: a real sweep with the pointer catches white males; no battery (the round's clock is the limit)
         ctx, pg = page(b, html, vp=(1280, 720)); play(pg, 2)
         pts = pg.evaluate("()=>{ const ch = TB.REG.royal, s = ch.sim.s, c = TB.Stage.cv.getBoundingClientRect(); return s.flies.filter(f => f.w).slice(0, 6).map(f => { const p = ch.flyXY(f); return [c.x + p[0], c.y + p[1]]; }); }")
         pg.mouse.move(*pts[0]); pg.mouse.down()
@@ -74,7 +74,7 @@ def main():
             for k in range(8): pg.mouse.move(q[0], q[1]); pg.evaluate("()=>window.__advance(40)")
         pg.mouse.up(); pg.evaluate("()=>window.__advance(100)")
         st = pg.evaluate("()=>{ const s = TB.REG.royal.sim.s; return {cg: s.cg, bat: s.bat, bat0: s.bat0, beam: s.beam.on}; }")
-        check(st['cg'] >= 1 and st['bat'] < st['bat0'] and not st['beam'], 'L3: a pointer sweep catches white males, spends battery, and lifting the pointer turns the beam off (%s)' % st)
+        check(st['cg'] >= 1 and st['bat'] == st['bat0'] and not st['beam'], 'L3: a pointer sweep catches white males, spends no battery, and lifting the pointer turns the beam off (%s)' % st)
         ctx.close()
         # 5. the boss: the slider by keys, Seal by Enter; Seal is refused before the slider is set
         ctx, pg = page(b, html); play(pg, 3)
@@ -85,9 +85,14 @@ def main():
         st = pg.evaluate("()=>{ const s = TB.REG.royal.sim.s; return s.judg.map(j => [j.id, j.st, j.v]); }")
         check(len(st) == 1 and st[0][0] == 'alice' and abs(st[0][2] - 1.0) < 1e-9, 'boss: ten right-arrows from the middle reach 100%%; Enter seals Alice\'s prior (%s)' % st)
         ctx.close()
-        # 6. What if? on the zigzag card thaws a run that earns nothing
+        # 6. the zigzag: a real tap on the cage breeds the next generation, the dock "Breed" another; then What if? on its card
         ctx, pg = page(b, html); play(pg, 1, 3)
-        pg.evaluate("""()=>{ const ch = TB.REG.royal; for (let k = 0; k < 6000 && !document.querySelector('#cards.on .card'); k++) { const s = ch.sim.s; if (s.ask) { TB.Sim.act(ch, {k: 'predict', id: s.ask.id, v: s.exp[s.ask.id]}); } window.__advance(40); } }""")
+        xy = cv_xy(pg, "[ch.pos().cage.x, ch.pos().cage.y]"); pg.mouse.click(*xy); pg.evaluate("()=>window.__advance(300)")
+        g1 = pg.evaluate("()=>TB.REG.royal.sim.s.g")
+        pg.click('#dock [data-id="ry-gen"]'); pg.evaluate("()=>window.__advance(300)")
+        g2 = pg.evaluate("()=>TB.REG.royal.sim.s.g")
+        check(g1 == 1 and g2 == 2, 'L2: a tap on the cage breeds a generation, and the dock "Breed" another (%s, %s)' % (g1, g2))
+        pg.evaluate("""()=>{ const ch = TB.REG.royal; for (let k = 0; k < 6000 && !document.querySelector('#cards.on .card'); k++) { const s = ch.sim.s; if (s.kind === 'cage' && s.phase === 'gen' && s.g < 4) TB.Sim.act(ch, {k: 'breed'}); window.__advance(40); } }""")
         has = pg.evaluate("()=>!!document.querySelector('#cards.on .card')")
         pg.evaluate("()=>window.__advance(2000)"); pg.wait_for_timeout(1200); wi = pg.evaluate("()=>{ const b = [...document.querySelectorAll('#cards.on .card button')].find(x => /What if/.test(x.textContent)); if (b) b.click(); window.__advance(300); const c = [...document.querySelectorAll('#cards.on button')].find(x => /Autosomal/.test(x.textContent)); if (c) c.click(); window.__advance(500); return !!c; }")
         pg.evaluate("()=>window.__advance(9000)")

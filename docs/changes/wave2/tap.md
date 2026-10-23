@@ -140,3 +140,52 @@ Parameters tagged on the MODEL cards: μ 0.02 ×2000 (real 10⁻⁴ to 10⁻⁶ 
 - The three-reviewer round and Coordinator A's sign-off of the claims table.
 - A cited source for black-backed gulls taking kittiwake chicks (the world's premise).
 - Designer-and-colleagues playtest (script above).
+
+## Simplification (D6 decision 9) and self-review, 23 October 2026
+
+I played all four levels at 390 × 780 and 1280 × 720 first (screenshots in the session scratchpad: `s3/simp_royal_tap/tap0` before, `tap1`, `tap2` after). The kittiwake cliff, the gull, the rock pool, the drum and the juice stay. No external review was ever completed, so I reviewed the unit myself as a demanding playtester and as an adversarial biologist.
+
+### Playtester findings
+- **Four prediction interludes, on two gestures** (y on the q trace in L1 and L2, x on the generation axis in L3, the load in the boss). In L1–L3 they quizzed a formula the player had not yet been shown.
+- **The lens was a clever trade-off that hid the point.** Toggling it showed genotypes but blocked diving, and Discover required using it, so the carriers became a chore rather than the aha.
+- **Long seasons.** Four dusks before anything happened in L1 and L2, two feast dusks in L3, six boss seasons.
+- **A real bug.** In `openAsk` a `//` comment swallowed `s.asks.push(id); s.phase = 'ask'; …`, so the sim never entered its ask phase: it kept stepping the finished dusk and moved on after 12 s while the strip still showed the ask (the bots answered instantly, so the oracle never saw it). Fixed; a new oracle check asserts that an open ask holds the sim in its ask phase.
+
+### Biologist findings
+- q̂ ≈ μ/(hs) (dominant, h = 1), √(μ/s) (recessive), and load ≈ 2μ (dominant) and μ (recessive), whatever s: all correct, and checked by the oracle against the exact recursion (within 10% and 15%).
+- **Doubling time.** The L3 Why? said "doubling takes roughly q ÷ μ generations: 15 here". With this game's large q and ×2000 drip, q ÷ μ is 10–13 while the recursion gives 10–21 (it is 14.2 from q = 0.2). Rewritten: "While q is small, doubling takes about q ÷ μ generations: 450 at a real μ of 10⁻⁵. This game’s large q and ×2000 drip take a little longer than q ÷ μ." The HUD now names the run's own doubling time from the recursion.
+- **Non sequitur.** "Most harmful mutations are partly recessive. So carriers … far outnumber people who have it": carriers outnumber the affected because q is small (2pq ≫ q²), not because of h. The "So" is removed.
+- **Garbled maths.** "selection removes about s·q copies per copy" → "selection removes about a share s·q of all copies".
+- **Yauk & Quinn 1996** measured germline mutation at minisatellite loci, not at harmful genes: the boss MODEL now says "at minisatellite DNA".
+- The gull's catch share as s, h = 0/1 and the ×2000 drip are tagged; no wording has an animal evolving, choosing or needing.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| The balance ask (dominant) | L1 | The key number is **shown** while the 30 generations run: "q̂ ≈ μ ÷ s = 0.02 ÷ 0.80 = 0.025: new copies match losses." The expected path is drawn on the q chart. |
+| The recessive balance ask and the lens toggle (L key, dock button, lens-blocks-dive rule, "lens used" in Discover) | L2 | The lens now turns on by itself while the 40 generations run, so the carriers appear over every nest exactly when q settles; the HUD reads "q̂ ≈ √(μ ÷ s) = √(0.02 ÷ 0.80) = 0.158. Copies hide in carriers." Hunting is plain diving. |
+| The doubling-time ask | L3 | The HUD says "No gull dives: only the drip adds copies, about μ = 0.02 a generation", then, once q has doubled, "The a share doubled from 0.26 in 21 generations. A real drip takes about 450." The net run is slower (0.22 s a generation) so it can be read. |
+| Two feast dusks | L3 | One feast dusk (quota 4). |
+| Four dusks a season | L1, L2 | Three (L1 quota 6 meals, L2 4). |
+| Six boss seasons | Boss | Five (25 generations); the hint, the drum's label and its dock button come at generation 10 (when the load is back on its line) instead of 15. |
+| **Kept: the boss load prediction** | Boss | The chapter's one prediction, and its aha: "Two more gulls hunt with you. Drag where the load will settle." The naive answer is "higher"; the load spikes and returns to its line, μ. It counts on every seed ("no change" from the spiked load misses) and carries the Predict star. After the reveal the HUD says "Load ≈ μ: back to its line, 18 per 1000. What else fills the pool?", and after the drum "The drum is shut: half the drip is gone, so the load halves too." |
+| Boss drips 0.014/0.02/0.026 | Boss | Now 0.012/0.018/0.024: with one prediction, a mid-axis guess of 30 per 1000 hit the 26 drip's ±20% band on a third of seeds. |
+
+`content.intro.how` now reads "Tap an unsteady chick while it totters at the ledge edge to dive. In the last level you also drag on the graph once to predict."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 The drip | 6 meals, then the balance dusk (was 8 meals) | — (was the balance ask) | — |
+| L2 Hidden copies | 4 meals or all there are, then the balance dusk (no lens requirement) | — | — |
+| L3 The warden's net | 4 feast meals (was 6 over two dusks) | — | — |
+| L4 The load | — | **the one prediction**: the load under harder hunting, ±20% (was Transfer) | **new**: once the load is back on its line (generation 10 on), shut the drum and bring the load to ≤ 60% of the start (was Discover, from generation 5) |
+
+Unit stars: Discover in two of L1–L3; Predict = the boss load; Transfer = the boss drum. No level offers all three. Shutting the drum before the load returns earns the "early" text ("You never saw harder hunting fail."), not the star.
+
+### Tests
+- `tests/oracle_tap.js` updated: L1–L3 ask nothing; the boss asks once, counts on every seed, and "no change" misses; an open ask holds the ask phase; the lens is off while hunting and on while L2's generations run; star offers `[1, 1, 1, 6]`; the bot list swaps `lensAlways` for `slow` (never dives, mid-axis load, drum a season after the gulls). **54/54.**
+- `tests/tap_paths.py`: 11 ok (L does nothing; Space dives on the cursor nest). `tests/tap_shots.py`: shoots the lens during L2's run and the key-number HUD.
+- Lint 0/0; `dup_globals` ok; bot sweep (seeds 1–20, 8 bots) PASS, best boss masks -P- (random, rare) and --T (slow); untimed PASS; monkey seeds 1–3 at 390 × 780 and 1280 × 720: 6 of 6 reach the end card.

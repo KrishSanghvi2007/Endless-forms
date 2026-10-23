@@ -2,12 +2,13 @@
    Mutation–selection balance on a windswept kittiwake cliff at sunset. Role: the selective agent (D1 G1 role 1): you are a great
    black-backed gull diving on kittiwake chicks that totter at the ledge edge. A rain-fed rock pool on the shore is the tap: rain
    drips new harmful copies in (mutation), the crack leaks the copies your catches remove (selection), and the water level is q.
-     L1 The drip (dominant)    a season of dusks sets your catch rate s; predict where q settles; 30 generations run at s:
+     L1 The drip (dominant)    three dusks set your catch rate s; 30 generations run at s and the HUD shows the key number,
                                q̂ ≈ μ ÷ (h·s) with h = 1. At balance your catches match the drip (Haldane 1935).
-     L2 Hidden copies          the same allele, now recessive (h = 0); the lens shows genotypes but blocks dives; q̂ ≈ √(μ ÷ s),
-                               and most copies sit in carriers (the carrier pocket of the pool).
-     L3 The warden's net       s = 0: predict when q doubles (it creeps up by about μ a generation); then the net lifts: a feast,
-                               then a purge. Relaxed selection is slow (Lahti et al. 2009).
+     L2 Hidden copies          the same allele, now recessive (h = 0); while the generations run the lens shows genotypes;
+                               q̂ ≈ √(μ ÷ s), and most copies sit in carriers (the carrier pocket of the pool).
+     L3 The warden's net       s = 0: q creeps up by about μ a generation, and the HUD names its doubling time; then the net
+                               lifts: a feast, then a purge. Relaxed selection is slow (Lahti et al. 2009).
+   Simplified 23 Oct 2026 (D6 decision 9): one prediction in the chapter (the boss load, its aha); no lens toggle.
      L4 The load (boss)        the keeper wants the load (chicks lost to the allele, per 1,000) halved. Two more gulls join: the
                                load spikes and returns to the drip line, μ, whatever s (Haldane 1937; Muller 1950). Only shutting
                                the rusty drum that doubles the drip halves it. This inverts "harder selection cuts the harm".
@@ -23,22 +24,21 @@ const TP_TEXT = {
   intro: {   // the opening card (D6 addendum 8)
     game: 'You are a great black-backed gull on a sea cliff at sunset. Below you, kittiwakes raise their chicks on narrow ledges.',
     biology: 'Mutation drips harmful copies into every gene pool, and selection drains them. The harm settles where drip meets drain, and it hides best in carriers.',
-    how: 'Tap an unsteady chick while it totters at the ledge edge to dive. Drag on the graph to predict, then Lock in.'
+    how: 'Tap an unsteady chick while it totters at the ledge edge to dive. In the last level you also drag on the graph once to predict.'
   },
   firstWords: 'Tap a chick while it totters at the ledge edge. Tucked chicks are safe.',
   hud: {
     dusk: 'Dive on chicks tottering at the edge. Tucked chicks are safe.',
     duskU: 'Untimed: the chicks hold still. Spend your dives, or tap End dusk.',
-    lens: 'Lens on: carriers show, but you cannot dive.',
     dawn: 'Night on the cliff. Next dusk the chicks totter again.',
     bal: 'Many generations on. Dive again: how many unsteady chicks are left?',
-    askA1: 'Your catch rate was {s}%. Drag where the a share will settle.',
-    askB1: 'Now a is recessive. Catch rate {s}%. Drag where the a share settles.',
-    askC1: 'Under the net no gull dives. When will the a share, now {q}, double?',
     askT1: 'Two more gulls hunt with you. Drag where the load will settle.',
-    lapse: 'The colony runs on at your catch rate. Watch drip against leak.',
+    lapse: 'The colony runs on at your catch rate {s}%. Watch drip against leak.',
+    keyA: 'q̂ ≈ μ ÷ s = {mu} ÷ {s} = {e}: new copies match losses.',
+    keyB: 'q̂ ≈ √(μ ÷ s) = √({mu} ÷ {s}) = {e}. Copies hide in carriers.',
     net: 'The warden’s net keeps gulls off the ledges. Selection is relaxed.',
-    netLapse: 'Only the drip now. A real drip is 2,000 times slower.',
+    netLapse: 'No gull dives: only the drip adds copies, about μ = {mu} a generation.',
+    keyC: 'The a share doubled from {q0} in {d} generations. A real drip takes about 450.',
     lift: 'The net lifts. A feast of unsteady chicks!',
     feast: 'Dive while the feast lasts. Your catches set the purge.',
     purge: 'The purge: the colony runs on at your catch rate.',
@@ -46,28 +46,27 @@ const TP_TEXT = {
     twist: 'Hunt harder: two more black-backs join you.',
     bossDusk: 'Dive. Your catches add to the other gulls’ hunting.',
     season: 'Five generations pass. Watch the load.',
-    hint: 'The load is back on its line. What else fills the pool?',
-    plugged: 'The drum is shut. Half the drip is gone.',
+    hint: 'Load ≈ μ: back to its line, {l} per 1000. What else fills the pool?',
+    plugged: 'The drum is shut: half the drip is gone, so the load halves too.',
     auto: 'What if? The colony runs by the new rule.',
     over: 'Done.'
   },
   whispers: {
     drag: 'Drag the line first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
     miss: 'Missed: it tucked in.', empty: 'That nest is empty.', busy: 'Still diving.', nodives: 'No dives left this dusk.',
-    lensblock: 'Lens on: no diving.', fed: 'Your chicks are fed.', drum: 'The drum is shut.', hint: 'What else fills the pool?', gone: 'No unsteady chicks left out.'
+    fed: 'Your chicks are fed.', drum: 'The drum is shut.', hint: 'What else fills the pool?', gone: 'No unsteady chicks left out.'
   },
   labels: {
     drip: 'drip', leak: 'leak', pool: 'a copies', hidden: 'in carriers', net: 'warden’s net', drum: 'rusty drum', gen: 'Generation {n}',
-    lensOn: 'Lens on', ff: 'Tap: faster', xn: 'Drip ×2000', lock: 'Lock in', lensB: 'Lens', end: 'End dusk', fast: 'Faster',
+    lensOn: 'Lens on', ff: 'Tap: faster', xn: 'Drip ×2000', lock: 'Lock in', end: 'End dusk', fast: 'Faster',
     half: 'half load', line: 'drip line', bal: 'balance', fedN: 'fed {m}/{need}', divesN: '{d} dives', catchN: 'catch {s}%', loadN: '{l} per 1000',
     dusk: 'Dusk {n}', season: 'Season {n}', lifted: 'The net lifts', unsteady: 'unsteady', shutDrum: 'Shut drum', gulls: '+2 gulls'
   },
   interesting: {
     hungry: 'Your chicks went short. A dive on a tucked chick is wasted; wait until one totters at the edge.',
-    nolens: 'You never looked under the lens. Most a copies sat in steady-looking carriers, out of reach of every dive.',
     weak: 'You caught few unsteady chicks, so selection was weak. With a weak drain, more copies pile up before it matches the drip.',
     feast: 'The feast was short of meals. Copies left uncaught breed on, so the purge ran slower.',
-    early: 'You shut the drum before the gulls joined. That works, but you never saw harder hunting fail.',
+    early: 'You shut the drum before the load came back to its line. You never saw harder hunting fail.',
     late: 'The drum was shut too late for the load to halve. Harder hunting never moved the line; the drip set it.',
     nodrum: 'The load kept returning to its line, however hard the gulls hunted. Only less drip could lower it.'
   },
@@ -101,15 +100,15 @@ const TP_TEXT = {
   law: { title: 'Drip meets drain' },
   boss: { inverts: 'Harder selection does not cut the load; only a smaller drip does.' },
   stars: {
-    discover: 'Feed your chicks, look at the carriers, and halve the load.',
-    predict: 'Land two of three predictions: both balances and the doubling time.',
-    transfer: 'Predict where the load settles when the hunting gets harder.'
+    discover: 'Feed your chicks in two of the first three levels.',
+    predict: 'Predict where the load settles when the hunting gets harder.',
+    transfer: 'Halve the load by cutting the drip, not by hunting harder.'
   },
   levelStars: [
-    { discover: 'Bring home 8 unsteady chicks this season.', predict: 'Land the balance prediction inside the band.' },
-    { discover: 'Bring home 4 chicks, or all there are, and look under the lens.', predict: 'Land the recessive balance inside the band.' },
-    { discover: 'Bring home 6 chicks from the feast.', predict: 'Land the doubling time inside the band.' },
-    { discover: 'After the gulls join, shut the drum and bring the load near half.', transfer: 'Predict where the load settles under harder hunting.' }
+    { discover: 'Bring home 6 unsteady chicks, then hunt once at balance.' },
+    { discover: 'Bring home 4 chicks, or all there are, then hunt at balance.' },
+    { discover: 'Bring home 4 chicks from the feast.' },
+    { predict: 'Predict where the load settles under harder hunting.', transfer: 'When the load is back on its line, shut the drum; bring it near half.' }
   ],
   levelTake: [
     'Mutation drips harmful copies in; selection drains them. They settle where the two match: q ≈ μ ÷ s.',
@@ -129,22 +128,22 @@ const TP_TEXT = {
       nature: 'Haldane saw in 1935 that a harmful allele settles where new mutations replace the copies selection removes. He used it to estimate how often the haemophilia gene mutates.',
       contested: false, refs: ['haldane1935', 'crow1970'] },
     { level: 1, simulated: 'The same colony and drip, but a is recessive: only chicks with two copies totter. The lens shows each chick’s genotype.',
-      simplification: 'Carriers are exactly as steady as normal chicks (h = 0). Looking under the lens costs dive time.',
+      simplification: 'Carriers are exactly as steady as normal chicks (h = 0). The lens shows genotypes while the generations run.',
       params: [{ name: 'mutation rate μ', value: '0.02 per copy per generation', tag: 'xN', real: '10⁻⁴ to 10⁻⁶ per gene' }, { name: 'dominance h', value: 0, tag: 'designed', real: 'often 0.1 to 0.3' }, { name: 'colony', value: '2,000 chicks', tag: 'designed' }],
       cannot: 'Carriers with a slight cost, which real alleles often have. Even a small h pulls q far below √(μ ÷ s).',
-      nature: 'Most harmful mutations are partly recessive. So carriers of a rare recessive condition, such as cystic fibrosis, far outnumber people who have it.',
+      nature: 'Most harmful mutations are partly recessive. Carriers of a rare recessive condition, such as cystic fibrosis, far outnumber people who have it.',
       contested: false, refs: ['crow1970', 'agrawal2011'] },
     { level: 2, simulated: 'The warden’s net stops all diving, so s = 0. Only the drip acts, plus chance in a colony of 2,000.',
-      simplification: 'The net stays 30 generations. Then your feast catches set s for the purge.',
+      simplification: 'The net stays 30 generations. Then your catches in one feast dusk set s for the purge.',
       params: [{ name: 'mutation rate μ', value: '0.02 per copy per generation', tag: 'xN', real: '10⁻⁴ to 10⁻⁶ per gene' }, { name: 'net', value: '30 generations', tag: 'designed' }],
       cannot: 'Other costs the allele may carry when no gull hunts.',
       nature: 'Relaxed selection acts slowly. Without selection, a harmful allele gains only new mutations, about μ a generation.',
       contested: false, refs: ['lahti2009', 'crow1997'] },
-    { level: 3, simulated: 'Each season of 5 generations, your catches plus other black-backs set s. Rain and a leaking drum both drip.',
+    { level: 3, simulated: 'Five seasons of 5 generations. Each season your catches plus other black-backs set s. Rain and a leaking drum both drip.',
       simplification: 'The drum doubles the drip; shutting it halves μ. The load is chicks lost to the allele per 1,000 hatched.',
-      params: [{ name: 'mutation rate μ', value: '0.014 to 0.026', tag: 'xN', real: '10⁻⁴ to 10⁻⁶ per gene' }, { name: 'drum', value: 'half the drip', tag: 'designed' }, { name: 'extra gulls', value: 2, tag: 'designed' }],
+      params: [{ name: 'mutation rate μ', value: '0.012 to 0.024', tag: 'xN', real: '10⁻⁴ to 10⁻⁶ per gene' }, { name: 'drum', value: 'half the drip', tag: 'designed' }, { name: 'extra gulls', value: 2, tag: 'designed' }],
       cannot: 'Load summed over thousands of genes, or mutations that help.',
-      nature: 'Haldane and Muller showed that load at balance equals the mutation rate, whatever s. Herring gulls nesting near steel mills had raised germline mutation rates.',
+      nature: 'Haldane and Muller showed that load at balance equals the mutation rate, whatever s. Herring gulls nesting near steel mills had raised germline mutation rates at minisatellite DNA.',
       contested: false, refs: ['haldane1937', 'muller1950', 'yauk1996'] }
   ],
   why: {
@@ -153,21 +152,21 @@ const TP_TEXT = {
   },
   levelWhy: [
     { real: ['J. B. S. Haldane used this balance in 1935 to estimate how often the haemophilia gene mutates. The copies lost each generation must be replaced by new mutations.'],
-      maths: ['Each generation selection removes about s·q copies per copy and mutation adds μ. They balance when s·q = μ, so q ≈ μ ÷ s. With partial dominance h, q ≈ μ ÷ (h·s).'] },
+      maths: ['Each generation selection removes about a share s·q of all copies, and mutation adds μ. They balance when s·q = μ, so q ≈ μ ÷ s. With partial dominance h, q ≈ μ ÷ (h·s).'] },
     { real: ['A rare recessive allele sits almost entirely in carriers, out of selection’s reach. With a real μ of 10⁻⁵ and s = 1, √(μ ÷ s) is 316 times μ ÷ s.'],
       maths: ['Only aa chicks are removed, a share q², so selection removes about s·q² copies a generation. Balance: s·q² = μ, so q ≈ √(μ ÷ s).'] },
     { real: ['Selection relaxes when a predator vanishes, or when medicine treats a condition. The allele then creeps up by new mutation alone, about one in 100,000 copies a generation or fewer.'],
-      maths: ['With s = 0, q grows by μ(1 − q) a generation. Doubling from balance takes roughly q ÷ μ generations. That is 15 here, and 450 at a real μ of 10⁻⁵.'] }
+      maths: ['With s = 0, q grows by μ(1 − q) a generation. While q is small, doubling takes about q ÷ μ generations: 450 at a real μ of 10⁻⁵. This game’s large q and ×2000 drip take a little longer than q ÷ μ.'] }
   ]
 };
 /* ---------- levels: plain-JSON scripts the sim steps through ---------- */
 const TP_LV = [
-  { h: 1, q0: 0.2, mu: 0.02, steps: [{ k: 'season', n: 4, dives: 6, quota: 8 }, { k: 'ask', id: 'a1' }, { k: 'lapse', g: 30 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
-  { h: 0, q0: 0.4, mu: 0.02, lens: 1, steps: [{ k: 'season', n: 4, dives: 6, quota: 4 }, { k: 'ask', id: 'b1' }, { k: 'lapse', g: 40 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
-  { h: 0, q0: -1, mu: 0.02, lens: 1, steps: [{ k: 'pause', note: 'net', t: 2.2 }, { k: 'ask', id: 'c1' }, { k: 'lapse', g: 30, s0: 1 }, { k: 'pause', note: 'lift', t: 1.8 }, { k: 'season', n: 2, dives: 6, quota: 6, feast: 1 }, { k: 'lapse', g: 25 }] },
-  { h: 0, q0: 0, mu: 0, boss: 1, lens: 1, steps: [] }   // filled in reset: six seasons of 5 generations, the gulls join before season 2
-];
-const TP_T = { dt: 1 / 30, dusk: 12, bossDusk: 8, dawn: 1.2, arrive: 8, busy: 15, gen: 0.16, bossGen: 0.3, askMax: 30, untMax: 60, V: 48, N: 2000 };
+  { h: 1, q0: 0.2, mu: 0.02, steps: [{ k: 'season', n: 3, dives: 6, quota: 6 }, { k: 'lapse', g: 30, key: 1 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
+  { h: 0, q0: 0.4, mu: 0.02, lens: 1, steps: [{ k: 'season', n: 3, dives: 6, quota: 4 }, { k: 'lapse', g: 40, key: 1 }, { k: 'season', n: 1, dives: 6, bal: 1 }] },
+  { h: 0, q0: -1, mu: 0.02, steps: [{ k: 'pause', note: 'net', t: 2.2 }, { k: 'lapse', g: 30, s0: 1 }, { k: 'pause', note: 'lift', t: 1.8 }, { k: 'season', n: 1, dives: 6, quota: 4, feast: 1 }, { k: 'lapse', g: 25 }] },
+  { h: 0, q0: 0, mu: 0, boss: 1, steps: [] }   // filled in reset: five seasons of 5 generations, the gulls join before season 2
+];   // lens: the recessive level shows genotypes while its generations run (D6 decision 9: no lens toggle)
+const TP_T = { dt: 1 / 30, dusk: 12, bossDusk: 8, dawn: 1.2, arrive: 8, busy: 15, gen: 0.16, keyGen: 0.22, askMax: 30, untMax: 60, V: 48, N: 2000 };
 
 const CH_TAP_V2 = {
   id: 'tap', v2: true, role: 'environment', place: 'coast',
@@ -184,7 +183,7 @@ const CH_TAP_V2 = {
     { name: 'The warden’s net', adds: 'relaxed selection', codes: ['T3'], minutes: 3 },
     { name: 'The load', adds: 'genetic load', codes: ['T4'], minutes: 4 }
   ],
-  keys: { Space: 'dive or speed up', ArrowLeft: 'previous nest', ArrowRight: 'next nest', L: 'lens', D: 'shut the drum', E: 'end dusk', P: 'predict' },
+  keys: { Space: 'dive or speed up', ArrowLeft: 'previous nest', ArrowRight: 'next nest', D: 'shut the drum', E: 'end dusk', P: 'predict' },
   untimed: true,
   teacher: { prompts: ['Why does a recessive harmful allele settle at a higher frequency than a dominant one?', 'Medicine lets people with a recessive condition have children. How fast does that raise the allele’s frequency?', 'This model has one gene and one predator. What would many harmful genes, each with its own drip, change?'], pool: 'trace' },
   starTraits: ['unsteady'],
@@ -213,13 +212,13 @@ const CH_TAP_V2 = {
       o = o || {}; const L = TP_LV[Math.max(0, Math.min(3, level | 0))], N = this.P().N.v;
       if (o.thaw) { this.restore(o.thaw.snap); this.s.log = []; this.lever(o.thaw.lever); return; }
       const s = this.s = { level: level | 0, h: L.h, mu: L.mu, muD: 0, drum: false, N, gen: 0, si: -1, phase: 'start', t: 0, unt: false, auto: false, whatif: null,
-        lensLv: !!L.lens, lens: false, lensUsed: false, net: false, gulls: false, plugGen: null, meals: 0, quota: 0, balDone: false, balC: 0, balN: 0,
+        lensLv: !!L.lens, lens: false, net: false, gulls: false, plugGen: null, meals: 0, quota: 0, balDone: false, balC: 0, balN: 0,
         sYou: 0.5, sCol: 0.5, need: 0, seasons: [], caught: 0, seen: 0, cTot: 0, nTot: 0, vis: [], dusk: 0, dives: 0, divesMax: 0, busy: 0, dv: null, ut: 0,
         asks: [], pred: {}, exp: {}, tol: {}, now: {}, hits: {}, ask: null, hist: [], steps: L.steps, log: [] };
       let q0 = L.q0;
       if (L.boss) {   // the drip varies by seed so no fixed answer fits every run; rain and drum each give half
-        const mt = [0.014, 0.02, 0.026][Math.floor(R() * 3)]; s.mu = mt / 2; s.muD = mt / 2; s.drum = true; q0 = Math.sqrt(mt / 0.5);
-        const st = []; for (let k = 0; k < 6; k++) { if (k === 1) st.push({ k: 'pause', note: 'twist', t: 2 }); st.push({ k: 'season', n: 1, dives: 6, boss: 1 }); if (k === 1) st.push({ k: 'ask', id: 't1' }); st.push({ k: 'lapse', g: 5 }); }
+        const mt = [0.012, 0.018, 0.024][Math.floor(R() * 3)]; s.mu = mt / 2; s.muD = mt / 2; s.drum = true; q0 = Math.sqrt(mt / 0.5);
+        const st = []; for (let k = 0; k < 5; k++) { if (k === 1) st.push({ k: 'pause', note: 'twist', t: 2 }); st.push({ k: 'season', n: 1, dives: 6, boss: 1 }); if (k === 1) st.push({ k: 'ask', id: 't1' }); st.push({ k: 'lapse', g: 5 }); }
         s.steps = st; s.mt = mt;
       }
       if (q0 < 0) { s.sPrev = [0.3, 0.5, 0.8][Math.floor(R() * 3)]; q0 = this.r5(this.qhat(s.sPrev, L.h, L.mu)); }   // L3 opens at the balance of an earlier catch rate, so no fixed answer fits every run
@@ -237,7 +236,7 @@ const CH_TAP_V2 = {
       else if (st.k === 'ask') { if (s.auto) { this.next(s, ev); return; } this.openAsk(s, ev, st.id); }
       else if (st.k === 'lapse') {
         if (!s.auto) (s.l0s || (s.l0s = [])).push({ c: s.c.slice(), q: s.q, qE: s.qE, gen: s.gen, hn: s.hist.length, si: s.si });   // where a What if? rewinds to
-        s.phase = 'lapse'; s.lg = 0; s.lapseS = st.s0 ? 0 : s.sCol; if (st.s0) s.net = true; ev.push({ k: 'lapse', g: st.g });
+        s.phase = 'lapse'; s.lg = 0; s.lapseS = st.s0 ? 0 : s.sCol; if (st.s0) s.net = true; s.lens = s.lensLv && !!st.key; ev.push({ k: 'lapse', g: st.g });
       }
       else if (st.k === 'pause') { s.phase = 'pause'; s.note = st.note; if (st.note === 'net') s.net = true; if (st.note === 'lift') s.net = false; if (st.note === 'twist') s.gulls = true; ev.push({ k: 'note', note: st.note }); }
     },
@@ -250,8 +249,8 @@ const CH_TAP_V2 = {
       if (s.phase === 'dawn') { if (s.t >= TP_T.dawn) this.duskStart(s, ev); return ev; }
       if (s.phase === 'dusk') { this.duskStep(s, ev, st); return ev; }
       if (s.phase === 'lapse') {
-        const per = s.auto ? 0.04 : st.g <= 4 ? TP_T.bossGen : TP_T.gen;
-        if (s.t >= per) { s.t = 0; this.generation(s, ev, s.lapseS); s.lg++; if (s.lg >= st.g) { if (st.s0) s.net = false; this.next(s, ev); } }
+        const per = s.auto ? 0.04 : st.key || st.s0 ? TP_T.keyGen : TP_T.gen;   // slower while the HUD shows the key number
+        if (s.t >= per) { s.t = 0; this.generation(s, ev, s.lapseS); s.lg++; if (s.lg >= st.g) { if (st.s0) s.net = false; s.lens = false; this.next(s, ev); } }
       }
       return ev;
     },
@@ -296,7 +295,7 @@ const CH_TAP_V2 = {
     },
     canDive(s) { return s.phase === 'dusk' && s.busy === 0 && s.dives > 0 && !s.lens && !s.auto; },
     dive(s, ev, i) {
-      if (s.phase !== 'dusk') return; if (s.lens) { ev.push({ k: 'lensblock' }); return; }
+      if (s.phase !== 'dusk' || s.lens) return;
       if (s.busy > 0) { ev.push({ k: 'busy' }); return; } if (s.dives <= 0) { ev.push({ k: 'nodives' }); return; }
       const c = s.vis[i]; if (!c) return;
       s.dives--; s.busy = TP_T.busy; s.dv = { i, at: TP_T.arrive }; ev.push({ k: 'dive', i });
@@ -324,12 +323,11 @@ const CH_TAP_V2 = {
       s.hist.push(rec); ev.push({ k: 'gen', g: s.gen, m, kc: kAa + 2 * kaa, q: rec.q });
     },
     /* ---------- predictions: the sim opens the ask; the expectation is the model's ---------- */
-    openAsk(s, ev, id) {
-      const h = s.h, mu = this.muNow(s); let A, e, now = null, tol;
-      if (id === 'a1' || id === 'b1') { e = this.qhat(s.sCol, h, mu); now = s.qE; tol = Math.max(0.006, 0.3 * e); A = { kind: 'y', chart: 0, lo: 0, hi: id === 'a1' ? 0.25 : 0.6 }; A.start = A.hi; }
-      else if (id === 'c1') { e = this.doubling(s.qE, h, mu); tol = 0.3 * e; A = { kind: 'x', chart: 0, lo: 0, hi: 60, start: 60 }; }
-      else { e = 1000 * this.eqLoad(s.sCol, h, mu); now = 1000 * this.load(s.qE, s.sCol, h); tol = 0.2 * e; A = { kind: 'y', chart: 0, lo: 0, hi: 60, start: 60 }; }
-      A.id = id; s.ask = A; s.exp[id] = e; s.tol[id] = tol; if (now != null) s.now[id] = now; s.cnt = s.cnt || {}; s.cnt[id] = now == null || Math.abs(e - now) >= tol;   // an ask counts only when "no change" would miss s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
+    openAsk(s, ev, id) {   // the chapter's one prediction (D6 decision 9): the boss load once two more gulls hunt
+      const h = s.h, mu = this.muNow(s), e = 1000 * this.eqLoad(s.sCol, h, mu), now = 1000 * this.load(s.qE, s.sCol, h), tol = 0.2 * e, A = { kind: 'y', chart: 0, lo: 0, hi: 60, start: 60 };
+      A.id = id; s.ask = A; s.exp[id] = e; s.tol[id] = tol; s.now[id] = now; s.cnt = s.cnt || {};
+      s.cnt[id] = Math.abs(e - now) >= tol;   // an ask counts only when "no change" would miss
+      s.asks.push(id); s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
     },
     commit(s, ev, id, v) {
       if (!s.ask || s.ask.id !== id) return; const A = s.ask, e = s.exp[id], tol = s.tol[id], now = s.now[id]; let hit = false;
@@ -360,7 +358,6 @@ const CH_TAP_V2 = {
       if (a.k === 'predict') { if (s.ask && a.id === s.ask.id) this.commit(s, ev, a.id, a.moved === false ? null : a.v); return ev; }
       if (s.auto || s.phase === 'over') return ev;
       if (a.k === 'plug') { if (s.drum && s.phase !== 'ask') { s.drum = false; s.plugGen = s.gen; ev.push({ k: 'plug', g: s.gen }); } return ev; }
-      if (a.k === 'lens') { if (s.lensLv && s.phase === 'dusk') { s.lens = !!a.on; if (s.lens) s.lensUsed = true; ev.push({ k: 'lens', on: s.lens }); } return ev; }
       if (a.k === 'dive') { this.dive(s, ev, a.i | 0); return ev; }
       if (a.k === 'end') { if (s.phase === 'dusk' && s.busy === 0) this.duskEnd(s, ev, false); return ev; }
       return ev;
@@ -373,9 +370,8 @@ const CH_TAP_V2 = {
     lastLE(s) { const h = s.hist[s.hist.length - 1]; return h && h.LE != null ? h.LE : 0; },
     interesting(s) {   // chosen from what happened (lessons §1.5)
       if (s.whatif) return null; const st = CH_TAP_V2.stars, n = s.level;
-      if (n === 3) { if (st.discover(s, 3)) return null; if (s.plugGen == null) return 'nodrum'; return s.plugGen < 5 ? 'early' : 'late'; }
+      if (n === 3) { if (st.transfer(s, 3)) return null; if (s.plugGen == null) return 'nodrum'; return s.plugGen < 10 ? 'early' : 'late'; }
       if (st.discover(s, n)) return n < 2 && s.sCol < 0.3 ? 'weak' : null;
-      if (n === 1 && !s.lensUsed && s.meals >= s.need) return 'nolens';
       return n === 2 ? 'feast' : 'hungry';
     },
     snapshot() { return Snap.enc({ s: this.s, rs: R.state() }); },
@@ -383,7 +379,7 @@ const CH_TAP_V2 = {
     actions() {
       const s = this.s, out = []; if (!s || s.auto || s.phase === 'over') return out;
       if (s.ask) { const A = s.ask; for (let k = 0; k <= 50; k++) out.push({ k: 'predict', id: A.id, v: Math.round((A.lo + (A.hi - A.lo) * k / 50) * 1e4) / 1e4 }); return out; }
-      if (s.phase === 'dusk') { if (this.canDive(s)) s.vis.forEach((c, i) => { if (c.alive) out.push({ k: 'dive', i }); }); if (s.busy === 0) out.push({ k: 'end' }); if (s.lensLv) out.push({ k: 'lens', on: !s.lens }); }
+      if (s.phase === 'dusk') { if (this.canDive(s)) s.vis.forEach((c, i) => { if (c.alive) out.push({ k: 'dive', i }); }); if (s.busy === 0) out.push({ k: 'end' }); }
       if (s.drum) out.push({ k: 'plug' });
       return out;
     },
@@ -393,7 +389,7 @@ const CH_TAP_V2 = {
       alwaysB(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'never', 'hi', 'never'); },       // never dive (ends each dusk); predictions at the top
       greedy(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'still', 'now'); },        // a perfect hunter that never moves a prediction; drum at once
       threshold(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'mid', 'g5'); },        // perfect hunter, every prediction at mid-axis, drum after the gulls
-      lensAlways(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'lens', 'mid', 'g5'); },       // the lens on all the time
+      slow(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'never', 'mid', 'g10'); },          // never dives; mid-axis load; drum a season after the gulls
       line(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'nochange', 'g5'); },        // "no change" answers; the boss line at a fixed 20
       halfNow(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'half', 'g5'); },         // "half of now" answers
       expert(s, acts, rnd) { return CH_TAP_V2.sim.bot(s, acts, rnd, 'best', 'exact', 'g10'); }         // test policy: reads s.exp (never in a sweep); shuts the drum a season after the gulls join
@@ -404,18 +400,15 @@ const CH_TAP_V2 = {
         const A = s.ask, P = acts.filter(a => a.k === 'predict'), near = v => P.reduce((b, a) => (Math.abs(a.v - v) < Math.abs(b.v - v) ? a : b));
         if (pred === 'still') return { k: 'predict', id: A.id, v: A.start, moved: false };
         if (pred === 'exact') return { k: 'predict', id: A.id, v: s.exp[A.id] };
-        if (pred === 'nochange') return near(A.id === 't1' ? 20 : A.id === 'c1' ? 25 : s.qE);
-        if (pred === 'half') return near(A.id === 't1' ? 500 * this.load(s.qE, s.sCol, s.h) : A.id === 'c1' ? s.qE / this.muNow(s) : s.qE / 2);
+        if (pred === 'nochange') return near(20);
+        if (pred === 'half') return near(500 * this.load(s.qE, s.sCol, s.h));
         return near(pred === 'lo' ? A.lo : pred === 'hi' ? A.hi : (A.lo + A.hi) / 2);
       }
       if (s.drum && (drum === 'now' || (drum === 'g5' && s.gen >= 5 && s.gulls) || (drum === 'g10' && s.gen >= 10))) return { k: 'plug' };
       if (s.phase !== 'dusk') return null;
       if (hunt === 'never') return s.busy === 0 && s.t > 0.5 ? { k: 'end' } : null;
-      if (hunt === 'lens') { if (!s.lens && s.lensLv) return { k: 'lens', on: true }; return s.t > 2 && s.busy === 0 ? { k: 'end' } : null; }
-      if (s.lens) return { k: 'lens', on: false };
       if (!this.canDive(s)) return null;
       if (hunt === 'random') { const D = acts.filter(a => a.k === 'dive'); return D.length ? D[Math.floor(rnd() * D.length)] : null; }
-      if (s.lensLv && !s.lensUsed) return { k: 'lens', on: true };
       const arr = TP_T.arrive * this.dt + 0.02; let best = -1;
       s.vis.forEach((c, i) => { if (c.alive && c.aff && c.ex && (s.unt || c.tm > arr) && best < 0) best = i; });
       if (best >= 0) return { k: 'dive', i: best };
@@ -428,23 +421,24 @@ const CH_TAP_V2 = {
   stars: {
     discover: (s, n) => {
       if (s.whatif || s.phase !== 'over') return false;
-      if (n === 0) return s.meals >= s.need && s.balDone;
-      if (n === 1) return s.meals >= s.need && s.lensUsed && s.balDone;
+      if (n === 0 || n === 1) return s.meals >= s.need && s.balDone;
       if (n === 2) return s.meals >= s.need;
-      const LE0 = 1000 * s.mt, end = CH_TAP_V2.sim.lastLE(s);
-      return s.plugGen != null && s.plugGen >= 5 && end <= 0.6 * LE0;
+      return false;
     },
-    predict: (s, n) => !s.whatif && n < 3 && !!s.hits[['a1', 'b1', 'c1'][n]],
-    transfer: (s, n) => !s.whatif && n === 3 && !!s.hits.t1
+    predict: (s, n) => !s.whatif && n === 3 && !!s.hits.t1,   // the chapter's one prediction (D6 decision 9)
+    transfer: (s, n) => {   // the boss: once harder hunting has failed (the load back on its line, generation 10 on), cut the drip
+      if (s.whatif || n !== 3 || s.phase !== 'over') return false;
+      return s.plugGen != null && s.plugGen >= 10 && CH_TAP_V2.sim.lastLE(s) <= 0.6 * 1000 * s.mt;
+    }
   },
-  unitStars(lv) {   // D3: Discover = chicks fed in two of L1–L3 and the boss; Predict = two of three; Transfer = the boss gesture
-    const m = i => lv[i] | 0; let d = 0, p = 0; for (let i = 0; i < 3; i++) { if (m(i) & 1) d++; if (m(i) & 2) p++; }
-    return (d >= 2 && (m(3) & 1) ? 1 : 0) | (p >= 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
+  unitStars(lv) {   // Discover = chicks fed in two of L1–L3; Predict = the boss load; Transfer = the boss drum
+    const m = i => lv[i] | 0; let d = 0; for (let i = 0; i < 3; i++) if (m(i) & 1) d++;
+    return (d >= 2 ? 1 : 0) | (m(3) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
   /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 catch rate %, 14–20 prediction ×100 of its axis span (127 none), 21–27 the a share ×200 at the end */
   resultBits(s, level) {
     if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
-    const id = ['a1', 'b1', 'c1', 't1'][n], span = { a1: 0.25, b1: 0.6, c1: 60, t1: 60 }[id], pv = s.pred[id] == null ? 127 : c(100 * s.pred[id] / span, 126);
+    const pv = n < 3 || s.pred.t1 == null ? 127 : c(100 * s.pred.t1 / 60, 126);   // only the boss asks
     return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(100 * s.sYou, 255) << 6 | pv << 14 | c(200 * s.q, 127) << 21) >>> 0;
   },
 
@@ -498,18 +492,17 @@ const CH_TAP_V2 = {
   teach() {   // the ghost hand on this level's new verb (a known verb is skipped by Ghost itself)
     if (typeof Ghost === 'undefined') return; const n = this.level;
     if (n === 0) Ghost.show({ verb: 'tap', key: ' ', at: () => this.targetXY() || this.nestXY(0), until: () => this.sim.s.caught > 0 || this.sim.s.phase !== 'dusk' });
-    else if (n === 1) Ghost.show({ verb: 'toggle', key: 'l', el: () => document.querySelector('#dock [data-id="tp-lens"]'), until: () => this.sim.s.lensUsed || this.sim.s.phase !== 'dusk' });
   },
   targetXY() { const s = this.sim.s; for (let i = 0; i < s.vis.length; i++) { const c = s.vis[i]; if (c.alive && c.aff && c.ex) return this.nestXY(i); } return null; },
   hud() {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     const st = s.steps[s.si] || {}; let t, num = '';
     if (s.auto) t = C.auto;
-    else if (s.phase === 'ask') t = Txt.f({ a1: C.askA1, b1: C.askB1, c1: C.askC1, t1: C.askT1 }[s.ask.id], { s: Math.round(100 * s.sYou), q: s.q.toFixed(2) });
+    else if (s.phase === 'ask') t = C.askT1;
     else if (s.phase === 'pause') t = C[s.note] || C.lapse;
     else if (s.phase === 'dawn') t = C.dawn;
-    else if (s.phase === 'lapse') t = s.level === 3 ? (s.plugGen != null ? C.plugged : s.gen >= 15 && s.drum ? C.hint : C.season) : s.net ? C.netLapse : s.level === 2 ? C.purge : C.lapse;
-    else if (s.phase === 'dusk') t = s.lens ? C.lens : st.bal ? C.bal : st.feast ? C.feast : st.boss ? (s.gen === 0 ? C.boss : s.plugGen == null && s.gen >= 15 ? C.hint : s.gen === 5 ? C.twist : C.bossDusk) : this.level === 0 && s.caught === 0 && s.dusk === 1 ? this.content.firstWords : s.unt ? C.duskU : C.dusk;
+    else if (s.phase === 'lapse') t = s.level === 3 ? (s.plugGen != null ? C.plugged : s.gen >= 10 && s.drum ? this.hintText() : C.season) : s.net ? this.netText() : s.level === 2 ? C.purge : st.key ? this.keyText() : Txt.f(C.lapse, { s: Math.round(100 * s.sCol) });
+    else if (s.phase === 'dusk') t = st.bal ? C.bal : st.feast ? C.feast : st.boss ? (s.gen === 0 ? C.boss : s.plugGen == null && s.gen >= 10 ? this.hintText() : s.gen === 5 ? C.twist : C.bossDusk) : this.level === 0 && s.caught === 0 && s.dusk === 1 ? this.content.firstWords : s.unt ? C.duskU : C.dusk;
     else t = C.over;
     if (s.phase === 'over' && !s.auto) t = C.over;
     if (s.phase === 'dusk' && !st.boss) num = s.quota > 0 ? Txt.f(L.fedN, { m: s.meals, need: s.quota }) + ' · ' + Txt.f(L.divesN, { d: s.dives }) : Txt.f(L.divesN, { d: s.dives });
@@ -519,19 +512,28 @@ const CH_TAP_V2 = {
     const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
     if (bar) { const lab = s.phase === 'dusk' || s.phase === 'dawn' ? Txt.f(L.dusk, { n: s.dusk }) : Txt.f(L.gen, { n: s.gen }); if (bar.textContent !== lab) bar.textContent = lab; }
   },
+  keyText() {   // the key number, shown plainly while the colony runs to its balance (D6 decision 9)
+    const s = this.sim.s, C = this.content.hud, mu = this.sim.muNow(s), e = this.sim.qhat(s.sCol, s.h, mu), f2 = x => x.toFixed(2);
+    return Txt.f(s.h ? C.keyA : C.keyB, { mu: f2(mu), s: f2(s.sCol), e: e.toFixed(3) });
+  },
+  netText() {   // under the net: the drip alone; once the a share has doubled, its doubling time
+    const s = this.sim.s, C = this.content.hud, H = s.hist, q0 = H[0] ? H[0].q : s.q0;
+    if (s.qE >= 2 * q0) return Txt.f(C.keyC, { q0: q0.toFixed(2), d: Math.round(this.sim.doubling(q0, s.h, this.sim.muNow(s))) });
+    return Txt.f(C.netLapse, { mu: this.sim.muNow(s).toFixed(2) });
+  },
+  hintText() { return Txt.f(this.content.hud.hint, { l: (1000 * this.sim.muNow(this.sim.s)).toFixed(0) }); },
   loadNow() { const s = this.sim.s, h = s.hist[s.hist.length - 1]; return h && h.LE != null ? h.LE : 1000 * this.sim.load(s.qE, s.sCol, s.h); },
   dock() {
     if (typeof Dock === 'undefined') return; const s = this.sim.s, L = this.content.labels;
-    const sig = s.phase + (s.lens ? 'l' : '') + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '') + (s.drum ? 'd' : '') + (s.busy > 0 ? 'b' : '') + (this.v.ff ? 'f' : '');
+    const sig = s.phase + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '') + (s.drum ? 'd' : '') + (s.busy > 0 ? 'b' : '') + (this.v.ff ? 'f' : '') + (s.gen >= 10 ? 'g' : '');
     if (sig === this._dockSig) return; this._dockSig = sig;
     if (s.ask) { Dock.set([{ id: 'tp-lock', label: L.lock, key: 'Enter', primary: true, fn: () => this.lockIn() }]); return; }
     if (s.auto || s.phase === 'over') { Dock.set([]); return; }
     const b = [];
     if (s.phase === 'dusk') {
-      if (s.lensLv) b.push({ id: 'tp-lens', label: L.lensB, key: 'l', pressed: !!s.lens, fn: () => Sim.act(this, { k: 'lens', on: !this.sim.s.lens }) });
       b.push({ id: 'tp-end', label: L.end, key: 'e', fn: () => Sim.act(this, { k: 'end' }) });
     } else if (/lapse|pause|dawn/.test(s.phase)) b.push({ id: 'tp-ff', label: L.fast, key: ' ', disabled: this.v.ff, fn: () => { this.v.ff = true; } });
-    if (s.level === 3 && s.drum && s.plugGen == null && s.gen >= 15) b.push({ id: 'tp-drum', label: L.shutDrum, key: 'd', fn: () => Sim.act(this, { k: 'plug' }) });   // a late tap path for keyboard and switch users
+    if (s.level === 3 && s.drum && s.plugGen == null && s.gen >= 10) b.push({ id: 'tp-drum', label: L.shutDrum, key: 'd', fn: () => Sim.act(this, { k: 'plug' }) });   // a late tap path for keyboard and switch users
     Dock.set(b);
   },
   openAsk() {
@@ -566,7 +568,7 @@ const CH_TAP_V2 = {
     const t10 = H.slice(-10).filter(r => r.m != null); V.k = Math.round(t10.reduce((a, r) => a + r.k, 0) / Math.max(1, t10.length)); V.m = Math.round(t10.reduce((a, r) => a + r.m, 0) / Math.max(1, t10.length));   // realised, colony-wide
     V.e = f3(sim.qhat(s.sCol, s.h, mu)); V.r = f3(sim.qhat(s.sCol, 0, mu)); V.x = Math.round(Math.sqrt(s.sCol / Math.max(1e-9, mu)));
     if (n === 1) { const q = qm; V.k = Math.round(200 * q * (1 - q)); V.a = Math.round(100 * q * q); }
-    if (n === 2) { const q0 = s.wiQ0 != null ? s.wiQ0 : H[0] ? H[0].q : s.q0, q30 = H[Math.min(30, H.length - 1)].q; V.q0 = f3(q0); V.q1 = f3(q30); V.d = Math.round(s.exp.c1 != null ? s.exp.c1 : sim.doubling(q0, s.h, 0.02)) + ' generations'; V.q = f3(last.q); V.e = (30 * mu * (1 - q0)).toFixed(4); }
+    if (n === 2) { const q0 = s.wiQ0 != null ? s.wiQ0 : H[0] ? H[0].q : s.q0, q30 = H[Math.min(30, H.length - 1)].q; V.q0 = f3(q0); V.q1 = f3(q30); V.d = Math.round(sim.doubling(q0, s.h, 0.02)) + ' generations'; V.q = f3(last.q); V.e = (30 * mu * (1 - q0)).toFixed(4); }
     return V;
   },
 
@@ -589,11 +591,9 @@ const CH_TAP_V2 = {
       case 'miss': { const p = this.nestXY(e.i); if (v.dive) v.dive.res = 'miss'; v.ghostR.push({ x: p[0], y: p[1], t: 0 }); if (F) F.ring(p[0], p[1], 14, { dashed: true, ms: 300 }); if (typeof Snd !== 'undefined' && Snd.miss) Snd.miss(); this.whisper(e.empty ? 'empty' : 'miss'); return; }
       case 'busy': this.whisper('busy'); return;
       case 'nodives': this.whisper('nodives'); return;
-      case 'lensblock': this.whisper('lensblock'); return;
-      case 'lens': if (F) F.ring(P.poolX, P.poolY, 30, { ms: 220 }); snd('scale', P.poolX, P.poolY); this._dockSig = ''; return;
       case 'duskend': if (e.gone) this.whisper('gone'); return;
       case 'seasonend': if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw(); return;
-      case 'lapse': return;
+      case 'lapse': if (s.lens) { if (F) F.ring(P.poolX, P.poolY, 30, { ms: 220 }); snd('scale', P.poolX, P.poolY); } return;
       case 'gen': {
         const nd = Math.min(5, Math.max(e.m > 0 ? 1 : 0, Math.round(e.m / 12))); for (let i = 0; i < nd; i++) v.drops.push({ t: -i * 0.03, d: 0.45, x: (this.hash('d' + e.g + i) % 100) / 100 });
         const nl = Math.min(5, Math.round(e.kc / 12)); if (nl > 0) v.leaks.push({ t: 0, d: 0.6, n: nl });
@@ -629,7 +629,6 @@ const CH_TAP_V2 = {
     if (k === 'ArrowRight' || k === 'ArrowLeft') { const d = k === 'ArrowRight' ? 1 : -1; for (let j = 1; j <= n; j++) { const i = (v.cur + d * j + n * 4) % n; if (s.vis[i].alive) { v.cur = i; break; } } return; }
     if (k === 'ArrowDown' || k === 'ArrowUp') { v.cur = (v.cur + (k === 'ArrowDown' ? 8 : n - 8)) % n; return; }
     if (k === ' ') { Sim.act(this, { k: 'dive', i: v.cur }); return; }
-    if (k === 'l' || k === 'L') { Sim.act(this, { k: 'lens', on: !s.lens }); return; }
     if (k === 'e' || k === 'E') Sim.act(this, { k: 'end' });
   },
   teacherStep() { this.v.ff = true; },
@@ -846,8 +845,8 @@ const CH_TAP_V2 = {
     if (s.drum) { const k = (t * 1.5) % 1; c.fillStyle = 'rgba(176,96,64,0.85)'; c.beginPath(); c.arc(-r - 4 - k * 8, r * 0.2 + k * k * 12, 2, 0, TAU); c.fill(); }
     else { c.fillStyle = '#2A1A16'; c.fillRect(-r - 3, -4, 6, 8); }
     c.restore();
-    if (s.drum && s.gen >= 20 && typeof Fx !== 'undefined' && !Fx.calm && (t % 3) < 0.15) Fx.ring(x, y, r * 1.6, { ms: 400 });   // a late glint, after the hint
-    if (typeof Lbl !== 'undefined' && (!s.drum || s.gen >= 15)) Lbl.put('tp-drum', this.content.labels.drum, x, y + r + 12, { size: 12, c });
+    if (s.drum && s.gen >= 15 && typeof Fx !== 'undefined' && !Fx.calm && (t % 3) < 0.15) Fx.ring(x, y, r * 1.6, { ms: 400 });   // a late glint, after the hint
+    if (typeof Lbl !== 'undefined' && (!s.drum || s.gen >= 10)) Lbl.put('tp-drum', this.content.labels.drum, x, y + r + 12, { size: 12, c });
   },
 
   /* ---------- the live strip (notes() is the LiveGraph data provider) ---------- */
@@ -859,9 +858,9 @@ const CH_TAP_V2 = {
     if (this.level === 3) { row(D.load, { l: this.loadNow().toFixed(1) }); return { stats, charts: [this.loadSpec(), this.qSpec(true)] }; }
     return { stats, charts: [this.qSpec(false), this.cpSpec()] };
   },
-  gens() { return this.level === 0 ? 30 : this.level === 1 ? 40 : this.level === 2 ? 60 : 30; },
+  gens() { return this.level === 0 ? 30 : this.level === 1 ? 40 : this.level === 2 ? 60 : 25; },
   qSpec(second) {   // the a share against generation: realised solid; the expected path dashed only after the ask is answered
-    const s = this.sim.s, D = this.content.data, id = ['a1', 'b1', 'c1', 't1'][this.level], shown = s.hits[id] !== undefined || s.whatif;
+    const s = this.sim.s, D = this.content.data, shown = this.level < 3 || s.hits.t1 !== undefined || s.whatif;   // no ask in L1–L3, so the expected path shows
     const hi = this.level === 0 ? 0.25 : this.level === 1 ? 0.6 : this.level === 2 ? 0.8 : 0.4;
     const sp = { type: 'trace', title: D.titles.q, x: { lo: 0, hi: Math.max(this.gens(), s.gen), label: D.ax.gen }, y: { lo: 0, hi, label: D.ax.q }, frame: 'designed',
       series: [{ d: s.hist.map(r => [r.g, r.q]), ink: 'a', label: D.lines.real }], ghost: shown ? [{ d: s.hist.map(r => [r.g, r.qE]), label: D.lines.exp }] : [] };
@@ -876,7 +875,7 @@ const CH_TAP_V2 = {
   loadSpec() {   // the boss: chicks lost per 1,000 each generation; the drip line and the keeper's goal only after the ask
     const s = this.sim.s, D = this.content.data, H = s.hist.slice(1), shown = s.hits.t1 !== undefined || s.whatif;
     const ghost = shown ? [{ d: H.map(r => [r.g, r.LE]), label: D.lines.exp }, { d: H.map(r => [r.g, 1000 * r.mu / (1 + r.mu)]), label: D.lines.line }] : [];
-    return { type: 'trace', title: D.titles.load, x: { lo: 0, hi: 30, label: D.ax.gen }, y: { lo: 0, hi: 60, label: D.ax.l }, frame: 'designed',
+    return { type: 'trace', title: D.titles.load, x: { lo: 0, hi: 25, label: D.ax.gen }, y: { lo: 0, hi: 60, label: D.ax.l }, frame: 'designed',
       series: [{ d: H.map(r => [r.g, r.L]), ink: 'sel', label: D.lines.real }], ghost, target: shown ? { lo: 0, hi: 600 * s.mt } : null };
   },
   cardSpec() { return this.level === 3 ? this.loadSpec() : this.qSpec(false); }
