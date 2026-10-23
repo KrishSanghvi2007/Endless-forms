@@ -192,7 +192,7 @@ Wave 1 (sweeps G1–G7, `docs/changes/`) fixed about 300 items in source. Check 
 - [ ] D1 §3.2 Bitter Wings L4: "a large-effect allele", not "supergene" (keep "supergene" for Tangled Pairs).
 - [ ] D2 §4 row 32 Lock and Key: player is a garter snake, never "sets newt toxicity".
 
-**Needs the v2 redesign (tracked by D5's build list):** Why Sex? has no real twofold cost; Bitter Wings' fixed ratio; Jaws' discrete, fully heritable trait; Hawks' scripted population; apostatic selection in the Wood; Switches' abd-A grid (`ch25.js` `ident()`); Alarm's r = ½ sisters and negative whistle cost; Brood's scripted population; the Raffle's missing remating; Two Sizes' "tiny" wins; the Forager conveyor; the Nest's free eggs; Live Fast's imposed ageing; the Clinic's missing plasmids; After the Fire's rescoring; Equilibrium L13's free point and its three models under one "non-random mating" label. Equilibrium L17's sickle-cell counts (`lv_d.js:63`) have no traceable source: never reuse. About 22 chapters still lack a MODEL caveat (list in `docs/changes/science_sweep_G6.md`).
+**Needs the v2 redesign (tracked by D5's build list).** Done in v2 by 23 Oct 2026: Why Sex?, Bitter Wings, Jaws, Hawks, the Wood, Switches, Alarm, the Raffle, the Forager, the Clinic and Equilibrium; still legacy: Brood, Two Sizes, the Nest, Live Fast, After the Fire. Original list: Why Sex? has no real twofold cost; Bitter Wings' fixed ratio; Jaws' discrete, fully heritable trait; Hawks' scripted population; apostatic selection in the Wood; Switches' abd-A grid (`ch25.js` `ident()`); Alarm's r = ½ sisters and negative whistle cost; Brood's scripted population; the Raffle's missing remating; Two Sizes' "tiny" wins; the Forager conveyor; the Nest's free eggs; Live Fast's imposed ageing; the Clinic's missing plasmids; After the Fire's rescoring; Equilibrium L13's free point and its three models under one "non-random mating" label. Equilibrium L17's sickle-cell counts (`lv_d.js:63`) have no traceable source: never reuse. About 22 chapters still lack a MODEL caveat (list in `docs/changes/science_sweep_G6.md`).
 
 **Science rules for all new content (D0 §3, binding):**
 - Variants are selected and populations evolve; individuals never "evolve", "choose" or "need".
@@ -200,7 +200,7 @@ Wave 1 (sweeps G1–G7, `docs/changes/`) fixed about 300 items in source. Check 
 - Expected is a dashed ghost, realised a solid line.
 - Contested ideas carry a Contested pill and no star: "hit hard early", the virulence trade-off, Ewald, the intermediate disturbance hypothesis, the Yellowstone cascade, the domestication syndrome, Kondrashov, smaller ejaculates at high competition, the energy-budget rule and others in D0 §3.
 - HW is a null model, not "nothing happening"; disassortative mating moves p; the neutral fixation rule is for neutral alleles only (a new beneficial copy fixes with ≈2s); bottlenecks mainly lose allelic richness.
-- Heterozygote advantage lives only in Malaria Coast; F is named once, in the Pedigree; D2 §15's notation table binds every unit.
+- Heterozygote advantage lives only in Equilibrium's bait-layer level (warfarin-resistant rats; D6 decision 5); F is named once, in the Pedigree; D2 §15's notation table binds every unit.
 - Every claim carries a `refs` id and is signed off by Coordinator A (§15) before its text freezes.
 
 ## 7. Art and UX rules (condensed from D4)
@@ -322,16 +322,7 @@ Gates, not dates (CRITIQUE §9; D2 §16).
 | 5 Publish | Yearly pinned releases, teacher site, VPAT | Adoption |
 
 ### NEXT SESSION: start here
-**Superseded: use `START_HERE.md` §5.** The list below is the pre-Wave-2 plan, kept for history.
-1. [ ] Read this file, then D5 §3–5. Run `git status`; commit any uncommitted docs.
-2. [ ] Rebuild the shipped Endless Forms and Equilibrium files (§8.2). Confirm "fiddler" is gone from `Endless_Forms_v1.html` and the Black Country intro has no "undefined". Run the monkey on all 48 ids; compare with §13.
-3. [ ] Apply the three small text edits and the G8 Tangled Bank sweep (§6). Log them in `docs/changes/science_sweep_G8.md`; rebuild Tangled Bank.
-4. [ ] Record golden seeded trajectories of `lichen, soot, bitter, jaws, hawks, raffle, alarm, forager, clinic, switch`; add `?v1=1` (`v2/zz_v1switch.js`).
-5. [ ] Start D5's additive shell edits (§8.1, Phase 0) and fix or waive Mendel's monkey timeout.
-6. [ ] Ask the designer open questions 1–3 (§14). Session 3 (the Wood pilot, `v2/lichen.js` + `v2/soot.js`) cannot start without them.
-7. [ ] Update §13 and tick boxes here and in §6.
-
-Session 2 builds the plug-in layer and test harness. Session 3 builds the Wood pilot and puts it in front of five students and the designer. **If the Wood is not fun, stop and fix the template before building anything else.**
+**Use `START_HERE.md` §5.** (The pre-Wave-2 checklist that stood here is in git history.)
 
 ## 11. Repo map
 
@@ -379,14 +370,8 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 *Append one dated entry per session: what changed, what was decided, by whom.*
 
 - **2026-10-11** Initial commit; games uploaded as a zip (`archive/`).
-- **2026-10-14** Repo reorganised into `games/`, `docs/`, `archive/`; three games imported with their source.
-- **2026-10-14** Codebase prepared for parallel work: `v2/` plug-in folder; `V2` and `PLAN_ADD` registries (`ui.js`, applied in `boot.js`); portable Chromium launch and the `GAME_HTML` override in every test.
-- **2026-10-14** Expert reviews R1–R8 and fact-checks R7 written.
-- **2026-10-14** Wave 1 science sweeps G1–G7 applied to Endless Forms and Equilibrium **source** (~300 corrections). Shipped HTML not rebuilt; Tangled Bank not swept.
-- **2026-10-14** Design round D0–D4 (two rounds), integrated into D5, which is binding on Wave 2 agents.
-- **2026-10-14** `docs/CRITIQUE.md` produced: the master critique and plan.
-- **2026-10-14** This bible, `README.md` and `CLAUDE.md` written.
-- **2026-10-14** Monkey baseline on a clean scratch build of today's source (seed 1, 390×780): 43 of 48 chapters reach the end card with no JS error or NaN text. `mendel` and `fancier` time out. `cross` (L2 Sturtevant's map), `landscape` (L1) and `double` (L2) report "stuck": the HUD is unchanged for 600 steps, probably puzzles a random tapper cannot finish (unverified). A random tapper earned three stars in `gametes`, more evidence of RC5.
+- **2026-10-14** Repo reorganised (`games/`, `docs/`, `archive/`) and prepared for parallel work (`v2/` folder, `V2` and `PLAN_ADD` registries, `GAME_HTML` in every test). Reviews R1–R8 and fact-checks R7; Wave 1 science sweeps G1–G7 applied to Endless Forms and Equilibrium source (~300 corrections; Tangled Bank not swept); design docs D0–D5 (D5 binding); `docs/CRITIQUE.md`; this bible, `README.md` and `CLAUDE.md`.
+- **2026-10-14** Legacy monkey baseline (seed 1, 390×780): 43 of 48 reach the end card; `mendel` and `fancier` time out; `cross`, `landscape` and `double` get stuck (puzzles a random tapper cannot finish).
 - **2026-10-14 — Designer decisions (D6, binding):** (1) the game is just called *Endless Forms*, with no "field station" branding; Hardy–Weinberg is folded in as **one chapter** ("Equilibrium", id `census`, levels of rising conceptual complexity, revised for undergraduates), and the `mixer` id is withdrawn; (2) cuts accepted; (3) platform plan accepted; (4) playtesting by the designer and colleagues, with no student recruitment for now; (5) **no controversial topics**: Malaria Coast, Out of Africa, Human Variation and the Manhattan Hunt are withdrawn, and heterozygote advantage is taught with warfarin-resistant rats; (6) MIT licence for now.
 - **2026-10-14** Shipped `Endless_Forms_v1.html` and `Equilibrium_HW_v2.html` rebuilt from the swept source, so players get the Wave 1 corrections.
 
@@ -400,6 +385,8 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 - **2026-10-21** Built as v2 units, each in its own world: bitter, forager, jaws, raffle, alarm, clinic, switch, scribe (self-reviewed and tested), plus the new games royal, tap, swamp and dig (built; external reviews partial; see `START_HERE.md` §4). All 9 designer favourites are now rebuilt. Full-build `SW_C` clash fixed; `tests/dup_globals.sh` added.
 
 - **2026-10-22** Designer feedback, recorded as D6 decisions 9 (simple beats clever: remove prediction interludes that add little, one verb, 3–4 levels, key number shown plainly) and 10 (real biology, not symbols). Simplification pass done for 8 units; raffle, alarm and switch were part-done; the rest are pending. The six Wave A chapters are planned (workflow script 6) but not built. See `START_HERE.md`.
+
+- **2026-10-23 (session 4)** Simplification (D6 decisions 9–10) finished for raffle (sperm in the spermathecae, not a drum), alarm, switch, clinic, scribe, royal (its 19 pending review findings applied), tap, swamp and dig, with self-reviews for tap, swamp and dig. Six new chapters built, each in its own world, with 3–4 levels, one verb and at most one prediction: Mendel's Garden (`mendel`, replaces the legacy chapter), Tree Thinking (`tree`), The Commons (`commons`), Why Sex? (`sex`), The River (`river`) and The Archipelago (`arch`). Integration check on a full build: `dup_globals` clean, `lint_text` 0 errors, no console errors on load, all 22 unit oracles pass, and the monkey (seed 1, 390×780) takes 23 of 23 v2 chapters to the end card. No integration fixes were needed. Shipped `Endless_Forms_v2.html`; wrote `docs/PLAYTEST_GUIDE.md` (D6 decision 4). Next: the designer and colleagues playtest; then the remaining legacy chapters per D2 §4 triage, each in its own world, simple and showing real biology. No new designer decisions this session.
 
 ## 14. Open questions for the designer
 

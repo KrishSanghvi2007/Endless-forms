@@ -1,6 +1,6 @@
 # START HERE: handoff for the next session
 
-*Updated 22 October 2026 at the end of session 3; session 2 ended 21 October (first written 15 October at the end of session 1). Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
+*Updated 23 October 2026 at the end of session 4 (session 3 ended 22 October, session 2 on 21 October; first written 15 October at the end of session 1). Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
 
 ---
 
@@ -20,9 +20,10 @@
 3. **Check the build works:**
    ```
    cd games/endless-forms/source && python3 build.py /tmp/ef.html
-   GAME_HTML=/tmp/ef.html python3 tests/monkey.py lichen,soot,hawks,census,casino 1
+   sh tests/dup_globals.sh && node tests/lint_text.js /tmp/ef.html --quiet
+   GAME_HTML=/tmp/ef.html python3 tests/monkey.py v2 1
    ```
-   Each should report `"status": "end"`. In the cloud sandbox, Playwright needs `executable_path='/opt/pw-browsers/chromium'`; the test scripts detect this themselves.
+   Each run should report `"status": "end"` (23 of 23 at the end of session 4). In the cloud sandbox, Playwright needs `executable_path='/opt/pw-browsers/chromium'`; the test scripts detect this themselves.
 
 ---
 
@@ -39,7 +40,7 @@ The game merges three older prototypes: Endless Forms (48 chapters), Equilibrium
 ## 2. The designer's decisions (D6, binding)
 
 1. The name is just *Endless Forms*; no "field station" branding.
-2. Hardy–Weinberg is **one chapter**, "Equilibrium" (id `census`), with 8 levels of rising conceptual complexity. It is built: `v2/mixer.js`.
+2. Hardy–Weinberg is **one chapter**, "Equilibrium" (id `census`), now 5 levels of rising conceptual complexity after the decision-9 simplification. It is built: `v2/mixer.js`.
 3. Cuts accepted: Food Web, Islands and After the Fire move to the appendix, and every level-2 quiz goes.
 4. Platform: plain JavaScript and Canvas2D now; TypeScript/PixiJS decided later by a spike. No Unity or Godot.
 5. Playtesting is done by the designer and colleagues. There is no student recruitment and no ethics process for now.
@@ -104,42 +105,90 @@ Still open (ask the designer when they have played the build):
 
 **New chapters planned but NOT started:** Mendel's Garden, Why Sex?, Tree Thinking, The Commons, The River, The Archipelago. Their worlds, science guard-rails and full prompts are in `tools/workflows/6_simplify_and_build_wave_a.js` (the `NEW` array). The machine has 4 CPUs, so a workflow runs only about 2–3 agents at once; budget about 60–90 minutes per unit.
 
+### Session 4 (23 Oct): simplification finished, six new chapters, integration
+**Simplification (D6 decisions 9 and 10) finished** for every remaining unit. Each log has a "Simplification" section.
+- **raffle:** the drum is gone. Sperm visibly enter the female's spermathecae, and eggs are fertilised as they pass. Now 3 levels.
+- **alarm:** 3 levels. The sisters' face blazes were cut as a designed symbol.
+- **switch, clinic, scribe:** 4 levels each, with one prediction.
+- **royal:** the 19 findings in `royal_review_pending.md` were verified and applied. 4 levels, one prediction (the reverse cross).
+- **tap, swamp, dig:** self-reviewed as playtester and biologist (no external review), then simplified. tap fixed a real bug: an ask that never held the sim.
+
+**Six new chapters built**, each in its own world, with an intro card, 3–4 levels, one verb and at most one prediction:
+
+| Unit (id) | World | Levels |
+|---|---|---|
+| Mendel's Garden (`mendel`, replaces the legacy chapter) | Mendel's abbey garden in Brno, pea flowers, a ledger | 3 |
+| Tree Thinking (`tree`) | A Victorian museum at night, a brass tree of life | 4 |
+| The Commons (`commons`) | A microscope lab, *Pseudomonas* in droplets, gold siderophore | 4 |
+| Why Sex? (`sex`) | A New Zealand lake, mud snails and a trematode | 3 |
+| The River (`river`) | A misty rainforest river, tree frogs, a log bridge | 3 |
+| The Archipelago (`arch`) | The Galápagos from the sky, Darwin's finches | 4 |
+
+**Integration check** (full build, every v2 file):
+- `dup_globals` is clean, `lint_text` reports 0 errors (4 warnings), and a Playwright load at 390×780 and 1280×720 shows no console errors.
+- All 22 unit oracles pass.
+- The monkey (seed 1, 390×780) takes **23 of 23** v2 chapters to the end card.
+- No integration fixes were needed, and nothing moved to `v2_wip/`.
+
+**Shipped:** `games/endless-forms/Endless_Forms_v2.html` (about 3.8 MB), rebuilt from all v2 files.
+
+**Playtest guide:** `docs/PLAYTEST_GUIDE.md` (D6 decision 4). It covers how to open the game, then gives a 5-minute script and a feedback form for each of the 23 chapters.
+
 ## 4. What is NOT done
 
-1. **Reviews for the four new games.** Apply `royal_review_pending.md`. Then run the playtest and science review and a fix round for `tap`, `swamp` and `dig`; `tools/workflows/5_units_tap_royal_swamp_dig.js` has the review and fix prompts. All four still need the D5 §3 release gate on the full build.
-2. **Science sign-off items flagged by builders** (see each log's "needs sign-off"):
+1. **The designer-and-colleagues playtest.** Send the shipped file and `docs/PLAYTEST_GUIDE.md`, then fold the feedback into the units. This is the next gate.
+2. **External reviews.** tap, swamp and dig, and the six new chapters, have only self-reviews (playtester, art director, adversarial biologist). Run an independent science review and a D5 §3 release gate on the full build. Reuse the review prompts in `tools/workflows/5_units_tap_royal_swamp_dig.js`.
+3. **Science sign-off items flagged by builders** (see each log's "needs sign-off"):
    - Alarm: the numbers in Sherman 1985 and Hanken & Sherman's 78%.
    - Scribe: the Sanjuán 2004 DFE split and the Jónsson 2017 figures.
    - Jaws: Kusche 2012, Boileau 2015 and the Lee 2015 diet wording.
    - Switches: the Averof & Patel 1997 species.
    - Casino: Kolbe 2012 and Censky 1998.
-3. **`docs/PLAYTEST_GUIDE.md`** for the designer and colleagues (D6 decision 4). Each unit log already ends with a playtest script, so collate them.
+   - Mendel: the 705 : 224 and 315 : 108 : 101 : 32 counts and the molecular notes.
+   - Why Sex?: page numbers for Jokela & Lively 1995 and King et al. 2009, and a primary source for the *Microphallus* life cycle.
+   - Tree, Commons, Archipelago: each log has a "Needs sign-off" list.
 4. **Engine requests** collected in unit logs:
-   - Predict "set" kind
+   - a Predict "set" or choice kind (Archipelago adds a second vote)
    - the phone strip left open when a sim closes its own prediction
-   - the card's "still to earn" naming a star already earned
-   - a Petri palette option
-   - a forest place in `00_tokens.js`
+   - the card's "still to earn" line naming a star already earned
+   - a Petri palette option and a forest place in `00_tokens.js`
    - the boss card's y-axis title overlapping a tick
-5. **File size.** Most units are 100–130 KB raw against a ~90 KB guide, and the full build is about 3.5 MB. Consider compressing art or fonts before hosting.
-6. **Next content (Wave A, D2 §4 triage):** rebuild the remaining legacy chapters in tiers, each in its own world with an intro card. Next in line are the spine units: Tree Thinking, Mendel, Crossing Over, Why Sex?, The Commons, The Coalescent, The River, The Archipelago, then the rest. The Tangled Bank G8 science sweep is also still due.
-7. **Ask the designer** after they play: do the favourites keep what they loved? Are the ghost jays honest? Should the guessable prediction questions be replaced (Bitter Wings island C, Switches L6)? Where should it be hosted?
+   - `Predict.reveal`'s "you" and "expected" labels overprinting at 100% (Royal L1)
+5. **File size.** Units run about 100–130 KB raw against a ~90 KB guide, and the full build is about 3.8 MB. Compress art or fonts before hosting.
+6. **The remaining legacy chapters** (D2 §4 triage). Each must be rebuilt in its own world, simple (decision 9) and showing real biology (decision 10). Still legacy in the menu:
+   - Act 2: Crossing Over, The Fancier (→ The Breeder)
+   - Act 4: The Castaways. Its L1 is already in Drift Casino; L2 Isle Royale becomes Genetic Rescue.
+   - Act 5: The Sieve, Lock and Key, The Landscape
+   - Act 6: The Crowd, Live Fast, Shape-shifters
+   - Act 7: Two Sizes, The Lek, Fisher's Brood, The Selfish Spindle, The Meadow
+   - Act 8: The Nest, Blood Debts, Many Become One, The Guest
+   - Act 9: The Coalescent (★ spine), Copy and Paste, The Sweep, The Clock
+   - Act 10: Two Fruits, The Ring, Doubling
+   - Act 11: The Pathogen
+   - The appendix chapters (Food Web, Islands, After the Fire) stay demoted.
+
+   The Tangled Bank G8 science sweep is also still due.
+7. **GAME_BIBLE length.** It is about 7,200 words against the ~6,000 target. §4 (the legacy inventory) is the place to trim.
+8. **Ask the designer** after they play:
+   - Do the favourites keep what they loved?
+   - Are the ghost jays honest?
+   - Is any chapter still too complicated, or still too symbolic?
+   - Where should the game be hosted?
 
 ## 5. How to continue (recommended)
 
-**Session 4 plan (in order):**
-1. Finish simplifying raffle, alarm and switch (decision 10 for the raffle). Then simplify clinic, scribe, royal (apply the pending review), tap, swamp and dig, with external review for the last three.
-2. Build the six new chapters from the `NEW` array in workflow script 6, applying decisions 9 and 10 from the start.
-3. Write `docs/PLAYTEST_GUIDE.md`, ship `Endless_Forms_v2.html`, and send it to the designer.
+**Session 5 plan (in order):**
+1. **Collect the playtest feedback** from `docs/PLAYTEST_GUIDE.md` forms and apply it unit by unit. Fix the lowest fun or clarity scores first.
+2. **Run external reviews** for tap, swamp, dig and the six new chapters, plus a fix round. Clear the science sign-off list (§4 item 3).
+3. **Build the next legacy chapters.** Start with the spine unit The Coalescent, then Crossing Over, The Breeder (Fancier), Genetic Rescue (Castaways L2) and The Sweep, then the Act 7 and Act 8 chapters. Give each builder:
+   - a WORLD line (a distinct organism, place, palette and accent)
+   - `content.intro`
+   - 3–4 levels, one verb, at most one prediction, and the key equation shown plainly
+   - real organisms, not tokens
+   - SCIENCE guard-rails from D3
 
-You can rerun `tools/workflows/6_simplify_and_build_wave_a.js`. Edit its `SIMPLIFY` list to drop the groups already done (lichen/soot, hawks/census/casino, bitter/jaws/forager), and keep the decision-10 notes on raffle.
-
-**Older guidance (still valid):**
-
-1. **Bring the branch in** (§0). Build, then run `sh tests/dup_globals.sh` and the monkey on the 17 v2 ids.
-2. **Finish item 1 of §4.** It is cheapest per unit; use parallel agents, one per unit, each with a playtest/art reviewer, a science reviewer and a fix round.
-3. **Write `PLAYTEST_GUIDE.md`.** Ship `Endless_Forms_v2.html` and send it to the designer.
-4. **Start Wave A** with a creative brief per unit: a distinct world, intro card text, D1 template, and the lessons file. The session-2 prompts (in this handoff's git history, and in `tools/workflows/`) are good templates: give each builder a WORLD line and SCIENCE guard-rails.
+   The `NEW` array in `tools/workflows/6_simplify_and_build_wave_a.js` is the template for these prompts.
+4. **After every unit,** build into your scratchpad with `V2_ONLY`. At the end, do a full build, then run `sh tests/dup_globals.sh`, `lint_text`, every oracle and `monkey.py v2 1`. Ship `Endless_Forms_v2.html` only after that.
 
 ## 6. Key facts and gotchas
 
@@ -173,4 +222,6 @@ You can rerun `tools/workflows/6_simplify_and_build_wave_a.js`. Edit its `SIMPLI
   3. `3_redesign_wave2.js` (the full original Wave 2)
   4. `4_continue_wave2.js` (session-1 continuation; now superseded: those units are built)
   5. `5_units_tap_royal_swamp_dig.js` (session 2: build, review and fix the four new games; reuse its review and fix stages)
+  6. `6_simplify_and_build_wave_a.js` (session 3: the simplification pass and the six Wave A chapter prompts, in its `NEW` array)
+  7. `7_session4.js` (session 4: finish the simplifications, build the six chapters, integrate, write the playtest guide)
 - **Every session:** add a dated entry to `GAME_BIBLE.md` §13, update this file's §3–4 tables, and commit and push often. The stop hook demands a clean tree.
