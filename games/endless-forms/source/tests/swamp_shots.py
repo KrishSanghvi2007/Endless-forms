@@ -80,16 +80,19 @@ def main():
                         if ph == 'hunt' and st['n'] == 10 and st.get('open', 0) >= 1 and once('n10_%d' % st['r']): shot('night10_r%d' % (st['r'] + 1))
                         if ph == 'dawn' and st['n'] == 1 and st['t'] > 1.0 and once('dawn%d' % st['r']): shot('dawn_r%d' % (st['r'] + 1))
                         if ph == 'dawn' and st['n'] == 5 and once('lapse%d' % st['r']): shot('lapse_r%d' % (st['r'] + 1))
+                        if ph == 'gap' and once('gap%d' % st['r']): shot('gap_r%d' % (st['r'] + 1))
                     if lv == 1:
                         if ph == 'build' and st['t'] > 2 and once('build'): shot('build')
                         if ph == 'measured' and once('meas%d' % st['ws']): pg.evaluate("()=>window.__advance(900)"); shot('measured%d' % st['ws'])
                         if ph == 'relax' and once('relax%d' % st['ws']): pg.evaluate("()=>window.__advance(500)"); shot('relax%d' % st['ws'])
+                        if ph == 'hold' and once('hold%d' % st['ws']): pg.evaluate("()=>window.__advance(300)"); shot('hold%d' % st['ws'])
                     if lv == 2:
                         if ph == 'drift' and st['gen'] >= 50 and once('drift'): shot('drift')
                         if ph == 'lay' and st['routes'] == 2 and once('lay'): shot('lay')
                         if ph == 'flow' and st['gen'] >= 180 and once('flow'): shot('flow')
                     if lv == 3:
                         if ph == 'plan' and once('plan0'): shot('plan0')
+                        if ph == 'plan' and st['routes'] == 3 and once('plan3'): shot('plan3')
                         if ph == 'run' and st['gen'] >= 50 and once('run'): shot('run')
                     pg.evaluate("()=>window.__advance(40)")
                 warn = pg.evaluate("()=>({lbl: (TB.Lbl && TB.Lbl.warnings || []).slice(0, 5), wh: (TB.Whisper && TB.Whisper.warnings || []).slice(0, 5), hud: (TB.HUD && TB.HUD.warnings || []).slice(0, 5), lg: (TB.LiveGraph && TB.LiveGraph.errors || []).slice(0, 5)})")

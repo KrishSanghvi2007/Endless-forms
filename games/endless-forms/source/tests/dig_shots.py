@@ -1,6 +1,6 @@
 """The Dig (v2) screenshots: every level and its main phases at two viewports, plus Calm and colour-vision views.
 
-  GAME_HTML=/abs/build.html python3 tests/dig_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3,4] [--query '?cvd=deut'] [--calm]
+  GAME_HTML=/abs/build.html python3 tests/dig_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3] [--query '?cvd=deut'] [--calm]
 
 Plays each level with the expert policy through Sim.act (every prediction a real drag on the strip chart, then Lock in) under
 virtual time and saves PNGs named L<n>_<phase>_<w>x<h>.png. Prints page errors and Lbl/Whisper/HUD warnings. Exit 1 on an error."""
@@ -12,7 +12,7 @@ CHROME = {"executable_path": "/opt/pw-browsers/chromium"} if os.path.exists("/op
 
 STEP = """(o)=>{ const ch = TB.REG.dig, s = ch.sim.s, card = document.querySelector('#cards.on .card');
   if (card) return {card: card.className};
-  if (s.ask) return {ask: s.ask.id, kind: s.ask.kind, phase: s.phase, chart: s.ask.id === 'b1' ? 1 : 0, exp: s.exp[s.ask.id]};
+  if (s.ask) return {ask: s.ask.id, kind: s.ask.kind, phase: s.phase, chart: 0, exp: s.exp[s.ask.id]};
   if (o.act && (ch._tick = (ch._tick || 0) + 1) % o.every === 0) { const a = ch.sim.bots.expert(s, ch.sim.actions(), Math.random); if (a && a.k !== 'predict') TB.Sim.act(ch, a); }
   return {phase: s.phase, e: s.e, n: s.n, T: s.T, ns: s.ns, used: s.used, season: s.season, br: s.br, ci: s.ci, buried: s.an ? s.an.filter(a => a.b).length : 0}; }"""
 TARGET = """(o)=>{ const cv = TB.Strip.canvas(o.chart); if (!cv) return null; const r = cv.getBoundingClientRect(), ch = TB.REG.dig, spec = ch.notes().charts[o.chart];
@@ -24,7 +24,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--vp', default='390x780,1280x720')
-    ap.add_argument('--levels', default='0,1,2,3,4')
+    ap.add_argument('--levels', default='0,1,2,3')
     ap.add_argument('--calm', action='store_true')
     ap.add_argument('--query', default='')
     ap.add_argument('--seed', type=int, default=7)
@@ -86,17 +86,12 @@ def main():
                     if lv == 1:
                         if ph == 'run' and st.get('T', 0) > 300 and once('run'): shot('run')
                         if ph == 'run' and st.get('T', 0) > 1500 and once('run2'): shot('run2')
-                        if ph == 'ash' and (st.get('ns') or 0) >= 24 and once('ash'): shot('ash')
                         if ph == 'lab' and once('lab'): pg.evaluate("()=>window.__advance(800)"); shot('lab')
                     if lv == 2:
-                        if ph == 'free' and once('free'): shot('free')
-                        if ph == 'assay' and (st.get('used') or 0) >= 30 and once('assay'): shot('assay')
-                        if ph == 'bracket' and once('bracket'): pg.evaluate("()=>window.__advance(800)"); shot('bracket')
-                    if lv == 3:
                         if ph == 'brush' and (st.get('br') or 0) > 0.45 and once('brush%d' % st.get('season', 0)) and st.get('season', 0) < 2: shot('brush%d' % st.get('season', 0))
                         if ph == 'gap' and once('find%d' % st.get('season', 0)) and st.get('season', 0) in (0, 2): pg.evaluate("()=>window.__advance(500)"); shot('find%d' % st.get('season', 0))
                         if ph == 'pick' and st.get('season') == 3 and once('map'): shot('map')
-                    if lv == 4:
+                    if lv == 3:
                         if ph == 'place' and st.get('ci') == 4 and once('place'): shot('place')
                         if ph == 'bush' and once('bush'): pg.evaluate("()=>window.__advance(1800)"); shot('bush')
                     pg.evaluate("()=>window.__advance(40)")

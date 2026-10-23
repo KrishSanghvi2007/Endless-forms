@@ -1,6 +1,7 @@
 /* tests/oracle_swamp.js: science and engineering oracle for Gene Swamping (v2). Run: node tests/oracle.js BUILD.html swamp
    D5 §4 item 16 acceptance: swamping at m ≈ s (± 20%); cline width ∝ σ/√s within 15%; F_ST ≈ 1/(1 + 4Nm). Plus: the stochastic
-   isle tracks its deterministic expectation; F_ST realised against expected; the boss has exactly one winning two-ferry plan;
+   isle tracks its deterministic expectation; F_ST realised against expected; the boss's only winning three-ferry plans link like with like;
+   the chapter's one prediction (L1: the ferry size that swamps, m = s);
    determinism, replay and snapshots; the expert earning every star offered; no bot's unit-wide union reaching three stars;
    What if? runs finishing with no stars; the untimed path. SW_FAST=1 runs fewer seeds. */
 'use strict';
@@ -30,16 +31,20 @@ module.exports = function (G, t) {
 
   /* 3. the round ladder: round three's ferry always reaches s (so swamping is witnessed), and s is measured from the hunt */
   { t.ok([0.1, 0.2, 0.25, 0.3, 0.38, 0.5].every(s => sim.mBig(s) >= s && sim.mBig(s) >= 0.3), 'round three m ≥ max(0.3, s) for every s');
-    const r = G.run(0, { seed: 4, bot: 'expert' }); t.ok(r.s.sY >= 0.1 && r.s.sY <= 0.5 && r.s.rd.length === 3, `expert run: s = ${r.s.sY}, m = ${r.s.rd.map(x => x.m).join(', ')}`); }
+    const r = G.run(0, { seed: 4, bot: 'expert' }); t.ok(r.s.sY >= 0.1 && r.s.sY <= 0.5 && r.s.rd.length === 3, `expert run: s = ${r.s.sY}, m = ${r.s.rd.map(x => x.m).join(', ')}`);
+    t.ok(r.s.asks.length === 1 && r.s.asks[0] === 'th' && r.s.exp.th === r.s.sY && r.s.rd[2].m >= r.s.sY, `one prediction in L1 (asks ${r.s.asks.join(',')}): its answer is the measured s = ${r.s.exp.th}, and round three's m = ${r.s.rd[2].m} reaches it`);
+    let other = 0; for (let lv = 1; lv < 4; lv++) { const q = G.run(lv, { seed: 4, bot: 'expert' }); other += q.s.asks.length; } t.ok(other === 0, 'no prediction outside L1 (D6 decision 9)');
+    let sw = 0, n3 = 0; for (let seed = 1; seed <= 10; seed++) { const q = G.run(0, { seed, bot: 'threshold' }); if (q.s.rd[2]) { n3++; if (q.s.rd[2].d[9] < 0.15) sw++; } } t.ok(sw === n3 && n3 > 0, `round three (m ≥ s) leaves the lava pale on night 10 in ${sw}/${n3} runs`); }
 
-  /* 4. the cline: width scales as σ/√s; one-way flow from the dunes drags the centre towards the lava */
+  /* 4. the cline: width scales as σ/√s; it centres on the lava edge */
   { const roosts = [20, 27, 33, 40], p = new Array(60).fill(0.5);
-    const w1 = sim.measure(sim.equil(p, roosts, 1, 3, 0)), w2 = sim.measure(sim.equil(p, roosts, 2, 3, 0)), w3 = sim.measure(sim.equil(p, roosts, 2, 1.5, 0)), wc = sim.measure(sim.equil(p, roosts, 2, 1.5, 1));
+    const w1 = sim.measure(sim.equil(p, roosts, 1, 3)), w2 = sim.measure(sim.equil(p, roosts, 2, 3)), w3 = sim.measure(sim.equil(p, roosts, 2, 1.5));
     const r1 = w1.w / w2.w, r2 = w2.w / w3.w;
     t.ok(Math.abs(r1 - Math.SQRT2) / Math.SQRT2 <= 0.15, `doubling selection narrows the cline by ${r1.toFixed(3)} (√2 = 1.414, within 15%)`);
     t.ok(Math.abs(r2 - 2) / 2 <= 0.15, `halving dispersal narrows it by ${r2.toFixed(3)} (2, within 15%)`);
-    t.ok(Math.abs(w1.c - 30) < 0.5 && wc.c < w3.c - 0.5, `centre ${w1.c.toFixed(2)} km at the lava edge; with the current ${wc.c.toFixed(2)} km (moved towards the lava)`);
-    const lava = sim.measure(sim.equil(p, [6, 12, 18, 24], 1, 3, 0)); t.ok(lava.c > 33 || lava.w >= 60, `roosts on the lava only: centre ${lava.c} km, width ${lava.w} km (the cline slides onto the sand)`); }
+    t.ok(Math.abs(w1.c - 30) < 0.5 && Math.abs(w3.c - 30) < 0.5, `centre ${w1.c.toFixed(2)} km at the lava edge, and still ${w3.c.toFixed(2)} km after both changes`);
+    const r = G.run(1, { seed: 3, bot: 'expert' }); t.ok(r.s.ws.length === 3 && r.s.owls === 2 && r.s.sig === 1.5, `L2 plays both changes by itself after Measure: widths ${r.s.ws.map(q => q.w).join(', ')} km`);
+    const lava = sim.measure(sim.equil(p, [6, 12, 18, 24], 1, 3)); t.ok(lava.c > 33 || lava.w >= 60, `roosts on the lava only: centre ${lava.c} km, width ${lava.w} km (the cline slides onto the sand)`); }
 
   /* 5. F_ST: the identity recursion gives 1/(1 + 4Nm) at balance and 1 − (1 − 1/2N)^t without ferries; the realised estimator agrees */
   { const N = sim.P().Ni.v, hub = [[-1, 0], [-1, 1], [-1, 2], [-1, 3], [-1, 4]];
@@ -53,16 +58,16 @@ module.exports = function (G, t) {
     t.ok(Math.abs(mean(a) - ea) <= 3 * se(a) + 0.03, `realised F_ST at generation 100: ${mean(a).toFixed(3)} against ${ea.toFixed(3)}`);
     t.ok(Math.abs(mean(b) - eb) <= 3 * se(b) + 0.03, `realised F_ST at generation 250 with hub ferries: ${mean(b).toFixed(3)} against ${eb.toFixed(3)}`); }
 
-  /* 6. the boss: exactly one two-ferry plan (lava with lava, sand with sand) holds all five isles */
-  { const isl = [0, 1, 2, 3, 4], plans = [];
-    const subsets = []; for (let m = 0; m < 32; m++) { const a = isl.filter(i => m & (1 << i)); if (a.length <= 3) subsets.push(a); }
-    for (const A of subsets) for (const B of subsets) if (!A.some(i => B.indexOf(i) >= 0)) plans.push([A, B]);
-    const win = plans.filter(pl => sim.expPlan(pl, 100).held === 5).map(pl => pl.map(f => f.slice().sort().join('')).sort().join('|'));
-    const uniq = Array.from(new Set(win));
-    t.ok(uniq.length === 1 && uniq[0] === '01|234', `winning plans: ${uniq.join(', ')} (of ${plans.length} plans; want only lava-lava with sand-sand-sand)`);
-    const e = sim.expPlan([[0, 1], [2, 3, 4]], 100), mixed = sim.expPlan([[0, 2], [1, 3]], 100), none = sim.expPlan([[], []], 100);
-    t.ok(mixed.dark[0] < 0.75 && Math.min.apply(null, none.H) < 0.5, `a mixed plan swamps lava (dark ${mixed.dark[0]}); no ferries lets drift wear the marker down (H ${Math.min.apply(null, none.H)})`);
-    const fc = []; for (let seed = 1; seed <= (FAST ? 40 : 150); seed++) { G.reset(3, seed); const s = sim.s; s.fer = [[0, 1], [2, 3, 4]]; s.eD = s.pD.slice(); while (s.gen < 100) sim.gen4(s); fc.push(s.Fc[100]); }
+  /* 6. the boss: of every plan of up to three ferries (pairs of isles), only lava–lava plus two sand–sand links hold all five isles */
+  { const pairs = []; for (let a = 0; a < 5; a++) for (let b = a + 1; b < 5; b++) pairs.push([a, b]);
+    const plans = []; const rec = (i, cur) => { plans.push(cur); if (cur.length >= ch.C.bossMax) return; for (let j = i; j < pairs.length; j++) rec(j + 1, cur.concat([pairs[j]])); }; rec(0, []);
+    const win = plans.filter(pl => sim.expPlan(pl, 100).held === 5).map(pl => pl.map(r => r.join('')).sort().join(' '));
+    const like = pl => pl.split(' ').every(r => (r === '01') || (r[0] !== '0' && r[0] !== '1' && r[1] !== '0' && r[1] !== '1'));
+    t.ok(win.length === 3 && win.every(like) && win.every(w => w.indexOf('01') >= 0), `winning plans: ${win.join(' | ')} (of ${plans.length}; want only lava–lava with two sand–sand links)`);
+    t.ok(ch.P.mF.v > ch.P.sB.v, `a ferry's m = ${ch.P.mF.v} exceeds the owls' s = ${ch.P.sB.v} (the HUD's "Lava–sand links: m > s")`);
+    const e = sim.expPlan([[0, 1], [2, 3], [3, 4]], 100), mixed = sim.expPlan([[0, 4], [1, 3], [2, 3]], 100), none = sim.expPlan([], 100);
+    t.ok(mixed.dark[0] < 0.75 && Math.min.apply(null, none.H) < 0.5 && none.why.every(w => w === 'drifted') && mixed.why[0] === 'bad', `nearest-isle ferries swamp lava (dark ${mixed.dark[0]}); no ferries lets drift wear the marker down (H ${Math.min.apply(null, none.H)}), and the card says "drifted", not "swamped"`);
+    const fc = []; for (let seed = 1; seed <= (FAST ? 40 : 150); seed++) { G.reset(3, seed); const s = sim.s; s.routes = [[0, 1], [2, 3], [3, 4]]; s.eD = s.pD.slice(); while (s.gen < 100) sim.gen4(s); fc.push(s.Fc[100]); }
     t.ok(Math.abs(mean(fc) - e.fc) <= 3 * se(fc) + 0.04, `colour-gene F_ST at generation 100: realised ${mean(fc).toFixed(3)} against expected ${e.fc}`); }
 
   /* 7. determinism, replay and snapshots */
@@ -77,7 +82,7 @@ module.exports = function (G, t) {
     const snap = sim.snapshot(); sim.restore(snap); t.eq(sim.snapshot(), snap, 'snapshot round trip is exact'); t.ok(snap.length < 60000, `end snapshot ${snap.length} characters`); }
 
   /* 8. the expert earns every star its level offers; no level offers all three */
-  { const want = [3, 3, 3, 5], got = [0, 0, 0, 0], n = FAST ? 6 : 15; let three = 0;
+  { const want = [3, 1, 1, 4], got = [0, 0, 0, 0], n = FAST ? 6 : 15; let three = 0;
     for (let lv = 0; lv < 4; lv++) for (let seed = 1; seed <= n; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (r.result && (r.result.mask & want[lv]) === want[lv]) got[lv]++; if (r.result && r.result.mask === 7) three++; }
     t.ok(got.every(g => g >= Math.ceil(0.85 * n)), `expert earns the offered stars: ${got.map((g, i) => 'L' + (i + 1) + ' ' + g + '/' + n).join(', ')}`);
     t.ok(three === 0, 'no level ever awards three stars'); }
@@ -92,7 +97,7 @@ module.exports = function (G, t) {
     for (let lv = 0; lv < 4; lv++) { const r = G.run(lv, { seed: 5, bot: 'expert' }); const snap = sim.snapshot();
       for (const k of levers[lv]) { G.reset(lv, 5, { thaw: { snap, lever: k } }); let i = 0; while (!sim.result() && i < 30000) { sim.step(sim.dt); i++; } const res = sim.result(); if (!res || res.mask !== 0) ok = false; notes.push(`L${lv + 1} ${k}: ${res ? 'done' : 'stuck'}`); } }
     t.ok(ok, 'every What if? lever runs to the end with no stars (' + notes.join(', ') + ')');
-    const u = G.run(0, { seed: 6, bot: 'expert', untimed: true }); t.ok(!!u.result && u.s.unt && u.s.hunts.length === 7 && u.s.hunts.every(h => h.strikes <= 10), `untimed L1 finishes: ${u.s.hunts.map(h => h.fed).join(',')} mice a night`);
+    const u = G.run(0, { seed: 6, bot: 'expert', untimed: true }); t.ok(!!u.result && u.s.unt && u.s.hunts.length === 4 && u.s.hunts.every(h => h.strikes <= 10), `untimed L1 finishes: ${u.s.hunts.map(h => h.fed).join(',')} mice a night`);
     const keys = Object.keys(ch.content.interesting); let bad = 0; for (let lv = 0; lv < 4; lv++) for (const b of ['alwaysB', 'greedy', 'chain']) { const r = G.run(lv, { seed: 2, bot: b }); const k = r.result && r.result.interesting; if (k && keys.indexOf(k) < 0) bad++; }
     t.ok(bad === 0, 'every Interesting key chosen from a run exists in content'); }
 };

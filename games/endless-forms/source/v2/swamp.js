@@ -2,16 +2,18 @@
    Migration against selection on black basalt lava and pale sand dunes, with rock pocket mice (Chaetodipus intermedius):
    dark coats from a dominant Mc1r allele D (Nachman et al. 2003). Role: the selective agent (an owl), then the environment
    (owl roosts), then the island keeper laying ferry routes from a budget (D1 G1 roles 1 and 3).
-     L1 Two isles, one ferry   you hunt on a young lava isle; each dawn a ferry lands pale migrants from the sand isle. Your first
-                               two nights set your catch rate s; three rounds at m = 0.02, 0.1 and then above s. Swamping once
-                               m ≥ s: for a favoured dominant allele and pale migrants the threshold is exactly m = s (Haldane 1930).
+     L1 One ferry              you hunt on a young lava isle; each dawn a ferry lands pale migrants from the sand isle. Your first
+                               two nights set your catch rate s; three rounds at m = 0.02, 0.1 and then above s. Before round three
+                               comes the chapter's one prediction: drag the ferry size that would swamp the lava. For a favoured
+                               dominant allele and pale migrants the threshold is exactly m = s (Haldane 1930).
      L2 The cline              a coast where lava meets dunes; you place four owl roosts (selection acts where they are); a
-                               caliper measures the cline. A second owl per roost, then shorter dispersal: width ∝ σ ÷ √s
-                               (Slatkin 1973). Twist: a longshore current carries rafts one way and drags the cline downstream.
+                               caliper measures the cline. Then a second owl per roost and shorter dispersal play by themselves,
+                               with the key line width ∝ σ ÷ √s (Slatkin 1973).
      L3 Five isles             a neutral marker on five isles of 50 mice; no ferries, then up to five routes. F_ST climbs by
                                drift and settles near 1 ÷ (1 + 4Nm) with Nm migrants a generation (Wright 1931).
-     L4 Two ferries (boss)     keep all five isles locally adapted and the marker variable for 100 generations with two ferries.
-                               Only lava-to-lava and sand-to-sand routes win: gene flow helps or hurts depending on whom it links.
+     L4 Three ferries (boss)   keep all five isles locally adapted and the marker variable for 100 generations with three ferry
+                               routes (L3's verb). Only lava-to-lava and sand-to-sand links win: on a lava–sand link m = 0.3 > s = 0.25.
+   Simplified 22 Oct 2026 (D6 decision 9): one prediction in the chapter; L2's longshore current and every other ask are gone.
    Code shape (API_v2 §9): a headless sim (plain JSON; R(), Det, WF only; a run is (seed, level, actions)); all words in SW_TEXT;
    the view juices from Sim.run's events only. Stars and asks read deterministic recursions for the parameters in force, never the
    realised run. Load rule: top-level code touches only legacy objects and lower-numbered v2 files (LiveGraph, wg* helpers);
@@ -20,48 +22,45 @@
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const SW_TEXT = {
   intro: {   // the opening card (D6 addendum 8)
-    game: 'You are a barn owl over volcanic islands at night. Pocket mice live on black lava and on pale sand, and a little ferry links the isles.',
-    biology: 'Owls catch mice that stand out, so dark coats win on lava. Migrants from the sand bring pale coats back each dawn, and gene flow can swamp local adaptation.',
-    how: 'Tap a mouse crossing the rock to strike; later, drag owl roosts and lay ferry routes. Drag on the graph to predict, then Lock in.'
+    game: 'You are a barn owl over volcanic islands at night. Pocket mice live on black lava and on pale sand, and little ferries link the isles.',
+    biology: 'Owls catch mice that stand out, so dark coats win on lava. Migrants bring pale coats back, and gene flow can swamp local adaptation.',
+    how: 'Tap mice crossing the rock to strike; later, drag owl roosts and ferry routes between isles. Once, you drag a bar to predict.'
   },
   firstWords: 'Night on a young lava isle. Tap a mouse as it crosses the rock to strike.',
   hud: {
     hunt: 'Strike mice crossing the open rock. Four mice feed the owlets tonight.',
     huntU: 'Untimed: each mouse waits in the open. Strike, or tap Let go.',
-    dawn: 'Dawn. The ferry lands migrants from the sand isle.',
+    dawn: 'Dawn. The ferry lands pale migrants from the sand isle.',
     lapse: 'Nights pass. Owls across the isle hunt as you did.',
-    askA: 'Ferry m = {m}, owls s = {s}. Drag night 10’s dark share.',
+    keyHold: 'm = {m} < s = {s}: owls outpace the ferry, so dark coats win.',
+    keySwamp: 'm = {m} ≥ s = {s}: the ferry outpaces owls; pale coats swamp.',
+    askTh: 'Owls s = {s}. Drag the ferry bar to the size that swamps the lava.',
     gap: 'A new year on the same young isle.',
     build: 'Drag the four owl roosts along the coast. Owls catch mice that stand out.',
-    measure: 'Measure: the caliper spans the cline, 80% to 20% dark.',
-    askW1: 'A second owl moves into every roost. Drag the new cline width.',
-    askW2: 'A wet year: young mice settle half as far. Drag the new width.',
-    askC: 'A current now rafts mice from the dunes towards the lava. Drag the cline’s centre.',
-    relax: 'Generations pass. The cline settles.',
-    askF1: 'Five isles, no ferries. Drag F_ST after 100 generations.',
-    drift: 'Each isle drifts on its own.',
+    measure: 'The caliper spans the cline, from 80% to 20% dark.',
+    owls: 'Owls doubled: s × 2. Width ∝ σ ÷ √s, so it shrinks by √2.',
+    wet: 'Wet year: young settle half as far. Width ∝ σ ÷ √s, so it halves.',
+    drift: 'No ferries yet. Each isle of 50 mice drifts on its own.',
     lay: 'Drag ferry routes from the harbour or between isles. Five at most.',
-    askF2: 'Each ferry carries about one mouse a generation. Drag where F_ST settles.',
-    flow: 'The ferries run. Watch F_ST.',
-    plan: 'Two ferries, three stops each. Tap isles to set Ferry {f}’s stops.',
-    askT: 'Before they sail: drag F_ST at the colour gene after 100 generations.',
-    run: 'A hundred generations of owls, ferries and drift.',
+    flow: 'F_ST ≈ 1 ÷ (1 + 4Nm): one migrant a generation gives about 0.2.',
+    plan: 'Drag up to three ferries between isles. Keep every coat matched and every marker variable.',
+    run: 'Ferries swap m = 0.3; owls remove s = 0.25. Lava–sand links: m > s.',
     auto: 'What if? The rest runs by itself.',
     over: 'Done.'
   },
   whispers: {
-    drag: 'Drag the marker first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
+    drag: 'Drag the ferry bar first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
     busy: 'The owl is still climbing.', miss: 'Only bare rock.', escape: 'It slipped into a crack.', fed: 'The owlets are fed.',
     hungry: 'The owlets went short tonight.', budget: 'Ferries all used. Tap a route to lift.',
-    full: 'Three stops already.', nocline: 'No cline yet: hunt both sides.', taken: 'That isle rides the other ferry.', lost: 'An isle lost the marker.', swamp: 'The lava stays pale.'
+    nocline: 'No cline yet: put owls on both sides.', lost: 'An isle lost the marker.',
   },
   labels: {
-    lock: 'Lock in', letgo: 'Let go', endN: 'End night', measure: 'Measure', sail: 'Sail', clear: 'Clear', ferry: 'Ferry {f}', next: 'Next ferry',
+    lock: 'Lock in', letgo: 'Let go', endN: 'End night', measure: 'Measure', sail: 'Sail',
     night: 'Night {n}', round: 'Ferry m = {m}', isle: 'island', dark: '{p}% dark', sand: 'sand isle', ferryL: 'ferry', lava: 'lava', dunes: 'dunes',
     harbour: 'harbour', mainland: 'mainland dunes', w: '{w} km', fst: 'F_ST {f}', xn: 'Selection ×N', ff: 'Tap: faster', catch: '+1',
-    roost: 'roost', current: 'current', edge: 'lava edge', L1: 'Lava 1', L2: 'Lava 2', S1: 'Sand 1', S2: 'Sand 2', S3: 'Sand 3',
-    ok: 'held', bad: 'swamped', poly: 'variable', fixed: 'lost', strikes: '{n} strikes', fedN: 'owlets {a}/{b}', gen: 'gen {n}', yr: 'year {n}',
-    ferries: '{n}/5 ferries'
+    roost: 'roost', owls2: 'Owls doubled', wet: 'A wet year', edge: 'lava edge', L1: 'Lava 1', L2: 'Lava 2', S1: 'Sand 1', S2: 'Sand 2', S3: 'Sand 3',
+    ok: 'held', bad: 'swamped', drifted: 'drifted', poly: 'variable', fixed: 'lost', strikes: '{n} strikes', fedN: 'owlets {a}/{b}', gen: 'gen {n}', yr: 'year {n}',
+    ferries: '{n}/{b} ferries'
   },
   interesting: {
     hungry: 'Your owlets went short on many nights. Dark mice on dark rock are hard to see, so a darkening isle starves owls.',
@@ -78,7 +77,7 @@ const SW_TEXT = {
   },
   data: {
     dark: ['Dark share at dawn', '{d}%', 'Night {n}, round {r}.'],
-    ms: ['Ferry and owls', 'm {m}, s {s}', 'Swamping once m reaches s.'],
+    ms: ['Ferry and owls', 'm {m}, s {s}', 'The ferry lands pale coats; owls remove them.'],
     fed: ['Owlets fed', '{a} of {b} nights', 'Four mice a night feed them.'],
     width: ['Cline width', '{w} km', '80% to 20% dark.'],
     centre: ['Cline centre', '{c} km', 'The lava edge is at 30 km.'],
@@ -87,19 +86,21 @@ const SW_TEXT = {
     held: ['Isles held', '{n} of 5', 'Matched and still variable.'],
     titles: { dark: 'Dark share on the lava', ms: 'Ferry against owls', cline: 'Dark share along the coast', width: 'Cline width', fst: 'F_ST between isles', map: 'The isles', fst2: 'F_ST: marker and colour' },
     ax: { night: 'night', share: 'dark', km: 'km along the coast', w: 'width (km)', gen: 'generation', f: 'F_ST', rate: 'per generation' },
-    lines: { exp: 'expected', none: 'no ferry', you: 'this round', past: 'earlier', m: 'ferry m', s: 'owls s', w0: '1 owl', w1: '2 owls', w2: 'short hops', marker: 'marker', colour: 'colour gene', theory: '1 ÷ (1 + 4Nm)' }
+    lines: { exp: 'expected', mr: 'm {m}', you: 'this round', past: 'earlier', m: 'ferry m', s: 'owls s', w0: '1 owl', w1: '2 owls', w2: 'short hops', marker: 'marker', colour: 'colour gene', theory: '1 ÷ (1 + 4Nm)' }
   },
-  levers: { noferry: 'No ferry', weak: 'Half the owls', oneside: 'Lava roosts only', wide: 'Mice roam twice', none: 'No ferries', big: 'Bigger isles', mixed: 'Mixed ferries', nofer: 'No ferries' },
+  levers: { noferry: 'No ferry', weak: 'Half the owls', oneside: 'Lava roosts only', wide: 'Mice roam twice', none: 'No ferries', big: 'Bigger isles', mixed: 'Nearest isles', nofer: 'No ferries' },
   whatifBody: {
     noferry: 'Round two again with no ferry. Night 10 dawned {d}% dark; the model expects {e}%. With m = {m} it expected {e2}%.',
     weak: 'Round two again with owls at s = {s}. Night 10 dawned {d}% dark; the model expects {e}%. Ferry m = {m}: {why}',
     weakSw: 'm now matches or beats s, so the dark coat is swamped.',
     weakOk: 'm is still below s, so dark coats hold on.',
+    lastSw: 'Only the last ferry reached s, and it swamped the lava.',
+    twoSw: 'From the second ferry on, m reached s, and the lava stayed pale.',
     oneside: 'Roosts on the lava only. Pale mice die there, but nothing removes dark ones on the sand. The centre moved to {c} km; width {w} km.',
     wide: 'Mice now roam twice as far. The cline widened from {w0} to {w} km, close to double: width grows with σ.',
     none: 'No ferries for the last 150 generations. F_ST reached {f}; the model expects {e}. The isles kept drifting apart.',
     big: 'Isles of 200 mice with your ferries: Nm is four times larger. F_ST reached {f}; the model expects {e}.',
-    mixed: 'Ferries linking lava with sand. Isles matched: {n} of 5. Gene flow between unlike habitats swamped adaptation.',
+    mixed: 'Ferries to the nearest isles, lava with sand. Isles held: {n} of 5. Gene flow between unlike habitats swamped adaptation.',
     nofer: 'No ferries at all. Every isle stayed matched, but marker variation is expected to fall to {h}% of its start.'
   },
   take: 'Gene flow can swamp local adaptation, or keep variation alive. Which depends on whom it links.',
@@ -107,36 +108,36 @@ const SW_TEXT = {
   law: { title: 'Migration against selection' },
   boss: { inverts: 'Gene flow both helps and harms: it depends on which isles it links.' },
   stars: {
-    discover: 'See the ferry swamp the lava, and hold all five isles.',
-    predict: 'Land the dark-share, width and F_ST predictions in two levels.',
-    transfer: 'Predict F_ST at the colour gene under your ferry plan.'
+    discover: 'Earn Discover in two of the first three levels.',
+    predict: 'Predict the ferry size that swamps the lava.',
+    transfer: 'Hold all five isles with three ferries.'
   },
   levelStars: [
-    { discover: 'Feed the owlets on five nights, and watch the big ferry run.', predict: 'Land two of three dark-share predictions inside the band.' },
-    { discover: 'Build a sharp cline centred on the lava edge.', predict: 'Land two of three cline predictions inside the band.' },
-    { discover: 'Lay ferries that hold F_ST below 0.3.', predict: 'Land both F_ST predictions inside the band.' },
-    { discover: 'Hold all five isles: matched coats and a variable marker.', transfer: 'Land the colour-gene F_ST prediction inside the band.' }
+    { discover: 'Feed the owlets on three of four nights.', predict: 'Drag the ferry bar to within 0.05 of the swamping size.' },
+    { discover: 'Build a sharp cline centred on the lava edge.' },
+    { discover: 'Lay ferries that hold F_ST below 0.3.' },
+    { transfer: 'Hold all five isles: matched coats and a variable marker.' }
   ],
   levelTake: [
     'Local adaptation holds while migration m stays below selection s. Once m reaches s, the migrants win.',
-    'A cline is as wide as dispersal over the root of selection. One-way gene flow drags it downstream.',
+    'A cline is as wide as dispersal over the root of selection: width ∝ σ ÷ √s.',
     'Drift splits small isles apart; about one migrant a generation holds them together.'
   ],
   levelBody: [
-    'Your owls had s = {s}. Night 10 dawned {a}%, {b}% and {c}% dark at m = {m1}, {m2} and {m3}. The model expected {e1}%, {e2}% and {e3}%.',
-    'Your first cline was {w0} km wide. Two owls per roost gave {w1} km, short hops {w2} km. The current moved the centre to {c} km.',
+    'Your owls had s = {s}. Night 10 dawned {a}%, {b}% and {c}% dark with ferry m = {m1}, {m2} and {m3}. {k}',
+    'Your first cline was {w0} km wide. Two owls per roost gave {w1} km, {r}× narrower (√2 = 1.41). Short hops gave {w2} km.',
     'With no ferries F_ST reached {f1}; the model expected {e1}. With your ferries it reached {f2}; the model expects {e2}.'
   ],
   model: [
     { level: 0, simulated: 'A lava isle of 200 mice. One gene sets coat colour; the dark allele D is dominant. Each dawn the ferry lands pale migrants.',
       simplification: 'You hunt one clearing; owls across the isle take pale and dark mice at your rates. After round one, owls hunt at your s.',
       params: [{ name: 'migration m', value: '0.02, 0.1, then above s', tag: 'designed' }, { name: 'selection s', value: 'your catch rate, 0.1 to 0.5', tag: 'xN', real: 'unknown; strong enough to beat local gene flow' }, { name: 'isle size N', value: 200, tag: 'designed' }, { name: 'nights per round', value: 10, tag: 'designed' }],
-      cannot: 'Habitat choice by mice, other predators, or other genes that darken coats.',
-      nature: 'Rock pocket mice on black lava flows in Arizona are mostly dark. Mice on nearby pale rock are light. In trials, owls caught mismatched mice more often.',
-      contested: false, refs: ['nachman2003', 'haldane1930', 'hoekstra2004', 'kaufman1974'] },
+      cannot: 'Habitat choice by mice or other predators. Owls see colour here; in owl trials with oldfield mice, mismatched mice were caught more often.',
+      nature: 'Pocket mice on the Pinacate lava in Arizona are mostly dark; mice on nearby pale rock are light. On New Mexico lava, other genes make dark coats.',
+      contested: false, refs: ['nachman2003', 'hoekstra2003', 'haldane1930', 'hoekstra2004', 'kaufman1974'] },
     { level: 1, simulated: 'A coast of 60 one-kilometre patches, lava then dunes. Owls near each roost remove mismatched mice. Young mice settle near where they were born.',
       simplification: 'The colour gene acts additively here, so the cline is symmetric. Patches are large, so drift is ignored; a trickle of mutation keeps both coats.',
-      params: [{ name: 'dispersal σ', value: '3 km, then 1.5 km', tag: 'designed' }, { name: 'selection per owl', value: 0.05, tag: 'xN', real: 'unknown for these mice' }, { name: 'roost reach', value: '12 km', tag: 'designed' }, { name: 'current', value: '40% of mice drift 2 km', tag: 'designed' }],
+      params: [{ name: 'dispersal σ', value: '3 km, then 1.5 km', tag: 'designed' }, { name: 'selection per owl', value: 0.05, tag: 'xN', real: 'unknown for these mice' }, { name: 'roost reach', value: '12 km', tag: 'designed' }],
       cannot: 'Mice that prefer matching rock, or patchy habitat along the coast.',
       nature: 'Beach mice in Florida are palest on coastal sand. Inland, on darker soils, coats grow darker: a classic cline.',
       contested: false, refs: ['slatkin1973', 'endler1977', 'mullen2008'] },
@@ -146,9 +147,9 @@ const SW_TEXT = {
       cannot: 'Unequal isle sizes, extinction and recolonisation, or mutation.',
       nature: 'In pocket mice, F_ST between lava and pale sites is low for neutral genes but high at Mc1r. Gene flow mixes the genome; selection holds the colour gene apart.',
       contested: false, refs: ['wright1931', 'whitlock1999', 'hoekstra2004'] },
-    { level: 3, simulated: 'The five isles again, now with owls on every isle and the colour gene too. Two ferries, each linking up to three isles.',
-      simplification: 'A ferry swaps a fifth of each stop’s mice with the other stops every generation. Owls remove mismatched coats at s = 0.25.',
-      params: [{ name: 'selection s', value: 0.25, tag: 'xN', real: 'unknown' }, { name: 'ferry migration', value: '0.2 a generation', tag: 'designed' }, { name: 'isle size N', value: 50, tag: 'designed' }, { name: 'generations', value: 100, tag: 'designed' }],
+    { level: 3, simulated: 'The five isles again, now with owls on every isle and the colour gene too. Up to three ferries, each linking two isles.',
+      simplification: 'A ferry swaps 30% of the mice at each end every generation. Owls remove mismatched coats at s = 0.25.',
+      params: [{ name: 'selection s', value: 0.25, tag: 'xN', real: 'unknown' }, { name: 'ferry migration', value: '0.3 a generation', tag: 'designed' }, { name: 'isle size N', value: 50, tag: 'designed' }, { name: 'generations', value: 100, tag: 'designed' }],
       cannot: 'Ferries that run one way, or mice that choose matching rock.',
       nature: 'Conservation managers face this choice. Corridors can rescue small populations from drift. Links between unlike habitats can swamp local adaptation.',
       contested: false, refs: ['lenormand2002', 'frankham2015'] }
@@ -170,8 +171,8 @@ const SW_TEXT = {
 const SWP_C = {
   dt: 1 / 30, N1: 200, d0: 0.2, night: 14, lam: 2, cross: 1.35, busy: 0.85, maxOpen: 3, catchP: [0.95, 0.55], untE: 22, untS: 10, feed: 4,
   dawnT: 1.5, lapseT: 0.32, bannerT: 1.2, gapT: 1.3, askMax: 30,
-  ND: 60, E: 30, R: 12, sig0: 3, adv: 0.4, advSt: 2, buildMax: 45,
-  Ni: 50, gps: 12, fGens: [100, 250], layMax: 60, sB: 0.25, mF: 0.2, bossG: 100, planMax: 75, bossGps: 10
+  ND: 60, E: 30, R: 12, sig0: 3, buildMax: 45, holdT: 2.6, thTol: 0.05, thHi: 0.8,
+  Ni: 50, gps: 12, fGens: [100, 250], layMax: 60, sB: 0.25, mF: 0.3, bossG: 100, planMax: 75, bossGps: 10, bossMax: 3
 };
 const SW_ISLES = [[0.17, 0.28, 1], [0.83, 0.28, 1], [0.5, 0.16, 0], [0.72, 0.62, 0], [0.28, 0.62, 0]];   // [x, y, lava?]: two lava isles far apart, three sand isles
 
@@ -185,15 +186,15 @@ const CH_SWAMP_V2 = {
     sr: { v: 0.05, tag: 'xN', min: 0.005, max: 0.1, real: 'unknown for these mice', label: 'selection per owl' },
     Ni: { v: 50, tag: 'designed', min: 20, max: 400, label: 'mice per small isle' },
     sB: { v: 0.25, tag: 'xN', min: 0.05, max: 0.6, real: 'unknown', label: 'owl selection, boss' },
-    mF: { v: 0.2, tag: 'designed', min: 0.01, max: 0.5, label: 'ferry migration, boss' }
+    mF: { v: 0.3, tag: 'designed', min: 0.01, max: 0.5, label: 'ferry migration, boss' }
   },
   levels: [
     { name: 'One ferry', adds: 'migration rate', codes: ['M1'], minutes: 5 },
     { name: 'The cline', adds: 'dispersal distance', codes: ['M2'], minutes: 3 },
     { name: 'Five isles', adds: 'drift between isles', codes: ['M3'], minutes: 3 },
-    { name: 'Two ferries', adds: 'whom gene flow links', codes: ['M4'], minutes: 3 }
+    { name: 'Three ferries', adds: 'whom gene flow links', codes: ['M4'], minutes: 3 }
   ],
-  keys: { Space: 'strike or continue', ArrowRight: 'next target or roost', ArrowLeft: 'move roost', '1-5': 'isle or roost', Enter: 'measure or sail', P: 'predict' },
+  keys: { Space: 'strike or continue', ArrowRight: 'next target or roost', ArrowLeft: 'move roost', '0-5': 'isle or roost', Enter: 'measure or sail', P: 'predict' },
   untimed: true,
   teacher: { prompts: ['Why are lava mice dark when pale migrants keep arriving?', 'Is gene flow good or bad for a population? Give a case for each.', 'This model lets owls see only colour. What would mice that pick matching rock change?'], pool: 'trace' },
   starTraits: ['dark'],
@@ -212,9 +213,9 @@ const CH_SWAMP_V2 = {
       this.s = { level: n, phase: 'banner', t: 0, unt: false, whatif: null, auto: false, asks: [], pred: {}, exp: {}, tol: {}, hits: {}, cnt: {}, ask: null, resume: null, acc: 0, log: [] };
       const s = this.s;
       if (n === 0) { s.N = this.P().N1.v; s.sY = null; s.rd = []; s.hunts = []; s.mid = 0; s.h = null; this.startRound(s, 0, []); }
-      else if (n === 1) { s.p = new Array(SWP_C.ND).fill(0.5); s.roosts = [36, 42, 48, 54]; s.owls = 1; s.sig = SWP_C.sig0; s.cur = 0; s.ws = []; s.moved = 0; s.sw = 0; s.phase = 'build'; s.disc = false; s.tl = 0; }
-      else if (n === 2) { s.N = this.P().Ni.v; s.p = [0.5, 0.5, 0.5, 0.5, 0.5]; s.routes = []; s.gen = 0; s.f = this.zf(); s.F = [0]; s.FE = [0]; s.phase = 'banner'; s.lost = 0; }
-      else { s.N = this.P().Ni.v; s.p = [0.5, 0.5, 0.5, 0.5, 0.5]; s.pD = [0.55, 0.55, 0, 0, 0]; s.fer = [[], []]; s.cf = 0; s.gen = 0; s.f = this.zf(); s.Fn = [0]; s.Fc = [this.fstVar(s.pD)]; s.En = [0]; s.Ec = [s.Fc[0]]; s.phase = 'plan'; }
+      else if (n === 1) { s.p = new Array(SWP_C.ND).fill(0.5); s.roosts = [36, 42, 48, 54]; s.owls = 1; s.sig = SWP_C.sig0; s.ws = []; s.moved = 0; s.sw = 0; s.phase = 'build'; s.disc = false; s.tl = 0; }
+      else if (n === 2) { s.N = this.P().Ni.v; s.p = [0.5, 0.5, 0.5, 0.5, 0.5]; s.routes = []; s.gen = 0; s.f = this.zf(); s.F = [0]; s.FE = [0]; s.phase = 'banner'; s.lost = 0; s.e1 = this.expF(this.zf(), [], s.N, SWP_C.fGens[0]); }
+      else { s.N = this.P().Ni.v; s.p = [0.5, 0.5, 0.5, 0.5, 0.5]; s.pD = [0.55, 0.55, 0, 0, 0]; s.routes = []; s.gen = 0; s.f = this.zf(); s.Fn = [0]; s.Fc = [this.fstVar(s.pD)]; s.En = [0]; s.Ec = [s.Fc[0]]; s.phase = 'plan'; }
     },
     zf() { return [0, 1, 2, 3, 4].map(() => [0, 0, 0, 0, 0]); },
     step(dt) {
@@ -233,16 +234,16 @@ const CH_SWAMP_V2 = {
     eqDark(sY, m) { if (m >= sY) return 0; const q2 = m * (1 - sY) / (sY * (1 - m)); return this.dawnDark(1 - Math.sqrt(q2), m); },
     mBig(sY) { return Math.max(0.3, Math.ceil(1.3 * sY * 20 - 1e-9) / 20); },
     mOf(s, r) { if (s.mOver != null) return s.mOver; return r === 0 ? 0.02 : r === 1 ? 0.1 : this.mBig(s.sY == null ? 0.3 : s.sY); },
-    hands(s, n) { return !s.auto && (n === 1 || n === 10 || (s.r === 0 && n === 2)); },
+    hands(s, n) { return !s.auto && ((s.r === 0 && (n === 1 || n === 2 || n === 10)) || (s.r === 2 && n === 10)); },   // four hands-on nights: s is measured on the first two
     startRound(s, r, ev) { s.r = r; s.m = this.mOf(s, r); s.p = this.p0(); s.n = 0; s.rd[r] = { m: s.m, d: [], dark0: SWP_C.d0 }; s.phase = 'banner'; s.t = 0; ev.push({ k: 'round', r, m: s.m }); },
     nextNight(s, ev) {
       s.n++; const k = WF.binom(s.N, s.m), f = k / s.N; s.f = f; const d = this.dawnDark(s.p, f); s.dark = d; s.rd[s.r].d.push(Math.round(d * 1e4) / 1e4);
       s.phase = 'dawn'; s.t = 0; ev.push({ k: 'dawn', n: s.n, mig: k, d, lapse: !this.hands(s, s.n) });
-      if (s.n === 10 && s.exp['a' + s.r] != null) ev.push({ k: 'reveal', id: 'a' + s.r });
+      if (s.n === 10 && s.r === 2 && s.exp.th != null) ev.push({ k: 'reveal', id: 'th' });
     },
     isleStep(s, ev) {
       if (s.phase === 'banner') { if (s.t >= (s.auto ? 0.3 : SWP_C.bannerT)) this.nextNight(s, ev); return; }
-      if (s.phase === 'gap') { if (s.t >= SWP_C.gapT) this.startRound(s, s.r + 1, ev); return; }
+      if (s.phase === 'gap') { if (s.t >= SWP_C.gapT) { if (s.r === 1 && !s.auto && s.exp.th == null) this.openAsk(s, ev, 'th', 'y', 0, SWP_C.thHi, SWP_C.thTol, s.m, s.sY, 'gap', Math.abs(s.sY - s.m) > SWP_C.thTol, 1, 0.5); else this.startRound(s, s.r + 1, ev); } return; }   // the chapter's one prediction: the ferry size that swamps (m = s)
       if (s.phase === 'dawn') {
         const lapse = !this.hands(s, s.n); if (s.t < (lapse ? (s.auto ? 0.2 : SWP_C.lapseT) : SWP_C.dawnT)) return;
         if (lapse) { if (s.auto && s.n === 10) { s.phase = 'over'; ev.push({ k: 'over' }); return; } this.breed(s, 1, 1 - (s.sW != null ? s.sW : s.sY)); ev.push({ k: 'lapse', n: s.n }); this.afterNight(s, ev); return; }
@@ -285,22 +286,21 @@ const CH_SWAMP_V2 = {
     },
     afterNight(s, ev) {
       if (s.n >= 10) { if (s.r < 2 && !s.auto) { s.phase = 'gap'; s.t = 0; ev.push({ k: 'endround', r: s.r }); } else { s.phase = 'over'; ev.push({ k: 'over' }); } return; }
-      if (!s.auto && ((s.r === 0 && s.n === 2) || (s.r > 0 && s.n === 1))) { (s.ak || (s.ak = []))[s.r] = { p: s.p, k: s.n, d: s.dark }; const e = this.exp10(s.p, s.n, s.sY, s.m), now = s.dark; this.openAsk(s, ev, 'a' + s.r, 'y', 0, 1, 0.1, now, e, 'night', Math.abs(e - now) > 0.1); return; }
       this.nextNight(s, ev);
     },
 
     /* ---------- L2: the coast. Haploid additive colour gene on 60 patches; owls near roosts; dispersal; a longshore current ---------- */
     kern(sig) { const key = String(sig); if (this._k[key]) return this._k[key]; const R0 = Math.ceil(3.5 * sig), k = []; let t = 0; for (let d = -R0; d <= R0; d++) { const w = Det.exp(-d * d / (2 * sig * sig)); k.push([d, w]); t += w; } return (this._k[key] = k.map(q => [q[0], q[1] / t])); },
     sprof(roosts, owls) { const C = SWP_C, sr = this.P().sr.v, out = new Array(C.ND).fill(0); for (const r of roosts) for (let i = 0; i < C.ND; i++) { const d = Math.abs(i + 0.5 - r), w = d <= C.R - 2 ? 1 : d >= C.R + 2 ? 0 : (C.R + 2 - d) / 4; out[i] += owls * sr * w; } return out; },
-    gen2(p, sp, sig, adv) {
+    gen2(p, sp, sig) {
       const C = SWP_C, N = C.ND, k = this.kern(sig), ps = new Array(N), np = new Array(N).fill(0);
       for (let i = 0; i < N; i++) { const si = Math.min(0.9, sp[i]), x = p[i]; ps[i] = i < C.E ? x / (1 - si * (1 - x)) : x * (1 - si) / (1 - si * x); }
       for (let i = 0; i < N; i++) for (const [d, w] of k) { let j = i + d; if (j < 0) j = -j - 1; if (j >= N) j = 2 * N - j - 1; np[j] += ps[i] * w; }
-      const out = adv ? np.map((x, i) => (1 - C.adv) * x + C.adv * np[Math.min(N - 1, i + C.advSt)]) : np;
+      const out = np;
       for (let i = 0; i < N; i++) out[i] = Math.max(0.001, Math.min(0.999, out[i]));   // a trickle of new mutations: neither coat quite vanishes
       return out;
     },
-    equil(p, roosts, owls, sig, adv) { const sp = this.sprof(roosts, owls); let q = p.slice(); for (let t = 0; t < 4000; t++) { const nq = this.gen2(q, sp, sig, adv); let d = 0; for (let i = 0; i < nq.length; i++) d = Math.max(d, Math.abs(nq[i] - q[i])); q = nq; if (d < 1e-7) break; } return q; },
+    equil(p, roosts, owls, sig) { const sp = this.sprof(roosts, owls); let q = p.slice(); for (let t = 0; t < 4000; t++) { const nq = this.gen2(q, sp, sig); let d = 0; for (let i = 0; i < nq.length; i++) d = Math.max(d, Math.abs(nq[i] - q[i])); q = nq; if (d < 1e-7) break; } return q; },
     measure(p) {   // width: km between the 80% and 20% dark crossings; centre: the 50% crossing (p falls from lava to sand)
       const N = p.length, cross = v => { for (let i = 0; i < N - 1; i++) { const a = p[i], b = p[i + 1]; if ((a - v) * (b - v) <= 0 && a !== b) return i + 0.5 + (a - v) / (a - b); } return null; };
       const a = cross(0.8), b = cross(0.2), c = cross(0.5), r3 = x => Math.round(x * 1000) / 1000;
@@ -310,14 +310,14 @@ const CH_SWAMP_V2 = {
       const C = SWP_C;
       if (s.phase === 'build' || s.phase === 'relax') {
         const sp = this.sprof(s.roosts, s.owls), G = s.phase === 'relax' ? 4 : 2; let d = 0;
-        for (let g = 0; g < G; g++) { const nq = this.gen2(s.p, sp, s.sig, s.cur); for (let i = 0; i < nq.length; i++) d = Math.max(d, Math.abs(nq[i] - s.p[i])); s.p = nq; }
+        for (let g = 0; g < G; g++) { const nq = this.gen2(s.p, sp, s.sig); for (let i = 0; i < nq.length; i++) d = Math.max(d, Math.abs(nq[i] - s.p[i])); s.p = nq; }
         s.sw += this.dt; if (s.sw >= 0.25) { s.sw = 0; this.swoop(s, ev, sp); }
         if (s.phase === 'build') { s.tl += this.dt; if (s.tl >= C.buildMax || s.auto) this.doMeasure(s, ev); }
         else if ((d < 2e-5 && s.t >= 1.2) || s.t >= 6) this.relaxed(s, ev);
         return;
       }
-      if (s.phase === 'measured' && s.t >= 1.5) this.nextCoastAsk(s, ev);
-      if (s.phase === 'hold' && s.t >= 1.4) { if (s.auto || s.ws.length >= 4) { s.phase = 'over'; ev.push({ k: 'over' }); } else this.nextCoastAsk(s, ev); }
+      if (s.phase === 'measured' && s.t >= 1.5) this.nextCoast(s, ev);
+      if (s.phase === 'hold' && s.t >= SWP_C.holdT) this.nextCoast(s, ev);
     },
     swoop(s, ev, sp) {   // one roost swoops each quarter second, in turn, on the most mismatched patch in reach (view juice only; no R())
       const C = SWP_C, i = s.swi = ((s.swi || 0) + 1) % s.roosts.length, r = s.roosts[i]; let best = -1, bv = 0.02;
@@ -325,21 +325,19 @@ const CH_SWAMP_V2 = {
       if (best >= 0) ev.push({ k: 'swoop', r: i, d: best, dark: best >= C.E });
     },
     doMeasure(s, ev) {
-      s.p = this.equil(s.p, s.roosts, s.owls, s.sig, s.cur); const m = this.measure(s.p); s.ws.push({ w: m.w, c: m.c, st: 0 });
+      s.p = this.equil(s.p, s.roosts, s.owls, s.sig); const m = this.measure(s.p); s.ws.push({ w: m.w, c: m.c, st: 0 });
       if (!s.auto) s.disc = Math.abs(m.c - SWP_C.E) <= 3 && m.w <= 20 && s.p[8] >= 0.8 && s.p[52] <= 0.2;
       s.phase = 'measured'; s.t = 0; ev.push({ k: 'measured', w: m.w, c: m.c });
     },
-    nextCoastAsk(s, ev) {
-      const st = s.ws.length, m0 = this.measure(s.p);
-      if (s.auto) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
-      if (st === 1) { const e = this.measure(this.equil(s.p, s.roosts, 2, s.sig, 0)).w; this.openAsk(s, ev, 'w1', 'x', 0, 30, Math.max(0.5, 0.25 * e), 30, e, 'relax', Math.abs(e - m0.w) > Math.max(0.5, 0.25 * e), 1); return; }
-      if (st === 2) { const e = this.measure(this.equil(s.p, s.roosts, s.owls, SWP_C.sig0 / 2, 0)).w; this.openAsk(s, ev, 'w2', 'x', 0, 30, Math.max(0.5, 0.25 * e), 30, e, 'relax', Math.abs(e - m0.w) > Math.max(0.5, 0.25 * e), 1); return; }
-      const e = this.measure(this.equil(s.p, s.roosts, s.owls, s.sig, 1)).c; this.openAsk(s, ev, 'c3', 'x', 0, 60, 2, 50, e, 'relax', Math.abs(e - m0.c) > 2, 0);
+    nextCoast(s, ev) {   // after Measure the two changes play by themselves, each with its key line (D6 decision 9: no asks here)
+      const st = s.ws.length;
+      if (s.auto || st >= 3) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
+      if (st === 1) s.owls = 2; else s.sig = SWP_C.sig0 / 2;
+      s.phase = 'relax'; s.t = 0; ev.push({ k: 'change', st });
     },
-    applyCoast(s, id) { if (id === 'w1') s.owls = 2; else if (id === 'w2') s.sig = SWP_C.sig0 / 2; else if (id === 'c3') s.cur = 1; },
     relaxed(s, ev) {
-      s.p = this.equil(s.p, s.roosts, s.owls, s.sig, s.cur); const m = this.measure(s.p), st = s.ws.length; s.ws.push({ w: m.w, c: m.c, st });
-      s.phase = 'hold'; s.t = 0; ev.push({ k: 'measured', w: m.w, c: m.c }); const id = s.whatif ? null : ['', 'w1', 'w2', 'c3'][st]; if (id && s.exp[id] != null) ev.push({ k: 'reveal', id });
+      s.p = this.equil(s.p, s.roosts, s.owls, s.sig); const m = this.measure(s.p), st = s.ws.length; s.ws.push({ w: m.w, c: m.c, st });
+      s.phase = 'hold'; s.t = 0; ev.push({ k: 'measured', w: m.w, c: m.c });
     },
 
     /* ---------- L3: five isles, a neutral marker, ferry routes; drift then migration each generation ---------- */
@@ -365,27 +363,28 @@ const CH_SWAMP_V2 = {
       return s.p.filter(x => x <= 0 || x >= 1).length > lost0;
     },
     islesStep(s, ev) {
-      if (s.phase === 'banner') { if (s.t >= (s.auto ? 0.1 : SWP_C.bannerT)) { if (s.auto) { s.phase = 'flow'; s.t = 0; return; } const e = this.expF(this.zf(), [], s.N, 100); this.openAsk(s, ev, 'f1', 'y', 0, 1, 0.1, 0, e, 'drift', true, 0, 100); } return; }
+      if (s.phase === 'banner') { if (s.t >= (s.auto ? 0.1 : SWP_C.bannerT)) { s.phase = s.auto ? 'flow' : 'drift'; s.t = 0; s.acc = 0; } return; }
       if (s.phase === 'drift' || s.phase === 'flow') {
         s.acc += this.dt * SWP_C.gps * (s.auto ? 3 : 1);
         while (s.acc >= 1) {
           s.acc -= 1; if (this.gen3(s)) { s.lost++; ev.push({ k: 'lost' }); }
           if (s.gen % 5 === 0) ev.push({ k: 'gen', g: s.gen });
-          if (s.phase === 'drift' && s.gen >= SWP_C.fGens[0]) { s.snap100 = { p: s.p.slice(), f: s.f.map(r => r.slice()), F: s.F.slice(), FE: s.FE.slice() }; s.phase = 'lay'; s.t = 0; s.acc = 0; ev.push({ k: 'reveal', id: 'f1' }, { k: 'lay' }); return; }
-          if (s.phase === 'flow' && s.gen >= SWP_C.fGens[1]) { s.phase = 'over'; ev.push({ k: 'reveal', id: 'f2' }, { k: 'over' }); return; }
+          if (s.phase === 'drift' && s.gen >= SWP_C.fGens[0]) { s.snap100 = { p: s.p.slice(), f: s.f.map(r => r.slice()), F: s.F.slice(), FE: s.FE.slice() }; s.phase = 'lay'; s.t = 0; s.acc = 0; ev.push({ k: 'lay' }); return; }
+          if (s.phase === 'flow' && s.gen >= SWP_C.fGens[1]) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
         }
         return;
       }
       if (s.phase === 'lay' && s.t >= SWP_C.layMax) this.sail3(s, ev);
     },
-    route(s, ev, a, b) {
-      if (s.phase !== 'lay') return; a = a | 0; b = b | 0; if (a === b || b < 0 || b > 4 || a < -1 || a > 4) return; if (a > b) { const t = a; a = b; b = t; }
+    route(s, ev, a, b) {   // L3 (from the harbour, -1, or between isles; five at most) and the boss (between isles; three at most)
+      const boss = s.level === 3; if (s.phase !== (boss ? 'plan' : 'lay')) return; a = a | 0; b = b | 0; if (a > b) { const t = a; a = b; b = t; }
+      if (a === b || b < 0 || b > 4 || a < (boss ? 0 : -1) || a > 4) return;
       const i = s.routes.findIndex(r => r[0] === a && r[1] === b);
       if (i >= 0) { s.routes.splice(i, 1); ev.push({ k: 'unroute', a, b }); return; }
-      if (s.routes.length >= 5) { ev.push({ k: 'budget' }); return; }
+      if (s.routes.length >= (boss ? SWP_C.bossMax : 5)) { ev.push({ k: 'budget' }); return; }
       s.routes.push([a, b]); ev.push({ k: 'route', a, b });
     },
-    sail3(s, ev) { if (s.phase !== 'lay') return; const e = this.expF(s.f, s.routes, s.N, SWP_C.fGens[1] - SWP_C.fGens[0]), now = s.F[s.F.length - 1]; s.e2 = e; this.openAsk(s, ev, 'f2', 'y', 0, 1, 0.05, now, e, 'flow', Math.abs(e - now) > 0.05, 0, SWP_C.fGens[1]); },
+    sail3(s, ev) { if (s.phase !== 'lay') return; s.e2 = this.expF(s.f, s.routes, s.N, SWP_C.fGens[1] - SWP_C.fGens[0]); s.phase = 'flow'; s.t = 0; s.acc = 0; ev.push({ k: 'sail' }); },
 
     /* ---------- L4: the boss. Colour gene under owls on every isle, the neutral marker, two ferries ---------- */
     Mfer(fer, mF) { const M = [0, 1, 2, 3, 4].map(i => { const r = [0, 0, 0, 0, 0]; r[i] = 1; return r; }); for (const f of fer) { if (f.length < 2) continue; for (const i of f) { M[i][i] -= mF; for (const j of f) if (j !== i) M[i][j] += mF / (f.length - 1); } } return M; },
@@ -398,11 +397,12 @@ const CH_SWAMP_V2 = {
       const M6 = M.map(r => r.concat([0]));
       for (let t = 0; t < gens; t++) { pD = [0, 1, 2, 3, 4].map(i => this.selIsle(pD, M, i, P.sB.v)); f = this.fstep(f, M6, N); }
       const dark = pD.map(p => 1 - (1 - p) * (1 - p)), H = f.map((r, i) => 1 - r[i]);
-      const okI = i => (SW_ISLES[i][2] ? dark[i] >= 0.75 : dark[i] <= 0.25) && H[i] >= 0.5;
-      return { dark: dark.map(x => Math.round(x * 1000) / 1000), H: H.map(x => Math.round(x * 1000) / 1000), fc: Math.round(this.fstVar(pD) * 1e4) / 1e4, held: [0, 1, 2, 3, 4].filter(okI).length, ok: [0, 1, 2, 3, 4].map(okI) };
+      const match = i => SW_ISLES[i][2] ? dark[i] >= 0.75 : dark[i] <= 0.25, okI = i => match(i) && H[i] >= 0.5;
+      return { dark: dark.map(x => Math.round(x * 1000) / 1000), H: H.map(x => Math.round(x * 1000) / 1000), fc: Math.round(this.fstVar(pD) * 1e4) / 1e4, held: [0, 1, 2, 3, 4].filter(okI).length, ok: [0, 1, 2, 3, 4].map(okI),
+        why: [0, 1, 2, 3, 4].map(i => okI(i) ? 'ok' : !match(i) ? 'bad' : 'drifted') };   // why an isle failed: swamped coat, or a marker worn down by drift
     },
     gen4(s) {
-      const P = this.P(), N = s.N, M = this.Mfer(s.fer, P.mF.v), M6 = M.map(r => r.concat([0]));
+      const P = this.P(), N = s.N, M = this.Mfer(s.routes, P.mF.v), M6 = M.map(r => r.concat([0]));
       const ps = [0, 1, 2, 3, 4].map(i => this.selIsle(s.pD, M, i, P.sB.v)); s.pD = ps.map(x => WF.binom(2 * N, x) / (2 * N));
       const d = s.p.map(x => WF.binom(2 * N, x) / (2 * N)); s.p = [0, 1, 2, 3, 4].map(i => { let a = 0; for (let k = 0; k < 5; k++) a += M[i][k] * d[k]; return Math.round(a * 1e9) / 1e9; });
       s.f = this.fstep(s.f, M6, N); s.gen++;
@@ -413,21 +413,10 @@ const CH_SWAMP_V2 = {
       if (s.phase === 'plan') { if (s.t >= SWP_C.planMax || s.auto) this.sail4(s, ev); return; }
       if (s.phase === 'run') {
         s.acc += this.dt * SWP_C.bossGps * (s.auto ? 3 : 1);
-        while (s.acc >= 1) { s.acc -= 1; this.gen4(s); if (s.gen % 5 === 0) ev.push({ k: 'gen', g: s.gen }); if (s.gen >= SWP_C.bossG) { s.phase = 'over'; ev.push({ k: 'reveal', id: 't1' }, { k: 'over' }); return; } }
+        while (s.acc >= 1) { s.acc -= 1; this.gen4(s); if (s.gen % 5 === 0) ev.push({ k: 'gen', g: s.gen }); if (s.gen >= SWP_C.bossG) { s.phase = 'over'; ev.push({ k: 'over' }); return; } }
       }
     },
-    stop(s, ev, i) {
-      if (s.phase !== 'plan') return; i = i | 0; if (i < 0 || i > 4) return; const F = s.fer[s.cf], o = s.fer[1 - s.cf];
-      const k = F.indexOf(i); if (k >= 0) { F.splice(k, 1); ev.push({ k: 'unstop', f: s.cf, i }); return; }
-      if (o.indexOf(i) >= 0) { ev.push({ k: 'taken', i }); return; }
-      if (F.length >= 3) { ev.push({ k: 'full' }); return; }
-      F.push(i); ev.push({ k: 'stop', f: s.cf, i, n: F.length });
-    },
-    sail4(s, ev) {
-      if (s.phase !== 'plan') return; s.ex = this.expPlan(s.fer, SWP_C.bossG); s.eD = s.pD.slice();
-      if (s.auto) { s.phase = 'run'; s.t = 0; return; }
-      this.openAsk(s, ev, 't1', 'y', 0, 1, 0.1, 0, s.ex.fc, 'run', s.fer.some(f => f.length >= 2), 0, SWP_C.bossG);
-    },
+    sail4(s, ev) { if (s.phase !== 'plan') return; s.ex = this.expPlan(s.routes, SWP_C.bossG); s.eD = s.pD.slice(); s.phase = 'run'; s.t = 0; s.acc = 0; ev.push({ k: 'sail' }); },
 
     /* ---------- predictions: the sim opens the ask; the expectation is the model's, never the realised run ---------- */
     openAsk(s, ev, id, kind, lo, hi, tol, start, expect, resume, counts, chart, at) {
@@ -439,17 +428,16 @@ const CH_SWAMP_V2 = {
       if (v != null && isFinite(+v)) { v = Math.max(A.lo, Math.min(A.hi, +v)); hit = Math.abs(v - e) <= A.tol; } else v = null;
       s.pred[id] = v; s.hits[id] = hit; s.ask = null; s.t = 0; ev.push({ k: 'commit', id });
       const r = s.resume; s.resume = null;
-      if (s.level === 0) { this.nextNight(s, ev); return; }
-      if (s.level === 1) { this.applyCoast(s, id); s.phase = 'relax'; return; }
+      if (s.level === 0) { this.startRound(s, s.r + 1, ev); return; }
       s.phase = r; s.acc = 0;
     },
     /* ---------- What if? (D1 G9): the finished level is frozen; one lever reruns its main part by itself ---------- */
     lever(k) {
       const s = this.s; s.whatif = k; s.ask = null; s.t = 0; s.auto = true; s.acc = 0; const n = s.level;
       if (n === 0) { s.sW = k === 'weak' ? Math.round(s.sY * 50) / 100 : s.sY; s.mOver = k === 'noferry' ? 0 : 0.1; s.mine = s.rd[1] ? s.rd[1].d[9] : null; s.rd.length = 1; this.startRound(s, 1, []); }
-      else if (n === 1) { s.w0 = s.ws[0] ? s.ws[0].w : null; s.p = new Array(SWP_C.ND).fill(0.5); s.owls = 1; s.cur = 0; s.sig = k === 'wide' ? 2 * SWP_C.sig0 : SWP_C.sig0; if (k === 'oneside') s.roosts = [6, 12, 18, 24]; s.ws = []; s.phase = 'build'; s.tl = 0; }
+      else if (n === 1) { s.w0 = s.ws[0] ? s.ws[0].w : null; s.p = new Array(SWP_C.ND).fill(0.5); s.owls = 1; s.sig = k === 'wide' ? 2 * SWP_C.sig0 : SWP_C.sig0; if (k === 'oneside') s.roosts = [6, 12, 18, 24]; s.ws = []; s.phase = 'build'; s.tl = 0; }
       else if (n === 2) { const b = s.snap100; if (k === 'none') s.routes = []; if (k === 'big') s.N = 4 * s.N; s.p = b.p.slice(); s.f = b.f.map(r => r.slice()); s.F = b.F.slice(); s.FE = b.FE.slice(); s.gen = SWP_C.fGens[0]; s.wiE = this.expF(s.f, s.routes, s.N, SWP_C.fGens[1] - SWP_C.fGens[0]); s.phase = 'flow'; }
-      else { s.fer = k === 'mixed' ? [[0, 2, 3], [1, 4]] : [[], []]; s.p = [0.5, 0.5, 0.5, 0.5, 0.5]; s.pD = [0.55, 0.55, 0, 0, 0]; s.gen = 0; s.f = this.zf(); s.Fn = [0]; s.Fc = [this.fstVar(s.pD)]; s.En = [0]; s.Ec = [s.Fc[0]]; s.phase = 'plan'; }
+      else { s.routes = k === 'mixed' ? [[0, 4], [1, 3], [2, 3]] : []; s.p = [0.5, 0.5, 0.5, 0.5, 0.5]; s.pD = [0.55, 0.55, 0, 0, 0]; s.gen = 0; s.f = this.zf(); s.Fn = [0]; s.Fc = [this.fstVar(s.pD)]; s.En = [0]; s.Ec = [s.Fc[0]]; s.phase = 'plan'; }
     },
     act(a) {
       const s = this.s, ev = []; if (!s || !a) return ev;
@@ -466,8 +454,7 @@ const CH_SWAMP_V2 = {
       } else if (s.level === 2) {
         if (a.k === 'route') this.route(s, ev, a.a, a.b); else if (a.k === 'sail') this.sail3(s, ev);
       } else {
-        if (a.k === 'stop') this.stop(s, ev, a.i); else if (a.k === 'ferry' && s.phase === 'plan') { s.cf = a.f ? 1 : 0; ev.push({ k: 'ferry', f: s.cf }); }
-        else if (a.k === 'clear' && s.phase === 'plan') { s.fer[s.cf] = []; ev.push({ k: 'clear', f: s.cf }); } else if (a.k === 'sail') this.sail4(s, ev);
+        if (a.k === 'route') this.route(s, ev, a.a, a.b); else if (a.k === 'sail') this.sail4(s, ev);
       }
       return ev;
     },
@@ -478,11 +465,11 @@ const CH_SWAMP_V2 = {
     },
     interesting(s) {   // chosen from what happened (lessons §1.5)
       if (s.whatif) return null; const n = s.level, st = CH_SWAMP_V2.stars;
-      if (n === 0) { const ok = s.hunts.filter(h => h.fed >= SWP_C.feed).length; return ok < 4 ? 'hungry' : null; }
+      if (n === 0) { const ok = s.hunts.filter(h => h.fed >= SWP_C.feed).length; return ok < 3 ? 'hungry' : null; }
       if (n === 1) { if (st.discover(s, 1)) return null; const lava = s.roosts.filter(r => r < SWP_C.E).length; return lava === 0 || lava === 4 ? 'lopsided' : 'wide'; }
       if (n === 2) { if (st.discover(s, 2)) return null; return s.routes.length ? 'fewRoutes' : 'allLost'; }
-      if (st.discover(s, 3) || !s.ex) return null;
-      const mixed = s.fer.some(f => f.some(i => SW_ISLES[i][2]) && f.some(i => !SW_ISLES[i][2])); return mixed ? 'mixed' : 'alone';
+      if (st.transfer(s, 3) || !s.ex) return null;
+      const mixed = s.routes.some(r => SW_ISLES[r[0]][2] !== SW_ISLES[r[1]][2]); return mixed ? 'mixed' : 'alone';
     },
     snapshot() { return Snap.enc({ s: this.s, rs: R.state() }); },
     restore(str) { const o = Snap.dec(str); this.s = o.s; R.restore(o.rs); },
@@ -493,7 +480,7 @@ const CH_SWAMP_V2 = {
       if (s.level === 0 && s.phase === 'hunt' && s.h) { for (const mo of s.h.mice) if (mo.u > 0.1 && mo.u < 0.9) out.push({ k: 'strike', id: mo.id }); if (s.unt) { out.push({ k: 'letgo' }); if (!s.h.mice.length) out.push({ k: 'endnight' }); } }
       else if (s.level === 1 && s.phase === 'build') { for (let i = 0; i < 4; i++) for (const x of [6, 18, 26, 34, 42, 54]) out.push({ k: 'roost', i, x }); out.push({ k: 'measure' }); }
       else if (s.level === 2 && s.phase === 'lay') { for (let a = -1; a < 5; a++) for (let b = a + 1; b < 5; b++) if (b >= 0) out.push({ k: 'route', a, b }); out.push({ k: 'sail' }); }
-      else if (s.level === 3 && s.phase === 'plan') { for (let i = 0; i < 5; i++) out.push({ k: 'stop', i }); out.push({ k: 'ferry', f: 1 - s.cf }, { k: 'clear' }, { k: 'sail' }); }
+      else if (s.level === 3 && s.phase === 'plan') { for (let a = 0; a < 5; a++) for (let b = a + 1; b < 5; b++) out.push({ k: 'route', a, b }); out.push({ k: 'sail' }); }
       return out;
     },
     /* bots (tests/bots.js): (s, acts, rnd) → action | null; 'random' is generic. No bot may earn three stars in a level, nor across the unit. */
@@ -534,8 +521,8 @@ const CH_SWAMP_V2 = {
         return routes === 'none' ? null : { k: 'sail' };
       }
       if (s.level === 3 && s.phase === 'plan') {
-        const want = plan === 'win' ? [[0, 1], [2, 3, 4]] : plan === 'near' ? [[0, 4], [1, 3]] : plan === 'mixed' ? [[0, 2, 1], [3, 4]] : null; if (!want) return null;
-        for (let f = 0; f < 2; f++) for (const i of want[f]) if (s.fer[f].indexOf(i) < 0) return s.cf !== f ? { k: 'ferry', f } : { k: 'stop', i };
+        const want = plan === 'win' ? [[0, 1], [2, 3], [3, 4]] : plan === 'near' ? [[0, 4], [1, 3], [2, 3]] : plan === 'mixed' ? [[0, 2], [1, 2], [3, 4]] : null; if (!want) return null;
+        for (const [a, b] of want) if (!s.routes.some(r => r[0] === a && r[1] === b)) return { k: 'route', a, b };
         return { k: 'sail' };
       }
       return null;
@@ -546,29 +533,25 @@ const CH_SWAMP_V2 = {
   stars: {
     discover: (s, n) => {
       if (s.whatif) return false;
-      if (n === 0) return s.phase === 'over' && s.rd.length === 3 && s.hunts.filter(h => h.fed >= SWP_C.feed).length >= 5;
+      if (n === 0) return s.phase === 'over' && s.rd.length === 3 && s.hunts.filter(h => h.fed >= SWP_C.feed).length >= 3;
       if (n === 1) return !!s.disc;
       if (n === 2) return s.e2 != null && s.e2 <= 0.3 && s.routes.length > 0;
-      return !!(s.ex && s.ex.held === 5);
+      return false;
     },
-    predict: (s, n) => {
-      if (s.whatif || n > 2) return false; const ids = [['a0', 'a1', 'a2'], ['w1', 'w2', 'c3'], ['f1', 'f2']][n], c = ids.filter(id => s.cnt[id]);
-      if (n === 2) return ids.every(id => s.hits[id]);
-      return c.length >= 2 && c.filter(id => s.hits[id]).length >= 2;
-    },
-    transfer: (s, n) => !s.whatif && n === 3 && !!s.hits.t1 && !!s.cnt.t1
+    predict: (s, n) => !s.whatif && n === 0 && !!s.cnt.th && !!s.hits.th,   // the chapter's one prediction (D6 decision 9)
+    transfer: (s, n) => !s.whatif && n === 3 && !!(s.ex && s.ex.held === 5)
   },
-  unitStars(lv) {   // D3 G10: Discover = two levels including the boss; Predict = two of L1–L3; Transfer = the boss
-    const m = i => lv[i] | 0; let d = 0, p = 0; for (let i = 0; i < 4; i++) { if (m(i) & 1) d++; if (i < 3 && (m(i) & 2)) p++; }
-    return (d >= 2 && (m(3) & 1) ? 1 : 0) | (p >= 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
+  unitStars(lv) {   // Discover = two of L1–L3; Predict = L1's one prediction; Transfer = the boss
+    const m = i => lv[i] | 0; let d = 0; for (let i = 0; i < 3; i++) if (m(i) & 1) d++;
+    return (d >= 2 ? 1 : 0) | (m(0) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
   /* result code (30 bits) on assignment links: 0–2 level, 3–5 mask, 6–13 a level number (L1 s ×100, L2 first width ×4, L3 final F_ST ×100,
-     L4 isles held), 14–20 first prediction ×100 of its axis span, 21–27 second */
+     L4 isles held), 14–20 L1's prediction ×100 of its axis span (127 = none), 21–27 routes laid (L3, L4) */
   resultBits(s, level) {
     if (!s) return 0; const n = Math.max(0, Math.min(3, level | 0)), st = this.stars, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
     const x = n === 0 ? 100 * (s.sY || 0) : n === 1 ? 4 * ((s.ws && s.ws[0]) ? s.ws[0].w : 0) : n === 2 ? 100 * (s.F ? s.F[s.F.length - 1] : 0) : (s.ex ? s.ex.held : 0);
-    const pv = id => { const v = s.pred[id], A = { w1: 30, w2: 30, c3: 60 }[id] || 1; return v == null ? 127 : c(100 * v / A, 126); }, ids = s.asks;
-    return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv(ids[0]) << 14 | pv(ids[1]) << 21) >>> 0;
+    const pv = id => { const v = s.pred[id]; return v == null ? 127 : c(100 * v / SWP_C.thHi, 126); };
+    return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv('th') << 14 | c(s.routes ? s.routes.length : 0, 127) << 21) >>> 0;
   },
   /* ================= view: lifecycle, input, juice, drawing (juice from Sim.run's events only) ================= */
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
@@ -624,17 +607,20 @@ const CH_SWAMP_V2 = {
     if (n === 0) Ghost.show({ verb: 'tap', key: ' ', at: () => { const m = this.openMice()[0]; return m ? [m.x, m.y] : [Stage.w * 0.55, Stage.h * 0.62]; }, until: () => this.sim.s.hunts.length > 0 || (this.sim.s.h && this.sim.s.h.strikes > 0) });
     else if (n === 1) Ghost.show({ verb: 'drag', key: 'ArrowLeft', at: () => { const P = this.pos(); return [P.X(s.roosts[0]), P.postY]; }, to: () => { const P = this.pos(); return [P.X(24), P.postY]; }, until: () => this.sim.s.moved > 0 });
     else if (n === 2) Ghost.show({ verb: 'drag', key: '1', at: () => { const P = this.pos(); return P.node(-1); }, to: () => { const P = this.pos(); return P.node(4); }, until: () => this.sim.s.routes.length > 0 });
-    else Ghost.show({ verb: 'tap', key: '1', at: () => this.pos().node(0), until: () => this.sim.s.fer[0].length > 0 });
+    else Ghost.show({ verb: 'drag', key: '4', at: () => this.pos().node(4), to: () => this.pos().node(3), until: () => this.sim.s.routes.length > 0 });   // the L3 verb again, so Ghost usually skips it
   },
   hud() {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     let t = C.over, num = '';
     if (s.auto) t = C.auto;
-    else if (s.phase === 'ask') { const A = s.ask.id; t = A[0] === 'a' ? Txt.f(C.askA, { m: this.f2(s.m), s: this.f2(s.sY || 0) }) : { w1: C.askW1, w2: C.askW2, c3: C.askC, f1: C.askF1, f2: C.askF2, t1: C.askT }[A]; }
-    else if (s.level === 0) t = s.phase === 'hunt' ? (s.n === 1 && s.r === 0 && !s.hunts.length ? this.content.firstWords : s.unt ? C.huntU : C.hunt) : s.phase === 'gap' ? C.gap : s.phase === 'dawn' && this.sim.hands(s, s.n) ? C.dawn : C.lapse;
-    else if (s.level === 1) t = s.phase === 'build' ? C.build : s.phase === 'relax' ? C.relax : C.measure;
+    else if (s.phase === 'ask') t = Txt.f(C.askTh, { s: this.f2(s.sY || 0) });
+    else if (s.level === 0) {   // the key number (D6 decision 9): once s is known, every time-lapse names m against s, with its meaning
+      const key = s.sY != null && (s.phase === 'dawn' || s.phase === 'banner') && !this.sim.hands(s, s.n) ? Txt.f(s.m >= s.sY ? C.keySwamp : C.keyHold, { m: this.f2(s.m), s: this.f2(s.sY) }) : null;
+      t = s.phase === 'hunt' ? (s.n === 1 && s.r === 0 && !s.hunts.length ? this.content.firstWords : s.unt ? C.huntU : C.hunt) : s.phase === 'gap' ? C.gap : key || (s.phase === 'dawn' && this.sim.hands(s, s.n) ? C.dawn : C.lapse);
+    }
+    else if (s.level === 1) t = s.phase === 'build' ? C.build : s.ws.length === 1 && s.phase !== 'relax' ? C.measure : s.sig < SWP_C.sig0 ? C.wet : C.owls;
     else if (s.level === 2) t = s.phase === 'lay' ? C.lay : s.phase === 'flow' ? C.flow : C.drift;
-    else t = s.phase === 'plan' ? Txt.f(C.plan, { f: s.cf + 1 }) : C.run;
+    else t = s.phase === 'plan' ? C.plan : C.run;
     if (s.phase === 'over' && !s.auto) t = C.over;
     if (s.level === 0) num = s.phase === 'hunt' && s.h ? Txt.f(L.fedN, { a: Math.min(s.h.fed, SWP_C.feed), b: SWP_C.feed }) : Txt.f(L.dark, { p: this.pc(s.dark || SWP_C.d0) });
     else if (s.level === 1) { const m = this.sim.measure(s.p); num = Txt.f(L.w, { w: m.w >= 60 ? '—' : m.w.toFixed(1) }); }
@@ -646,22 +632,17 @@ const CH_SWAMP_V2 = {
   },
   dock() {
     if (typeof Dock === 'undefined') return; const s = this.sim.s, L = this.content.labels;
-    const sig = s.level + s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '') + (s.cf || 0) + (s.routes ? s.routes.length : '') + (s.fer ? s.fer.map(f => f.length).join('') : '');
+    const sig = s.level + s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.auto ? 'a' : '') + (s.routes ? s.routes.length : '');
     if (sig === this._dockSig) return; this._dockSig = sig;
     if (s.ask) { Dock.set([{ id: 'sw-lock', label: L.lock, key: 'Enter', primary: true, fn: () => this.lockIn() }]); return; }
     if (s.auto || s.phase === 'over') { Dock.set([]); return; }
     if (s.level === 0 && s.phase === 'hunt' && s.unt) { Dock.set([{ id: 'sw-let', label: L.letgo, key: 'n', fn: () => Sim.act(this, { k: 'letgo' }) }, { id: 'sw-end', label: L.endN, key: 'Enter', fn: () => Sim.act(this, { k: 'endnight' }) }]); return; }
     if (s.level === 1 && s.phase === 'build') { Dock.set([{ id: 'sw-meas', label: L.measure, key: 'Enter', primary: true, fn: () => Sim.act(this, { k: 'measure' }) }]); return; }
-    if (s.level === 2 && s.phase === 'lay') { Dock.set([{ id: 'sw-sail', label: L.sail, key: 'Enter', primary: s.routes.length > 0, fn: () => Sim.act(this, { k: 'sail' }) }]); return; }
-    if (s.level === 3 && s.phase === 'plan') {
-      Dock.set([{ id: 'sw-f', label: Txt.f(L.ferry, { f: s.cf + 1 }), key: 'f', pressed: true, fn: () => Sim.act(this, { k: 'ferry', f: 1 - s.cf }) }, { id: 'sw-clr', label: L.clear, key: 'Backspace', fn: () => Sim.act(this, { k: 'clear' }) },
-        { id: 'sw-sail', label: L.sail, key: 'Enter', primary: s.fer[0].length + s.fer[1].length > 0, fn: () => Sim.act(this, { k: 'sail' }) }]); return;
-    }
+    if ((s.level === 2 && s.phase === 'lay') || (s.level === 3 && s.phase === 'plan')) { Dock.set([{ id: 'sw-sail', label: L.sail, key: 'Enter', primary: s.routes.length > 0, fn: () => Sim.act(this, { k: 'sail' }) }]); return; }
     Dock.set([]);
   },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
-    if (A.id === 'f2' || A.id === 'a1' || A.id === 'a2') Predict.clear(0);
     Predict.ask({ id: A.id, chart: A.chart, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start: A.start, at: A.at == null ? undefined : A.at, tol: A.tol, soft: s.unt ? null : 24, needMove: true, linger: 900,
       onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'predict', id: A.id, v: null, moved: false }), say: this.content.live.ask });
     if (typeof Live !== 'undefined') Live.say(this.content.live.ask);
@@ -690,11 +671,12 @@ const CH_SWAMP_V2 = {
     if (n === 0) {
       if (s.whatif) { const d = s.rd[1] && s.rd[1].d[9] != null ? s.rd[1].d[9] : 0, p0 = sim.p0();
         return { d: pc(d), e: pc(sim.exp10(p0, 0, s.sW, s.mOver)), e2: pc(sim.exp10(p0, 0, s.sY, 0.1)), m: f2(s.mOver), s: f2(s.sW), why: s.mOver >= s.sW ? this.content.whatifBody.weakSw : this.content.whatifBody.weakOk }; }
-      const R0 = s.rd, d10 = i => R0[i] && R0[i].d[9] != null ? pc(R0[i].d[9]) : 0, e = i => s.exp['a' + i] != null ? pc(s.exp['a' + i]) : 0;
-      return { s: f2(s.sY), a: d10(0), b: d10(1), c: d10(2), m1: f2(R0[0] && R0[0].m), m2: f2(R0[1] && R0[1].m), m3: f2(R0[2] && R0[2].m), e1: e(0), e2: e(1), e3: e(2) };
+      const R0 = s.rd, d10 = i => R0[i] && R0[i].d[9] != null ? pc(R0[i].d[9]) : 0, W = this.content.whatifBody;   // round three's m always reaches s; round two's does only if s ≤ 0.1
+      return { s: f2(s.sY), a: d10(0), b: d10(1), c: d10(2), m1: f2(R0[0] && R0[0].m), m2: f2(R0[1] && R0[1].m), m3: f2(R0[2] && R0[2].m), k: R0[1] && R0[1].m >= s.sY ? W.twoSw : W.lastSw };
     }
-    if (n === 1) { const w = i => s.ws[i] ? s.ws[i].w.toFixed(1) : '—', last = s.ws[s.ws.length - 1] || { c: 30, w: 0 }; return { w0: s.w0 != null ? s.w0.toFixed(1) : w(0), w1: w(1), w2: w(2), c: last.c.toFixed(1), w: last.w.toFixed(1) }; }
-    if (n === 2) { const F = s.F; return { f1: f2(F[100]), e1: f2(s.exp.f1), f2: f2(F[F.length - 1]), e2: f2(s.whatif ? s.wiE : s.exp.f2), f: f2(F[F.length - 1]), e: f2(s.wiE) }; }
+    if (n === 1) { const w = i => s.ws[i] ? s.ws[i].w.toFixed(1) : '—', last = s.ws[s.ws.length - 1] || { c: 30, w: 0 }, r = s.ws[0] && s.ws[1] && s.ws[1].w > 0 ? (s.ws[0].w / s.ws[1].w).toFixed(2) : '—';
+      return { w0: s.w0 != null ? s.w0.toFixed(1) : w(0), w1: w(1), w2: w(2), r, c: last.c.toFixed(1), w: last.w.toFixed(1) }; }
+    if (n === 2) { const F = s.F; return { f1: f2(F[100]), e1: f2(s.e1), f2: f2(F[F.length - 1]), e2: f2(s.whatif ? s.wiE : s.e2), f: f2(F[F.length - 1]), e: f2(s.wiE) }; }
     const ex = s.ex || { held: 0, H: [1] }; return { n: ex.held, h: Math.round(100 * Math.min.apply(null, ex.H)) };
   },
 
@@ -727,7 +709,9 @@ const CH_SWAMP_V2 = {
       case 'nightend': this.whisper(e.ok ? 'fed' : 'hungry'); if (F && e.ok) F.tier(2, () => F.ring(P.nest[0], P.nest[1], 34, { ms: 600 })); snd(e.ok ? 'peep' : 'dusk', P.nest[0], P.nest[1]); redraw(); return;
       case 'sY': if (F) F.tier(3, () => this.banner('s = ' + this.f2(e.s), 1400)); redraw(); return;
       case 'endround': redraw(); return;
-      case 'reveal': this.reveal(e.id); if (s.level === 0 && e.id === 'a2' && s.rd[2] && s.m >= (s.sY || 1) && !v.said.sw) { v.said.sw = 1; this.whisper('swamp'); } return;
+      case 'reveal': this.reveal(e.id); return;
+      case 'change': if (F) F.tier(2, () => this.banner(e.st === 1 ? this.content.labels.owls2 : this.content.labels.wet, 1300)); redraw(); return;
+      case 'sail': redraw(); return;
       case 'ask': return;
       case 'commit': if (this.phoneStrip()) v.hold = 0; return;
       case 'roost': { const x = P.X(e.x); if (F) F.burst('dust', x, P.landY, 4, { ink: '#8C7A5A' }); return; }
@@ -739,10 +723,6 @@ const CH_SWAMP_V2 = {
       case 'lay': this.teach(); redraw(); return;
       case 'lost': if (!v.said.lost) { v.said.lost = 1; this.whisper('lost'); } return;
       case 'gen': if (e.g % 25 === 0) { snd('tick', 30, P.H - 26); live('gen', { n: e.g, f: this.f2(s.level === 2 ? s.F[s.F.length - 1] : s.Fn[s.Fn.length - 1]) }); } redraw(); return;
-      case 'stop': case 'unstop': { const q = P.node(e.i); if (F) { F.tier(1); F.ring(q[0], q[1], P.ir * 1.2, { ms: 180 }); } snd(e.k === 'stop' ? 'tock' : 'swish', q[0], q[1]); redraw(); return; }
-      case 'taken': this.whisper('taken'); return;
-      case 'full': this.whisper('full'); return;
-      case 'ferry': case 'clear': redraw(); return;
       case 'unt': this._dockSig = ''; return;
       case 'over': if (s.level === 3 && s.ex && F) F.tier(3, () => F.ring(P.W / 2, P.H / 2, 60, { ms: 900 })); snd('interesting', P.W / 2, P.H / 2); return;
     }
@@ -764,21 +744,20 @@ const CH_SWAMP_V2 = {
       if (bi >= 0) { v.sel = bi; v.drag = { i: bi, x0: x }; return; }
       if (y > P.top + 20 && y < P.seaY + 20) Sim.act(this, { k: 'roost', i: v.sel, x: Math.round(P.K(x) * 10) / 10 }); return;
     }
-    if (s.level === 2 && s.phase === 'lay') {
-      const nd = this.nodeAt(x, y, true); if (nd != null) { v.drag = { a: nd, x, y }; return; }
+    if ((s.level === 2 && s.phase === 'lay') || (s.level === 3 && s.phase === 'plan')) {   // one verb for both: drag a ferry route (tap-tap works too)
+      const nd = this.nodeAt(x, y, s.level === 2); if (nd != null) { v.drag = { a: nd, x, y }; return; }
       const ri = this.routeAt(x, y); if (ri >= 0) { const r = s.routes[ri]; Sim.act(this, { k: 'route', a: r[0], b: r[1] }); } return;
     }
-    if (s.level === 3 && s.phase === 'plan') { const nd = this.nodeAt(x, y, false); if (nd != null) Sim.act(this, { k: 'stop', i: nd }); }
   },
   move(x, y) {
     const s = this.sim.s, v = this.v; if (!v.drag) return; const P = this.pos();
     if (s.level === 1 && s.phase === 'build' && v.drag.i != null) { const k = Math.round(P.K(x) * 10) / 10; if (Math.abs(k - s.roosts[v.drag.i]) >= 0.3) Sim.act(this, { k: 'roost', i: v.drag.i, x: k }); }
-    if (s.level === 2) { v.drag.x = x; v.drag.y = y; }
+    if (s.level >= 2) { v.drag.x = x; v.drag.y = y; }
   },
   up(x, y) {
     const s = this.sim.s, v = this.v, d = v.drag; v.drag = null; if (!d) return;
-    if (s.level === 2 && s.phase === 'lay') {
-      const nd = this.nodeAt(x, y, true);
+    if ((s.level === 2 && s.phase === 'lay') || (s.level === 3 && s.phase === 'plan')) {
+      const nd = this.nodeAt(x, y, s.level === 2);
       if (nd != null && nd !== d.a) Sim.act(this, { k: 'route', a: d.a, b: nd });
       else if (nd === d.a) { if (v.pick != null && v.pick !== nd) { Sim.act(this, { k: 'route', a: v.pick, b: nd }); v.pick = null; } else v.pick = nd; }   // tap, then tap: the tap alternative to the drag
     }
@@ -793,8 +772,7 @@ const CH_SWAMP_V2 = {
       return;
     }
     if (s.level === 1 && s.phase === 'build') { if (/^[1-4]$/.test(k)) v.sel = +k - 1; else if (k === 'ArrowLeft' || k === 'ArrowRight') Sim.act(this, { k: 'roost', i: v.sel, x: s.roosts[v.sel] + (k === 'ArrowLeft' ? -1 : 1) }); return; }
-    if (s.level === 2 && s.phase === 'lay' && /^[0-5]$/.test(k)) { const nd = +k - 1; if (v.pick != null && v.pick !== nd) { Sim.act(this, { k: 'route', a: v.pick, b: nd }); v.pick = null; } else v.pick = nd; return; }
-    if (s.level === 3 && s.phase === 'plan' && /^[1-5]$/.test(k)) Sim.act(this, { k: 'stop', i: +k - 1 });
+    if (((s.level === 2 && s.phase === 'lay' && /^[0-5]$/.test(k)) || (s.level === 3 && s.phase === 'plan' && /^[1-5]$/.test(k)))) { const nd = +k - 1; if (v.pick != null && v.pick !== nd) { Sim.act(this, { k: 'route', a: v.pick, b: nd }); v.pick = null; } else v.pick = nd; }
   },
   teacherStep() { this.v.ff = true; },
 
@@ -947,7 +925,6 @@ const CH_SWAMP_V2 = {
     if (s.phase === 'build') for (let i = 0; i < SWP_C.ND; i++) if (sp[i] > 0) { c.fillStyle = 'rgba(214,220,255,' + Math.min(0.08, sp[i] * 0.5).toFixed(3) + ')'; c.fillRect(P.X(i), P.landTop - 4, P.X(i + 1) - P.X(i) + 0.5, P.seaY - P.landTop); }
     const rows = P.rows, band = P.seaY - P.landTop - 18;   // the mice: each patch shows its true dark share, a few deep
     for (let j = 0; j < rows; j++) for (let i = 0; i < SWP_C.ND; i++) { const hh = this.hash('c' + i + ':' + j), dark = (hh % 1000) / 1000 < s.p[i], x = P.X(i + 0.1 + 0.8 * ((hh >>> 10) % 100) / 100), y = P.landTop + 12 + band * (j + 0.2 + 0.6 * ((hh >>> 17) % 100) / 100) / rows; this.drawMouse(c, x, y, dark, P.ms, (hh & 1) ? 1 : -1); }
-    if (s.cur) { const t = typeof Fx !== 'undefined' && Fx.calm ? 0 : v.t; for (let k = 0; k < 4; k++) { const x = w - ((t * 26 + k * w / 4) % (w + 40)), y = P.seaY + 14 + (k % 2) * 16; c.fillStyle = '#5B4A36'; c.fillRect(x - 14, y, 28, 5); this.drawMouse(c, x, y - 2, false, P.ms * 0.9, -1); c.strokeStyle = 'rgba(200,206,240,0.5)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x + 22, y + 2); c.lineTo(x + 30, y - 2); c.moveTo(x + 22, y + 2); c.lineTo(x + 30, y + 6); c.stroke(); } }
     const osz = P.osz;
     for (let i = 0; i < 4; i++) { const x = P.X(s.roosts[i]); c.strokeStyle = '#2A231C'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, P.landTop + 10); c.lineTo(x, P.postY + osz * 0.35); c.stroke(); c.lineWidth = 2; c.beginPath(); c.moveTo(x, P.postY + osz * 0.6); c.lineTo(x + 10, P.postY + osz * 0.3); c.stroke();
       const busy = v.anims.some(a => a.k === 'swoop' && Math.abs(a.x0 - x) < 1 && a.t < a.d * 0.8);
@@ -962,7 +939,7 @@ const CH_SWAMP_V2 = {
       for (const x of [xa, xb]) { c.fillStyle = '#C9A24E'; c.beginPath(); c.moveTo(x - 4, y - 6); c.lineTo(x + 4, y - 6); c.lineTo(x + 1.5, P.landTop - 2); c.lineTo(x - 1.5, P.landTop - 2); c.fill(); c.stroke(); }
       if (typeof Lbl !== 'undefined') Lbl.put('sw-cal', Txt.f(L.w, { w: Math.abs(cal.b - cal.a).toFixed(1) }), (xa + xb) / 2, y - 16, { size: 13, c, mono: true });
     }
-    if (typeof Lbl !== 'undefined') { Lbl.put('sw-edge', L.edge, xE, P.seaY + 14, { size: 12, c }); Lbl.put('sw-lv', L.lava, P.X(8), P.seaY + 14, { size: 12, c, pill: false, ink: '#E8DFC9' }); Lbl.put('sw-dn', L.dunes, P.X(52), P.seaY + 14, { size: 12, c, pill: false, ink: '#E8DFC9' }); if (s.cur) Lbl.put('sw-cur', L.current, w * 0.5, h - 14, { size: 12, c }); }
+    if (typeof Lbl !== 'undefined') { Lbl.put('sw-edge', L.edge, xE, P.seaY + 14, { size: 12, c }); Lbl.put('sw-lv', L.lava, P.X(8), P.seaY + 14, { size: 12, c, pill: false, ink: '#E8DFC9' }); Lbl.put('sw-dn', L.dunes, P.X(52), P.seaY + 14, { size: 12, c, pill: false, ink: '#E8DFC9' }); }
   },
   drawMap(c, w, h) {
     const s = this.sim.s, v = this.v, P = this.pos(), L = this.content.labels, n = s.level, A = typeof Pal !== 'undefined' ? Pal.A : '#6B97FF', B = typeof Pal !== 'undefined' ? Pal.a : '#F2C94C';
@@ -980,8 +957,7 @@ const CH_SWAMP_V2 = {
       if (pts.length < 2) return; const segs = pts.length - 1, ph = (t * 0.18 + this.hash(lab) % 100 / 100) % 2, f = ph < 1 ? ph : 2 - ph, k = Math.min(segs - 1, Math.floor(f * segs)), ff = f * segs - k, a = pts[k], b = pts[k + 1];
       this.boat(c, a[0] + (b[0] - a[0]) * ff, a[1] + (b[1] - a[1]) * ff, Math.max(10, P.u * 0.028), 1, 1);
     };
-    if (n === 2) { for (const [a, b] of s.routes) ferryLine([P.node(a), P.node(b)], [7, 5], 'r' + a + b); if (v.drag && v.drag.a != null) { const a = P.node(v.drag.a); c.setLineDash([4, 4]); c.strokeStyle = '#E8DFC9'; c.lineWidth = 2; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(v.drag.x, v.drag.y); c.stroke(); c.setLineDash([]); } if (v.pick != null) { const a = P.node(v.pick); c.setLineDash([3, 3]); c.strokeStyle = '#E8DFC9'; c.beginPath(); c.arc(a[0], a[1], (v.pick < 0 ? 20 : P.ir * 1.15), 0, TAU); c.stroke(); c.setLineDash([]); } }
-    else s.fer.forEach((f, k) => { if (f.length) ferryLine(f.map(i => P.node(i)), k ? [2, 4] : [10, 5], 'f' + k); });
+    { for (const [a, b] of s.routes) ferryLine([P.node(a), P.node(b)], [7, 5], 'r' + a + b); if (v.drag && v.drag.a != null) { const a = P.node(v.drag.a); c.setLineDash([4, 4]); c.strokeStyle = '#E8DFC9'; c.lineWidth = 2; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(v.drag.x, v.drag.y); c.stroke(); c.setLineDash([]); } if (v.pick != null) { const a = P.node(v.pick); c.setLineDash([3, 3]); c.strokeStyle = '#E8DFC9'; c.beginPath(); c.arc(a[0], a[1], (v.pick < 0 ? 20 : P.ir * 1.15), 0, TAU); c.stroke(); c.setLineDash([]); } }
     const mc = Math.max(5, Math.min(9, Math.round(P.ir / 6)));
     for (let i = 0; i < 5; i++) {
       const [x, y] = P.node(i), lava = SW_ISLES[i][2], dk = n === 3 ? 1 - (1 - s.pD[i]) * (1 - s.pD[i]) : lava ? 0.85 : 0.04, nd = Math.round(mc * dk);
@@ -992,11 +968,10 @@ const CH_SWAMP_V2 = {
       if (typeof Lbl !== 'undefined') {
         Lbl.put('sw-n' + i, L[['L1', 'L2', 'S1', 'S2', 'S3'][i]], x, y - P.ir * 0.72 - 10, { size: 12, c });
         if (p <= 0 || p >= 1) Lbl.put('sw-x' + i, L.fixed, x, by + bh + 10, { size: 12, c });
-        if (n === 3 && s.phase === 'plan') { const k = s.fer[0].indexOf(i) >= 0 ? 1 : s.fer[1].indexOf(i) >= 0 ? 2 : 0; if (k) Lbl.put('sw-fe' + i, Txt.f(L.ferry, { f: k }), x, y, { size: 12, c }); }
-        if (n === 3 && s.phase === 'over' && s.ex && !s.whatif) Lbl.put('sw-ok' + i, s.ex.ok[i] ? L.ok : L.bad, x, by + bh + 10, { size: 12, c, ink: '#1B1612' });
+        if (n === 3 && s.phase === 'over' && s.ex && !s.whatif) Lbl.put('sw-ok' + i, L[s.ex.why ? s.ex.why[i] : s.ex.ok[i] ? 'ok' : 'bad'], x, by + bh + 10, { size: 12, c, ink: '#1B1612' });
       }
     }
-    if (n === 2 && typeof Lbl !== 'undefined') { const [hx, hy] = P.node(-1); Lbl.put('sw-hb', L.harbour, hx + 44, hy - 4, { size: 12, c }); if (s.phase === 'lay') Lbl.put('sw-fb', Txt.f(L.ferries, { n: s.routes.length }), w - 12, h - 14, { align: 'right', size: 12, c }); }
+    if (typeof Lbl !== 'undefined') { if (n === 2) { const [hx, hy] = P.node(-1); Lbl.put('sw-hb', L.harbour, hx + 44, hy - 4, { size: 12, c }); } if (s.phase === 'lay' || s.phase === 'plan') Lbl.put('sw-fb', Txt.f(L.ferries, { n: s.routes.length, b: n === 2 ? 5 : SWP_C.bossMax }), w - 12, h - 14, { align: 'right', size: 12, c }); }
     const F = n === 2 ? s.F[s.F.length - 1] : s.Fn[s.Fn.length - 1], gw = Math.min(150, w * 0.3), gx = 12, gy = n === 2 ? h - 22 : h - 12;   // the F_ST gauge, low on the left (clear of the isles)
     c.fillStyle = 'rgba(20,18,26,0.7)'; c.fillRect(gx - 4, gy - 22, gw + 8, 28); c.fillStyle = 'rgba(232,223,201,0.25)'; c.fillRect(gx, gy - 4, gw, 8); c.fillStyle = '#E8DFC9'; c.fillRect(gx, gy - 4, gw * F, 8); c.strokeStyle = '#E8DFC9'; c.lineWidth = 1; c.strokeRect(gx, gy - 4, gw, 8);
     if (typeof Lbl !== 'undefined') Lbl.put('sw-fst', Txt.f(L.fst, { f: this.f2(F) }), gx, gy - 14, { align: 'left', size: 12, c, mono: true, pill: false });
@@ -1012,35 +987,32 @@ const CH_SWAMP_V2 = {
     row(D.fst, { f: this.f2(s.Fn[s.Fn.length - 1]), g: s.gen }); if (s.ex) row(D.held, { n: s.ex.held });
     return { stats, charts: [this.fst2Spec(), this.mapSpec()] };
   },
-  darkSpec() {   // dark share at dawn by night; this round solid, earlier rounds faint; expected and no-ferry curves only after the reveal
-    const s = this.sim.s, D = this.content.data, sim = this.sim, series = [], lines = [];
-    s.rd.forEach((R0, r) => { const pts = [[0, R0.dark0]].concat(R0.d.map((d, i) => [i + 1, d])); series.push({ pts, w: r === s.r ? 3 : 1.5, faint: r !== s.r, label: r === s.r ? D.lines.you : null });
-      const id = 'a' + r, ak = s.ak && s.ak[r]; if (ak && s.hits[id] !== undefined && R0.d.length >= 10) { let p = ak.p; const ex = [[ak.k, ak.d]], nf = [[ak.k, ak.d]]; let q = ak.p; for (let k = ak.k + 1; k <= 10; k++) { if (k > ak.k + 1) { p = sim.selP(p, R0.m, 1, 1 - s.sY); q = sim.selP(q, 0, 1, 1 - s.sY); } else { p = sim.selP(p, R0.m, 1, 1 - s.sY); q = sim.selP(q, 0, 1, 1 - s.sY); } ex.push([k, sim.dawnDark(p, R0.m)]); nf.push([k, sim.dawnDark(q, 0)]); }
-        if (r === s.r || r === s.rd.length - 1) lines.push({ pts: ex.map((q2, i) => i === 0 ? q2 : [q2[0], q2[1]]), label: D.lines.exp }, { pts: nf, label: D.lines.none, thin: true }); } });
-    return { type: 'sw_xy', title: D.titles.dark, x: { lo: 0, hi: 10, label: D.ax.night, fmt: 'int' }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series, lines };
+  darkSpec() {   // dark share at dawn by night, one curve per round labelled with its ferry m: this round solid, earlier rounds faint
+    const s = this.sim.s, D = this.content.data, series = [];
+    s.rd.forEach((R0, r) => { const pts = [[0, R0.dark0]].concat(R0.d.map((d, i) => [i + 1, d])); series.push({ pts, w: r === s.r ? 3 : 1.5, faint: r !== s.r, label: Txt.f(D.lines.mr, { m: this.f2(R0.m) }) }); });
+    return { type: 'sw_xy', title: D.titles.dark, x: { lo: 0, hi: 10, label: D.ax.night, fmt: 'int' }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series, lines: [] };
   },
-  msSpec() { const s = this.sim.s, D = this.content.data, bars = [{ x: 0.5, y: s.m, label: D.lines.m }]; if (s.sY != null) bars.push({ x: 1.5, y: s.sY, label: D.lines.s }); return { type: 'sw_xy', title: D.titles.ms, fold: false, x: { lo: 0, hi: 2 }, y: { lo: 0, hi: 0.7, label: D.ax.rate }, frame: 'designed', noX: true, bars, series: [], lines: [] }; },
+  msSpec() { const s = this.sim.s, D = this.content.data, bars = [{ x: 0.5, y: s.m, label: D.lines.m }]; if (s.sY != null) bars.push({ x: 1.5, y: s.sY, label: D.lines.s }); return { type: 'sw_xy', title: D.titles.ms, fold: false, x: { lo: 0, hi: 2 }, y: { lo: 0, hi: SWP_C.thHi, label: D.ax.rate }, frame: 'designed', noX: true, bars, series: [], lines: [] }; },
   clineSpec() {
     const s = this.sim.s, D = this.content.data, sim = this.sim, lines = [];
-    if (s.hits.c3 !== undefined && s.ws.length >= 4) lines.push({ pts: sim.equil(s.p, s.roosts, s.owls, s.sig, 1).map((p, i) => [i + 0.5, p]), label: D.lines.exp });
     return { type: 'sw_xy', title: D.titles.cline, x: { lo: 0, hi: 60, label: D.ax.km }, y: { lo: 0, hi: 1, fmt: 'pct' }, frame: 'designed', series: [{ pts: s.p.map((p, i) => [i + 0.5, p]), w: 3 }], lines, vlines: [{ x: SWP_C.E, dash: true }] };
   },
   widthSpec() { const s = this.sim.s, D = this.content.data, labs = [D.lines.w0, D.lines.w1, D.lines.w2], dots = s.ws.slice(0, 3).map((q, i) => ({ x: Math.min(30, q.w), y: 2.5 - i, label: labs[i] })); return { type: 'sw_xy', title: D.titles.width, fold: false, x: { lo: 0, hi: 30, label: D.ax.w }, y: { lo: 0, hi: 3 }, noY: true, frame: 'designed', dots, series: [], lines: [] }; },
   fstSpec() {
     const s = this.sim.s, D = this.content.data, lines = [], G = SWP_C.fGens;
-    if (s.hits.f1 !== undefined && s.gen >= G[0]) lines.push({ pts: s.FE.slice(0, G[0] + 1).map((f, i) => [i, f]).filter((q, i) => i % 2 === 0), label: s.hits.f2 !== undefined && s.gen >= G[1] ? null : D.lines.exp });
-    if (s.hits.f2 !== undefined && s.gen >= G[1]) lines.push({ pts: s.FE.slice(G[0]).map((f, i) => [G[0] + i, f]).filter((q, i) => i % 2 === 0), label: D.lines.exp });
+    if (s.gen >= G[0]) lines.push({ pts: s.FE.slice(0, G[0] + 1).map((f, i) => [i, f]).filter((q, i) => i % 2 === 0), label: s.gen >= G[1] ? null : D.lines.exp });   // the model's expectation, shown once each phase is over
+    if (s.gen >= G[1]) lines.push({ pts: s.FE.slice(G[0]).map((f, i) => [G[0] + i, f]).filter((q, i) => i % 2 === 0), label: D.lines.exp });
     return { type: 'sw_xy', title: D.titles.fst, x: { lo: 0, hi: G[1], label: D.ax.gen }, y: { lo: 0, hi: 1, label: D.ax.f }, frame: 'designed', series: [{ pts: s.F.map((f, i) => [i, f]), w: 2.5 }], lines, vlines: [{ x: G[0], dash: true }] };
   },
   fst2Spec() {
-    const s = this.sim.s, D = this.content.data, lines = [], done = s.hits.t1 !== undefined && s.gen >= SWP_C.bossG;
+    const s = this.sim.s, D = this.content.data, lines = [], done = s.gen >= SWP_C.bossG;
     if (done) lines.push({ pts: s.Ec.map((f, i) => [i, f]), label: D.lines.exp });
     return { type: 'sw_xy', title: D.titles.fst2, x: { lo: 0, hi: SWP_C.bossG, label: D.ax.gen }, y: { lo: 0, hi: 1, label: D.ax.f }, frame: 'designed', series: [{ pts: s.Fc.map((f, i) => [i, f]), w: 3, label: D.lines.colour }, { pts: s.Fn.map((f, i) => [i, f]), w: 1.5, faint: true, label: D.lines.marker }], lines };
   },
   mapSpec() {
     const s = this.sim.s, D = this.content.data, L = this.content.labels, names = ['L1', 'L2', 'S1', 'S2', 'S3'].map(k => L[k]), links = [];
     if (s.level === 2) for (const [a, b] of s.routes) if (a >= 0) links.push({ a, b, m: 1 }, { a: b, b: a, m: 1 });
-    if (s.level === 3) for (const f of s.fer) for (const i of f) for (const j of f) if (i !== j) links.push({ a: i, b: j, m: 1 });
+    if (s.level === 3) for (const [a, b] of s.routes) links.push({ a, b, m: 1 }, { a: b, b: a, m: 1 });
     return { type: 'deme', title: D.titles.map, fold: false, mode: 'map', demes: [0, 1, 2, 3, 4].map(i => ({ x: SW_ISLES[i][0], y: SW_ISLES[i][1] / 0.62, p: Math.round(s.p[i] * 100) / 100, N: s.N, label: names[i] })), links };
   },
   cardSpec() { const n = this.level; return n === 0 ? this.darkSpec() : n === 1 ? this.clineSpec() : n === 2 ? this.fstSpec() : this.fst2Spec(); }

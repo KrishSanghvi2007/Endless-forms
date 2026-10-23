@@ -39,7 +39,8 @@
 | Claim (where) | Model check | Reference |
 |---|---|---|
 | Dark rock pocket mice on lava owe their colour to Mc1r variants; dark is dominant (L1 MODEL, intro) | — | Nachman, Hoekstra & D'Agostino 2003 PNAS 100:5268 (`nachman2003`) |
-| Owls catch mice that mismatch the ground more often (L1 MODEL "In nature") | — | Kaufman 1974 Ecology 55:1026 (`kaufman1974`) |
+| Owls catch mice that mismatch the ground more often, shown in trials with oldfield mice, *Peromyscus polionotus* (L1 MODEL "cannot"; corrected 22 Oct, see below) | — | Kaufman 1974 J. Mammal. 55:271 (`kaufman1974`) |
+| Dark coats on New Mexico lava do not trace to Mc1r (L1 MODEL "In nature"; added 22 Oct) | — | Hoekstra & Nachman 2003 Mol. Ecol. 12:1185 (`hoekstra2003`) |
 | Migration swamps a locally favoured allele once m ≥ s (L1 TAKE, why) | for a favoured dominant allele with pale (dd) migrants, the polymorphism holds iff m < s exactly; equilibrium q² = m(1 − s)/(s(1 − m)) (oracle 1, 0.8–1.2 s) | Haldane 1930 Proc Camb Phil Soc 26:220 (`haldane1930`); Lenormand 2002 TREE 17:183 (`lenormand2002`) |
 | Pocket mice exchange migrants between lava and pale rock, yet colour matches the rock; neutral F_ST low, Mc1r F_ST high (L1/L3 why, boss why) | — | Hoekstra, Drumm & Nachman 2004 Evolution 58:1329 (`hoekstra2004`) |
 | Cline width scales as σ/√s (L2 TAKE, why) | doubling s narrows by 1.46 (√2 within 15%); halving σ by 2.07 (oracle 4) | Slatkin 1973 Genetics 75:733 (`slatkin1973`); Endler 1977 (`endler1977`) |
@@ -134,3 +135,49 @@ Saved in the session scratchpad (`…/scratchpad/swamp/L<n>_<phase>_<w>x<h>.png`
 4. L3: watch drift for 100 generations. Did "lost" isles surprise you? Lay ferries. Did 1/(1 + 4Nm) feel earned?
 5. Boss: did you find the winning plan, and did it feel like an inversion?
 6. Score 1–5: fun, clarity, science trust, look (does the world feel unlike the other chapters?). Note any moment you waited with nothing to do.
+
+
+## Simplification (D6 decision 9), 22 October 2026
+
+I played all four levels at 390 × 780 first (`s3/simp_swamp_dig/before_swamp/`), then again after the changes (`after_swamp/`, `after_swamp2/` at 390 × 780 and 1280 × 720). The volcanic isles, the pocket mice, the owl and owlets, the ferries, the coast and the caliper all stayed. What made it heavy was the asking and the second control scheme: eight predictions on three gestures (dark share at night 10 three times, cline width twice, cline centre, F_ST twice, colour-gene F_ST), a longshore-current twist that added a second idea to L2, and a boss with its own ferry/stop/toggle/Clear controls.
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| Three "drag night 10's dark share" asks | L1 | Replaced by **the chapter's one prediction**, asked once before round three: "Owls s = 0.50. Drag the ferry bar to the size that swamps the lava." The player drags the *m* bar on the ferry-against-owls chart. The answer is the measured s (m = s exactly for this model, Haldane 1930), so the gesture *is* the aha. Round three (m ≥ s) then swamps the lava, and the reveal comes at its night 10. ±0.05; it counts only when "no change" (round two's m) would miss. The strip's note no longer gives the answer away ("The ferry lands pale coats; owls remove them."). |
+| Hands-on nights 7 → 4 | L1 | Round one nights 1, 2 (they set s) and 10 (the starving dark night: the felt cost); round three night 10 (the feast after swamping). Round two is a 3-second time-lapse. The level is about half as long. |
+| Key number shown | L1 | Every time-lapse names m against s with its meaning: "m = 0.10 < s = 0.50: owls outpace the ferry, so dark coats win." / "m = 0.65 ≥ s = 0.50: the ferry outpaces owls; pale coats swamp." The dark-share chart labels each round's curve with its m. |
+| Width and centre asks; the longshore current | L2 | After Measure, the two changes (a second owl per roost; a wet year that halves dispersal) play by themselves, each with a banner and the key line "Width ∝ σ ÷ √s, so it shrinks by √2" / "so it halves". The current was a second idea (asymmetric gene flow shifts a cline), so it went, with its rafts, label and MODEL row. |
+| Both F_ST asks | L3 | The flow phase shows "F_ST ≈ 1 ÷ (1 + 4Nm): one migrant a generation gives about 0.2", and the model's expectation is drawn on the chart once each phase is over. |
+| Two ferries of three stops, Ferry 1/2 toggle, Clear; the colour-gene F_ST ask | Boss | The boss now uses **L3's verb**: drag up to three ferry routes between isles (tap-tap and keys 1–5 work too; tap a route to lift it). Each ferry swaps m = 0.3, above the owls' s = 0.25, so a lava–sand link swamps by L1's own rule; the HUD says so while the 100 generations run. Of all 176 plans of up to three ferries, only Lava 1–Lava 2 plus two sand–sand links hold all five isles (oracle). The dock holds only Sail. |
+| "swamped" for every failed isle | Boss | Science fix: a lone isle whose coat stays matched but whose marker drifts away is now labelled **drifted**, not "swamped". |
+
+Levels are unchanged in number (4): **One ferry, The cline, Five isles, Three ferries**. The intro card's "How to play" now reads "Tap mice crossing the rock to strike; later, drag owl roosts and ferry routes between isles. Once, you drag a bar to predict."
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 One ferry | owlets fed on 3 of 4 hands-on nights (was 5 of 7), three rounds played | **the one prediction** within ±0.05 of s (was 2 of 3 dark-share asks) | — |
+| L2 The cline | sharp cline on the lava edge (unchanged) | — (was 2 of 3 asks) | — |
+| L3 Five isles | ferries expected to hold F_ST ≤ 0.3 (unchanged) | — (was both asks) | — |
+| L4 Three ferries | — | — | **hold all five isles** (was the colour-gene F_ST ask) |
+
+Unit stars: Discover = Discover in two of L1–L3; Predict = L1; Transfer = the boss. No level offers three. The bot sweep's best unit union is two stars (alwaysA: D from L2/L3 and T from the hard-coded winning plan).
+
+### Review as playtester and biologist (no external review yet)
+
+- **Swamping when m ≳ s.** Exact for this model: a favoured dominant allele with dd migrants is kept iff m < s, with q² = m(1 − s)/(s(1 − m)) (oracle 1, ±5%). The HUD never claims the threshold for the boss's two-way links; it says only "m > s" there, which is true (0.3 > 0.25), and the oracle checks that every lava–sand link fails.
+- **Cline width ∝ σ/√s.** Doubling s narrows the width by 1.46 (√2 within 15%); halving σ by 2.07. The key line now states the scaling, not an exact factor of the realised run; the card shows the realised ratio next to √2 = 1.41.
+- **F_ST ≈ 1/(1 + 4Nm).** 0.1952 at Nm = 1 by the identity recursion; Whitlock & McCauley's caveats stay cited on the MODEL card.
+- **Mc1r and pocket mice.** Nachman et al. 2003 is the Pinacate lava in Arizona, so the card now names it, and adds that on New Mexico lava other genes make the dark coats (Hoekstra & Nachman 2003): Mc1r is not the only route to melanism.
+- **Owl predation trials.** Kaufman 1974 tested owls on *oldfield mice* (*Peromyscus polionotus*), not pocket mice, and the paper is in *J. Mammal.* 55:271, not *Ecology*. The L1 card had implied pocket-mouse trials; it now says "in owl trials with oldfield mice, mismatched mice were caught more often". Logged in the table above.
+- Agency lint passes: mice and owls never "choose", "need" or "evolve".
+
+### Tests
+
+- `tests/oracle_swamp.js` updated: one prediction in L1 whose answer is the measured s; no asks in L2–L4; round three leaves the lava pale on night 10 (10/10); L2 plays both changes after Measure; the boss enumeration over three-ferry plans, m > s, and "drifted" vs "swamped"; stars offered [D+P, D, D, T]. **37/37** (full seeds).
+- `tests/swamp_paths.py`: the boss checks now drag a route, tap-tap and keys, the three-ferry budget and a Sail-only dock. 16 checks, 0 failed.
+- `tests/swamp_shots.py` also shoots the gap before round three, L2's hold phases and the boss with three ferries.
+- Lint 0/0; `dup_globals` ok; bot sweep PASS (seeds 1–20, and untimed L1); monkey seeds 1–3 at 390 × 780 and 1280 × 720 reach the end card with no page errors.

@@ -93,3 +93,47 @@ None blocking. Noted: `Fx.pop` labels from two burials in the same 150 ms overla
 5. L3: did you dig 375-Myr river rock after the prediction? Was an empty season frustrating or instructive?
 6. L4: where did you put the halfway point before the reveal? Did the hominin bush land?
 7. Rate fun (1–5), clarity (1–5), and name the dullest 30 seconds.
+
+## Simplification (D6 decision 9), 22 October 2026
+
+I played all five levels at 390 × 780 first (`s3/simp_swamp_dig/before_dig/`), then the new four (`after_dig/`, `after_dig2/` at 390 × 780 and 1280 × 720). The golden-hour cliff, the Devonian sea floor, the zircon, the field map, the brush square, the deep-time ribbon and the hominin bush stayed. What made it heavy: six predictions on three gestures, five levels, and about a dozen controls (hold to pour, Settle, hold or Run fast, tap or sweep atoms, Test 8, Date it, tap the hammer, Chip out, sweep the laser, Upper ×8, Lower ×8, Done, tap the map, brush, drag cards).
+
+### What was removed or merged, and why
+
+| Removed or changed | Where | Why |
+|---|---|---|
+| The share-kept ask (±0.035) | L1 The flood | A fiddly number that taught little. The reveal now says it plainly: "The cliff kept 4 of 48 animals. The oldest layer lies at the bottom." The cliff is labelled **oldest** and **youngest** (superposition, said once). The share chart draws the model's expected share after the reveal. |
+| Settle in timed play | L1 | An unexplained control: the epoch ends by itself when the mud runs out. Settle stays in untimed mode, where the HUD names it. |
+| Bone in still water 0.55 → 0.6 | L1 | The pop-up said "keeps 3/5"; the model now matches the label. (A ×N parameter either way.) |
+| The ash-zircon assay (tap or sweep atoms, Test 8, Date it), the read-the-age ask and the lab comparison | L2 The clock | A second sub-game on the same idea. Instead, at three half-lives the crystal dates itself on screen: "Age from atoms: 704 × log₂(64 ÷ 6) = 2404 Myr. True: 2112." That is the key equation with the player's own atoms, and it shows the counting noise of 64 atoms plainly. After the ask the HUD shows the decay law "N = 64 × ½^(t ÷ 704)". |
+| **Kept: the chapter's one prediction** | L2 | "Half the uranium is gone. When will only 16 atoms be left?" Drag on the decay chart; ±150 Myr around the expectation given the atoms actually left, and it must beat the straight-line answer. It produces the chapter's aha: decay halves what is left, so a quarter comes one more half-life on, not sooner. |
+| The whole level "Bracket the fish" (hammer, chip, laser spots, budget, 1/√n ask) | old L2 | A third verb set and a statistics idea (counting error) beside the chapter's core. Its essentials moved: "ash beds above and below a fossil bracket its age" is in L2's Why? maths; superposition is on L1's cliff and MODEL card (Steno 1669). The levels are now **The flood, The clock, Where to dig, Deep time**. |
+| The in-between-age ask | L3 Where to dig | The choice of outcrop already is the prediction. The HUD gives both anchors in one line ("Finned fish 385 Myr, four legs 365. Tap rock where in-between forms should lie."), and after the first dig the chart marks the halfway age, 375 Myr. |
+| Brushing | L3 | Holding now brushes as well as sweeping (the verb a player tries first works), and the idle clearing is faster (5 s, was 14 s). |
+| The halfway ask | L4 Deep time | Shown, not asked: after the last card a gold line marks 2.27 Gyr on the ribbon, and the HUD says "The gold line: half of Earth’s history lies before 2.27 billion years ago." The bush (the boss's inversion) is unchanged. |
+
+Code: each level runs its old model kind (`DG_KIND = [0, 1, 3, 4]`; `sim.s.level` is the kind, `sim.s.lv` the level), so the kept science code is untouched; the bracket and assay code, its view, juice, charts and words were deleted. Star functions read the kind from the state. A save that holds five level masks from the old build will read its old Bracket mask as Where to dig; the unit was never released, so no migration.
+
+### Stars, re-balanced
+
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 The flood | Lagerstätte: two soft bodies in still water and 16 animals buried (unchanged) | — (was the share ask) | — |
+| L2 The clock | — | **the one prediction** (was both a1 and the ash-age ask) | — |
+| L3 Where to dig | two seasons in 375-Myr river rock (unchanged) | — (was the age ask) | — |
+| L4 Deep time | — | — (was the halfway ask) | seven of eight cards within half a step (unchanged) |
+
+Unit stars: Discover = L1 and L3 (as D3 asked: a Lagerstätte and the in-between rock); Predict = L2; Transfer = L4. No level offers more than one star now, so no level can award three. Best bot unions: two stars (`still`, `naive`, `fixed`); the `fixed` bot answers "two half-lives" (1408 Myr), which is the right physics and hits when the crystal sits near 32 atoms.
+
+### Review as playtester and biologist (no external review yet)
+
+- **Taphonomy.** "Far more often", never "only"; soft tissue rots in days to weeks (Briggs 2003); Lagerstätten need fast burial and little oxygen (Hunsrück Slate). Keeping chances stay ×N.
+- **Superposition.** Now said on screen (oldest at the bottom) and on the MODEL card with Steno 1669.
+- **U–Pb zircon decay with Poisson noise.** Each atom decays independently with hazard ln 2 ÷ 704 Myr: counts at one half-life are binomial(64, ½) (mean and variance checked), short-window counts Poisson-like (variance/mean ≈ 1). The end-of-level reading 704 × log₂(64 ÷ N) has median 2112 Myr over 400 crystals and a spread of about ±350 Myr: the HUD's "True: 2112" makes that noise visible, and the MODEL card says real labs count millions of atoms. One-step decay and no initial lead are stated simplifications; U-238 is named under "cannot".
+- **Earth ≈ 4.54 Gyr** (Dalrymple 2001); the ribbon runs from 4.54 Gyr to 10 years; halfway is 2.27 Gyr.
+- The in-between-form wording ("in-between form", never "missing link") and the hominin spans (overlap means "lived at once", not ancestry) were re-read and kept.
+
+### Tests
+
+- `tests/oracle_dig.js` updated for four levels: the crystal's own age reading (exact at 32 and 16 atoms; median and spread at three half-lives); one prediction in the chapter, in L2; the ribbon goes straight to the bush; stars offered [D, P, D, T]; the expert earns all three unit stars; no bot reaches three. **54/54** (full seeds).
+- `tests/dig_shots.py` shoots the four levels. Lint 0 errors (the four "not a content key" warnings are the card and hominin tables, as before); `dup_globals` ok; bot sweep PASS (seeds 1–20, and untimed); monkey seeds 1–3 at 390 × 780 and 1280 × 720 reach the end card with no page errors.

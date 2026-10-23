@@ -1,17 +1,19 @@
 /* ================= v2/dig.js: The Dig (Act 1; D3 §5.6, D5 §4 item 17) =================
    A seaside cliff at golden hour: chalk over ochre sandstone, slate shale and a pale ash bed. Role: the flood that makes a
-   record (L0), then a palaeontologist with a hammer, a laser and a brush (L1–L4; D1 G1 roles 1 and 3).
-     L0 The flood          a Devonian sea floor; hold to pour mud and bury animals. Hard parts buried fast keep far more often;
+   record (L1), then a palaeontologist with a zircon clock, a map and a brush (L2–L4; D1 G1 roles 1 and 3).
+     L1 The flood          a Devonian sea floor; hold to pour mud and bury animals. Hard parts buried fast keep far more often;
                            one still, oxygen-free epoch keeps soft bodies too (a Lagerstätte); uplift and erosion tear out
                            layers. The record is a biased, gappy sample (Briggs 2003; Seilacher et al. 1985).
-     L1 The clock          a zircon of 64 uranium-235 atoms; hold to run time and watch each atom decay at random. Then date an
-                           ash zircon from the atoms you assay: the age is read off the decay curve (Jaffey et al. 1971).
-     L2 Bracket the fish   two ash beds bracket a fossil fish (superposition). Sweep a laser over spots of 40 atoms; error bars
-                           shrink as 1/√n. A spot budget forces a split between the beds.
-     L3 Where to dig       a field map; finned fish in 385-Myr river rock, four-legged animals in 365-Myr rock. Predict the age
-                           of an in-between form, then spend five seasons brushing (Daeschler, Shubin & Jenkins 2006).
+     L2 The clock          a zircon of 64 uranium-235 atoms; hold to run time and watch each atom decay at random. The chapter's
+                           one prediction: at one half-life, when will 16 be left? At three half-lives the crystal dates itself
+                           with age = 704 × log₂(64 ÷ N), noise and all (Jaffey et al. 1971).
+     L3 Where to dig       a field map; finned fish in 385-Myr river rock, four-legged animals in 365-Myr rock. Your choice of
+                           rock is the prediction; five seasons of brushing test it (Daeschler, Shubin & Jenkins 2006).
      L4 Deep time (boss)   drag fossils onto a log ribbon from Earth's 4.54 Gyr to your Wood's last year. Placed in order they
                            look like a ladder; their ranges show a bush: several human relatives lived at once (Dirks 2017).
+   Simplified 22 Oct 2026 (D6 decision 9): four levels, one prediction. Internally each level keeps its old kind
+   (DG_KIND = [0, 1, 3, 4]; sim.s.level holds the kind, sim.s.lv the level), so the kept science code is unchanged.
+   Removed: L1's share-kept ask, L2's ash-assay and dating ask, the whole Bracket-the-fish level, L4's age ask, the boss's halfway ask.
    Code shape (API_v2 §9): a headless sim (plain JSON; R(), Det, WF only; a run is (seed, level, actions)); all words in DG_TEXT;
    the view juices from Sim.run's events only. Top-level code touches only legacy objects and lower-numbered v2 files; engine
    calls at run time sit behind typeof guards. Under ?v1=1 the learning-layer lines at the foot are skipped. */
@@ -19,50 +21,40 @@
 /* ---------- all words (API_v2 §9.2); tests/lint_text.js checks every budget ---------- */
 const DG_TEXT = {
   intro: {
-    game: 'You are the flood that buries a Devonian sea floor. Then you work its cliff at golden hour with hammer, laser and brush.',
+    game: 'You are the flood that buries a Devonian sea floor. Then you read its cliff: a crystal clock, a dig, and deep time.',
     biology: 'Rock keeps a biased, gappy sample of past life. Uranium in volcanic crystals decays at a steady average rate, so ash beds date the fossils between them.',
-    how: 'Hold to pour mud or run the clock. Sweep the laser over crystals, tap the map to dig, brush, and drag fossils onto the deep-time ribbon.'
+    how: 'Hold to pour mud or run the clock; tap the map to dig; drag fossils onto the ribbon. Once, you drag a line to predict.'
   },
   firstWords: 'A Devonian sea floor. Hold where the animals are to pour mud and bury them.',
   hud: {
     flood: 'Hold over animals to bury them. Mud is short: aim it.',
     floodU: 'Hold over animals to bury them. Tap Settle when you are done.',
     still: 'The bottom water has gone still. No oxygen reaches the mud.',
-    askK: 'Waves remove 1 layer in 4. What share of all animals will the cliff keep?',
     uplift: 'Millions of years pass. The sea floor rises into a cliff; waves bite into it.',
-    reveal: 'The cliff as you would find it.',
+    reveal: 'The cliff kept {k} of 48 animals. The oldest layer lies at the bottom.',
     clock: 'One zircon, 64 uranium atoms. Hold to run time faster.',
-    askA1: 'Half the uranium is gone. When will only 16 atoms be left? Drag, Lock in.',
-    ash: 'A zircon from the ash bed. Tap or sweep atoms to test them.',
-    ashGo: 'Tap Date it when you have tested enough atoms.',
-    askA2: 'Drag the age of this ash on your decay curve.',
-    lab: 'A lab counts millions of atoms. Compare its age with yours.',
-    free: 'Tap each ash bed with the hammer to free its zircon.',
-    laser: 'Sweep the laser over spots. Each spot counts 40 atoms.',
-    askB1: 'Drag the error bar you would get from four times as many atoms.',
-    bracket: 'Lower beds are older. The fish lies between the two ash dates.',
-    pick: 'Tap an outcrop to dig there this season.',
-    askP1: 'Finned fish at 385 Myr, four legs at 365. When did in-between forms live?',
-    brush: 'Brush the square to clear the sand.',
+    askA1: 'Half the uranium is gone. When will only 16 atoms be left?',
+    clock2: 'Each 704 Myr halves the uranium left: N = 64 × ½^(t ÷ 704).',
+    lab: 'Age from atoms: 704 × log₂(64 ÷ {n}) = {a} Myr. True: {t}.',
+    pick: 'Finned fish 385 Myr, four legs 365. Tap rock where in-between forms should lie.',
+    brush: 'Hold or sweep to brush the sand away.',
     place: 'Drag the card onto the ribbon: {name}, {age}.',
-    askD1: 'Earth is 4.54 billion years old. Drag the halfway point of its history.',
     bush: 'Placed in order they look like a ladder. Their spans make a bush.',
+    half: 'The gold line: half of Earth’s history lies before 2.27 billion years ago.',
     gap: 'A new epoch.',
     over: 'Done.'
   },
   whispers: {
     drag: 'Drag the line first.', hit: 'Inside the band.', out: 'Outside the band.', none: 'No prediction this time.',
     dry: 'Out of mud for this epoch.', still: 'Still water: soft bodies may keep.', eroded: 'Waves tore out a layer.',
-    soft: 'Soft body buried in still mud!', more: 'Test at least 16 atoms first.', empty: 'Only sand this season.',
-    budget: 'The laser budget is spent.', both: 'Date both zircons first.', found: 'An in-between form!', placed: 'Placed.'
+    soft: 'Soft body buried in still mud!', empty: 'Only sand this season.', found: 'An in-between form!', placed: 'Placed.'
   },
   labels: {
-    lock: 'Lock in', settle: 'Settle', date: 'Date it', test8: 'Test 8', up8: 'Upper ×8', lo8: 'Lower ×8', done: 'Done', chip: 'Chip out',
-    brush: 'Brush', mud: 'mud', still: 'still water', epoch: 'Epoch {n}', myr: '{n} Myr', gyr: '{n} Gyr', kyr: '{n} kyr', yr: '{n} yr',
-    left: '{n} left', upper: 'upper ash', lower: 'lower ash', fish: 'fossil fish', lobe: 'finned fish', tetra: 'four legs', sea: 'sea rock',
+    lock: 'Lock in', settle: 'Settle', brush: 'Brush', mud: 'mud', still: 'still water', epoch: 'Epoch {n}', myr: '{n} Myr', gyr: '{n} Gyr', kyr: '{n} kyr', yr: '{n} yr',
+    left: '{n} left', lobe: 'finned fish', tetra: 'four legs', sea: 'sea rock', oldest: 'oldest', youngest: 'youngest',
     river: 'river rock', season: 'Season {n}', you: 'you', truth: 'true age', ff: 'Tap: faster', now: 'now', earth: 'Earth forms',
-    wood: 'your Wood', spots: '{n} spots', atoms: '{n} atoms', kept: 'kept', lived: 'lived', buried: 'buried', U: 'uranium', Pb: 'lead',
-    plus: '+{n}', zircon: 'zircon', kShell: 'keeps ½', kBone: 'keeps ⅓', kSoft: 'rarely keeps', kSoftS: 'keeps 2/5', kStill: 'keeps 3/5', hammer: 'tap here', gone: 'gone', ladder: 'ladder?', bush: 'a bush'
+    wood: 'your Wood', atoms: '{n} atoms', kept: 'kept', lived: 'lived', buried: 'buried', U: 'uranium', Pb: 'lead',
+    plus: '+{n}', zircon: 'zircon', kShell: 'keeps ½', kBone: 'keeps ⅓', kSoft: 'rarely keeps', kSoftS: 'keeps 2/5', kStill: 'keeps 3/5', gone: 'gone', ladder: 'ladder?', bush: 'a bush'
   },
   cards: {
     zircon: ['Oldest zircon', '4.4 billion years'], trilo: ['First trilobites', '521 million years'], tik: ['Tiktaalik', '375 million years'],
@@ -78,29 +70,22 @@ const DG_TEXT = {
     few: 'Most animals rotted unburied. Bodies left on the sea floor almost never keep.',
     lucky: 'Your kept share beat its expectation: chance in fossilisation and erosion, not skill.',
     clump: 'At one half-life your crystal held well away from 32 atoms. Each atom decays at random; only the average is steady.',
-    rough: 'Few atoms tested, so the age you read carries a wide error bar.',
-    lopsided: 'One zircon got most of the laser. The other date stayed loose, and so did the bracket.',
-    flip: 'Your upper ash dated older than the lower one. The beds keep their order; the dates were noisy.',
     wrongrock: 'You dug where in-between forms could not be: wrong age, or sea rock for a river animal.',
     unlucky: 'You dug the right rock, but the record kept nothing there this time. Gaps are normal.',
-    ladder: 'Several cards landed far from their age. On a log ribbon each step left is ten times older.',
-    middle: 'The middle of the ribbon is only about 200,000 years ago. Half of Earth’s history sits at the far left.'
+    ladder: 'Several cards landed far from their age. On a log ribbon each step left is ten times older.'
   },
   live: {
     bury: '{k} buried.', epoch: 'Epoch {n} of 6. Mud {m} seconds.', decay: '{n} atoms left at {t} million years.',
-    spot: '{z}: {n} atoms counted, age {t} plus or minus {e}.', find: 'Season {n}: {f}.', ask: 'Prediction open. Press P, then the arrows.',
-    placed: '{c} placed at {t}.'
+    find: 'Season {n}: {f}.', ask: 'Prediction open. Press P, then the arrows.', placed: '{c} placed at {t}.'
   },
   data: {
     buried: ['Animals buried', '{a} of {b}', 'Soft-bodied in still water: {s}.'], keep: ['Keep chances', 'shell ½, bone ⅓, soft rare', 'Still water: soft 2 in 5. Waves remove 1 layer in 4.'], kept: ['Kept as fossils', '{a} of {b}', 'After erosion.'],
-    left: ['Uranium left', '{n} of 64', 'At {t} million years.'], tested: ['Atoms tested', '{n}', '{u} uranium, {p} lead.'],
-    est: ['Ash age', '{t} ± {e} Myr', 'Two standard errors, from your atoms.'], zup: ['Upper ash', '{t} ± {e} Myr', '{n} atoms counted.'],
-    zlo: ['Lower ash', '{t} ± {e} Myr', '{n} atoms counted.'], spots: ['Laser spots', '{a} of {b}', 'Spent.'],
+    left: ['Uranium left', '{n} of 64', 'At {t} million years.'], est: ['Age from atoms', '{a} Myr', '704 × log₂(64 ÷ {n}).'],
     seasons: ['Seasons dug', '{a} of 5', 'In-between finds: {f}.'], placed: ['Cards placed', '{a} of 8', 'Within half a step: {b}.'],
-    titles: { share: 'Share of animals', epochs: 'Each epoch', decay: 'Uranium left', ages: 'Ages from atoms', err: 'Error bar', fossils: 'Fossil ages', earth: 'Earth’s history', bush: 'Human relatives' },
-    ax: { share: 'share', epoch: 'epoch', n: 'animals', myr: 'Myr', atoms: 'atoms counted', err: '± Myr', left: 'atoms', age: 'age, Myr', log: 'years ago', mya: 'Myr ago' },
-    lines: { buried: 'buried', kept: 'kept', expected: 'expected', you: 'you', curve: 'decay law', yours: 'your atoms', ash: 'your ash', lab: 'lab age',
-      bracket: 'fish', law: '1/√n', half: 'halfway', truth: 'true ages', lived: 'lived', placed: 'yours' }
+    titles: { share: 'Share of animals', epochs: 'Each epoch', decay: 'Uranium left', fossils: 'Fossil ages', earth: 'Earth’s history', bush: 'Human relatives' },
+    ax: { share: 'share', epoch: 'epoch', n: 'animals', myr: 'Myr', left: 'atoms', age: 'age, Myr', log: 'years ago', mya: 'Myr ago' },
+    lines: { buried: 'buried', kept: 'kept', expected: 'expected', you: 'you', curve: 'decay law', yours: 'your atoms', half2: 'halfway',
+      half: 'halfway', truth: 'true ages', lived: 'lived', placed: 'yours' }
   },
   levers: { still: 'All still water', noerode: 'No erosion' },
   take: 'Rocks keep a gappy sample and decay sets the clock. Ordered fossils make a bush, not a ladder.',
@@ -113,26 +98,23 @@ const DG_TEXT = {
   boss: { inverts: 'Fossils in order are no ladder: several human relatives lived at once.' },
   stars: {
     discover: 'Make a Lagerstätte, and dig where an in-between form should lie.',
-    predict: 'Land three predictions: kept share, decay, error bar, in-between age, halfway point.',
+    predict: 'Predict when a quarter of the uranium is left.',
     transfer: 'Place seven of eight fossils within half a step on the deep-time ribbon.'
   },
   levelStars: [
-    { discover: 'Bury two soft bodies in still water, and 16 animals in all.', predict: 'Predict the share the rock keeps.' },
-    { predict: 'Land both the quarter-left time and the ash age.' },
-    { discover: 'Spend the laser well: both dates tight enough.', predict: 'Predict the error bar from four times the atoms.' },
-    { discover: 'Dig two seasons where an in-between form should lie.', predict: 'Predict the age of in-between forms.' },
-    { transfer: 'Place seven of eight fossils within half a step.', predict: 'Drag the halfway point of Earth’s history.' }
+    { discover: 'Bury two soft bodies in still water, and 16 animals in all.' },
+    { predict: 'Predict when only 16 of 64 atoms are left.' },
+    { discover: 'Dig two seasons where an in-between form should lie.' },
+    { transfer: 'Place seven of eight fossils within half a step.' }
   ],
   levelTake: [
     'Hard parts buried fast keep far more often. Erosion tears out whole layers, so a gap is not an absence.',
     'Each atom decays at random, but half of a large crowd goes in one half-life. That average is the clock.',
-    'Error bars shrink with the square root of atoms counted. Superposition orders the beds; dates bracket the fossil.',
     'Evolution predicts which rocks to search. Finding the in-between form in the predicted rock tests that prediction.'
   ],
   levelBody: [
     'You buried {b} of 48 animals. The rock kept {k}; on average it keeps {e}. {s} soft-bodied animals were buried in still water.',
-    'At one half-life {h} of 64 atoms were left; chance spreads the count. Your ash read {t} ± {e} Myr; the lab says {l} Myr.',
-    'Upper ash {u} ± {eu} Myr, lower ash {w} ± {el} Myr. Four times the atoms halves an error bar. The fish lived about {f} Myr ago.',
+    'At one half-life {h} of 64 atoms were left; chance spreads the count. At {t} Myr, {n} atoms read an age of {a} Myr.',
     'Seasons in 375-Myr river rock: {n}. In-between finds: {f}. Tiktaalik was found this way, after four field seasons.'
   ],
   model: [
@@ -140,27 +122,21 @@ const DG_TEXT = {
       simplification: 'Burial is all or nothing. Three tissue types stand for hardness. Each layer survives erosion with a fixed chance.',
       params: [{ name: 'chance a buried shell keeps', value: '50%, 60% still', tag: 'xN', real: 'far lower for nearly every body' }, { name: 'soft body kept', value: '2%, 40% still', tag: 'xN', real: 'rarer still' }, { name: 'layer survives erosion', value: '75%', tag: 'designed' }, { name: 'epochs', value: 6, tag: 'designed' }],
       cannot: 'Scavengers, transport of shells, mineral replacement or later heating of the rock.',
-      nature: 'Experiments on carcasses show soft tissue rots in days to weeks. Lagerstätten such as the Hunsrück Slate keep it where burial was fast and oxygen scarce.',
-      contested: false, refs: ['briggs2003', 'seilacher1985', 'bartels1998'] },
+      nature: 'Soft tissue rots in days to weeks. Lagerstätten such as the Hunsrück Slate keep it where burial was fast and oxygen scarce. Lower layers are older (Steno, 1669).',
+      contested: false, refs: ['briggs2003', 'seilacher1985', 'bartels1998', 'steno1669'] },
     { level: 1, simulated: 'Each uranium-235 atom has the same small chance to decay in each moment, whatever its age.',
       simplification: 'One decay goes straight to lead; the real chain passes through short-lived steps. The crystal held no lead at first.',
       params: [{ name: 'U-235 half-life', value: '704 Myr', tag: 'realistic' }, { name: 'atoms in a crystal', value: 64, tag: 'xN', real: 'billions' }, { name: 'clock speed', value: 'up to 330 Myr a second', tag: 'designed' }],
-      cannot: 'Lead loss from damaged crystals, or the second clock, uranium-238.',
+      cannot: 'Lead loss from damaged crystals, or the second clock, uranium-238. Real labs count millions of atoms, so their error is far smaller.',
       nature: 'Zircon takes in uranium but almost no lead as it crystallises. Its lead today grew from decay, so lead over uranium dates it.',
       contested: false, refs: ['jaffey1971', 'schoene2014'] },
-    { level: 2, simulated: 'Two ash beds above and below a fossil fish. Each laser spot counts 40 atoms, drawn at random.',
-      simplification: 'Spots are independent samples of one age. The error bar is two standard errors from counting alone.',
-      params: [{ name: 'atoms a spot', value: 40, tag: 'xN', real: 'millions' }, { name: 'spot budget', value: 70, tag: 'designed' }, { name: 'gap between beds', value: '45–70 Myr', tag: 'designed' }],
-      cannot: 'Crystals reworked from older rock, or calibration error between labs.',
-      nature: 'Steno argued in 1669 that lower layers are older. Modern zircon dates of ash beds reach a precision near 0.1%.',
-      contested: false, refs: ['steno1669', 'schoene2014'] },
-    { level: 3, simulated: 'Nine outcrops of known age and setting. A season in the right rock finds an in-between form half the time.',
+    { level: 2, simulated: 'Nine outcrops of known age and setting. A season in the right rock finds an in-between form half the time.',
       simplification: 'Finds come in one season or not at all. Ages are rounded to 10 Myr.',
       params: [{ name: 'find chance a season', value: '50%', tag: 'xN', real: 'much lower' }, { name: 'seasons', value: 5, tag: 'realistic' }, { name: 'rock ages', value: '345–405 Myr', tag: 'realistic' }],
       cannot: 'How hard real outcrops are to reach, or fossils weathered out before you arrive.',
       nature: 'Shubin, Daeschler and Jenkins searched 375-Myr river rocks on Ellesmere Island. Tiktaalik turned up in 2004, after four seasons.',
       contested: false, refs: ['daeschler2006', 'shubin2006'] },
-    { level: 4, simulated: 'A log ribbon from Earth’s formation to now. Each card is a dated fossil or event.',
+    { level: 3, simulated: 'A log ribbon from Earth’s formation to now. Each card is a dated fossil or event.',
       simplification: 'Each fossil has one age; real ages carry error bars and species have spans.',
       params: [{ name: 'Earth’s age', value: '4.54 Gyr', tag: 'realistic' }, { name: 'hominin spans', value: 'from first to last fossil', tag: 'realistic' }],
       cannot: 'Who descends from whom. Spans that overlap say who lived at once, not ancestry.',
@@ -176,9 +152,7 @@ const DG_TEXT = {
     { real: ['Most bodies are eaten or rot before burial. Shells and bones last longer, so they dominate the record. Rare still, oxygen-poor basins kept worms and jellies.'],
       maths: ['Add up every animal’s chance of keeping, buried or not. Multiply by 0.75, the chance its layer survives. Divide by 48.'] },
     { real: ['Uranium-235 has a half-life of 704 million years, measured by counting decays in pure uranium. A single atom’s moment of decay cannot be predicted.'],
-      maths: ['After time t a share 2 to the power of minus t over 704 is left. With u uranium of n atoms, age = 704 × log₂(n ÷ u).'] },
-    { real: ['Volcanic ash falls in a day and holds fresh zircons, so ash beds are time stamps. A fossil between two dated beds is bracketed.'],
-      maths: ['The share of lead counted has a standard error √(f(1 − f) ÷ n). The age error scales the same way, so four times the atoms halves it.'] },
+      maths: ['After time t a share 2 to the power of minus t over 704 is left. With N of 64 atoms still uranium, age = 704 × log₂(64 ÷ N). Volcanic ash holds fresh zircons, so ash beds above and below a fossil bracket its age.'] },
     { real: ['Finned fish such as Panderichthys come from rocks near 385 Myr and early tetrapods from near 365 Myr. Tiktaalik, from 375-Myr river rock, has fins with wrist bones.'],
       maths: ['An in-between form should come from between the two: halfway is 375 Myr. River rock, because the earliest limbed animals lived in shallow fresh water.'] }
   ]
@@ -187,12 +161,11 @@ const DG_TEXT = {
 /* ---------- constants (sim side) ---------- */
 const DG_K = { dt: 1 / 30, half: 704, LN2: 0.6931471805599453, LN10: 2.302585092994046,
   E: 6, mud: 1.6, epochT: 15, r: 0.1, cover: 0.35, bury: 0.32, dryT: 0.8, gapT: 1.1, upT: 2.4, revT: 2.6, askMax: 30, survive: 0.75,
-  N1: 64, slow: 55, fast: 330, endA: 2112, q: 16, ashT: 30, minAssay: 16, labT: 2.6,
-  spots: 64, m: 40, budget: 70, minSpots: 5, laserT: 60, b1At: 400, freeT: 12, err2: 82,
-  seasons: 5, brushIdle: 0.07, pickT: 30,
+  N1: 64, slow: 55, fast: 330, endA: 2112, q: 16, labT: 4.2,
+  seasons: 5, brushIdle: 0.2, pickT: 30,
   cardT: 40, bushT: 3.6, earth: 9.657, lo: 1 };
 const DG_TIS = { ammonoid: 'shell', brach: 'shell', trilo: 'shell', fish: 'bone', worm: 'soft', jelly: 'soft' };
-const DG_PF = { shell: [0.5, 0.6, 0.04, 0.1], bone: [0.35, 0.55, 0.02, 0.08], soft: [0.02, 0.4, 0, 0.01] };   // [buried, buried still, exposed, exposed still]
+const DG_PF = { shell: [0.5, 0.6, 0.04, 0.1], bone: [0.35, 0.6, 0.02, 0.08], soft: [0.02, 0.4, 0, 0.01] };   // [buried, buried still, exposed, exposed still]
 const DG_MIX = ['ammonoid', 'brach', 'brach', 'trilo', 'fish', 'worm', 'worm', 'jelly'];
 const DG_CROPS = [[375, 'river'], [375, 'river'], [385, 'river'], [365, 'river'], [375, 'sea'], [395, 'sea'], [355, 'river'], [405, 'river'], [345, 'sea']];
 const DG_CARDS = [{ id: 'zircon', t: 4.4e9 }, { id: 'trilo', t: 5.21e8 }, { id: 'tik', t: 3.75e8 }, { id: 'impact', t: 6.6e7 }, { id: 'whale', t: 4.7e7 }, { id: 'lucy', t: 3.2e6 }, { id: 'irhoud', t: 3.15e5 }, { id: 'naledi', t: 2.81e5 }];
@@ -200,6 +173,7 @@ const DG_HOM = [['afar', 3.9e6, 2.9e6], ['erectus', 1.9e6, 1.1e5], ['nean', 4.3e
 /* the palette (D6 addendum 7): chalk white, ochre sandstone, slate shale, ammonite rust, a pale ash bed, golden-hour sky */
 const DG_C = { chalk: '#F1ECDF', chalk2: '#D9D0BC', ochre: '#C9974A', ochreD: '#94682E', slate: '#56606C', slateD: '#363D47', rust: '#A4532F', ash: '#DCD7CC', ink: '#1E1A16',
   sky0: '#F3C98C', sky1: '#E59A62', sea: '#46606A', seaD: '#2E434C', gold: '#F6D79A', paper: '#EFE3C6', paperD: '#D8C59C' };
+const DG_KIND = [0, 1, 3, 4];   // level → the model kind it runs (kind 2, Bracket the fish, was cut in the D6 decision 9 pass)
 const dgLog10 = x => Det.log(x) / DG_K.LN10;
 const dgYears = v => { let p = 1; const e = Math.floor(v); for (let i = 0; i < e; i++) p *= 10; return p * Det.exp((v - e) * DG_K.LN10); };
 
@@ -211,19 +185,17 @@ const CH_DIG_V2 = {
   P: {
     survive: { v: 0.75, tag: 'designed', min: 0, max: 1, label: 'layer survives erosion' },
     half: { v: 704, tag: 'realistic', min: 704, max: 704, label: 'U-235 half-life (Myr)' },
-    m: { v: 40, tag: 'xN', min: 1, max: 1000, real: 'millions', label: 'atoms a spot' },
     find: { v: 0.5, tag: 'xN', min: 0.05, max: 1, real: 'much lower', label: 'find chance a season' }
   },
   levels: [
     { name: 'The flood', adds: 'burial', codes: ['D1'], minutes: 3 },
     { name: 'The clock', adds: 'radioactive decay', codes: ['D2'], minutes: 3 },
-    { name: 'Bracket the fish', adds: 'atoms counted', codes: ['D3'], minutes: 3 },
-    { name: 'Where to dig', adds: 'a predicted in-between form', codes: ['D4'], minutes: 3 },
-    { name: 'Deep time', adds: 'a log time scale', codes: ['D5'], minutes: 3 }
+    { name: 'Where to dig', adds: 'a predicted in-between form', codes: ['D3'], minutes: 3 },
+    { name: 'Deep time', adds: 'a log time scale', codes: ['D4'], minutes: 3 }
   ],
-  keys: { Space: 'pour, run or brush', ArrowLeft: 'move the mud', ArrowRight: 'move the mud', Enter: 'settle or date', P: 'predict' },
+  keys: { Space: 'pour, run or brush', ArrowLeft: 'move mud or cursor', ArrowRight: 'move mud or cursor', Enter: 'settle, dig or place', P: 'predict' },
   untimed: true,
-  teacher: { prompts: ['Why do shells and bones dominate the fossil record?', 'How does counting more atoms change an age, and why only by a square root?', 'Why is a gap in the fossil record not evidence against evolution?'], pool: 'trace' },
+  teacher: { prompts: ['Why do shells and bones dominate the fossil record?', 'Each atom decays at random. Why is a crystal still a good clock?', 'Why is a gap in the fossil record not evidence against evolution?'], pool: 'trace' },
   starTraits: ['tissue'],
   encodings: [   // tissue by silhouette and outline; atoms by fill (solid uranium, hollow lead); no hue carries a score
     { k: 'tissue', rgb: [201, 151, 74], channels: ['shape', 'pattern'] },
@@ -234,19 +206,14 @@ const CH_DIG_V2 = {
   sim: {
     dt: DG_K.dt, s: null,
     reset(level, o) {
-      o = o || {}; const n = Math.max(0, Math.min(4, level | 0));
+      o = o || {}; const lv = Math.max(0, Math.min(3, level | 0)), n = DG_KIND[lv];
       if (o.thaw) { this.restore(o.thaw.snap); this.s.log = []; this.lever(o.thaw.lever); return; }
-      this.s = { level: n, kind: ['flood', 'clock', 'bracket', 'map', 'ribbon'][n], phase: 'run', t: 0, unt: false, whatif: null,
+      this.s = { level: n, lv, kind: ['flood', 'clock', 'bracket', 'map', 'ribbon'][n], phase: 'run', t: 0, unt: false, whatif: null,
         asks: [], pred: {}, exp: {}, tol: {}, alt: {}, hits: {}, ask: null, resume: null, log: [] };
       const s = this.s;
       if (n === 0) { s.anox = 2 + Math.floor(R() * 3); s.e = 0; s.layers = []; s.pid = 0; this.epoch(s, []); }
       else if (n === 1) { s.at = new Array(DG_K.N1).fill(1); s.n = DG_K.N1; s.T = 0; s.hold = false; s.tr = [[0, DG_K.N1]]; s.phase = 'run'; }
-      else if (n === 2) {
-        const tLo = 400 + 40 * R(), gap = 45 + 25 * R(), tUp = tLo - gap;
-        s.fish = Math.round((tUp + gap * (0.3 + 0.4 * R())) * 10) / 10;
-        s.z = [tUp, tLo].map(t => ({ t: Math.round(t * 10) / 10, pU: Det.exp(-DG_K.LN2 * t / DG_K.half), sp: new Array(DG_K.spots).fill(-1), n: 0, u: 0, k: 0, chip: false, hist: [] }));
-        s.used = 0; s.phase = 'free';
-      } else if (n === 3) {
+      else if (n === 3) {
         const crops = DG_CROPS.map(c => c.slice()); shuffle(crops);
         s.crops = crops.map((c, i) => ({ age: c[0], env: c[1], x: (i % 3 + 0.2 + 0.6 * R()) / 3, y: (Math.floor(i / 3) + 0.25 + 0.5 * R()) / 3 }));
         s.season = 0; s.digs = []; s.br = 0; s.site = -1; s.phase = 'pick';
@@ -294,8 +261,7 @@ const CH_DIG_V2 = {
       s.layers.push({ still: s.e === s.anox ? 1 : 0, mud: Math.round((DG_K.mud - s.mud) * 100) / 100, a: s.an.map(a => ({ k: a.k, b: a.b, x: Math.round(a.x * 1000) / 1000 })) });
       s.pour = null; ev.push({ k: 'layer', e: s.e });
       if (s.e + 1 < DG_K.E) { s.e++; s.phase = 'gap'; s.t = 0; return; }
-      const ex = this.keptExp(s), bur = this.buried(s) / (DG_K.E * 8);
-      this.openAsk(s, ev, 'k1', 0, 0.6, 0.035, 0.6, ex, 'uplift', Math.abs(bur - ex) > 0.1 ? [bur] : null);
+      this.uplift(s, ev);   // D6 decision 9: no share-kept ask; the reveal names the count instead
     },
     pf(k, b, still) { const p = DG_PF[DG_TIS[k]]; return b ? p[still ? 1 : 0] : p[still ? 3 : 2]; },
     keptExp(s, o) {   // expected share kept: Σ over animals of each one's keeping chance × its layer's chance of surviving, ÷ 48
@@ -313,7 +279,7 @@ const CH_DIG_V2 = {
       for (const L of s.layers) for (const a of L.a) { a.f = R() < this.pf(a.k, a.b, o.still ? 1 : L.still) ? 1 : 0; if (a.f && !L.gone) { k++; if (DG_TIS[a.k] === 'soft') ks++; } }
       s.kept = k; s.keptSoft = ks; s.phase = 'uplift'; s.t = 0; ev.push({ k: 'uplift', kept: k });
     },
-    /* ---------- L1 the clock: each atom decays with the same chance per moment; then an ash zircon to date ---------- */
+    /* ---------- the clock (level 2): each atom decays with the same chance per moment; at three half-lives the crystal dates itself ---------- */
     clockStep(s, ev) {
       const K = DG_K, dt = this.dt;
       if (s.phase === 'run') {
@@ -323,53 +289,13 @@ const CH_DIG_V2 = {
         for (let i = 0; i < s.at.length; i++) if (s.at[i] && R() < p) { s.at[i] = 0; s.n--; const tt = Math.round((T0 + dT * R()) * 10) / 10; s.tr.push([tt, s.n]); ev.push({ k: 'decay', i, n: s.n, T: tt }); }
         s.T = Math.round((s.T + dT) * 1e6) / 1e6;
         if (!a1 && s.T >= K.half - 1e-9) { s.h = s.n; if (s.n >= 22) { this.openAsk(s, ev, 'a1', 0, 2400, 150, 2400, K.half + K.half * Det.log(s.n / K.q) / K.LN2, 'run', [K.half + K.half * (s.n - K.q) / (DG_K.N1 - s.n)]); } else s.asks.push('a1'); return; }
-        if (s.T >= K.endA - 1e-9) this.ashStart(s, ev);
+        if (s.T >= K.endA - 1e-9) { s.hold = false; s.phase = 'lab'; s.t = 0; ev.push({ k: 'lab', n: s.n }); }   // three half-lives: the crystal dates itself
         return;
       }
-      if (s.phase === 'ash') { if (!s.unt && s.t >= K.ashT) { while (s.ns < K.minAssay) this.assay8(s, ev); this.date(s, ev); } return; }
       if (s.phase === 'lab' && s.t >= K.labT) { s.phase = 'over'; ev.push({ k: 'over' }); }
     },
-    ashStart(s, ev) {
-      s.tA = Math.round((300 + 300 * R()) * 10) / 10; const pU = Det.exp(-DG_K.LN2 * s.tA / DG_K.half);
-      s.az = []; for (let i = 0; i < DG_K.N1; i++) s.az.push(R() < pU ? 1 : 0);
-      s.seen = new Array(DG_K.N1).fill(0); s.ns = 0; s.nu = 0; s.phase = 'ash'; s.t = 0; ev.push({ k: 'ash' });
-    },
-    assay(s, ev, i) { if (s.phase !== 'ash' || i < 0 || i >= DG_K.N1 || s.seen[i]) return; s.seen[i] = 1; s.ns++; s.nu += s.az[i]; ev.push({ k: 'assay', i, u: s.az[i], n: s.ns }); },
-    assay8(s, ev) { let c = 0; for (let i = 0; i < DG_K.N1 && c < 8; i++) if (!s.seen[i]) { this.assay(s, ev, i); c++; } },
-    ashEst(s) { const n = s.ns, u = Math.max(0.5, s.nu); return Math.min(2400, DG_K.half * Det.log(n / u) / DG_K.LN2); },
-    ashErr(s) { const n = s.ns, f = Math.max(0.01, Math.min(0.99, 1 - s.nu / Math.max(1, n))); return 2 * DG_K.half / DG_K.LN2 * Math.sqrt(f / ((1 - f) * Math.max(1, n))); },
-    date(s, ev) {
-      if (s.phase !== 'ash') return; if (s.ns < DG_K.minAssay) { ev.push({ k: 'more' }); return; }
-      const e = this.ashEst(s), tol = Math.max(50, 0.12 * e), lin = 2 * DG_K.half * (1 - s.nu / s.ns);
-      this.openAsk(s, ev, 'a2', 0, 2400, tol, 2400, e, 'lab', Math.abs(lin - e) > 2 * tol ? [lin] : null);
-    },
-    /* ---------- L2 bracket: two zircons, spots of 40 atoms, a laser budget; error bars shrink as 1/√n ---------- */
-    zEst(z) { if (!z.n) return null; const f = Math.max(0.002, Math.min(0.998, 1 - z.u / z.n)); return { t: DG_K.half * Det.log(1 / (1 - f)) / DG_K.LN2, e: 2 * DG_K.half / DG_K.LN2 * Math.sqrt(f / ((1 - f) * z.n)) }; },
-    zTrueErr(z, n) { const f = 1 - z.pU; return 2 * DG_K.half / DG_K.LN2 * Math.sqrt(f / ((1 - f) * Math.max(1, n))); },
-    mSpot() { const P = CH_DIG_V2.P; return P && P.m ? P.m.v | 0 : DG_K.m; },
-    spot(s, ev, zi, i) {
-      const z = s.z[zi]; if (s.phase !== 'assay' || !z || !z.chip || i < 0 || i >= DG_K.spots || z.sp[i] >= 0) return;
-      if (s.used >= DG_K.budget) { ev.push({ k: 'budget' }); return; }
-      const m = this.mSpot(), u = WF.binom(m, z.pU); z.sp[i] = u; z.n += m; z.u += u; z.k++; s.used++;
-      const E = this.zEst(z); z.hist.push([z.n, Math.round(E.e * 10) / 10]);
-      ev.push({ k: 'spot', z: zi, i, u, n: z.n });
-      if (s.asks.indexOf('b1') < 0 && z.n >= DG_K.b1At) { const e = E.e; s.b1z = zi; s.b1e = Math.round(e * 10) / 10; this.openAsk(s, ev, 'b1', 0, Math.ceil(e * 2), 0.15 * e, 0, e / 2, 'assay', [e / 4, e]); return; }
-      if (s.used >= DG_K.budget) { ev.push({ k: 'budget' }); this.endAssay(s, ev); }
-    },
-    laser8(s, ev, zi) { const z = s.z[zi]; let c = 0; for (let i = 0; i < DG_K.spots && c < 8 && s.phase === 'assay'; i++) if (z.sp[i] < 0) { this.spot(s, ev, zi, i); c++; } },
-    endAssay(s, ev) {
-      if (s.phase !== 'assay') return;
-      for (let zi = 0; zi < 2; zi++) { const z = s.z[zi]; for (let i = 0; i < DG_K.spots && z.k < DG_K.minSpots; i++) if (z.sp[i] < 0) { const m = this.mSpot(), u = WF.binom(m, z.pU); z.sp[i] = u; z.n += m; z.u += u; z.k++; } }
-      s.phase = 'bracket'; s.t = 0; ev.push({ k: 'bracket' });
-    },
-    bracketStep(s, ev) {
-      const K = DG_K;
-      if (s.phase === 'free') { if (!s.unt && s.t >= K.freeT) { for (let zi = 0; zi < 2; zi++) if (!s.z[zi].chip) this.chip(s, ev, zi); } return; }
-      if (s.phase === 'assay') { s.lt = (s.lt || 0) + this.dt; if (!s.unt && s.lt >= K.laserT) this.endAssay(s, ev); return; }
-      if (s.phase === 'bracket' && s.t >= K.labT) { s.phase = 'over'; ev.push({ k: 'over' }); }
-    },
-    chip(s, ev, zi) { const z = s.z[zi]; if (s.phase !== 'free' || !z || z.chip) return; z.chip = true; ev.push({ k: 'chip', z: zi }); if (s.z[0].chip && s.z[1].chip) { s.phase = 'assay'; s.t = 0; s.lt = 0; } },
-    /* ---------- L3 where to dig: a field map, five seasons, finds drawn when you choose the site ---------- */
+    clockAge(n) { return DG_K.half * Det.log(DG_K.N1 / Math.max(1, n)) / DG_K.LN2; },   // age read from the atoms left: 704 × log₂(64 ÷ N)
+    /* ---------- where to dig (level 3): a field map, five seasons, finds drawn when you choose the site ---------- */
     findP() { const P = CH_DIG_V2.P; return P && P.find ? P.find.v : 0.5; },
     dig(s, ev, o) {
       const c = s.crops[o]; if (s.phase !== 'pick' || !c) return;
@@ -389,7 +315,6 @@ const CH_DIG_V2 = {
       if (s.phase === 'brush') { s.br = Math.min(1, s.br + K.brushIdle * this.dt); if (s.br >= 1) this.found(s, ev); return; }
       if (s.phase === 'gap' && s.t >= 1.6) {
         s.season++; if (s.season >= K.seasons) { s.phase = 'over'; ev.push({ k: 'over' }); return; }
-        if (s.season === 1 && s.asks.indexOf('p1') < 0) { this.openAsk(s, ev, 'p1', 340, 420, 4, 340, 375, 'pick', [385, 365]); return; }
         s.phase = 'pick'; s.t = 0; ev.push({ k: 'season', n: s.season });
       }
     },
@@ -404,7 +329,7 @@ const CH_DIG_V2 = {
       else { v = Math.max(DG_K.lo, Math.min(DG_K.earth, +v)); s.pl[id] = Math.round(v * 1000) / 1000; s.err[id] = Math.round(Math.abs(v - tv) * 1000) / 1000; }
       ev.push({ k: 'placed', id, v: s.pl[id], err: s.err[id], tv });
       s.ci++; s.t = 0;
-      if (s.ci >= s.order.length) this.openAsk(s, ev, 'd1', DG_K.lo, DG_K.earth, 0.12, DG_K.lo, dgLog10(2.27e9), 'bush', [(DG_K.lo + DG_K.earth) / 2]);
+      if (s.ci >= s.order.length) { s.phase = 'bush'; s.t = 0; ev.push({ k: 'bush' }); }   // no halfway ask: the ribbon marks it plainly
     },
     goodCards(s) { return s.order.filter(id => s.err[id] != null && s.err[id] <= 0.5).length; },
     ribbonStep(s, ev) {
@@ -423,14 +348,13 @@ const CH_DIG_V2 = {
         else if (s.phase === 'uplift') { if (s.t >= DG_K.upT) { s.phase = 'reveal'; s.t = 0; ev.push({ k: 'reveal' }); } }
         else if (s.phase === 'reveal' && s.t >= DG_K.revT) { s.phase = 'over'; ev.push({ k: 'over' }); }
       } else if (n === 1) this.clockStep(s, ev);
-      else if (n === 2) this.bracketStep(s, ev);
       else if (n === 3) this.mapStep(s, ev);
       else this.ribbonStep(s, ev);
       return ev;
     },
     /* ---------- predictions: the sim opens the ask; the expectation is the model's, never the realised luck ---------- */
     openAsk(s, ev, id, lo, hi, tol, start, expect, resume, alt) {
-      s.ask = { id, kind: id === 'b1' ? 'y' : 'x', lo, hi, tol, start }; s.exp[id] = expect; s.tol[id] = tol; if (alt) s.alt[id] = alt;
+      s.ask = { id, kind: 'x', lo, hi, tol, start }; s.exp[id] = expect; s.tol[id] = tol; if (alt) s.alt[id] = alt;
       s.asks.push(id); s.resume = resume; s.phase = 'ask'; s.t = 0; ev.push({ k: 'ask', id });
     },
     commit(s, ev, id, v) {
@@ -438,10 +362,6 @@ const CH_DIG_V2 = {
       if (v != null && isFinite(+v)) { v = Math.max(A.lo, Math.min(A.hi, +v)); const d = Math.abs(v - e); hit = d <= A.tol && (s.alt[id] || []).filter(a => Math.abs(a - e) > A.tol).every(a => d < Math.abs(v - a)); } else v = null;
       s.pred[id] = v; s.hits[id] = hit; s.ask = null; s.t = 0;
       const r = s.resume || 'run'; s.phase = r; ev.push({ k: 'commit', id, reveal: id });
-      if (r === 'uplift') this.uplift(s, ev);
-      else if (r === 'lab') { s.phase = 'lab'; ev.push({ k: 'lab' }); }
-      else if (r === 'bush') ev.push({ k: 'bush' });
-      else if (r === 'pick') ev.push({ k: 'season', n: s.season });
     },
     /* ---------- What if? (D1 G9): L0's burials rerun through uplift with one rule changed ---------- */
     lever(k) {
@@ -463,14 +383,6 @@ const CH_DIG_V2 = {
         else if (a.k === 'settle') this.endEpoch(s, ev);
       } else if (n === 1) {
         if (a.k === 'hold' && s.phase === 'run') s.hold = !!a.on;
-        else if (a.k === 'assay') this.assay(s, ev, a.i | 0);
-        else if (a.k === 'assay8') this.assay8(s, ev);
-        else if (a.k === 'date') this.date(s, ev);
-      } else if (n === 2) {
-        if (a.k === 'chip') this.chip(s, ev, a.z | 0);
-        else if (a.k === 'spot') this.spot(s, ev, a.z | 0, a.i | 0);
-        else if (a.k === 'laser8') this.laser8(s, ev, a.z | 0);
-        else if (a.k === 'done' && s.phase === 'assay') { if (s.z[0].k >= DG_K.minSpots && s.z[1].k >= DG_K.minSpots) this.endAssay(s, ev); else ev.push({ k: 'both' }); }
       } else if (n === 3) {
         if (a.k === 'dig') this.dig(s, ev, a.o | 0);
         else if (a.k === 'brush') this.brush(s, ev, a.a);
@@ -485,11 +397,9 @@ const CH_DIG_V2 = {
     interesting(s) {   // chosen from what happened (lessons §1.5)
       if (s.whatif) return null; const n = s.level, st = CH_DIG_V2.stars;
       if (n === 0) { const L = s.layers.find(x => x.still); if (L && L.gone && this.softStill(s) > 0) return 'lost'; if (this.softStill(s) === 0) return 'nosoft'; if (this.buried(s) < 12) return 'few'; return s.kept / 48 > this.keptExp(s) + 0.08 ? 'lucky' : null; }
-      if (n === 1) { if (s.ns < 24) return 'rough'; return s.h != null && Math.abs(s.h - 32) >= 6 ? 'clump' : null; }
-      if (n === 2) { const a = this.zEst(s.z[0]), b = this.zEst(s.z[1]); if (a && b && a.t > b.t) return 'flip'; return st.discover(s, 2) ? null : 'lopsided'; }
+      if (n === 1) return s.h != null && Math.abs(s.h - 32) >= 6 ? 'clump' : null;
       if (n === 3) { if (this.rightDigs(s) === 0) return 'wrongrock'; return this.fishapods(s) === 0 ? 'unlucky' : null; }
-      if (this.goodCards(s) < 6) return 'ladder';
-      const v = s.pred.d1; return v != null && Math.abs(v - (DG_K.lo + DG_K.earth) / 2) < 1 ? 'middle' : null;
+      void st; return this.goodCards(s) < 6 ? 'ladder' : null;
     },
     snapshot() { return Snap.enc({ s: this.s, rs: R.state() }); },
     restore(str) { const o = Snap.dec(str); this.s = o.s; R.restore(o.rs); },
@@ -498,22 +408,21 @@ const CH_DIG_V2 = {
       if (s.ask) { const A = s.ask; for (let k = 0; k <= 48; k++) out.push({ k: 'predict', id: A.id, v: Math.round((A.lo + (A.hi - A.lo) * k / 48) * 1e4) / 1e4 }); return out; }
       const n = s.level;
       if (n === 0 && s.phase === 'epoch') { if (s.mud > 0) for (let k = 0; k < 10; k++) out.push({ k: 'pour', x: 0.05 + 0.1 * k }); out.push({ k: 'stop' }, { k: 'settle' }); }
-      else if (n === 1) { if (s.phase === 'run') out.push({ k: 'hold', on: !s.hold }); else if (s.phase === 'ash') { for (let i = 0; i < DG_K.N1; i++) if (!s.seen[i]) out.push({ k: 'assay', i }); out.push({ k: 'date' }); } }
-      else if (n === 2) { if (s.phase === 'free') { for (let zi = 0; zi < 2; zi++) if (!s.z[zi].chip) out.push({ k: 'chip', z: zi }); } else if (s.phase === 'assay') { for (let zi = 0; zi < 2; zi++) for (let i = 0; i < DG_K.spots; i++) if (s.z[zi].sp[i] < 0) out.push({ k: 'spot', z: zi, i }); out.push({ k: 'done' }); } }
+      else if (n === 1) { if (s.phase === 'run') out.push({ k: 'hold', on: !s.hold }); }
       else if (n === 3) { if (s.phase === 'pick') for (let o = 0; o < s.crops.length; o++) out.push({ k: 'dig', o }); else if (s.phase === 'brush') out.push({ k: 'brush', a: 0.1 }); }
       else if (n === 4 && s.phase === 'place') { const id = s.order[s.ci]; for (let k = 0; k <= 34; k++) out.push({ k: 'place', id, v: Math.round((1 + k * 0.25) * 100) / 100 }); }
       return out;
     },
     /* bots (tests/bots.js): (s, acts, rnd) → action | null; 'random' is generic. No bot may earn three stars in a level, nor across the unit. */
     bots: {
-      alwaysA(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'centre', hold: 1, assay: 16, laser: 'up', dig: 'first', card: 9, pred: 'lo' }); },
-      alwaysB(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'none', hold: 0, assay: 64, laser: 'lo', dig: 'last', card: 3, pred: 'hi' }); },
-      greedy(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'chase', hold: 1, assay: 32, laser: 'alt', dig: 'pin', card: 5.3, pred: 'mid' }); },
-      threshold(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'chase', hold: 1, assay: 24, laser: 'even', dig: 'age', card: 'word', pred: 'mid' }); },
-      fixed(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'chase', hold: 1, assay: 32, laser: 'even', dig: 'right', card: 'word', pred: 'fixed' }); },
-      still(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'soft', hold: 1, assay: 64, laser: 'even', dig: 'right', card: 'true', pred: 'still' }); },
-      naive(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'soft', hold: 1, assay: 64, laser: 'even', dig: 'right', card: 'true', pred: 'naive' }); },
-      expert(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'soft', hold: 1, assay: 64, laser: 'even', dig: 'right', card: 'true', pred: 'exact' }); }   // test policy: reads s.exp (never in a sweep)
+      alwaysA(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'centre', hold: 1, dig: 'first', card: 9, pred: 'lo' }); },
+      alwaysB(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'none', hold: 0, dig: 'last', card: 3, pred: 'hi' }); },
+      greedy(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'chase', hold: 1, dig: 'pin', card: 5.3, pred: 'mid' }); },
+      threshold(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'chase', hold: 1, dig: 'age', card: 'word', pred: 'mid' }); },
+      fixed(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'chase', hold: 1, dig: 'right', card: 'word', pred: 'fixed' }); },
+      still(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'soft', hold: 1, dig: 'right', card: 'true', pred: 'still' }); },
+      naive(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'soft', hold: 1, dig: 'right', card: 'true', pred: 'naive' }); },
+      expert(s, acts) { return CH_DIG_V2.sim.bot(s, acts, { pour: 'soft', hold: 1, dig: 'right', card: 'true', pred: 'exact' }); }   // test policy: reads s.exp (never in a sweep)
     },
     bot(s, acts, o) {
       if (typeof Save !== 'undefined' && Save.d && Save.d.ui && Save.d.ui.unt && !s.unt) return { k: 'unt', on: true };
@@ -521,7 +430,7 @@ const CH_DIG_V2 = {
         const A = s.ask, P = acts.filter(a => a.k === 'predict'), near = v => P.reduce((b, a) => (Math.abs(a.v - v) < Math.abs(b.v - v) ? a : b));
         if (o.pred === 'still') return { k: 'predict', id: A.id, v: A.start, moved: false };
         if (o.pred === 'exact') return { k: 'predict', id: A.id, v: s.exp[A.id] };
-        if (o.pred === 'fixed') { const F = { k1: 0.15, a1: 1408, a2: 450, b1: (A.hi) / 4, p1: 375, d1: 9.3 }; return { k: 'predict', id: A.id, v: F[A.id] }; }
+        if (o.pred === 'fixed') return { k: 'predict', id: A.id, v: 1408 };   // two half-lives, whatever the crystal holds
         if (o.pred === 'naive') { const al = s.alt[A.id]; return { k: 'predict', id: A.id, v: al ? al[0] : (A.lo + A.hi) / 2 }; }
         return near(o.pred === 'lo' ? A.lo : o.pred === 'hi' ? A.hi : (A.lo + A.hi) / 2);
       }
@@ -539,18 +448,7 @@ const CH_DIG_V2 = {
       }
       if (n === 1) {
         if (s.phase === 'run') return !!o.hold !== s.hold ? { k: 'hold', on: !!o.hold } : null;
-        if (s.phase === 'ash') return s.ns < o.assay ? { k: 'assay8' } : { k: 'date' };
         return null;
-      }
-      if (n === 2) {
-        if (s.phase === 'free') { const zi = s.z[0].chip ? 1 : 0; return { k: 'chip', z: zi }; }
-        if (s.phase !== 'assay') return null;
-        if (s.used >= DG_K.budget) return { k: 'done' };
-        const a = s.z[0].k, b = s.z[1].k;
-        let zi = o.laser === 'up' ? 0 : o.laser === 'lo' ? 1 : a <= b ? 0 : 1;
-        if (o.laser === 'alt') zi = s.used % 2;
-        if (s.z[zi].k >= DG_K.spots) zi = 1 - zi;
-        return { k: 'laser8', z: zi };
       }
       if (n === 3) {
         if (s.phase === 'brush') return { k: 'brush', a: 0.2 };
@@ -572,43 +470,34 @@ const CH_DIG_V2 = {
   },
 
   /* ---------- stars, against the expectation for the actions taken (never the realised run of luck) ---------- */
-  stars: {
-    discover: (s, n) => {
-      if (s.whatif) return false; const sim = CH_DIG_V2.sim;
+  stars: {   // each reads the kind from the state (s.level), never the caller's level index
+    discover: (s) => {
+      if (s.whatif) return false; const sim = CH_DIG_V2.sim, n = s.level;
       if (n === 0) return sim.softStill(s) >= 2 && sim.buried(s) >= 16;
-      if (n === 2) return s.z[0].k >= 10 && s.z[1].k >= 10 && sim.zTrueErr(s.z[0], s.z[0].n) + sim.zTrueErr(s.z[1], s.z[1].n) <= DG_K.err2;
       if (n === 3) return sim.rightDigs(s) >= 2;
       return false;
     },
-    predict: (s, n) => {
-      if (s.whatif) return false;
-      if (n === 0) return !!s.hits.k1;
-      if (n === 1) return !!s.hits.a2 && (s.exp.a1 == null || !!s.hits.a1);
-      if (n === 2) return !!s.hits.b1;
-      if (n === 3) return !!s.hits.p1;
-      return !!s.hits.d1;
-    },
-    transfer: (s, n) => !s.whatif && n === 4 && CH_DIG_V2.sim.goodCards(s) >= 7
+    predict: (s) => !s.whatif && s.level === 1 && !!s.hits.a1,   // the chapter's one prediction (D6 decision 9)
+    transfer: (s) => !s.whatif && s.level === 4 && CH_DIG_V2.sim.goodCards(s) >= 7
   },
-  unitStars(lv) {   // D3: Discover = a Lagerstätte (L0) and the in-between rock (L3); Predict in three of five levels; Transfer = the boss
-    const m = i => lv[i] | 0; let p = 0; for (let i = 0; i < 5; i++) if (m(i) & 2) p++;
-    return ((m(0) & 1) && (m(3) & 1) ? 1 : 0) | (p >= 3 ? 2 : 0) | (m(4) & 4 ? 4 : 0);
+  unitStars(lv) {   // Discover = a Lagerstätte (L1) and the in-between rock (L3); Predict = the clock (L2); Transfer = the boss (L4)
+    const m = i => lv[i] | 0;
+    return ((m(0) & 1) && (m(2) & 1) ? 1 : 0) | (m(1) & 2 ? 2 : 0) | (m(3) & 4 ? 4 : 0);
   },
-  /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 a level number (L0 buried, L1 atoms tested, L2 spots on the upper zircon,
-     L3 seasons in the right rock, L4 cards within half a step), 14–20 the prediction ×100 of its axis span (127 none) */
+  /* result code (30 bits): 0–2 level, 3–5 mask, 6–13 a level number (L1 buried, L2 atoms left at the end,
+     L3 seasons in the right rock, L4 cards within half a step), 14–20 L2's prediction ×100 of its axis span (127 none) */
   resultBits(s, level) {
-    if (!s) return 0; const n = Math.max(0, Math.min(4, level | 0)), st = this.stars, sim = this.sim, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
-    const x = n === 0 ? sim.buried(s) : n === 1 ? s.ns || 0 : n === 2 ? s.z[0].k : n === 3 ? sim.rightDigs(s) : sim.goodCards(s);
-    const id = ['k1', 'a2', 'b1', 'p1', 'd1'][n], A = s.ask, v = s.pred[id], span = { k1: [0, 0.6], a2: [0, 2400], b1: [0, (s.b1e || 1) * 2], p1: [340, 420], d1: [1, DG_K.earth] }[id];
-    const pv = v == null ? 127 : c(100 * (v - span[0]) / (span[1] - span[0]), 126); void A;
-    return (n | ((st.discover(s, n) ? 1 : 0) | (st.predict(s, n) ? 2 : 0) | (st.transfer(s, n) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv << 14) >>> 0;
+    if (!s) return 0; const lv = Math.max(0, Math.min(3, level | 0)), n = s.level, st = this.stars, sim = this.sim, c = (v, hi) => Math.max(0, Math.min(hi, Math.round(v)));
+    const x = n === 0 ? sim.buried(s) : n === 1 ? s.n || 0 : n === 3 ? sim.rightDigs(s) : sim.goodCards(s);
+    const v = s.pred.a1, pv = v == null ? 127 : c(100 * v / 2400, 126);
+    return (lv | ((st.discover(s) ? 1 : 0) | (st.predict(s) ? 2 : 0) | (st.transfer(s) ? 4 : 0)) << 3 | c(x, 255) << 6 | pv << 14) >>> 0;
   },
   /* ================= view: lifecycle, input, juice, drawing (juice from Sim.run's events only) ================= */
   start(ch, o) { this.startLevel((o && o.level) || 0, o || {}); },
   startLevel(n, o) {
     o = o || {}; this.level = n; this._ended = false; this._pend = false; this._asking = null; this._hudSig = ''; this._dockSig = '';
     this.v = { t: 0, banner: null, anims: [], flash: {}, hold: -1, fold: 0, said: {}, ptr: null, cur: 0.5, keyHold: false, bg: null, bgk: '', thaw: !!o.thaw,
-      upT: 0, revT: 0, cells: {}, brushD: 0, drag: null, sel: 0, bushT: 0, lastTick: 0, laser: null, crack: {} };
+      upT: 0, revT: 0, cells: {}, brushD: 0, drag: null, sel: 0, bushT: 0, lastTick: 0, crack: {} };
     Sim.start(this, n, o);
     const ui = Save.d && Save.d.ui;
     if (!o.thaw && !o.replay && ui && ui.unt) Sim.act(this, { k: 'unt', on: true });   // a setting enters the run as a logged action (lessons §1.6)
@@ -639,7 +528,7 @@ const CH_DIG_V2 = {
     const v = this.v;
     for (const e of Sim.run(this, 0)) this.juice(e);   // live actions first, so a Lock in starts the hold before the sim moves on
     if (v.hold >= 0) { v.hold += dt; if (!this.phoneStrip() || v.hold > 1.2) v.hold = -1; }
-    const s0 = this.sim.s, ff = s0.whatif ? 3 : v.ff && /gap|uplift|reveal|lab|bracket|bush/.test(s0.phase) ? 3 : 1;
+    const s0 = this.sim.s, ff = s0.whatif ? 3 : v.ff && /gap|uplift|reveal|lab|bush/.test(s0.phase) ? 3 : 1;
     const ev = Sim.run(this, v.hold >= 0 ? 0 : dt * ff), s = this.sim.s;
     for (const e of ev) this.juice(e);
     v.t += dt;
@@ -648,40 +537,38 @@ const CH_DIG_V2 = {
     for (const k in v.flash) { v.flash[k] -= dt; if (v.flash[k] <= 0) delete v.flash[k]; }
     if (s.phase === 'uplift') v.upT += dt * ff; if (s.phase === 'reveal' || (s.level === 0 && s.phase === 'over')) v.revT += dt * ff;
     if (s.phase === 'bush' || (s.level === 4 && s.phase === 'over')) v.bushT += dt;
+    if (s.level === 3 && s.phase === 'brush' && v.ptr && v.t - (v.lastBr || 0) > 0.25) { v.lastBr = v.t; Sim.act(this, { k: 'brush', a: 0.07 }); }   // holding brushes too (D6 decision 9: the verb a player tries first works)
     if (v.ghost0 && !v.banner) { v.ghost0 = false; this.teach(); }
     if (s.ask && this._asking !== s.ask.id) this.openAsk();
     if (!s.ask && this._asking) { this._asking = null; v.fold = 1; }
     if (v.fold && v.hold < 0) { v.fold = 0; if (typeof Predict !== 'undefined' && Predict.fold) Predict.fold(); }
     if (v.lastPhase !== s.phase) { v.lastPhase = s.phase; v.ff = false; this._dockSig = ''; }
-    if (s.level === 2 && s.phase === 'assay' && v.lt0 == null) v.lt0 = 1;
     if (s.level === 1 && s.phase === 'run' && (v.t - v.lastLive || 99) > 4 && typeof Live !== 'undefined') { v.lastLive = v.t; Live.say(Txt.f(this.content.live.decay, { n: s.n, t: Math.round(s.T) })); }
     this.dock(); this.hud();
     const r = this.sim.result();
     if (r && !this._ended) { if (!this._pend) { this._pend = true; v.endT = 0; return; } v.endT += dt; if (v.endT < 0.9 && !s.whatif) return; this._ended = true; this.finish(r); }
   },
   teach() {   // the ghost hand: within 3 s, on the verb this level adds (a known verb is skipped by Ghost itself)
-    if (typeof Ghost === 'undefined') return; const n = this.level, s = this.sim.s;
+    if (typeof Ghost === 'undefined') return; const s = this.sim.s, n = s.level;
     if (n === 0) Ghost.show({ verb: 'hold', key: ' ', at: () => { const G = this.geo(), a = s.an && s.an.find(q => !q.b && q.y < DG_K.bury); return a ? this.anXY(a, G) : [G.W / 2, G.floor - 10]; }, until: () => this.sim.buried(s) > 0 || s.an.some(a => a.b) });
     else if (n === 1) Ghost.show({ verb: 'hold', key: ' ', at: () => { const Z = this.zGeo(); return [Z.x, Z.y]; }, until: () => s.hold || s.T > 300 });
-    else if (n === 2) Ghost.show({ verb: 'tap', at: () => { const G = this.geo(); return [G.cx + G.cw / 2, G.ashY[0]]; }, until: () => s.z[0].chip || s.z[1].chip });
     else if (n === 3) Ghost.show({ verb: 'tap', at: () => { const G = this.geo(), c = s.crops[4]; return this.cropXY(c, G); }, until: () => s.digs.length > 0 });
     else Ghost.show({ verb: 'drag', at: () => { const G = this.geo(); return [G.cardX, G.cardY]; }, to: () => { const G = this.geo(); return [G.X(6), G.ry]; }, until: () => s.ci > 0 });
   },
   teach2(kind) {
     if (typeof Ghost === 'undefined') return; const s = this.sim.s;
-    if (kind === 'ash') Ghost.show({ verb: 'tap', at: () => { const Z = this.zGeo(), p = Z.atom(0); return [p[0], p[1]]; }, until: () => s.ns > 0 });
-    if (kind === 'laser') Ghost.show({ verb: 'sweep', at: () => { const Z = this.z2Geo(0); return Z.spot(0); }, to: () => { const Z = this.z2Geo(0); return Z.spot(7); }, until: () => s.used > 0 });
     if (kind === 'brush') Ghost.show({ verb: 'sweep', at: () => { const B = this.brushGeo(); return [B.x + B.w * 0.2, B.y + B.h * 0.4]; }, to: () => { const B = this.brushGeo(); return [B.x + B.w * 0.8, B.y + B.h * 0.6]; }, until: () => s.br > 0.4 || s.phase !== 'brush' });
   },
   hud() {
     const s = this.sim.s, C = this.content.hud, L = this.content.labels; if (typeof HUD === 'undefined') return;
     let t, num = ''; const n = s.level;
-    if (s.phase === 'ask') t = { k1: C.askK, a1: C.askA1, a2: C.askA2, b1: C.askB1, p1: C.askP1, d1: C.askD1 }[s.ask.id];
-    else if (n === 0) { t = s.phase === 'epoch' ? (s.e === 0 && !s.an.some(a => a.b) ? this.content.firstWords : s.e === s.anox ? C.still : s.unt ? C.floodU : C.flood) : s.phase === 'uplift' ? C.uplift : s.phase === 'reveal' || s.phase === 'over' ? C.reveal : C.gap; num = Txt.f(L.epoch, { n: Math.min(6, s.e + 1) }); }
-    else if (n === 1) { t = s.phase === 'run' ? C.clock : s.phase === 'ash' ? (s.ns >= DG_K.minAssay ? C.ashGo : C.ash) : C.lab; num = s.phase === 'run' ? Txt.f(L.myr, { n: Math.round(s.T) }) : Txt.f(L.atoms, { n: s.ns || 0 }); }
-    else if (n === 2) { t = s.phase === 'free' ? C.free : s.phase === 'assay' ? C.laser : C.bracket; num = Txt.f(L.spots, { n: DG_K.budget - s.used }); }
+    if (s.phase === 'ask') t = C.askA1;
+    else if (n === 0) { t = s.phase === 'epoch' ? (s.e === 0 && !s.an.some(a => a.b) ? this.content.firstWords : s.e === s.anox ? C.still : s.unt ? C.floodU : C.flood) : s.phase === 'uplift' ? C.uplift : s.phase === 'reveal' || s.phase === 'over' ? Txt.f(C.reveal, { k: s.kept || 0 }) : C.gap; num = Txt.f(L.epoch, { n: Math.min(6, s.e + 1) }); }
+    else if (n === 1) {   // the key equation, plainly, once the clock has run three half-lives (D6 decision 9)
+      t = s.phase === 'lab' || s.phase === 'over' ? Txt.f(C.lab, { n: s.n, a: Math.round(this.sim.clockAge(s.n)), t: Math.round(s.T) }) : s.asks.indexOf('a1') >= 0 ? C.clock2 : C.clock;
+      num = Txt.f(L.myr, { n: Math.round(s.T) }); }
     else if (n === 3) { t = s.phase === 'brush' ? C.brush : C.pick; num = Txt.f(L.season, { n: Math.min(5, s.season + 1) }); }
-    else { if (s.phase === 'place') { const id = s.order[s.ci], cd = this.content.cards[id]; t = Txt.f(C.place, { name: cd[0], age: cd[1] }); } else t = C.bush; num = (s.ci || 0) + ' / 8'; }
+    else { if (s.phase === 'place') { const id = s.order[s.ci], cd = this.content.cards[id]; t = Txt.f(C.place, { name: cd[0], age: cd[1] }); } else t = s.phase === 'over' ? C.half : C.bush; num = (s.ci || 0) + ' / 8'; }
     if (s.whatif) t = this.content.levers[s.whatif];
     const sig = t + num; if (sig !== this._hudSig) { this._hudSig = sig; HUD.say(t, num); }
     const bar = typeof document !== 'undefined' && document.getElementById ? document.getElementById('bar-gen') : null;
@@ -689,27 +576,23 @@ const CH_DIG_V2 = {
   },
   dock() {
     if (typeof Dock === 'undefined') return; const s = this.sim.s, L = this.content.labels, n = s.level;
-    const sig = s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.whatif ? 'w' : '') + (n === 1 ? (s.hold ? 'h' : '') + (s.ns >= DG_K.minAssay ? 'd' : '') : '');
+    const sig = s.phase + (s.unt ? 'u' : '') + (s.ask ? s.ask.id : '') + (s.whatif ? 'w' : '') + (n === 1 ? (s.hold ? 'h' : '') : '');
     if (sig === this._dockSig) return; this._dockSig = sig;
     if (s.ask) { Dock.set([{ id: 'dg-lock', label: L.lock, key: 'Enter', primary: true, fn: () => this.lockIn() }]); return; }
     if (s.whatif || s.phase === 'over') { Dock.set([]); return; }
-    if (n === 0 && s.phase === 'epoch') { Dock.set([{ id: 'dg-settle', label: L.settle, key: 'Enter', fn: () => Sim.act(this, { k: 'settle' }) }]); return; }
+    if (n === 0 && s.phase === 'epoch' && s.unt) { Dock.set([{ id: 'dg-settle', label: L.settle, key: 'Enter', fn: () => Sim.act(this, { k: 'settle' }) }]); return; }
     if (n === 1 && s.phase === 'run') { Dock.set([{ id: 'dg-fast', label: 'Run fast', key: 'F', pressed: !!s.hold, fn: () => Sim.act(this, { k: 'hold', on: !this.sim.s.hold }) }]); return; }
-    if (n === 1 && s.phase === 'ash') { Dock.set([{ id: 'dg-t8', label: L.test8, key: 'T', fn: () => Sim.act(this, { k: 'assay8' }) }, { id: 'dg-date', label: L.date, key: 'Enter', primary: s.ns >= DG_K.minAssay, fn: () => Sim.act(this, { k: 'date' }) }]); return; }
-    if (n === 2 && s.phase === 'free') { Dock.set([{ id: 'dg-chip', label: L.chip, key: 'Enter', fn: () => Sim.act(this, { k: 'chip', z: this.sim.s.z[0].chip ? 1 : 0 }) }]); return; }
-    if (n === 2 && s.phase === 'assay') { Dock.set([{ id: 'dg-u8', label: L.up8, key: '1', fn: () => Sim.act(this, { k: 'laser8', z: 0 }) }, { id: 'dg-l8', label: L.lo8, key: '2', fn: () => Sim.act(this, { k: 'laser8', z: 1 }) }, { id: 'dg-done', label: L.done, key: 'Enter', fn: () => Sim.act(this, { k: 'done' }) }]); return; }
     if (n === 3 && s.phase === 'brush') { Dock.set([{ id: 'dg-brush', label: L.brush, key: ' ', fn: () => Sim.act(this, { k: 'brush', a: 0.12 }) }]); return; }
     Dock.set([]);
   },
   openAsk() {
     const s = this.sim.s, A = s.ask; this._asking = A.id; if (typeof Predict === 'undefined') return;
-    const chart = A.id === 'b1' ? 1 : 0;
-    Predict.ask({ id: A.id, chart, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, soft: s.unt ? null : 26, needMove: true, linger: 1000,
+    Predict.ask({ id: A.id, chart: 0, kind: A.kind, axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, soft: s.unt ? null : 26, needMove: true, linger: 1000,
       onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'predict', id: A.id, v: null, moved: false }), say: this.content.live.ask });
     if (typeof Live !== 'undefined') Live.say(this.content.live.ask);
     this._dockSig = ''; this.dock(); this.redraw();
   },
-  lockIn() { const s = this.sim.s; if (!s.ask || typeof Predict === 'undefined') return; const ov = Predict.overlay(s.ask.id === 'b1' ? 1 : 0); if (ov && ov.id === s.ask.id && !ov.moved) { this.whisper('drag'); return; } Predict.commit(s.ask.id); },
+  lockIn() { const s = this.sim.s; if (!s.ask || typeof Predict === 'undefined') return; const ov = Predict.overlay(0); if (ov && ov.id === s.ask.id && !ov.moved) { this.whisper('drag'); return; } Predict.commit(s.ask.id); },
   reveal(id) {
     const s = this.sim.s; if (typeof Predict === 'undefined' || s.exp[id] == null) return;
     Predict.reveal(id, s.exp[id], s.tol[id]); this.whisper(s.pred[id] == null ? 'none' : s.hits[id] ? 'hit' : 'out'); this.redraw();
@@ -717,20 +600,19 @@ const CH_DIG_V2 = {
 
   /* ---------- the level card ---------- */
   finish(r) {
-    const s = this.sim.s, n = this.level, C = this.content, o = { level: n, mask: r.mask, final: n === 4, interesting: r.interesting }, V = this.bodyVars();
+    const s = this.sim.s, n = this.level, C = this.content, o = { level: n, mask: r.mask, final: n === 3, interesting: r.interesting }, V = this.bodyVars();   // n: the level (content arrays); s.level: the kind
     if (s.whatif) { o.body = Txt.f(C.whatifBody[s.whatif], V); o.take = null; o.interesting = null; }
-    else if (n < 4) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
+    else if (n < 3) { o.take = C.levelTake[n]; o.body = Txt.f(C.levelBody[n], V); }
     else { o.take = C.take; o.body = Txt.f(C.body, V); o.bodyFirst = true; }
     if (!s.whatif && n === 0 && typeof Freezer !== 'undefined') { Freezer.put(this.id, 1, this.sim.snapshot(), { force: true }); o.whatIf = { gen: 1, levers: ['still', 'noerode'] }; }
-    o.why = n < 4 ? C.levelWhy[n] : C.why;
+    o.why = n < 3 ? C.levelWhy[n] : C.why;
     const spec = this.cardSpec(); if (spec && typeof LiveGraph !== 'undefined') { o.chart = cv => LiveGraph.draw(cv, spec, 'paper'); o.chartLabel = spec.title; }
     End.show(this, o);
   },
   bodyVars() {
-    const s = this.sim.s, sim = this.sim, n = this.level, r = x => Math.round(x);
+    const s = this.sim.s, sim = this.sim, n = s.level, r = x => Math.round(x);
     if (n === 0) { const lv = s.whatif ? { still: s.whatif === 'still', noerode: s.whatif === 'noerode' } : {}; return { b: sim.buried(s), k: s.kept || 0, e: r(48 * sim.keptExp(s, lv)), s: s.whatif ? s.keptSoft || 0 : sim.softStill(s), m: s.mine || 0 }; }
-    if (n === 1) return { h: s.h != null ? s.h : s.n, t: r(sim.ashEst(s)), e: r(sim.ashErr(s)), l: r(s.tA || 0) };
-    if (n === 2) { const a = sim.zEst(s.z[0]) || { t: 0, e: 0 }, b = sim.zEst(s.z[1]) || { t: 0, e: 0 }; return { u: r(a.t), eu: r(a.e), w: r(b.t), el: r(b.e), f: r(s.fish) }; }
+    if (n === 1) return { h: s.h != null ? s.h : s.n, n: s.n, a: r(sim.clockAge(s.n)), t: r(s.T) };
     if (n === 3) return { n: sim.rightDigs(s), f: sim.fishapods(s) };
     return { a: sim.goodCards(s) };
   },
@@ -756,14 +638,7 @@ const CH_DIG_V2 = {
       case 'reveal': v.revT = 0; if (s.layers.some(l => l.gone)) this.whisper('eroded'); this.redraw(); return;
       case 'decay': { v.flash['a' + e.i] = 0.55; const now = v.t; if (now - v.lastTick > 0.07) { v.lastTick = now; const Z = this.zGeo(), p = Z.atom(e.i); snd('tick', p[0], p[1]); if (F) F.burst('spark', p[0], p[1], 3); } if (now - (v.lastRd || 0) > 0.3) { v.lastRd = now; this.redraw(); } return; }
       case 'ash': this.banner(this.content.labels.zircon, 900); v.anims.push({ k: 'ash', t: 0, d: 0.7 }); this.teach2('ash'); this.redraw(); return;
-      case 'assay': { const Z = this.zGeo(), p = Z.atom(e.i); v.flash['s' + e.i] = 0.4; if (F) F.burst('spark', p[0], p[1], 4); snd('tock', p[0], p[1]); this.redraw(); return; }
-      case 'more': this.whisper('more'); return;
-      case 'lab': { const Z = this.zGeo(); if (F) F.tier(2, () => F.ring(Z.x, Z.y, Z.w * 0.6, { ms: 700 })); snd('interesting', Z.x, Z.y); return; }
-      case 'chip': { const y = G.ashY[e.z]; if (F) { F.burst('dust', G.cx + G.cw * 0.5, y, 10, { ink: '#CFC8B8' }); F.shake(3, 120); } snd('crack', G.cx + G.cw * 0.5, y); v.anims.push({ k: 'chip', z: e.z, t: 0, d: 0.6 }); if (s.z[0].chip && s.z[1].chip) this.teach2('laser'); return; }
-      case 'spot': { const Z = this.z2Geo(e.z), p = Z.spot(e.i); v.flash['p' + e.z + '_' + e.i] = 0.35; if (F) F.burst('spark', p[0], p[1], 3, { ink: '#F2C27A' }); if (v.t - v.lastTick > 0.06) { v.lastTick = v.t; snd('tick', p[0], p[1]); } const E = this.sim.zEst(s.z[e.z]); if (E && s.z[e.z].k % 5 === 0) live('spot', { z: e.z ? L.lower : L.upper, n: s.z[e.z].n, t: Math.round(E.t), e: Math.round(E.e) }); this.redraw(); return; }
-      case 'budget': this.whisper('budget'); return;
-      case 'both': this.whisper('both'); return;
-      case 'bracket': { const y = G.fishY; if (F) F.tier(2, () => F.ring(G.cx + G.cw / 2, y, 40, { ms: 700 })); snd('interesting', G.cx, y); this.redraw(); return; }
+      case 'lab': { const Z = this.zGeo(); if (F) F.tier(2, () => F.ring(Z.x, Z.y, Z.w * 0.6, { ms: 700 })); snd('interesting', Z.x, Z.y); this.redraw(); return; }
       case 'dig': { const c = s.crops[e.o], p = this.cropXY(c, G); if (F) F.burst('dust', p[0], p[1], 8, { ink: '#B48A52' }); snd('crack', p[0], p[1]); v.cells = {}; v.anims.push({ k: 'zoom', t: 0, d: 0.45 }); this.teach2('brush'); return; }
       case 'find': {
         const B = this.brushGeo(), cx = B.x + B.w / 2, cy = B.y + B.h / 2; live('find', { n: e.season + 1, f: this.content.finds[e.f] });
@@ -786,16 +661,11 @@ const CH_DIG_V2 = {
   /* ---------- input ---------- */
   down(x, y) {
     const s = this.sim.s, v = this.v, n = s.level, G = this.geo(); v.ptr = { x, y, x0: x, y0: y, t0: v.t };
-    if (/gap|uplift|reveal|lab|bracket|bush/.test(s.phase)) { v.ff = true; return; }
+    if (/gap|uplift|reveal|lab|bush/.test(s.phase)) { v.ff = true; return; }
     if (s.whatif || s.phase === 'ask' || s.phase === 'over') return;
     if (n === 0 && s.phase === 'epoch') { if (y > G.top) { v.pouring = true; v.px = this.xToF(x, G); Sim.act(this, { k: 'pour', x: v.px }); } return; }
     if (n === 1) {
       if (s.phase === 'run') { v.held = true; Sim.act(this, { k: 'hold', on: true }); return; }
-      if (s.phase === 'ash') { this.assayAt(x, y); return; }
-    }
-    if (n === 2) {
-      if (s.phase === 'free') { for (let zi = 0; zi < 2; zi++) if (Math.abs(y - G.ashY[zi]) < Math.max(22, G.ashH * 2) && x < G.cx + G.cw + 20) { Sim.act(this, { k: 'chip', z: zi }); return; } for (let zi = 0; zi < 2; zi++) { const Z = this.z2Geo(zi); if (x > Z.x - Z.w / 2 && x < Z.x + Z.w / 2 && Math.abs(y - Z.y) < Z.h / 2) { Sim.act(this, { k: 'chip', z: zi }); return; } } return; }
-      if (s.phase === 'assay') { v.laser = { x, y }; this.laserAt(x, y); return; }
     }
     if (n === 3) {
       if (s.phase === 'pick') { const o = this.cropAt(x, y, G); if (o >= 0) Sim.act(this, { k: 'dig', o }); return; }
@@ -809,8 +679,6 @@ const CH_DIG_V2 = {
   move(x, y) {
     const s = this.sim.s, v = this.v, n = s.level, G = this.geo(); if (v.ptr) { v.ptr.x = x; v.ptr.y = y; }
     if (n === 0 && v.pouring && s.phase === 'epoch') { const f = this.xToF(x, G); if (Math.abs(f - v.px) >= 0.01) { v.px = f; Sim.act(this, { k: 'pour', x: f }); } return; }
-    if (n === 1 && s.phase === 'ash') { this.assayAt(x, y); return; }
-    if (n === 2 && s.phase === 'assay') { v.laser = { x, y }; this.laserAt(x, y); return; }
     if (n === 3 && s.phase === 'brush') { this.brushAt(x, y, false); return; }
     if (n === 4 && v.drag) { v.drag.x = x; v.drag.y = y; v.drag.moved = true; }
   },
@@ -818,7 +686,6 @@ const CH_DIG_V2 = {
     const s = this.sim.s, v = this.v, n = s.level, G = this.geo(), p = v.ptr; v.ptr = null;
     if (n === 0 && v.pouring) { v.pouring = false; if (s.phase === 'epoch') { if (p && v.t - p.t0 < 0.25) Sim.act(this, { k: 'slug', x: this.xToF(x, G) }); else Sim.act(this, { k: 'stop' }); } return; }
     if (n === 1 && v.held) { v.held = false; Sim.act(this, { k: 'hold', on: false }); return; }
-    if (n === 2) { v.laser = null; return; }
     if (n === 4 && v.drag && s.phase === 'place') {
       const d = v.drag; v.drag = null;
       if (Math.abs(y - G.ry) < G.rh * 2.2 && x >= G.rx0 - 10 && x <= G.rx1 + 10) Sim.act(this, { k: 'place', id: s.order[s.ci], v: Math.round(G.V(x) * 1000) / 1000 });
@@ -827,7 +694,7 @@ const CH_DIG_V2 = {
   },
   onKey(k) {
     const s = this.sim.s, v = this.v, n = s.level;
-    if (k === ' ' && /gap|uplift|reveal|lab|bracket|bush/.test(s.phase)) { v.ff = true; return; }
+    if (k === ' ' && /gap|uplift|reveal|lab|bush/.test(s.phase)) { v.ff = true; return; }
     if (n === 0 && s.phase === 'epoch') {
       if (k === 'ArrowLeft' || k === 'ArrowRight') { v.cur = Math.max(0.02, Math.min(0.98, v.cur + (k === 'ArrowLeft' ? -0.05 : 0.05))); if (v.keyHold) Sim.act(this, { k: 'pour', x: Math.round(v.cur * 100) / 100 }); return; }
       if (k === ' ' && !v.keyHold) { v.keyHold = true; Sim.act(this, { k: 'pour', x: Math.round(v.cur * 100) / 100 }); }
@@ -848,8 +715,6 @@ const CH_DIG_V2 = {
     if (s.level === 0) Sim.act(this, { k: 'stop' }); else if (s.level === 1) Sim.act(this, { k: 'hold', on: false });
   },
   teacherStep() { this.v.ff = true; },
-  assayAt(x, y) { const s = this.sim.s, Z = this.zGeo(); for (let i = 0; i < DG_K.N1; i++) { if (s.seen[i]) continue; const p = Z.atom(i), dx = x - p[0], dy = y - p[1]; if (dx * dx + dy * dy <= Z.hit * Z.hit) Sim.act(this, { k: 'assay', i }); } },
-  laserAt(x, y) { const s = this.sim.s; for (let zi = 0; zi < 2; zi++) { const Z = this.z2Geo(zi), z = s.z[zi]; for (let i = 0; i < DG_K.spots; i++) { if (z.sp[i] >= 0) continue; const p = Z.spot(i), dx = x - p[0], dy = y - p[1]; if (dx * dx + dy * dy <= Z.hit * Z.hit) Sim.act(this, { k: 'spot', z: zi, i }); } } },
   brushAt(x, y, first) {
     const v = this.v, B = this.brushGeo(); if (x < B.x || x > B.x + B.w || y < B.y || y > B.y + B.h) return;
     const ci = Math.floor((x - B.x) / B.w * 12), cj = Math.floor((y - B.y) / B.h * 12);
@@ -861,13 +726,8 @@ const CH_DIG_V2 = {
 
   /* ---------- geometry (canvas px) ---------- */
   geo() {
-    const W = Stage.w, H = Stage.h, u = Stage.u || Math.min(W, 1.2 * H), top = this.hudH() + 6, bot = H - 12, n = this.level, G = { W, H, u, top, bot };
+    const W = Stage.w, H = Stage.h, u = Stage.u || Math.min(W, 1.2 * H), top = this.hudH() + 6, bot = H - 12, n = this.sim.s ? this.sim.s.level : 0, G = { W, H, u, top, bot };
     if (n === 0) { G.lh = Math.max(14, Math.min(26, (bot - top) * 0.36 / DG_K.E)); G.floor = bot - DG_K.E * G.lh - 2; G.gx = W - 18; }
-    if (n === 2) {   // the cliff section on the left, two zircons on the right
-      const wide = W > 700; G.cx = wide ? W * 0.1 : 12; G.cw = wide ? W * 0.32 : W * 0.38; G.ct = top + 18; G.cb = bot - 8;
-      const h = G.cb - G.ct; G.ashH = Math.max(6, h * 0.025); G.ashY = [G.ct + h * 0.3, G.ct + h * 0.72]; G.fishY = (G.ashY[0] + G.ashY[1]) / 2;
-      G.zx = wide ? W * 0.66 : G.cx + G.cw + (W - G.cx - G.cw) / 2; G.zw = Math.min(wide ? 260 : W - G.cw - 34, (G.ashY[1] - G.ashY[0]) * 0.7);
-    }
     if (n === 3) { const m = Math.min(W - 24, (bot - top) * 1.5), mh = Math.min(bot - top - 12, Math.max(m * 0.8, W < 600 ? bot - top - 12 : 0)); G.mx = (W - m) / 2; G.my = top + 6; G.mw = m; G.mh = mh; }
     if (n === 4) {
       G.rx0 = 20; G.rx1 = W - 20; G.ry = top + (bot - top) * 0.36; G.rh = Math.max(16, Math.min(26, H * 0.03));
@@ -883,7 +743,6 @@ const CH_DIG_V2 = {
     const cell = w * 0.8 / 8;
     return { x, y, w, h, cell, hit: Math.max(cell * 0.55, 12), atom: i => [x - cell * 3.5 + (i % 8) * cell, y - cell * 3.5 + Math.floor(i / 8) * cell] };
   },
-  z2Geo(zi) { const G = this.geo(), w = G.zw, x = G.zx, y = G.ashY[zi], cell = w * 0.78 / 8; return { x, y, w, h: w * 1.0, cell, hit: Math.max(cell * 0.55, 11), spot: i => [x - cell * 3.5 + (i % 8) * cell, y - cell * 3.5 + Math.floor(i / 8) * cell] }; },
   cropXY(c, G) { return [G.mx + G.mw * (0.08 + 0.84 * c.x), G.my + G.mh * (0.1 + 0.8 * c.y)]; },
   cropR(G) { return Math.max(26, Math.min(G.mw, G.mh) * 0.11); },
   cropAt(x, y, G) { const s = this.sim.s, r = this.cropR(G); let best = -1, bd = 1e9; s.crops.forEach((c, i) => { const p = this.cropXY(c, G), dx = x - p[0], dy = y - p[1], d = Math.sqrt(dx * dx + dy * dy); if (d < r * 1.35 && d < bd) { bd = d; best = i; } }); return best; },
@@ -894,10 +753,10 @@ const CH_DIG_V2 = {
   draw(c, w, h) {
     const s = this.sim.s; if (!s) return;
     const n = s.level;
-    if (n === 0) this.drawFlood(c, w, h); else if (n === 1) this.drawClock(c, w, h); else if (n === 2) this.drawBracket(c, w, h); else if (n === 3) this.drawMap(c, w, h); else this.drawRibbon(c, w, h);
+    if (n === 0) this.drawFlood(c, w, h); else if (n === 1) this.drawClock(c, w, h); else if (n === 3) this.drawMap(c, w, h); else this.drawRibbon(c, w, h);
     const v = this.v; if (typeof Lbl === 'undefined') return;
     if (v.banner) { const b = v.banner, a = b.t < 200 ? b.t / 200 : b.t > b.ms - 250 ? Math.max(0, (b.ms - b.t) / 250) : 1; if (b.text) { c.save(); c.globalAlpha = a; Lbl.put('dg-banner', b.text, w / 2, this.hudH() + 30, { size: 22, c, weight: 700 }); c.restore(); } }
-    if (/gap|uplift|reveal|lab|bracket|bush/.test(s.phase) && !v.ff && !s.whatif) Lbl.put('dg-ff', this.content.labels.ff, w - 12, h - 16, { align: 'right', size: 12, c });
+    if (/gap|uplift|reveal|lab|bush/.test(s.phase) && !v.ff && !s.whatif) Lbl.put('dg-ff', this.content.labels.ff, w - 12, h - 16, { align: 'right', size: 12, c });
   },
   /* the golden-hour cliff, baked once per size: sky, sun, sea with glitter, and a cliff of chalk, ochre sandstone, slate shale, pale ash */
   cliffBg(c, w, h, key, fn) {
@@ -1011,6 +870,7 @@ const CH_DIG_V2 = {
       if (L.still && typeof Lbl !== 'undefined') Lbl.put('dg-lst-' + i, this.content.labels.still, x0 + 12, y + 12, { size: 12, align: 'left', c });
     }
     c.restore();
+    if (v.revT > 0 && typeof Lbl !== 'undefined') { Lbl.put('dg-old', this.content.labels.oldest, x1 - 40, yB - lh * 0.5, { size: 12, c, align: 'right' }); Lbl.put('dg-young', this.content.labels.youngest, x1 - 40, yT + lh * 0.5, { size: 12, c, align: 'right' }); }   // superposition, said plainly
   },
 
   /* ----- L1: the zircon clock ----- */
@@ -1018,17 +878,16 @@ const CH_DIG_V2 = {
     const s = this.sim.s, v = this.v, Z = this.zGeo(), L = this.content.labels;
     this.cliffBg(c, w, h, 'gold', this.goldenScene);
     c.fillStyle = 'rgba(28,24,22,.55)'; c.fillRect(0, 0, w, h);
-    const ash = s.phase !== 'run' && !(s.phase === 'ask' && s.ask && s.ask.id === 'a1');
     // the crystal: a long bipyramid, honey-rust glass
     const hw = Z.w / 2, hh = Z.h / 2, tip = Z.w * 0.32;
     c.save(); c.beginPath(); c.moveTo(Z.x, Z.y - hh); c.lineTo(Z.x + hw, Z.y - hh + tip); c.lineTo(Z.x + hw, Z.y + hh - tip); c.lineTo(Z.x, Z.y + hh); c.lineTo(Z.x - hw, Z.y + hh - tip); c.lineTo(Z.x - hw, Z.y - hh + tip); c.closePath();
-    const g = c.createLinearGradient(Z.x - hw, 0, Z.x + hw, 0); g.addColorStop(0, ash ? 'rgba(214,190,150,.92)' : 'rgba(205,150,100,.92)'); g.addColorStop(0.55, ash ? 'rgba(240,222,190,.92)' : 'rgba(236,190,140,.92)'); g.addColorStop(1, ash ? 'rgba(180,160,130,.92)' : 'rgba(170,110,70,.92)');
+    const g = c.createLinearGradient(Z.x - hw, 0, Z.x + hw, 0); g.addColorStop(0, 'rgba(205,150,100,.92)'); g.addColorStop(0.55, 'rgba(236,190,140,.92)'); g.addColorStop(1, 'rgba(170,110,70,.92)');
     c.fillStyle = g; c.fill(); c.lineWidth = 2; c.strokeStyle = DG_C.ink; c.stroke();
     c.strokeStyle = 'rgba(255,245,225,.45)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(Z.x, Z.y - hh); c.lineTo(Z.x, Z.y + hh); c.moveTo(Z.x - hw, Z.y - hh + tip); c.lineTo(Z.x, Z.y - hh + tip * 1.6); c.lineTo(Z.x + hw, Z.y - hh + tip); c.stroke(); c.restore();
     const r = Z.cell * 0.34;
     for (let i = 0; i < DG_K.N1; i++) {
       const p = Z.atom(i); let st;
-      if (!ash) st = s.at[i] ? 'U' : 'Pb'; else st = !s.seen || !s.seen[i] ? '?' : s.az[i] ? 'U' : 'Pb';
+      st = s.at[i] ? 'U' : 'Pb';
       c.beginPath(); c.arc(p[0], p[1], r, 0, TAU);
       if (st === 'U') { c.fillStyle = DG_C.rust; c.fill(); c.lineWidth = 1.5; c.strokeStyle = DG_C.ink; c.stroke(); c.fillStyle = 'rgba(255,220,180,.6)'; c.beginPath(); c.arc(p[0] - r * 0.3, p[1] - r * 0.3, r * 0.3, 0, TAU); c.fill(); }
       else if (st === 'Pb') { c.fillStyle = 'rgba(232,226,214,.9)'; c.fill(); c.lineWidth = 2.5; c.strokeStyle = DG_C.slateD; c.stroke(); }
@@ -1037,45 +896,7 @@ const CH_DIG_V2 = {
     }
     if (typeof Lbl === 'undefined') return;
     const ly = Z.y - hh - 18;
-    if (!ash) { Lbl.put('dg-T', Txt.f(L.myr, { n: Math.round(s.T) }), Z.x, Math.max(this.hudH() + 56, ly), { size: 20, c, mono: true, weight: 700 }); Lbl.put('dg-n', Txt.f(L.left, { n: s.n }), Z.x, Z.y + hh + 18, { size: 15, c, mono: true }); if (s.hold) Lbl.put('dg-fast', '▶▶', Z.x + hw + 8, Z.y, { size: 16, c, align: 'left', pill: false }); }
-    else { Lbl.put('dg-ns', Txt.f(L.atoms, { n: s.ns || 0 }), Z.x, Math.max(this.hudH() + 56, ly), { size: 16, c, mono: true }); Lbl.put('dg-u', L.U + ' ' + (s.nu || 0), Z.x - hw * 0.55, Z.y + hh + 18, { size: 13, c, mono: true }); Lbl.put('dg-pb', L.Pb + ' ' + ((s.ns || 0) - (s.nu || 0)), Z.x + hw * 0.55, Z.y + hh + 18, { size: 13, c, mono: true }); }
-  },
-
-  /* ----- L2: two ash beds and two zircons ----- */
-  drawBracket(c, w, h) {
-    const s = this.sim.s, v = this.v, G = this.geo(), L = this.content.labels;
-    this.cliffBg(c, w, h, 'gold', this.goldenScene);
-    c.fillStyle = 'rgba(28,24,22,.45)'; c.fillRect(0, 0, w, h);
-    // the section: sandstone with the fish between two ash beds; shale below, chalk above
-    const x = G.cx, cw = G.cw, t = G.ct, b = G.cb;
-    c.save(); rrect(c, x, t, cw, b - t, 8); c.clip();
-    c.fillStyle = DG_C.chalk; c.fillRect(x, t, cw, (b - t) * 0.12);
-    c.fillStyle = DG_C.ochre; c.fillRect(x, t + (b - t) * 0.12, cw, (b - t) * 0.7);
-    c.fillStyle = DG_C.slate; c.fillRect(x, t + (b - t) * 0.82, cw, (b - t) * 0.18);
-    c.fillStyle = 'rgba(80,50,20,.25)'; for (let k = 0; k < cw * (b - t) / 70; k++) { const px = x + (this.hash('s' + k) % 1000) / 1000 * cw, py = t + (b - t) * (0.12 + 0.7 * ((this.hash('t' + k) % 1000) / 1000)); c.fillRect(px, py, 1.5, 1.5); }
-    for (let zi = 0; zi < 2; zi++) { const y = G.ashY[zi], glow = s.phase === 'free' && !s.z[zi].chip ? 0.5 + 0.5 * Det.sin(v.t * 5) : 0; c.fillStyle = DG_C.ash; c.fillRect(x, y - G.ashH / 2, cw, G.ashH); if (glow) { c.strokeStyle = 'rgba(255,236,190,' + glow.toFixed(2) + ')'; c.lineWidth = 3; c.strokeRect(x + 2, y - G.ashH / 2 - 2, cw - 4, G.ashH + 4); } c.fillStyle = 'rgba(40,40,40,.35)'; for (let k = 0; k < cw / 6; k++) c.fillRect(x + k * 6 + (this.hash('a' + k + zi) % 5), y - G.ashH / 2 + (this.hash('b' + k + zi) % Math.max(1, G.ashH | 0)), 1.5, 1.5); }
-    if (typeof Rig !== 'undefined' && Rig.has && Rig.has('fossil')) Rig.draw(c, 'fossil', { kind: 'fish', lum: 0.82, wear: 0.1 }, x + cw / 2, G.fishY, { size: Math.min(cw * 0.7, (G.ashY[1] - G.ashY[0]) * 0.6) });
-    c.restore(); c.strokeStyle = DG_C.ink; c.lineWidth = 1.5; rrect(c, x, t, cw, b - t, 8); c.stroke();
-    // the two zircons, each beside its bed
-    for (let zi = 0; zi < 2; zi++) {
-      const Z = this.z2Geo(zi), z = s.z[zi], open = z.chip, k = v.anims.find(a => a.k === 'chip' && a.z === zi), sc = k ? Math.min(1, k.t / k.d) : open ? 1 : 0;
-      c.strokeStyle = 'rgba(241,236,223,.5)'; c.setLineDash([3, 4]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(x + cw, G.ashY[zi]); c.lineTo(Z.x - Z.w / 2 - 4, Z.y); c.stroke(); c.setLineDash([]);
-      if (!open && !k) { if (typeof Lbl !== 'undefined') Lbl.put('dg-hm' + zi, L.hammer, Z.x, Z.y, { size: 13, c }); continue; }
-      c.save(); c.translate(Z.x, Z.y); c.scale(sc, sc); const hw = Z.w / 2, hh = Z.h / 2, tip = Z.w * 0.16;
-      c.beginPath(); c.moveTo(0, -hh); c.lineTo(hw, -hh + tip); c.lineTo(hw, hh - tip); c.lineTo(0, hh); c.lineTo(-hw, hh - tip); c.lineTo(-hw, -hh + tip); c.closePath(); c.fillStyle = 'rgba(232,212,178,.92)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = DG_C.ink; c.stroke(); c.restore();
-      if (sc < 1) continue;
-      const r = Z.cell * 0.38, m = this.sim.mSpot();
-      for (let i = 0; i < DG_K.spots; i++) {
-        const p = Z.spot(i), u = z.sp[i];
-        c.beginPath(); c.arc(p[0], p[1], r, 0, TAU);
-        if (u < 0) { c.fillStyle = 'rgba(160,140,110,.35)'; c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(40,34,30,.45)'; c.stroke(); }
-        else { c.fillStyle = 'rgba(232,226,214,.95)'; c.fill(); c.beginPath(); c.moveTo(p[0], p[1]); c.arc(p[0], p[1], r, -Math.PI / 2, -Math.PI / 2 + TAU * u / m); c.closePath(); c.fillStyle = DG_C.rust; c.fill(); c.lineWidth = 1.5; c.strokeStyle = DG_C.slateD; c.beginPath(); c.arc(p[0], p[1], r, 0, TAU); c.stroke(); }
-        const f = v.flash['p' + zi + '_' + i]; if (f) { c.strokeStyle = 'rgba(255,236,190,' + Math.min(1, f * 3).toFixed(2) + ')'; c.lineWidth = 2; c.beginPath(); c.arc(p[0], p[1], r + (0.35 - f) * 24, 0, TAU); c.stroke(); }
-      }
-      if (typeof Lbl !== 'undefined') { const E = this.sim.zEst(z); Lbl.put('dg-zl' + zi, zi ? L.lower : L.upper, Z.x, Z.y - Z.h / 2 - 12, { size: 12, c }); if (E) Lbl.put('dg-ze' + zi, Math.round(E.t) + ' ± ' + Math.round(E.e), Z.x, Z.y + Z.h / 2 + 12, { size: 13, c, mono: true }); }
-    }
-    if (v.laser && s.phase === 'assay') { c.save(); c.strokeStyle = 'rgba(255,214,150,.85)'; c.lineWidth = 3; c.beginPath(); c.moveTo(w, this.hudH()); c.lineTo(v.laser.x, v.laser.y); c.stroke(); c.fillStyle = 'rgba(255,240,210,.9)'; c.beginPath(); c.arc(v.laser.x, v.laser.y, 6, 0, TAU); c.fill(); c.restore(); }
-    if (s.phase === 'bracket' || s.phase === 'over') { const a = this.sim.zEst(s.z[0]), bb = this.sim.zEst(s.z[1]); if (a && bb && typeof Lbl !== 'undefined') Lbl.put('dg-br', Math.round(a.t - a.e) + '–' + Math.round(bb.t + bb.e) + ' Myr', x + cw / 2, G.fishY + Math.min(40, (G.ashY[1] - G.ashY[0]) * 0.35), { size: 14, c, mono: true }); }
+    { Lbl.put('dg-T', Txt.f(L.myr, { n: Math.round(s.T) }), Z.x, Math.max(this.hudH() + 56, ly), { size: 20, c, mono: true, weight: 700 }); Lbl.put('dg-n', Txt.f(L.left, { n: s.n }), Z.x, Z.y + hh + 18, { size: 15, c, mono: true }); if (s.hold) Lbl.put('dg-fast', '▶▶', Z.x + hw + 8, Z.y, { size: 16, c, align: 'left', pill: false }); }
   },
 
   /* ----- L3: the field map ----- */
@@ -1167,7 +988,10 @@ const CH_DIG_V2 = {
       if (typeof Lbl !== 'undefined') { Lbl.put('dg-cn', cd[0], cx + G.cardW * 0.12, cy - G.cardH * 0.16, { size: 14, c, pill: false, ink: DG_C.ink, weight: 700 }); Lbl.put('dg-ca', cd[1], cx + G.cardW * 0.12, cy + G.cardH * 0.18, { size: 13, c, pill: false, ink: DG_C.ink, mono: true }); }
       const px = d ? d.x : (v.kv != null ? G.X(v.kv) : null);
       if (px != null && px >= G.rx0 && px <= G.rx1) { c.strokeStyle = 'rgba(241,236,223,.85)'; c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); c.moveTo(px, G.ry - G.rh); c.lineTo(px, d ? d.y : G.ry + 40); c.stroke(); c.setLineDash([]); if (typeof Lbl !== 'undefined') Lbl.put('dg-read', this.fmtY(dgYears(G.V(px))), px, G.ry - G.rh - 26, { size: 13, c, mono: true }); }
-    } else if (s.phase === 'bush' || s.phase === 'over') this.drawBush(c, w, h, G);
+    } else if (s.phase === 'bush' || s.phase === 'over') {
+      const hx = G.X(dgLog10(2.27e9)); c.strokeStyle = DG_C.gold; c.lineWidth = 3; c.beginPath(); c.moveTo(hx, G.ry - G.rh * 1.3); c.lineTo(hx, G.ry + G.rh * 1.3); c.stroke();   // half of Earth's history, shown plainly (no ask)
+      this.drawBush(c, w, h, G);
+    }
   },
   cardIcon(c, id, x, y, sz) {
     const k = { zircon: null, trilo: 'trilobite', tik: null, impact: null, whale: 'bone', lucy: 'bone', irhoud: 'tooth', naledi: 'tooth' }[id];
@@ -1189,9 +1013,8 @@ const CH_DIG_V2 = {
   notes() {
     const s = this.sim.s; if (!s) return { stats: [], charts: [] };
     const D = this.content.data, sim = this.sim, n = s.level, stats = [], row = (d, o) => stats.push([d[0], Txt.f(d[1], o), d[2] ? Txt.f(d[2], o) : '']);
-    if (n === 0) { const nb = s.layers.length * 8 || 0; row(D.buried, { a: sim.buried(s) + (s.phase === 'epoch' ? s.an.filter(a => a.b).length : 0), b: nb + (s.phase === 'epoch' ? 8 : 0), s: sim.softStill(s) }); if (s.phase === 'ask') row(D.keep, {}); if (s.kept != null && s.phase !== 'uplift') row(D.kept, { a: s.kept, b: 48 }); return { stats, charts: [this.shareSpec(), this.epochSpec()] }; }
-    if (n === 1) { row(D.left, { n: s.n, t: Math.round(s.T) }); if (s.ns) { row(D.tested, { n: s.ns, u: s.nu, p: s.ns - s.nu }); if (s.ns >= 4) row(D.est, { t: Math.round(sim.ashEst(s)), e: Math.round(sim.ashErr(s)) }); } return { stats, charts: [this.decaySpec()] }; }
-    if (n === 2) { for (let zi = 0; zi < 2; zi++) { const E = sim.zEst(s.z[zi]); if (E) row(zi ? D.zlo : D.zup, { t: Math.round(E.t), e: Math.round(E.e), n: s.z[zi].n }); } row(D.spots, { a: s.used, b: DG_K.budget }); return { stats, charts: [this.agesSpec(), this.errSpec()] }; }
+    if (n === 0) { const nb = s.layers.length * 8 || 0; row(D.buried, { a: sim.buried(s) + (s.phase === 'epoch' ? s.an.filter(a => a.b).length : 0), b: nb + (s.phase === 'epoch' ? 8 : 0), s: sim.softStill(s) }); if (s.phase === 'reveal' || s.phase === 'over') row(D.keep, {}); if (s.kept != null && s.phase !== 'uplift') row(D.kept, { a: s.kept, b: 48 }); return { stats, charts: [this.shareSpec(), this.epochSpec()] }; }
+    if (n === 1) { row(D.left, { n: s.n, t: Math.round(s.T) }); if (s.phase === 'lab' || s.phase === 'over') row(D.est, { a: Math.round(sim.clockAge(s.n)), n: s.n }); return { stats, charts: [this.decaySpec()] }; }
     if (n === 3) { row(D.seasons, { a: s.digs.length, f: sim.fishapods(s) }); return { stats, charts: [this.fossilSpec()] }; }
     row(D.placed, { a: s.ci, b: sim.goodCards(s) });
     return { stats, charts: s.phase === 'bush' || s.phase === 'over' ? [this.earthSpec(), this.bushSpec()] : [this.earthSpec()] };
@@ -1199,7 +1022,7 @@ const CH_DIG_V2 = {
   shareSpec() {
     const s = this.sim.s, D = this.content.data, sim = this.sim, bur = (sim.buried(s) + (s.phase === 'epoch' ? s.an.filter(a => a.b).length : 0)) / 48, rows = [{ y: 2, lo: 0, hi: bur, style: 'solid', label: D.lines.buried }], vlines = [];
     if (s.kept != null && s.phase !== 'uplift') rows.push({ y: 1, lo: 0, hi: s.kept / 48, style: 'hatched', label: D.lines.kept });
-    if (s.hits.k1 !== undefined) vlines.push({ x: s.exp.k1, dash: true, label: D.lines.expected });
+    if (s.kept != null && s.phase !== 'uplift') vlines.push({ x: sim.keptExp(s, s.whatif ? { still: s.whatif === 'still', noerode: s.whatif === 'noerode' } : {}), dash: true, label: D.lines.expected });
     return { type: 'dg_xy', title: D.titles.share, x: { lo: 0, hi: 0.6, fmt: 'pct', label: D.ax.share }, y: { lo: 0, hi: 3 }, noY: true, frame: 'designed', rows, vlines };
   },
   epochSpec() {
@@ -1210,40 +1033,27 @@ const CH_DIG_V2 = {
   decaySpec() {
     const s = this.sim.s, D = this.content.data, sim = this.sim, steps = [], lines = [], hlines = [], vlines = [], rows = [];
     const pts = []; let prev = DG_K.N1; for (const [T, n] of s.tr) { pts.push([T, prev], [T, n]); prev = n; } pts.push([Math.min(2400, s.T), prev]); steps.push({ pts, w: 3, label: D.lines.yours });
-    if (s.hits.a1 !== undefined || s.phase !== 'run' && s.phase !== 'ask' || (s.phase === 'ask' && s.ask.id === 'a2')) { const c = []; for (let T = 0; T <= 2400; T += 60) c.push([T, DG_K.N1 * Det.exp(-DG_K.LN2 * T / DG_K.half)]); lines.push({ pts: c, dash: true, label: D.lines.curve }); }
-    if (s.ns >= 1) hlines.push({ y: DG_K.N1 * s.nu / s.ns, label: D.lines.ash });
-    let you = null; if (s.hits.a2 !== undefined) { const e = sim.ashEst(s), er = sim.ashErr(s), y = DG_K.N1 * s.nu / s.ns; you = { x: e, y, label: D.lines.you }; rows.push({ y, lo: Math.max(0, e - er), hi: Math.min(2400, e + er), style: 'bar' }); vlines.push({ x: s.tA, dash: true, label: D.lines.lab }); }
+    if (s.hits.a1 !== undefined || (s.phase !== 'run' && s.phase !== 'ask')) { const c = []; for (let T = 0; T <= 2400; T += 60) c.push([T, DG_K.N1 * Det.exp(-DG_K.LN2 * T / DG_K.half)]); lines.push({ pts: c, dash: true, label: D.lines.curve }); }
+    const you = null; void sim; void hlines; void vlines; void rows;
     return { type: 'dg_xy', title: D.titles.decay, x: { lo: 0, hi: 2400, label: D.ax.myr }, y: { lo: 0, hi: 64, label: D.ax.left }, frame: 'designed', steps, lines, hlines, vlines, rows, you };
-  },
-  agesSpec() {
-    const s = this.sim.s, D = this.content.data, L = this.content.labels, sim = this.sim, rows = [], vlines = [], a = sim.zEst(s.z[0]), b = sim.zEst(s.z[1]);
-    if (a) rows.push({ y: 2.5, lo: a.t - a.e, hi: a.t + a.e, mid: a.t, style: 'bar', label: L.upper });
-    if (b) rows.push({ y: 0.5, lo: b.t - b.e, hi: b.t + b.e, mid: b.t, style: 'bar', label: L.lower });
-    if (a && b && (s.phase === 'bracket' || s.phase === 'over')) { rows.push({ y: 1.5, lo: Math.min(a.t - a.e, b.t + b.e), hi: Math.max(a.t - a.e, b.t + b.e), style: 'hatched', label: L.fish }); vlines.push({ x: s.z[0].t, dash: true }, { x: s.z[1].t, dash: true, label: D.lines.truth }); }
-    return { type: 'dg_xy', title: D.titles.ages, x: { lo: 280, hi: 500, rev: true, label: D.ax.age }, y: { lo: 0, hi: 3 }, noY: true, frame: 'designed', rows, vlines };
-  },
-  errSpec() {
-    const s = this.sim.s, D = this.content.data, zi = s.b1z != null ? s.b1z : (s.z[0].n >= s.z[1].n ? 0 : 1), z = s.z[zi], yHi = s.b1e ? Math.ceil(s.b1e * 2) : 160, dots = z.hist.filter(q => q[0] >= 120).map(q => ({ x: q[0], y: q[1], shape: 'disc' })), lines = [];
-    if (s.hits.b1 !== undefined && s.b1e) { const c = []; for (let n = 160; n <= 2800; n += 80) c.push([n, s.b1e * Math.sqrt(DG_K.b1At / n)]); lines.push({ pts: c, dash: true, label: D.lines.law }); }
-    return { type: 'dg_xy', title: D.titles.err, fold: false, x: { lo: 0, hi: 2800, label: D.ax.atoms }, y: { lo: 0, hi: yHi, label: D.ax.err }, frame: 'designed', dots, lines, vlines: s.ask && s.ask.id === 'b1' ? [{ x: 1600, dash: true }] : [], dotLabel: dots.length ? D.lines.yours : null };
   },
   fossilSpec() {
     const s = this.sim.s, D = this.content.data, L = this.content.labels, rows = [{ y: 2.5, lo: 383, hi: 388, style: 'solid', label: L.lobe }, { y: 0.5, lo: 360, hi: 367, style: 'solid', label: L.tetra }], dots = [], vlines = [];
     for (const d of s.digs) { if (d.f === 'fishapod') dots.push({ x: 375, y: 1.5, shape: 'disc' }); if (d.f === 'lobe') dots.push({ x: d.age, y: 2.5, shape: 'square' }); if (d.f === 'tetra') dots.push({ x: d.age, y: 0.5, shape: 'square' }); }
-    if (s.hits.p1 !== undefined) vlines.push({ x: 375, dash: true, label: D.lines.expected });
+    if (s.digs.length) vlines.push({ x: 375, dash: true, label: D.lines.half2 });   // halfway between 385 and 365, shown after your first choice
     return { type: 'dg_xy', title: D.titles.fossils, x: { lo: 340, hi: 420, rev: true, label: D.ax.mya }, y: { lo: 0, hi: 3 }, noY: true, frame: 'designed', rows, dots, vlines };
   },
   earthSpec() {
     const s = this.sim.s, D = this.content.data, sim = this.sim, dots = [], vlines = [];
     s.order.slice(0, s.ci).forEach(id => { if (s.pl[id] != null) dots.push({ x: s.pl[id], y: 1.5, shape: 'disc' }); });
-    if (s.hits.d1 !== undefined) { vlines.push({ x: dgLog10(2.27e9), dash: true, label: D.lines.half }); s.order.forEach(id => dots.push({ x: dgLog10(sim.card(id).t), y: 0.7, shape: 'ring' })); }
+    if (s.phase === 'bush' || s.phase === 'over') { vlines.push({ x: dgLog10(2.27e9), dash: true, label: D.lines.half }); s.order.forEach(id => dots.push({ x: dgLog10(sim.card(id).t), y: 0.7, shape: 'ring' })); }
     return { type: 'dg_xy', title: D.titles.earth, x: { lo: DG_K.lo, hi: DG_K.earth, rev: true, fmt: 'log', label: D.ax.log }, xticks: [1, 3, 5, 7, 9], y: { lo: 0, hi: 2.5 }, noY: true, frame: 'designed', dots, vlines, dotLabel: dots.length ? D.lines.placed : null };
   },
   bushSpec() {
     const D = this.content.data, H = this.content.hominins, rows = DG_HOM.map((hm, i) => ({ y: DG_HOM.length - i - 0.5, lo: hm[2] / 1e6, hi: hm[1] / 1e6, style: 'solid', label: H[hm[0]] }));
     return { type: 'dg_xy', title: D.titles.bush, fold: false, side: true, x: { lo: 0, hi: 4.2, rev: true, label: D.ax.mya }, y: { lo: 0, hi: DG_HOM.length }, noY: true, frame: 'real', source: 'dirks2017, hublin2017', rows, vlines: [{ x: 0.3, dash: true }] };
   },
-  cardSpec() { const n = this.level, s = this.sim.s; if (n === 0) return s.whatif ? this.shareSpec() : this.epochSpec(); if (n === 1) return this.decaySpec(); if (n === 2) return this.agesSpec(); if (n === 3) return this.fossilSpec(); return this.bushSpec(); }
+  cardSpec() { const s = this.sim.s, n = s.level; if (n === 0) return s.whatif ? this.shareSpec() : this.epochSpec(); if (n === 1) return this.decaySpec(); if (n === 3) return this.fossilSpec(); return this.bushSpec(); }
 };
 V2.push(CH_DIG_V2);
 
@@ -1295,7 +1105,7 @@ if (typeof LiveGraph !== 'undefined' && LiveGraph.T && !LiveGraph.T.dg_xy) LiveG
 /* ---------- the learning layer (D5 §3 item 12): new id, so only the v2 entries; untouched under ?v1=1 ---------- */
 if (!Url.v1) {
   TAKE.dig = DG_TEXT.take;
-  MODEL.dig = 'A Devonian sea floor buried by your floods, then a cliff read with a hammer, a laser and a brush: preservation bias, erosion gaps, uranium–lead dating with counting error, a predicted in-between form, and deep time on a log ribbon.';
+  MODEL.dig = 'A Devonian sea floor buried by your floods, then a cliff read with a crystal clock, a map and a brush: preservation bias, erosion gaps, uranium–lead decay, a predicted in-between form, and deep time on a log ribbon.';
   RECALL.dig = { q: 'A zircon has lost half its uranium-235. How long until only a quarter is left?', opts: [['one', 'One more half-life'], ['half', 'Half a half-life'], ['two', 'Two more half-lives']], ans: 'one', why: 'Each half-life halves whatever is left: half of a half is a quarter.' };
   BRIDGE.dig = 'In the Lichen Wood you watched selection over a few generations. Here the rocks keep a record of millions of years.';
 }

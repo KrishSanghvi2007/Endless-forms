@@ -4,7 +4,7 @@
 
 Checks: L1 a tap on a crossing mouse strikes it, Space strikes by keyboard, untimed mice wait and the dock offers Let go;
 L2 dragging a roost moves it and Measure works; L3 dragging from the harbour lays a route, tap-then-tap lays another, a tap on a
-route lifts it; L4 tapping isles sets ferry stops and the dock switches and clears ferries; ?v1=1 has no swamp chapter.
+route lifts it; L4 lays ferries between isles by the same drag, tap-tap and keys, three at most; ?v1=1 has no swamp chapter.
 Exit 1 on any failed check or page error."""
 import os, sys, argparse
 from playwright.sync_api import sync_playwright
@@ -86,7 +86,7 @@ def main():
             pg.mouse.move(xx, yy); pg.mouse.down(); pg.mouse.move(tx, yy, steps=6); pg.mouse.up(); adv(pg, 150)
         adv(pg, 1500); pg.click('#dock button:has-text("Measure")'); adv(pg, 300)
         ph = pg.evaluate("()=>TB.REG.swamp.sim.s.phase")
-        check(ph in ('measured', 'ask'), 'L2: Measure clamps the caliper (%s)' % ph)
+        check(ph == 'measured', 'L2: Measure clamps the caliper (%s)' % ph)
         pg.close()
         # L3: routes by drag, tap-tap and lift
         pg = page(b, html, a.vp)
@@ -108,22 +108,23 @@ def main():
         r = pg.evaluate("()=>TB.REG.swamp.sim.s.routes")
         check(r == [[-1, 4]], 'L3: a tap on a route lifts it (%s)' % r)
         pg.close()
-        # L4: stops by tap, dock ferry switch and clear
+        # L4: the L3 verb again: drag a route between isles, tap-tap, the three-ferry budget, lift by tap
         pg = page(b, html, a.vp)
         pg.evaluate("()=>{ TB.App.playLevel(TB.REG.swamp, 3, {seed: 3}); }"); adv(pg, 1500)
         n = lambda i: pg.evaluate("(i)=>TB.REG.swamp.pos().node(i)", i)
-        pg.mouse.click(*to_page(pg, *n(0))); adv(pg, 100); pg.mouse.click(*to_page(pg, *n(1))); adv(pg, 100)
-        f = pg.evaluate("()=>TB.REG.swamp.sim.s.fer")
-        check(f[0] == [0, 1], 'L4: tapping isles sets Ferry 1’s stops (%s)' % f)
-        pg.click('#dock button:has-text("Ferry 1")'); adv(pg, 100); pg.mouse.click(*to_page(pg, *n(2))); adv(pg, 100)
-        f = pg.evaluate("()=>TB.REG.swamp.sim.s.fer")
-        check(f[1] == [2], 'L4: the dock switches to Ferry 2 (%s)' % f)
-        pg.click('#dock button:has-text("Clear")'); adv(pg, 100)
-        f = pg.evaluate("()=>TB.REG.swamp.sim.s.fer")
-        check(f[1] == [] and f[0] == [0, 1], 'L4: Clear empties only the current ferry (%s)' % f)
-        pg.keyboard.press('3'); adv(pg, 100)
-        f = pg.evaluate("()=>TB.REG.swamp.sim.s.fer")
-        check(f[1] == [2], 'L4: key 3 toggles Sand 1 on the current ferry (%s)' % f)
+        a0, b0 = to_page(pg, *n(0)), to_page(pg, *n(1))
+        pg.mouse.move(*a0); pg.mouse.down(); pg.mouse.move(*b0, steps=10); pg.mouse.up(); adv(pg, 150)
+        r = pg.evaluate("()=>TB.REG.swamp.sim.s.routes")
+        check(r == [[0, 1]], 'L4: a drag from Lava 1 to Lava 2 lays a ferry (%s)' % r)
+        pg.mouse.click(*to_page(pg, *n(3))); adv(pg, 100); pg.mouse.click(*to_page(pg, *n(4))); adv(pg, 150)
+        pg.keyboard.press('3'); adv(pg, 80); pg.keyboard.press('4'); adv(pg, 150)
+        r = pg.evaluate("()=>TB.REG.swamp.sim.s.routes")
+        check(len(r) == 3 and [3, 4] in r and [2, 3] in r, 'L4: tap-tap and keys 3 then 4 lay ferries (%s)' % r)
+        pg.keyboard.press('1'); adv(pg, 80); pg.keyboard.press('5'); adv(pg, 150)
+        r = pg.evaluate("()=>TB.REG.swamp.sim.s.routes")
+        check(len(r) == 3, 'L4: a fourth ferry is refused (%s)' % r)
+        dock = pg.evaluate("()=>[...document.querySelectorAll('#dock button')].map(b => b.textContent)")
+        check(dock == ['Sail'] or (len(dock) == 1 and 'Sail' in dock[0]), 'L4: the dock holds only Sail (%s)' % dock)
         pg.close()
         # ?v1=1: the classic game has no swamp chapter
         pg = page(b, html, a.vp, '&v1=1')

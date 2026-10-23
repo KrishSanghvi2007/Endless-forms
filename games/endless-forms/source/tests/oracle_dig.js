@@ -1,7 +1,7 @@
 /* tests/oracle_dig.js: science and engineering oracle for The Dig (v2). Run: node tests/oracle.js BUILD.html dig
    D3 §5.6 / D5 §4 item 17 acceptance: preserved shares match the burial probabilities over 1,000 runs; decay counts are Poisson
-   (binomial per atom); age estimates are unbiased. Plus: 2SE intervals cover the truth about 95% of the time; four times the atoms
-   halves the error bar; the in-between find rate; the log ribbon maths; determinism, replay and snapshots; the expert earning every
+   (binomial per atom); the crystal's own age reading 704 × log₂(64 ÷ N) is right on the law and noisy on one crystal; one prediction
+   in the chapter (L2); the in-between find rate; the log ribbon maths; determinism, replay and snapshots; the expert earning every
    star offered; no level offering three stars to any bot; no bot's union across the unit reaching three stars; untimed play;
    What if? runs earning nothing. DG_FAST=1 runs fewer seeds. */
 'use strict';
@@ -32,37 +32,32 @@ module.exports = function (G, t) {
     t.near(me, 64 * pe, 4 * Math.sqrt(64 * pe / NS), `decays in the first ${sim.s.T.toFixed(0)} Myr: mean ${me.toFixed(2)} (expected ${(64 * pe).toFixed(2)})`);
     t.ok(ve / me > 0.7 && ve / me < 1.25, `short-window decay counts are Poisson-like: variance/mean ${(ve / me).toFixed(2)} (binomial ${(1 - pe).toFixed(2)})`); }
 
-  /* 3. dating: the U–Pb estimator is unbiased to within 1% with spots of 40 atoms; 2SE covers the truth about 95% of the time */
-  { const rel = [], cov = [], halves = [];
-    for (let seed = 1; seed <= NS; seed++) {
-      G.reset(2, seed); const s = sim.s; sim.chip(s, [], 0); sim.chip(s, [], 1);
-      for (let i = 0; i < 30; i++) { sim.spot(s, [], 1, i); if (s.ask) sim.commit(s, [], s.ask.id, null); }
-      const E = sim.zEst(s.z[1]); rel.push(E.t / s.z[1].t - 1); cov.push(Math.abs(E.t - s.z[1].t) <= E.e ? 1 : 0);
-      halves.push(sim.zTrueErr(s.z[1], 4 * s.z[1].n) / sim.zTrueErr(s.z[1], s.z[1].n));
-    }
-    t.ok(Math.abs(mean(rel)) < 0.01, `zircon age estimate bias ${(100 * mean(rel)).toFixed(2)}% over ${NS} crystals`);
-    t.ok(mean(cov) > 0.9 && mean(cov) < 0.99, `two-standard-error bars cover the true age in ${(100 * mean(cov)).toFixed(1)}% of crystals (≈ 95%)`);
-    t.near(mean(halves), 0.5, 1e-9, 'four times the atoms halves the error bar');
-    G.reset(1, 5); const s = sim.s; s.tA = 704; s.ns = 64; s.nu = 32; t.near(sim.ashEst(s), 704, 1e-6, 'half the uranium left reads one half-life');
-    s.nu = 16; t.near(sim.ashEst(s), 1408, 1e-6, 'a quarter left reads two half-lives'); }
+  /* 3. dating: the age read from the atoms left is the decay law inverted; at three half-lives one crystal's reading is noisy */
+  { t.near(sim.clockAge(32), 704, 1e-6, 'half the uranium left reads one half-life'); t.near(sim.clockAge(16), 1408, 1e-6, 'a quarter left reads two half-lives');
+    const ns = [], ages = [];
+    for (let seed = 1; seed <= NS; seed++) { const r = G.run(1, { seed, bot: 'expert' }); ns.push(r.s.n); ages.push(sim.clockAge(r.s.n)); if (seed === 1) t.ok(r.s.T >= 2112 - 1e-6 && r.s.phase === 'over', `L2 runs to three half-lives (${r.s.T} Myr) and ends`); }
+    const med = ages.slice().sort((a, b) => a - b)[Math.floor(NS / 2)], sd = Math.sqrt(vari(ages));
+    t.near(mean(ns), 8, 4 * Math.sqrt(7 / NS), `atoms left at three half-lives: mean ${mean(ns).toFixed(2)} (binomial 64 × ⅛ = 8)`);
+    t.ok(Math.abs(med - 2112) / 2112 < 0.1 && sd > 150, `one crystal's age reading: median ${med.toFixed(0)} Myr (true 2112), spread ±${sd.toFixed(0)} Myr: 64 atoms make a noisy clock (×N)`);
+    let asks = 0; for (const lv of [0, 2, 3]) asks += G.run(lv, { seed: 3, bot: 'expert' }).s.asks.length; const a1 = G.run(1, { seed: 3, bot: 'expert' }).s.asks;
+    t.ok(asks === 0 && a1.length === 1 && a1[0] === 'a1', `one prediction in the chapter, in L2 (D6 decision 9): ${a1.join(',')}; others ${asks}`); }
 
   /* 4. where to dig: a season in 375-Myr river rock finds an in-between form with chance 0.5; never in sea rock */
   { let n = 0, f = 0, sea = 0;
-    for (let seed = 1; seed <= NS; seed++) { G.reset(3, seed); const s = sim.s; const o = s.crops.findIndex(c => c.age === 375 && c.env === 'river'), q = s.crops.findIndex(c => c.age === 375 && c.env === 'sea'); sim.dig(s, [], o); n++; if (s.digs[0].f === 'fishapod') f++; s.phase = 'pick'; sim.dig(s, [], q); if (s.digs[1].f === 'fishapod') sea++; }
+    for (let seed = 1; seed <= NS; seed++) { G.reset(2, seed); const s = sim.s; const o = s.crops.findIndex(c => c.age === 375 && c.env === 'river'), q = s.crops.findIndex(c => c.age === 375 && c.env === 'sea'); sim.dig(s, [], o); n++; if (s.digs[0].f === 'fishapod') f++; s.phase = 'pick'; sim.dig(s, [], q); if (s.digs[1].f === 'fishapod') sea++; }
     t.near(f / n, 0.5, 4 * Math.sqrt(0.25 / n), `in-between finds in the right rock: ${(f / n).toFixed(3)} (model 0.5)`);
     t.eq(sea, 0, 'no in-between form in sea rock');
-    G.reset(3, 1); t.eq(sim.s.crops.filter(c => c.age === 375 && c.env === 'river').length, 2, 'two outcrops of the right age and setting on every map'); }
+    G.reset(2, 1); t.eq(sim.s.crops.filter(c => c.age === 375 && c.env === 'river').length, 2, 'two outcrops of the right age and setting on every map'); }
 
-  /* 5. the ribbon: log maths, the halfway point, card ages */
-  { G.reset(4, 2); const s = sim.s; const ids = s.order.slice();
+  /* 5. the ribbon: log maths, the halfway point (shown, not asked), card ages */
+  { G.reset(3, 2); const s = sim.s; const ids = s.order.slice();
     for (const id of ids) sim.place(s, [], id, Math.log10(sim.card(id).t));
-    t.ok(sim.goodCards(s) === 8 && s.ask && s.ask.id === 'd1', 'true placements: 8 of 8 within half a step, then the halfway ask');
-    t.near(s.exp.d1, Math.log10(2.27e9), 1e-6, 'halfway point of Earth’s history is 2.27 Gyr on the log ribbon');
-    t.ok(Math.abs(s.alt.d1[0] - Math.log10(2.27e9)) > 3, 'the ribbon’s visual middle is far from the halfway point (the log trap)');
+    t.ok(sim.goodCards(s) === 8 && !s.ask && s.phase === 'bush', 'true placements: 8 of 8 within half a step, then straight to the bush');
+    t.ok(Math.abs(Math.log10(2.27e9) - (1 + Math.log10(4.54e9)) / 2) > 3, 'the ribbon’s visual middle is far from the halfway point of Earth’s history (2.27 Gyr, marked on the ribbon)');
     const naledi = sim.card('naledi').t, irh = sim.card('irhoud').t; t.ok(naledi > 2.36e5 && naledi < 3.35e5 && Math.abs(Math.log10(naledi / irh)) < 0.1, 'H. naledi and early H. sapiens sit within a tenth of a step: they overlapped'); }
 
   /* 6. determinism, replay and snapshots */
-  for (const lv of [0, 1, 2, 3, 4]) {
+  for (const lv of [0, 1, 2, 3]) {
     const a = G.run(lv, { seed: 11, bot: 'expert' }), b = G.run(lv, { seed: 11, bot: 'expert' });
     t.eq(a.s, b.s, `L${lv}: same seed and policy give the same final state`);
     const log = a.s.log.slice(); G.reset(lv, 11); let k = 0, li = 0; while (!sim.result() && k < 40000) { while (li < log.length && log[li][0] === k) { sim.act(log[li][1]); li++; } sim.step(sim.dt); k++; }
@@ -73,18 +68,18 @@ module.exports = function (G, t) {
   }
 
   /* 7. stars: the expert earns every star each level offers; untimed too; What if? earns nothing */
-  { const offer = [3, 2, 3, 3, 6], masks = [];
-    for (let lv = 0; lv < 5; lv++) { let all = true; for (let seed = 1; seed <= 6; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (!r.result || (r.result.mask & offer[lv]) !== offer[lv]) all = false; if (seed === 1) masks.push(r.result ? r.result.mask : 0); } t.ok(all, `L${lv}: the expert earns every star offered (${offer[lv]}) on seeds 1–6`); }
+  { const offer = [1, 2, 1, 4], masks = [];
+    for (let lv = 0; lv < 4; lv++) { let all = true; for (let seed = 1; seed <= 6; seed++) { const r = G.run(lv, { seed, bot: 'expert' }); if (!r.result || (r.result.mask & offer[lv]) !== offer[lv]) all = false; if (seed === 1) masks.push(r.result ? r.result.mask : 0); } t.ok(all, `L${lv}: the expert earns every star offered (${offer[lv]}) on seeds 1–6`); }
     t.eq(ch.unitStars(masks), 7, 'the expert earns all three unit stars');
-    for (let lv = 0; lv < 5; lv++) { const r = G.run(lv, { seed: 2, bot: 'expert', untimed: true }); t.ok(r.result && !r.capped, `L${lv}: completes in untimed mode`); }
+    for (let lv = 0; lv < 4; lv++) { const r = G.run(lv, { seed: 2, bot: 'expert', untimed: true }); t.ok(r.result && !r.capped, `L${lv}: completes in untimed mode`); }
     const r0 = G.run(0, { seed: 5, bot: 'expert' }); const snap = sim.snapshot(); G.TB.seed(5); sim.reset(0, { thaw: { snap, lever: 'still' } }); let k = 0; while (!sim.result() && k < 5000) { sim.step(sim.dt); k++; }
     t.ok(sim.result() && sim.result().mask === 0 && sim.s.whatif === 'still', 'a What if? rerun ends and earns no stars'); void r0; }
 
   /* 8. bots: no level gives any bot three stars; no bot's union across the unit reaches three */
   { const bots = ['alwaysA', 'alwaysB', 'greedy', 'threshold', 'random', 'still', 'naive', 'fixed'], seeds = FAST ? 6 : 12;
     for (const b of bots) {
-      let worst = 0; const best = [0, 0, 0, 0, 0];
-      for (let seed = 1; seed <= seeds; seed++) for (let lv = 0; lv < 5; lv++) { const r = G.run(lv, { seed, bot: b }); const m = r.result ? r.result.mask : 0; best[lv] |= m; if ([1, 2, 4].filter(x => m & x).length === 3) worst = 3; }
+      let worst = 0; const best = [0, 0, 0, 0];
+      for (let seed = 1; seed <= seeds; seed++) for (let lv = 0; lv < 4; lv++) { const r = G.run(lv, { seed, bot: b }); const m = r.result ? r.result.mask : 0; best[lv] |= m; if ([1, 2, 4].filter(x => m & x).length === 3) worst = 3; }
       const u = ch.unitStars(best), pop = [1, 2, 4].filter(x => u & x).length;
       t.ok(worst < 3 && pop < 3, `bot ${b}: no level at three stars; unit union of its best levels ${pop} star(s)`);
     }
