@@ -2,8 +2,9 @@
 
   GAME_HTML=/abs/build.html python3 tests/alarm_paths.py
 
-Checks: a tap on your squirrel calls; a tap on your burrow stays silent; C and S keys call and stay silent; L2 opens on an
-attack with blank sister flags; the boss hides the whistle's cost until the first hawk's ledger; act-to-juice latency ≤ 200 ms (Events.lat); ?untimed=1 never times a decision out; ?calm=1 and
+Checks: a tap on your squirrel calls; a tap on your burrow stays silent; C and S keys call and stay silent; L1 has no
+prediction; L2 opens on a daughter's attack and, after six seasons, asks once where male calling will end (needMove; P,
+arrows and Enter commit); the boss hides the whistle's cost until the first hawk's ledger; act-to-juice latency ≤ 200 ms (Events.lat); ?untimed=1 never times a decision out; ?calm=1 and
 ?teacher=1 load and play; ?v1=1 opens the legacy chapter. Exit 1 on a failed check or a page error."""
 import os, sys
 from playwright.sync_api import sync_playwright
@@ -42,26 +43,33 @@ def main():
             pg.evaluate("()=>window.__advance(3300)"); pg.keyboard.press('c'); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>{ const r = TB.REG.alarm.sim.s.recs; return r.length === 3 && r[2].a === 1; }"), 'L1: the C key calls')
             pg.evaluate("()=>window.__advance(3400)")
-            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return !!s.ask && s.ask.id === 'be'; }"), 'L1: after three attacks the break-even ask opens')
-            pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(200)")
-            check(pg.evaluate("()=>TB.REG.alarm.sim.s.pred.be == null"), 'L1: Lock in on an untouched ghost is no prediction (needMove)')
-            pg.keyboard.press('p')
-            for _ in range(6): pg.keyboard.press('Shift+ArrowDown')
-            pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(300)")
-            check(pg.evaluate("()=>{ const v = TB.REG.alarm.sim.s.pred.be; return v != null && v < 2; }"), 'L1: P, arrows and Enter commit a prediction from the keyboard')
-            pg.evaluate("()=>window.__advance(1200)"); pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(100)")
+            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return !s.ask && s.phase === 'attack'; }"), 'L1: no prediction interlude; the fourth attack follows')
+            pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>{ const r = TB.REG.alarm.sim.s.recs; return r.length === 4 && r[3].a === 0; }"), 'L1: the S key stays silent')
             lat = pg.evaluate("()=>TB.Events && TB.Events.lat ? TB.Events.lat().filter(v => v != null) : []")
             check(len(lat) > 0 and max(lat) <= 200, 'act-to-juice latency ≤ 200 ms (%s)' % lat[:6])
             pg.evaluate("()=>window.__advance(3300)"); pg.click('#dock [data-id="al-call"]'); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>TB.REG.alarm.sim.s.recs.length === 5"), 'L1: the dock Call button calls')
-            # L2: sisters' flags are blank; their face blazes decide; the same verb
+            # L2: a daughter at home first; the same verb; after six seasons the one prediction
             open_level(pg, 1); pg.evaluate("()=>window.__advance(1500)")
-            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return s.phase === 'attack' && s.atk.nb.some(id => s.tags[id] == null); }"), 'L2: opens on an attack with a blank-flagged sister to read')
+            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return s.phase === 'attack' && s.atk.vig === 'f' && s.atk.nb.every(id => s.tags[id] != null); }"), 'L2: opens on a daughter at home, every ear tag readable')
             x, y = canvas_xy(pg, "ch.youAt()"); pg.mouse.click(x, y); pg.evaluate("()=>window.__advance(100)")
             check(pg.evaluate("()=>TB.REG.alarm.sim.s.recs.length === 1"), 'L2: a tap on your squirrel calls (one verb all chapter)')
+            for _ in range(5):
+                pg.evaluate("()=>{ for (let i = 0; i < 40 && !(TB.REG.alarm.sim.s.atk && TB.REG.alarm.sim.s.atk.st === 'decide' && TB.REG.alarm.sim.s.atk.a == null); i++) window.__advance(150); }")
+                pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(100)")
+            pg.evaluate("()=>{ for (let i = 0; i < 60 && !TB.REG.alarm.sim.s.ask; i++) window.__advance(150); }")
+            check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return !!s.ask && s.ask.id === 'ml' && s.c4.t === 6 && s.recs.length === 6; }"), 'L2: after six seasons the male-calling ask opens')
+            pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(200)")
+            check(pg.evaluate("()=>TB.REG.alarm.sim.s.pred.ml == null"), 'L2: Lock in on an untouched marker is no prediction (needMove)')
+            pg.keyboard.press('p')
+            for _ in range(6): pg.keyboard.press('Shift+ArrowDown')
+            pg.keyboard.press('Enter'); pg.evaluate("()=>window.__advance(300)")
+            check(pg.evaluate("()=>{ const v = TB.REG.alarm.sim.s.pred.ml; return v != null && v < 1; }"), 'L2: P, arrows and Enter commit the prediction from the keyboard')
+            pg.evaluate("()=>window.__advance(800)")
+            check(pg.evaluate("()=>TB.REG.alarm.sim.s.phase === 'auto'"), 'L2: after the call the seasons run on')
             # the boss: the first hawk's cost is hidden until its ledger
-            open_level(pg, 3); pg.evaluate("()=>window.__advance(800)"); pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(3400)")
+            open_level(pg, 2); pg.evaluate("()=>window.__advance(800)"); pg.keyboard.press('s'); pg.evaluate("()=>window.__advance(3400)")
             check(pg.evaluate("()=>{ const s = TB.REG.alarm.sim.s; return s.atk && s.atk.pred === 'hawk' && !s.hawkSeen; }"), 'boss: the second attack is a hawk, its whistle cost still hidden')
             pg.keyboard.press('c'); pg.evaluate("()=>window.__advance(3400)")
             check(pg.evaluate("()=>TB.REG.alarm.sim.s.hawkSeen === true"), 'boss: after the first hawk the whistle cost is known')

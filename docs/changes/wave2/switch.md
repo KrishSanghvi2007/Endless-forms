@@ -123,3 +123,51 @@ D5 §3: lines 1–13 pass except 11's axe-core (not available offline) and 9's C
 7. L5: test at least one enhancer and one coding change; send the clean one. *Ask:* did the "protein bus" explain why coding changes hit every tissue?
 8. L6: stock the lake, predict twice. *Ask:* was the slow start a surprise? Did the trout question feel fair? Try What if? → Dominant deletion.
 9. *Overall:* enjoyment 1–5; any moment of boredom (where); any text you skipped; anything that felt scientifically off.
+
+## 9. Simplification (D6 decisions 9 and 10), 22–23 October 2026
+
+Session 3 cut six levels to four and was interrupted. Session 4 finished the pass. I played every level at 390 × 780 before and after (screenshots in the session scratchpad: `s3/simp_raffle_alarm_switch/switch/`, then `switch_after/` and `switch_after2/`). The dark-field microscope, the glowing Hox stains, the larva that hatches into a fly, the crustaceans, the stickleback reporter embryo, the cold lake and the magenta accent all stayed. The verb at the bench is **set where a gene is switched on, then see the body it builds**. The boss inverts it: no hand sets the switch.
+
+**Decision 10 check.** The main pictures are real organisms and real staining: fly embryos and adults, crustaceans with their limbs, a stickleback embryo with a green reporter, and sticklebacks, trout and dragonfly nymphs in a lake. The Hox grid is the control and the genotype read-out *beside* the embryo, which decision 10 allows. Nothing symbolic stands in for an organism, so nothing was redrawn.
+
+### What was removed or merged, and why
+| Removed or changed | Where | Why |
+|---|---|---|
+| The two heat-shock vial predictions ("count the legs") — session 3 | L1 | Not the aha. Posterior prevalence is shown by the hatched fly and the "Furthest back wins" pill. |
+| Level "Legs on the abdomen?" (delete abd-A, mark legged segments, Lewis's whole-complex call) — session 3 | old L2 | A second idea with a mark-the-segments gesture. abd-A loss stays as an oracle identity check, and Vachon et al. 1992 stays in L1's MODEL "In nature" line. |
+| Level "Colinearity" (the chromosome fan, rebuild four mutants by dragging edges) — session 3 | old L3 | A third verb (drag tabs) for an idea now in one Why? line ("The genes sit on the chromosome in body order, as the rows here do"). |
+| The predict-the-tissues gesture on each Pitx1 test; four test embryos down to three — session 3 | L3 (old L5) | The green reporter shows which tissues go dark. The player taps a switch and looks. |
+| The lake's two predictions (share at generation 40, then after the trout return) — session 3 | L4 (old L6) | Replaced by the key equation, shown plainly when the season sets: "Rare and recessive, the deletion starts slowly: Δq ≈ s·q²(1 − q)", in the HUD and as a pill in the scene. Then "Trout are back, but carriers hide the deletion from them." |
+| **Kept: the one prediction**, the mantis shrimp's Ubx edge by the rule, scored on the first Check | L2 | It makes the aha: edge = feeding pairs + 1 predicts a body you have not stained. It uses the same drag as the level, so there is nothing new to learn. The edge starts at T1, away from the answer. |
+| **Three crustacean orders down to two (random two of brine shrimp, woodlouse, lobster) — session 4** | L2 | The third order repeated the same drag. Two orders plus the mantis still give three points on the feeding-legs chart, and the HUD's key line ("Built. Feeding-leg pairs = Ubx edge segment − 1.") comes at the first build. |
+| **"Add trout" and tap-open-water-for-trout removed — session 4** | L4 | The lake already holds two trout, and adding more was a dead-end control. The lake now has one verb: **tap the weeds (or Add nymph) to stock dragonfly nymphs**. The HUD names both predators' effects: "Trout catch spineless fish. Tap the weeds for nymphs, which catch spiny ones." Tapping a predator still removes it (an undo), and X still does. |
+| **The hidden "season sets when nymphs outnumber trout by two" rule and its disabled "Season set" button — session 4** | L4 | This was an unexplained control and rule. The season now sets as soon as nymphs outnumber the trout (three nymphs), with the whisper "Season set: the nymphs rule now." The dock simply empties. The forced weed beds at generation 10 stay as a safety net. |
+| **The "if dominant" dashed curve on the lake card — session 4** | L4 card | This was a third dashed line in a crowded legend. The dominant comparison lives in What if? → *Dominant deletion*. |
+| The L3 card's top dot clipped — session 4 | L3 card | The y axis now runs to 3.4. |
+
+The levels are now **L1 Paint the segments, L2 Body plans, L3 Pitx1 switches, L4 The lake**. The intro card's "How to play": "Tap glowing cells, then Hatch to match the order. Later you drag one edge, tap one gene switch, and add dragonfly nymphs to a lake."
+
+### Stars, re-balanced
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 Paint the segments | build all three orders | all three on the first try (was the vial asks) | — |
+| L2 Body plans | build both crustaceans (was all three) | — | the mantis shrimp's edge exactly, on the first Check |
+| L3 Pitx1 switches | test the pelvic enhancer and a coding change, then send the clean one | — (was the tissue calls) | — |
+| L4 The lake | stock the nymphs yourself (not forced) and watch the deletion pass half the copies | — (was generation 40) | — (was generation 60) |
+
+Unit stars: Discover in three of four levels, Predict on L1, Transfer on L2. No level offers all three. Bots on seeds 1–20: none reaches three. Nymph-stocking bots earn only the lake's Discover.
+
+### Science
+No model number changed. The lake's selection, mutation (×N), recursion and √(μ/s) balance are unchanged, and so is the oracle's calibration: the season and after-trout expectations match the simulated lake on average. Only the *trigger* for the season changed, from nymphs − trout ≥ 2 to nymphs > trout. That alters when selection starts, not how it acts. The MODEL cards' references and the Contested pill on the lake are unchanged.
+
+### Tests (session 4)
+- `node tests/oracle.js <build> switch`: 40 passed, 0 failed (L2 now checks "crust,crust,mantis" with two different crustaceans).
+- `tests/switch_paths.py`: 14 ok. `node tests/lint_text.js`: clean. `sh tests/dup_globals.sh`: ok. `node tests/bots.js … --seeds 1-20`: PASS.
+- Monkey, seeds 1, 2 and 3 at 390 × 780 and 1280 × 720: 6 of 6 runs reach the end card, with no console errors.
+
+### Playtest script (replaces §8)
+1. L1: build the three orders; hatch one wrong fly on purpose. *Did "the gene furthest back wins" land from the hatched fly?*
+2. L2: build two crustaceans, then place the mantis shrimp's edge before its stain. *Did the rule feel like a prediction you could trust?*
+3. L3: test a switch or two; send one. *Did the green reporter make "an enhancer changes one tissue" obvious?*
+4. L4: stock nymphs and watch. *Was the slow start a surprise? Did the trout's return and "carriers hide it" make sense?*
+5. Enjoyment 1–5; any moment of boredom; anything that felt scientifically off.

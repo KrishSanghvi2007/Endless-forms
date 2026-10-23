@@ -35,9 +35,9 @@ const RF_TEXT = {
   hud: {
     pourV: 'A virgin: her stores are empty. Hold to mate, let go to stop.',
     pourR: 'Rivals left {r} sperm units in her stores. Hold to mate.',
-    mate: 'Hold to mate: your sperm flush out his. Let go to leave.',
+    mate: 'Hold to mate: your sperm flush out his. Win the most eggs per hour.',
     copula: 'Mating for {m} minutes. Let go to leave her and search.',
-    pour4: 'Her card shows how much of each male’s sperm she stores.',
+    pour4: 'She stores {y}% of your sperm and {z}% of rivals’. Hold to mate.',
     dry: 'Your supply is empty. Her eggs go to the rivals.',
     draw: 'Her eggs pass the stores, each taking one sperm. Tap to hurry.',
     search: 'You guard her while she lays, then search: {T} minutes.',
@@ -670,7 +670,7 @@ const CH_RAFFLE_V2 = {
     else if (L.dung) t = s.mins > 0 ? Txt.f(C.copula, { m: Math.floor(s.mins) }) : C.mate;
     else if (s.left <= 0 && F.s <= 0) t = C.dry;
     else if (s.level === 0 && s.i === 0 && F.s <= 0) t = this.content.firstWords;
-    else if (L.her) t = C.pour4;
+    else if (L.her) t = Txt.f(C.pour4, { y: Math.round(100 * F.y), z: Math.round(100 * F.z) });
     else t = F.R ? Txt.f(C.pourR, { r: F.R }) : C.pourV;
     const rt = this.sim.rate(s), num = L.dung ? (rt > 0 ? Txt.f(lab.rate, { r: rt.toFixed(1) }) : '') : lab.supply + ' ' + Math.round(s.left);
     const sig = t + '|' + num; if (sig === this.v.sig) return; this.v.sig = sig; HUD.say(t, num);
@@ -903,7 +903,7 @@ const CH_RAFFLE_V2 = {
     }
     stats.push([lab.sSupply, String(Math.round(s.left)), cap.mSupply], [lab.sEggs, String(s.got), cap.mEggs], [lab.sExp, S.expEggs(s).toFixed(1), cap.mExp]);
     if (over) stats.push([lab.sBest, S.bestEggs(s).toFixed(1), cap.mBest]);
-    return { stats, charts: [this.rowsSpec('eggs'), this.rowsSpec('units')] };
+    return { stats, charts: [this.rowsSpec('eggs')] };   // one live chart; the sperm you passed against the best plan waits for the level card
   },
   rowsSpec(kind) {   // per female: eggs won (realised solid, expected dashed after the level) or units passed (yours solid, the best plan dashed after the level)
     const s = this.sim.s, S = this.sim, lab = this.content.labels, over = s.phase === 'over' || s.phase === 'end', best = over ? S.bestPlan(s) : null;

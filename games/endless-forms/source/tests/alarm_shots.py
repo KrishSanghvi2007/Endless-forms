@@ -1,6 +1,6 @@
 """Alarm Call (v2) screenshots: every level and its main phases at two viewports (plus --cvd mono,deut and --calm).
 
-  GAME_HTML=/abs/build.html python3 tests/alarm_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2,3] [--cvd mono] [--calm]
+  GAME_HTML=/abs/build.html python3 tests/alarm_shots.py OUTDIR [--vp 390x780,1280x720] [--levels 0,1,2] [--cvd mono] [--calm]
 
 A scripted player under virtual time (calls by true relatedness, whistles at every hawk, one prediction drag) saves L<n>_<phase>_<w>x<h>.png. Prints page errors; exit 1 on any."""
 import os, sys, argparse
@@ -21,7 +21,7 @@ ACT = """(o)=>{ const ch = TB.REG.alarm, s = ch.sim.s, S = ch.sim;
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('out'); ap.add_argument('--vp', default='390x780,1280x720'); ap.add_argument('--levels', default='0,1,2,3')
+    ap.add_argument('out'); ap.add_argument('--vp', default='390x780,1280x720'); ap.add_argument('--levels', default='0,1,2')
     ap.add_argument('--cvd', default=''); ap.add_argument('--calm', action='store_true'); ap.add_argument('--seed', type=int, default=7)
     a = ap.parse_args()
     html = os.environ.get('GAME_HTML'); os.makedirs(a.out, exist_ok=True)
@@ -51,10 +51,10 @@ def main():
                         pg.evaluate("()=>window.__advance(1500)"); shot('card'); break
                     if 'ask' in st:
                         pg.evaluate("()=>window.__advance(300)"); shot('ask_' + st['ask'])
-                        box = pg.evaluate("(i)=>{ const c = TB.Strip.canvas(i); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }", 0)
+                        box = pg.evaluate("(i)=>{ const c = TB.Strip.canvas(i); if (!c) return null; const r = c.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }", 1)
                         if box:
                             x, y, bw, bh = box
-                            pg.mouse.move(x + bw * 0.6, y + bh * 0.3); pg.mouse.down(); pg.mouse.move(x + bw * 0.6, y + bh * 0.62, steps=5); pg.mouse.up()
+                            pg.mouse.move(x + bw * 0.9, y + bh * 0.2); pg.mouse.down(); pg.mouse.move(x + bw * 0.9, y + bh * 0.7, steps=5); pg.mouse.up()
                             pg.evaluate("()=>window.__advance(200)"); shot('askmoved_' + st['ask'])
                         pg.evaluate("()=>{ TB.Predict && TB.Predict.commit && TB.Predict.commit(); window.__advance(500); }")
                         pg.evaluate("(id)=>{ const s = TB.REG.alarm.sim.s; if (s.ask && s.ask.id === id && s.pred[id] == null) TB.Sim.act(TB.REG.alarm, {k: 'void', id}); window.__advance(300); }", st['ask'])
@@ -65,7 +65,7 @@ def main():
                         i = st['i']; pg.evaluate("()=>window.__advance(700)")
                         nm = 'decide%d' % i if i < 3 else ('decide_' + st['pred'] + (st['vig'] or ''))
                         shot(nm)
-                        pg.evaluate(ACT, 'wrong' if (i == 1 and lv < 2) else 'call')
+                        pg.evaluate(ACT, 'wrong' if (i == 1 and lv < 1) else 'call')
                         pg.evaluate("()=>window.__advance(420)"); shot('strike%d' % min(i, 1))
                         pg.evaluate("()=>window.__advance(1300)"); shot('debrief%d' % min(i, 1))
                         continue

@@ -44,8 +44,9 @@ module.exports = function (G, t) {
   /* ---------- L2, L3 ---------- */
   t.eq(['artemia', 'isopod', 'lobster', 'mantis'].map(k => K.CR[k].maxi + 1), [1, 2, 4, 6], 'L2: Ubx/abd-A edges T1 (brine shrimp), T2 (woodlouse), T4 (lobster); the rule puts the mantis shrimp’s at T6');
   { const s = G.reset(1, 2); t.eq(sim.expect('t4'), 6, 'L2: the transfer is scored against edge = feeding pairs + 1 = 6');
-    t.eq(s.jobs.map(j => j.k).join(), 'crust,crust,crust,mantis', 'L2: three crustacean builds, then the mantis shrimp');
-    s.job = 3; sim.startJob(); t.eq(s.ub, 1, 'L2: the mantis edge starts at T1, away from the answer'); sim.act({ k: 'hatch' }); t.ok(s.hit.t4 === false && s.ub === 6, 'L2: an unmoved Check misses and the stain then shows the true edge'); }
+    t.eq(s.jobs.map(j => j.k).join(), 'crust,crust,mantis', 'L2: two crustacean builds (of three kinds), then the mantis shrimp');
+    t.ok(s.jobs[0].id !== s.jobs[1].id, 'L2: the two crustaceans differ');
+    s.job = 2; sim.startJob(); t.eq(s.ub, 1, 'L2: the mantis edge starts at T1, away from the answer'); sim.act({ k: 'hatch' }); t.ok(s.hit.t4 === false && s.ub === 6, 'L2: an unmoved Check misses and the stain then shows the true edge'); }
   t.ok(K.MOD.filter(m => K.DARK[m][2] && K.DARK[m][0] + K.DARK[m][1] === 0).join() === 'pel' && K.FATE.pel === 'clean', 'L3: only the pelvic-enhancer cut removes the pelvis and nothing else');
   t.ok(K.DARK.stop.every(Boolean) && K.DARK.swap.every(Boolean), 'L3: coding changes reach every tissue that uses Pitx1 (pleiotropy)');
 

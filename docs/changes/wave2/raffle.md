@@ -109,3 +109,47 @@ Model numbers checked in the oracle: share(36 min) = 0.800; eggs per minute peak
 4. L3: vary your first three matings on purpose; call the best time. *Did the tangent drawing itself land as an aha? Did the afternoon change what you did?*
 5. L4: *Did the pocket filling make "her storage decides" clear? Is the card's two-bar legend readable on a phone?*
 6. Rate fun 1–5; note any moment of waiting with nothing to do; note any word that sounded like a fly choosing.
+
+## Simplification (D6 decisions 9 and 10), 22–23 October 2026
+
+Session 3 started this pass and was interrupted; session 4 finished it. I played all three levels at 390 × 780 before and after (screenshots in the session scratchpad: `s3/simp_raffle_alarm_switch/raffle/`, then `raffle_after/`, and `desk/` at 1280 × 720). The pasture, the dung flies, the cowpat, the hand lens and the brass accent all stayed. The one verb is still **hold to mate, let go to stop**.
+
+### Decision 10: real biology, not a raffle drum
+The brass fairground drum, its paper tickets, the crank and the marquee bulbs are gone. The main picture is now **her abdomen under a brass hand lens**: a cutaway of the female's reproductive tract with her genital chamber, the common oviduct, two ovaries and her **three spermathecae** (a doublet sharing one duct and a singlet, after Ward 1993). While you hold, your sperm cells swim in at her genital opening, through the chamber and up the ducts, and they mix in at random among the rival sperm already stored. In L2 your sperm flush stored sperm back out (your own too, later), and one earlier sperm in nine sits out of reach at the end of the singlet. In L3 the sperm she does not store stay behind in the chamber, labelled "not stored", and are lost once she lays. Each egg then comes down the oviduct, meets **one stored sperm** at the duct openings and is laid on the dung, in its father's look: yours cream with a gold halo and red stripes, rivals' solid umber or dotted sage. That is luminance and pattern, never hue alone. The "raffle" survives only in the chapter's name and in the maths ("a raffle among stored sperm").
+
+### What was removed or merged, and why
+| Removed or changed | Where | Why |
+|---|---|---|
+| The drum, tickets, tube, crank, pocket and bulbs | everywhere | Decision 10, as above. The counts in true units ("yours 18", "rivals 100") sit above the lens as read-outs. |
+| Level "Who comes next?" (the chance of a later male; face-down cards, risk pies, a planner benchmark, its ask) | old L2 | This was a second idea on a second information system (hidden cards plus probabilities), and its Discover star needed a planner the player never saw. The point survives as the L1 What if? lever *Males follow* ("Rivals to come make virgins worth sperm") and in L1's MODEL "In nature" line (Parker 1990; Kelly and Jennions 2011). |
+| The loaded raffle's "drag the best mating time" ask | L2 (old L3) | It was not the aha. After the three morning females the scene now **shows** the key number plainly: the lens empties to "best ≈ 41 min", and the HUD says "Best morning mating: about 41 minutes. Afternoon searches take only 40." The strip draws the fitted curve and the tangent from the search time at the same moment. |
+| The boss's "units to win half her eggs" ask | L3 (old L4) | This was arithmetic after the fact. The boss is now played, with her storage shares **stated in the HUD** for each female: "She stores 5% of your sperm and 100% of rivals’. Hold to mate." The card bars stay as a glance. |
+| The live "Sperm passed" chart | L1, L3 strip | This was a second side panel. The live strip shows only "Eggs won", which is also the chart the one prediction is made on. Sperm passed against the best plan appears on the level card. |
+| **Kept: the one prediction** (L1: "Before she lays: how many of her 20 eggs will be yours?") | L1 | It makes the chapter's aha concrete: at a crowded female, a lot of sperm buys only a few eggs. It is asked once, from female 4 on, only where the answer is neither near-certain nor "half", and it is scored against 20·s/(s + R). The equation pill (`share = yours÷all · 18÷118 = 15%`) is hidden while you call, and the evidence (yours 18, rivals 100) stays visible. |
+
+**Key number, plainly:** a pill under the lens, `share = yours÷all  10÷30 = 33%` (L1), `your share 69%` (L2) or `stored yours÷all  9÷29 = 31%` (L3). It updates as you hold. L2 adds "best ≈ 41 min" at the afternoon break and the HUD goal "Win the most eggs per hour."
+
+The levels are now **L1 The fair raffle, L2 The loaded raffle, L3 Her stores** (`RF_LV`). The intro card reads: game "a male yellow dung fly on a sunny cowpat"; biology "A female stores sperm from several males in her spermathecae. Each egg is fertilised by one stored sperm as it passes"; how "Hold anywhere to mate and pass sperm into her stores; let go to stop."
+
+### Stars, re-balanced
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 The fair raffle | within 1 egg of the best plan | the one ask, within 2 eggs (a real ask only) | — |
+| L2 The loaded raffle | morning matings average within 6 min of 41.4 (was a Predict ask) | — | the afternoon averages within 6 min of 26.1, and at least 6 min shorter than the morning |
+| L3 Her stores | 97% of the best plan, given her shares (the fair-raffle rule wins 93%) | — | — (was the "units to win half" ask) |
+
+Unit stars: Discover in two of three levels, Predict on L1, Transfer on L2's afternoon. No level offers all three. Bots on seeds 1–30: none earns three. The fair-raffle `greedy` rule earns D+P in L1 only, and the `expert` earns D+P, D+T and D.
+
+### Science
+No model number changed. Dropped with the cut level: its MODEL card (risk known exactly, a later male's 20 units, three visible cards). `pbsg1997` and `wgp2002` are no longer cited on a card. The L3 MODEL simplification now says "female control works through how sperm are spread among her three spermathecae", not "not a pocket". Ward 1993 is now cited for the three spermathecae and for fertilisation at the duct openings (L2 MODEL, Why? real).
+
+### Tests (session 4)
+- `node tests/oracle.js <build> raffle`: 53 passed, 0 failed. `tests/raffle_paths.py`: 27 ok. `node tests/lint_text.js`: clean. `sh tests/dup_globals.sh`: ok.
+- `node tests/bots.js … --seeds 1-30`: PASS (no bot earned three stars).
+- Monkey, seeds 1, 2 and 3 at 390 × 780 and 1280 × 720: 6 of 6 runs reach the end card, with no console errors, NaN or stuck states.
+
+### Playtest script (replaces the one above)
+1. L1: hold on the first female. *Did your sperm visibly enter her stores? Did the pill `yours÷all` make the share obvious?* Call the crowded female's eggs. *Was the question clear in five seconds?*
+2. L2: try one short and one long mating. *Did "your share" slowing down, and your own sperm being flushed, make leaving sooner feel right? Did "best ≈ 41 min" land as the answer?*
+3. L3: *Did the HUD's "She stores 5% of your sperm…" change where you spent sperm?*
+4. Rate fun 1–5; note any word that sounds like a fly choosing.

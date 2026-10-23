@@ -165,3 +165,49 @@ Guard-rails kept:
 
 - `python3 tests/golden.py check scratchpad/alarm/alarm.html`: **47 ok, 0 failed, 1 skipped** (alarm, which this unit replaces).
 - `python3 tests/golden.py check scratchpad/alarm/alarm.html --v1`: **48 ok, 0 failed**. `?v1=1` still plays the legacy Alarm Call.
+
+## Simplification (D6 decisions 9 and 10), 22–23 October 2026
+
+Session 3 started this pass (five levels down to four) and was interrupted. Session 4 finished it (four down to three). I played every level at 390 × 780 before and after (screenshots in the session scratchpad: `s3/simp_raffle_alarm_switch/alarm/`, then `alarm_after/`, `alarm_after2/` and `desk/` at 1280 × 720). The Sierra meadow, the squirrels, the coyote, the hawk, the call rings, the ledger and the purple accent all stayed. The one verb is **Call or Stay silent**: tap yourself or your burrow.
+
+### What was removed or merged, and why
+| Removed or changed | Where | Why |
+|---|---|---|
+| Level "Help or breed" (Seychelles warbler helpers on Cousin Island, gene jar, eight springs) — session 3 | old L5 boss | It was a second organism, a second verb (help or leave) and a second model. The hawk, whose whistle saves its caller, now inverts the lesson as the boss. Komdeur 1992 and Richardson et al. 2001–2003 left with it. |
+| The hawk's notebook tally and its two cost asks (`tr`, `wh`) — session 3 | the hawk | They were a side panel and two drags. The first hawk's ledger now *shows* the whistle's cost. |
+| The burrow-map pedigree tagging screen and its "mean relatedness to littermates" ask — session 3 | old L2 | It was a second verb. Session 3 replaced it with face blazes on sisters. |
+| **Level "Who's my sister?" (sisters' face blazes, blank ear tags) — session 4** | old L2 | The blaze was a **designed symbol**. Real squirrels carry no such mark, and the MODEL card had to say so. Decision 10 asks for real biology, not symbols. Decision 9 asks for one idea per level, and multiple paternity is a detail of relatedness, not a new idea. L1's colony already holds 1–2 half-sisters tagged ¼, so the idea stays in L1: the MODEL card says "Litters can have two fathers, so some sisters are half-sisters (r = ¼)" (Hanken and Sherman 1981), and Why? maths lists "half-sister (another father) ¼". Your own face blaze is no longer drawn in any level. |
+| **The break-even ask in L1 ("above what total relatedness does a trill pay?") — session 4** | L1 | It asked for a number the HUD had already shown after the first attack ("Call when Σr > 0.55"), so it was copying, not an aha. L1 now just *shows* the key number. The decide HUD reads "Coyote! Add the tags: trill if they pass 0.55." The strip's scatter draws the dashed Σr = 0.55 line from the first attack (it used to wait for the call). |
+| **The one prediction, moved to the dispersal level — session 4** | L2 | "Sons live among strangers. Where will male calling be by season 15? Drag the marker." It is asked once, after you have played three seasons as a daughter among kin and three as a son among strangers. That is the aha: the same rule, played out by gene copies, removes calling from males. The marker starts at the top, off every plausible answer. It is scored against the mean of 200 replays from the shares at the call (a private PRNG; `expect`), and it counts only when "no change" misses by more than two bands (`real`). The level card plots male calling, the dashed expected path from the call, and your diamond. |
+| Vignettes 8 → 6, ask after season 6 | L2 | This keeps the level short. Discover is now 5 of 6 vignette calls, where it was 7 of 8. |
+| Boulders on the colony map | L2 | They sat on top of the burrow clusters (`bake(G, bare)`). |
+
+**Key numbers, plainly:** L1 shows "Call when Σr > 0.55" (Σr × 0.4 against 0.22). L2's seasons read "Calling copies gain Σr × 0.4 − 0.22: daughters +0.14, sons −0.20." The boss's ledger shows the whistle's cost below zero, labelled "saves the caller".
+
+The levels are now **L1 Coyote at dusk, L2 Daughters stay, L3 The hawk** (`AL_LV`). The intro card's "How to play" reads "Add up the ear tags and tap yourself to call, or your burrow to stay silent. Once, you drag a marker to predict."
+
+### Stars, re-balanced
+| Level | Discover | Predict | Transfer |
+|---|---|---|---|
+| L1 Coyote at dusk | 7 of 8 calls by Hamilton's rule, at least one call and one silence right | — (was the break-even ask) | — |
+| L2 Daughters stay | 5 of 6 vignette calls (was 7 of 8) | **male calling at season 15 within ±0.06** (a real ask only) | — |
+| L3 The hawk | 7 of 8 scored attacks right | — | whistle at every few-kin hawk, yet stay silent at few-kin coyotes |
+
+Unit stars: Discover in two of three levels, Predict on L2, Transfer on the boss. No level offers all three. Bots on seeds 1–30: none earns three. `greedy` (no change) never earns Predict, and predicting zero earned it on 0 of 40 oracle seeds. The `expert` earns D, D+P and D+T on every seed.
+
+### Science and model changes (designed numbers, stated here)
+- **Male calling now starts at 55–80% of copies** (it was 35–65%; designed). Its fall after the call is then always plain (more than 0.12 on 40 of 40 oracle seeds), so "no change" never scores. Female calling still starts at 35–65%. The model, its ×N selection strength and Σr ≈ 0.9 and 0.05 are unchanged, and so are the oracle's checks (daughters stay: females 0.50 → > 0.7, males → < 0.25; the reverse if sons stayed; live runs average the expected paths).
+- The face blaze ("a designed cue: real squirrels carry no such mark") is gone, so the chapter no longer contains an invented trait.
+- The L2 MODEL card for multiple paternity merged into L1's (`hs1981` kept; `hol1982` dropped with the blaze level).
+
+### Tests (session 4)
+- `node tests/oracle.js <build> alarm`: 63 passed, 0 failed. New checks: L1 has no ask; every L1 ear tag is true and every colony holds a half-sister; one ask after six seasons; the scored expectation equals 200 replays from the call; "no change" never scores and zero rarely does; the expert always does.
+- `tests/alarm_paths.py`: 0 failed at 390 × 780 and 1280 × 720 (the ask: needMove on Lock in, then P, arrows and Enter commit; the seasons run on afterwards). `tests/alarm_shots.py` now defaults to levels 0–2 and drags on chart 1.
+- `node tests/lint_text.js`: clean. `sh tests/dup_globals.sh`: ok. `node tests/bots.js … --seeds 1-30`: PASS.
+- Monkey, seeds 1, 2 and 3 at 390 × 780 and 1280 × 720: 6 of 6 runs reach the end card, with no console errors.
+
+### Playtest script (replaces the one above)
+1. L1: play 8 attacks. *By attack 3, could you add the tags against 0.55 within the 3-second clock?*
+2. L2: play the six seasons, then call male calling at season 15. *Did playing the son among strangers make the answer feel obvious, or surprising? Did the card's dashed path convince you?*
+3. L3: *Did the first hawk's ledger (a cost below zero) make the whistle with no kin feel right?*
+4. Fun 1–5, clarity 1–5, the slowest moment, and any wording that sounded wrong to a biologist.

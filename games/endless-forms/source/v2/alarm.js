@@ -1,12 +1,12 @@
 /* ================= v2/alarm.js: Alarm Call (id 'alarm'), the Wave 2 rebuild of a favourite =================
    D1 §3.6, D5 §4 item 10, D6 (21 Oct addendum: own world, intro card; 22 Oct decisions 9 and 10: simple, real biology).
    You are a Belding's ground squirrel in a high Sierra meadow (role: a behaving animal). A coyote or a hawk closes in; you
-   call a warning or stay silent, reading your neighbours' ear-flag tags. Calling costs you risk C and saves each warned
-   neighbour risk B, so a call pays your genes when Σ r·B > C (Hamilton 1964). One verb all chapter: Call or Stay silent.
-   Four levels, one idea each: the cost and benefit of a call (known kin; the one prediction: the break-even relatedness);
-   fathers you cannot see (sisters' flags read from their face blazes); sex-biased dispersal (you play a daughter at home and
-   a son among strangers while two sex-limited calling alleles run 15 seasons in the colony); and a boss where the hawk's
-   whistle saves its caller, so it pays with no kin at all.
+   call a warning or stay silent, reading your neighbours' ear tags (Sherman marked his squirrels). Calling costs you risk C
+   and saves each warned neighbour risk B, so a call pays your genes when Σ r·B > C (Hamilton 1964). One verb all chapter:
+   Call or Stay silent. Three levels, one idea each: the cost and benefit of a call (known kin, half-sisters included; the
+   break-even Σr > 0.55 shown plainly); sex-biased dispersal (you play a daughter at home and a son among strangers, then
+   two sex-limited calling alleles run on in the colony; the chapter's one prediction: where male calling ends); and a boss
+   where the hawk's whistle saves its caller, so it pays with no kin at all.
    Headless sim (R(), Det only), stars against the expectation, juice from Sim.run's events only (API_v2 §6.1). The run is
    (seed, level, actions); the untimed flag is read once at reset (as Hawks does) and logged in the state. */
 
@@ -16,14 +16,14 @@ const AL_RISK = { sil: 0.30, trill: 0.52, whistle: 0.04, warned: 0.1, open: 0.5,
 const AL_REL = { mo: 0.5, fs: 0.5, hs: 0.25, au: 0.25, co: 0.125, un: 0, im: 0, br: 0.5 };
 const AL_TAGS = ['1/2', '1/4', '1/8', '0'];
 const AL_GLYPH = { '1/2': '½', '1/4': '¼', '1/8': '⅛', '0': '0' };
-const AL_T = { tell: 0.8, decide: [3.0, 3.4, 2.6, 2.6], strike: 1.3, debrief: 1.9, season: 1.2, auto: 0.45, ask: 14 };
-const AL_ASK = { be: { chart: 0, lo: 0, hi: 2, start: 2, tol: 0.1, step: 0.05 } };   // the one prediction: axis, start (off every plausible answer), tolerance
-// L3, the colony: two sex-limited calling loci; neighbourhood relatedness set by dispersal; selection strength ×N
-const AL_C4 = { N: 200, T: 15, vig: 8, sigma: 2.6, Rf: 0.9, Rm: 0.05, M: 200 };
+const AL_T = { tell: 0.8, decide: [3.0, 2.6, 2.6], strike: 1.3, debrief: 1.9, season: 1.2, auto: 0.45, ask: 14 };
+// the one prediction (L2): male calling at the last season, on the 'Males calling' chart; the marker starts at the top, off every plausible answer
+const AL_ASK = { ml: { chart: 1, lo: 0, hi: 1, start: 1, tol: 0.06, step: 0.01 } };
+// L2, the colony: two sex-limited calling loci; neighbourhood relatedness set by dispersal; selection strength ×N
+const AL_C4 = { N: 200, T: 15, vig: 6, sigma: 2.6, Rf: 0.9, Rm: 0.05, M: 200 };
 const AL_LV = [   // per level: attacks, predators, tags known
-  { n: 8, truth: true, ask: 'be', askAt: 3 },
-  { n: 8, blaze: true },
-  { colony: true },
+  { n: 8, truth: true },
+  { colony: true, ask: 'ml' },
   { n: 10, truth: true, hawk: true }
 ];
 
@@ -31,22 +31,21 @@ const AL_TEXT = {
   intro: {
     game: 'You are a Belding’s ground squirrel in a high Sierra meadow, where coyotes and hawks hunt. Each attack, you call a warning or stay silent.',
     biology: 'Calling can put the caller at risk while it saves the neighbours it warns. Hamilton’s rule: a call pays your genes when relatedness times benefit beats the cost, rB > C.',
-    how: 'Read each neighbour’s ear flag, its relatedness to you. Then tap yourself to call, or your burrow to stay silent, before the predator strikes.'
+    how: 'Add up the ear tags and tap yourself to call, or your burrow to stay silent. Once, you drag a marker to predict.'
   },
-  firstWords: 'A coyote! Ear flags show each neighbour’s relatedness to you. Tap yourself to trill a warning, or tap your burrow to stay silent.',
+  firstWords: 'A coyote! Ear tags show each neighbour’s relatedness to you. Tap yourself to trill a warning, or tap your burrow to stay silent.',
   hud: {
-    decideC: 'Coyote! Trill to warn them, or stay silent?',
-    decideB: 'Coyote! Same blaze as yours: full sister, ½. Another blaze: half-sister, ¼.',
+    decideC: 'Coyote! Add the tags: trill if they pass 0.55.',
     decideH: 'Hawk! Whistle, or stay silent?',
     decideHq: 'A hawk! What does a whistle cost you? Whistle, or stay silent?',
     strike: 'The predator strikes.',
     debrief: 'The ledger: Σr × 0.4 against the cost, 0.22. Call when Σr > 0.55.',
     debriefH: 'The ledger: a whistler bolts for cover, so the call saves the caller.',
-    be: 'Drag the line: above what total relatedness does a trill pay?',
-    vigF: 'Season {t}: you are a daughter at home. Coyote!',
+    ml: 'Sons live among strangers. Where will male calling be by season 15? Drag the marker.',
+    vigF: 'Season {t}: you are a daughter at home, among kin. Coyote!',
     vigM: 'Season {t}: you are a son among strangers. Coyote!',
     season: 'Winter. Daughters stay; sons leave home.',
-    auto: 'Seasons pass. Calling copies rise or fall by what they do for kin.',
+    auto: 'Calling copies gain Σr × 0.4 − 0.22: daughters +0.14, sons −0.20.',
     ask: 'Drag the marker, then Lock in.',
     over: 'The level is done.'
   },
@@ -54,12 +53,12 @@ const AL_TEXT = {
     called: 'You trilled. You froze in view.', whistled: 'You whistled and bolted.', silent: 'You stayed silent.', slow: 'Too slow: you stayed silent.',
     caught: 'Caught! You go on as a sister.', killed: 'A neighbour was caught.', none: 'Nobody was caught.',
     good: 'Good call for your genes.', bad: 'Your genes lost out.', drag: 'Drag the marker first.',
-    miss: 'Tap yourself to call, your burrow for silence.', blaze: 'Read her face blaze.'
+    miss: 'Tap yourself to call, your burrow for silence.'
   },
   labels: {
-    you: 'you', cost: 'cost', costQ: 'cost ?', pays: 'call pays', silentPays: 'silence pays', burrow: 'your burrow', designed: 'blaze: designed', saves: 'saves the caller',
+    you: 'you', cost: 'cost', costQ: 'cost ?', pays: 'call pays', silentPays: 'silence pays', burrow: 'your burrow', saves: 'saves the caller',
     coyote: 'coyote', hawk: 'hawk', daughters: 'daughters stay', sons: 'sons leave', season: 'season {n}/{m}', attack: 'attack {n}/{m}',
-    lock: 'Lock in', call: 'Call', silentB: 'Stay silent', notEq: '≠', ledger: 'kin vs cost', trueR: 'r {r}', sr: 'Σr {v}', xN: 'selection ×N', yourBlaze: 'your blaze',
+    lock: 'Lock in', call: 'Call', silentB: 'Stay silent', notEq: '≠', ledger: 'kin vs cost', trueR: 'r {r}', sr: 'Σr {v}', xN: 'selection ×N',
     tKin: 'Kin nearby', tFem: 'Females calling', tMale: 'Males calling', keyA: 'A: calling copy', keya: 'a: silent copy', callers: 'callers',
     sAtk: 'Attack', sOk: 'Good calls', sSeason: 'Season', sF: 'Females calling', sM: 'Males calling', sVigF: 'You, as daughter', sVigM: 'You, as son',
     called: 'called', silent: 'silent', attackAx: 'attack', seasonAx: 'season', sumR: 'Σr', model: 'model', females: 'females', males: 'males', breakEven: 'break-even'
@@ -68,8 +67,6 @@ const AL_TEXT = {
   interesting: {
     overcall: 'You called for neighbours worth less than the cost. Two cousins add ¼; a trill needs more than 0.55.',
     undercall: 'You stayed silent beside close kin. One sister and one cousin already make 0.625, above 0.55.',
-    halfFull: 'You trilled beside half-sisters as if they were full sisters. Another blaze means another father: r = ¼, not ½.',
-    fullMissed: 'You stayed silent beside a sister wearing your blaze. Same father: a full sister, r = ½.',
     noSelfish: 'You never whistled when kin were few. The whistle saves the caller, so it pays with no kin at all.',
     sexGap: 'Female calling rose and male calling fell. Same rule, different kin nearby.',
     sexDrift: 'Drift blurred the gap this time, but the expected paths still parted.'
@@ -80,19 +77,17 @@ const AL_TEXT = {
   law: { title: 'Hamilton’s rule' },
   boss: { inverts: 'Here the call saves the caller, so it pays with no kin at all.' },
   stars: {
-    discover: 'Call by Hamilton’s rule, with known kin, blazes or dispersal.',
-    predict: 'Drag the break-even relatedness for a trill inside the band.',
+    discover: 'Call by Hamilton’s rule in two of the three levels.',
+    predict: 'Predict where male calling ends, inside the band.',
     transfer: 'Whistle at hawks with no kin near, yet stay silent at coyotes.'
   },
   levelTake: [
     'A trill pays when the relatedness around you times 0.4 beats its cost, 0.22: Σr > 0.55.',
-    'Litters have several fathers. A sister with another blaze is a half-sister, r = ¼.',
     'Daughters stay among kin and sons leave, so calling spread in females and fell in males.'
   ],
   levelStars: [
-    { discover: 'Make 7 of 8 calls the way Hamilton’s rule says.', predict: 'Drag the break-even relatedness inside the band.' },
-    { discover: 'Make 7 of 8 good calls, reading sisters’ blazes.' },
-    { discover: 'Call as a daughter at home and stay silent as a son: 7 of 8.' },
+    { discover: 'Make 7 of 8 calls the way Hamilton’s rule says.' },
+    { discover: 'Call as a daughter at home and stay silent as a son: 5 of 6.', predict: 'Predict male calling at season 15 inside the band.' },
     { discover: 'Make 7 of 8 good calls once the hawks arrive.', transfer: 'Whistle at every hawk with few kin near, yet stay silent at such coyotes.' }
   ],
   captions: {
@@ -103,10 +98,9 @@ const AL_TEXT = {
     mM: 'Share of calling copies at the locus expressed in males.'
   },
   model: [
-    { level: 0, simulated: 'A colony of about 14 squirrels with a known pedigree. Each coyote attack, you and two to five neighbours are in view. A trill raises your risk by 0.22; each warned neighbour avoids 0.4.', simplification: 'Costs and benefits are fixed. At most one squirrel is caught an attack, with chance 0.3 × its risk. If caught, you play on as a full sister.', params: [{ name: 'benefit to a warned neighbour B', value: 0.4, tag: 'designed' }, { name: 'trill cost C', value: 0.22, tag: 'designed' }, { name: 'catch chance per risk unit', value: 0.3, tag: 'designed' }], cannot: 'Learning, age, or calls that change how predators hunt.', nature: 'Sherman found females with kin nearby trilled more, and trillers were stalked and chased more than silent squirrels.', contested: false, refs: ['ham1964', 'sh1977'] },
-    { level: 1, simulated: 'Litters have one or two fathers, which you never see. Each pup wears its father’s face blaze, so a sister with your blaze is a full sister. Other relatives keep their known flags.', simplification: 'The face blaze is a designed cue: real squirrels carry no such mark. Each litter has one or two sires.', params: [{ name: 'father’s face blaze', value: 'one per sire', tag: 'designed' }, { name: 'sires per litter', value: '1–2', tag: 'designed' }], cannot: 'How squirrels themselves tell kin apart.', nature: 'Hanken and Sherman found 78% of 27 litters had two or more fathers. Full sisters fought less than half-sisters (Holmes and Sherman 1982).', contested: false, refs: ['hs1981', 'hol1982'] },
-    { level: 2, simulated: 'Two calling alleles: one acts in females, one in males. Each season a copy’s fitness moves by Σr × 0.4 − 0.22 near its carrier. Then 400 copies are drawn.', simplification: 'Neighbours’ relatedness is set by dispersal, not counted. Daughters live among Σr ≈ 0.9 of kin; sons among 0.05.', params: [{ name: 'copies per locus', value: 400, tag: 'designed' }, { name: 'Σr near daughters', value: 0.9, tag: 'designed' }, { name: 'Σr near sons', value: 0.05, tag: 'designed' }, { name: 'selection a season', value: 2.6, tag: 'xN', real: 'calls cost far less a season' }], cannot: 'Kin structure built up from births and deaths. Real calling has no known single gene.', nature: 'Belding’s males leave home before they breed; females settle near their mothers (Holekamp 1984). Females called far more than males (Sherman 1977).', contested: false, refs: ['sh1977', 'hol1984'] },
-    { level: 3, simulated: 'Hawks arrive. A whistle warns neighbours too. But the whistler bolts for cover, so its risk falls by 0.26.', simplification: 'The whistle’s cost is set from the direction of Sherman’s finding; its size is designed.', params: [{ name: 'whistle cost', value: -0.26, tag: 'designed' }, { name: 'trill cost', value: 0.22, tag: 'designed' }], cannot: 'Why some squirrels call before bolting and others after.', nature: 'Sherman watched 664 hawk encounters at Tioga Pass, most staged with trained raptors. Fewer whistlers than silent squirrels were killed (Sherman 1985).', contested: false, refs: ['sh1985'] }
+    { level: 0, simulated: 'A colony of about 14 squirrels with a known pedigree. Each coyote attack, you and two to five neighbours are in view. A trill raises your risk by 0.22; each warned neighbour avoids 0.4.', simplification: 'Costs and benefits are fixed. At most one squirrel is caught an attack, with chance 0.3 × its risk. If caught, you play on as a full sister. Litters can have two fathers, so some sisters are half-sisters (r = ¼).', params: [{ name: 'benefit to a warned neighbour B', value: 0.4, tag: 'designed' }, { name: 'trill cost C', value: 0.22, tag: 'designed' }, { name: 'catch chance per risk unit', value: 0.3, tag: 'designed' }, { name: 'sires per litter', value: '1–2', tag: 'designed' }], cannot: 'Learning, age, or calls that change how predators hunt.', nature: 'Sherman found females with kin nearby trilled more, and trillers were stalked and chased more than silent squirrels. Most litters have two or more fathers (Hanken and Sherman 1981).', contested: false, refs: ['ham1964', 'sh1977', 'hs1981'] },
+    { level: 1, simulated: 'Two calling alleles: one acts in females, one in males. Each season a copy’s fitness moves by Σr × 0.4 − 0.22 near its carrier. Then 400 copies are drawn.', simplification: 'Neighbours’ relatedness is set by dispersal, not counted. Daughters live among Σr ≈ 0.9 of kin; sons among 0.05.', params: [{ name: 'copies per locus', value: 400, tag: 'designed' }, { name: 'Σr near daughters', value: 0.9, tag: 'designed' }, { name: 'Σr near sons', value: 0.05, tag: 'designed' }, { name: 'selection a season', value: 2.6, tag: 'xN', real: 'calls cost far less a season' }], cannot: 'Kin structure built up from births and deaths. Real calling has no known single gene.', nature: 'Belding’s males leave home before they breed; females settle near their mothers (Holekamp 1984). Females called far more than males (Sherman 1977).', contested: false, refs: ['sh1977', 'hol1984'] },
+    { level: 2, simulated: 'Hawks arrive. A whistle warns neighbours too. But the whistler bolts for cover, so its risk falls by 0.26.', simplification: 'The whistle’s cost is set from the direction of Sherman’s finding; its size is designed.', params: [{ name: 'whistle cost', value: -0.26, tag: 'designed' }, { name: 'trill cost', value: 0.22, tag: 'designed' }], cannot: 'Why some squirrels call before bolting and others after.', nature: 'Sherman watched 664 hawk encounters at Tioga Pass, most staged with trained raptors. Fewer whistlers than silent squirrels were killed (Sherman 1985).', contested: false, refs: ['sh1985'] }
   ],
   why: {
     real: [
@@ -115,8 +109,8 @@ const AL_TEXT = {
       'Hawk whistles differ: fewer whistlers than silent squirrels were killed, so whistles look selfish (Sherman 1985).'
     ],
     maths: [
-      'Hamilton’s rule: a gene for helping spreads when rB > C. Here each warned neighbour avoids B = 0.4 risk. A trill costs C = 0.22. So call when Σr × 0.4 > 0.22, that is Σr > 0.55.',
-      'Relatedness r is the chance that a gene in you is also in them by descent. Full sister ½; half-sister ¼; mother’s sister ¼; her daughter ⅛.',
+      'Hamilton’s rule: a gene for helping spreads when rB > C. Each warned neighbour avoids B = 0.4; a trill costs C = 0.22. So call when Σr > 0.55. Full sister ½; half-sister (another father) ¼; aunt ¼; cousin ⅛.',
+      'A calling copy gains Σr × 0.4 − 0.22 near its carrier each season. Daughters live among Σr ≈ 0.9 (+0.14); sons among 0.05 (−0.20). One rule, two outcomes.',
       'A whistle’s cost is negative, so Σr × 0.4 − C is positive with no kin at all. A behaviour that helps the actor needs no kin.'
     ]
   }
@@ -137,7 +131,6 @@ const CH_ALARM_V2 = {
   },
   levels: [
     { name: 'Coyote at dusk', adds: 'the cost of a call', codes: ['K1'], minutes: 2 },
-    { name: 'Who’s my sister?', adds: 'fathers you cannot see', codes: ['K2'], minutes: 2 },
     { name: 'Daughters stay', adds: 'sex-biased dispersal', codes: ['K4'], minutes: 2.5 },
     { name: 'The hawk', adds: 'a call that saves the caller', codes: ['K3'], minutes: 2.5 }
   ],
@@ -149,7 +142,7 @@ const CH_ALARM_V2 = {
     { k: 'caller', rgb: [107, 151, 255], channels: ['colour', 'letter'] },
     { k: 'silent', rgb: [242, 201, 76], channels: ['colour', 'letter'] }
   ],
-  unitStars(lv) {   // D1's cross-level stars: Discover on two levels; Predict on L1; Transfer on the boss
+  unitStars(lv) {   // D1's cross-level stars: Discover on two levels; Predict on L2 (dispersal); Transfer on the boss
     const c = b => lv.filter(m => m & b).length;
     return (c(1) >= 2 ? 1 : 0) | (c(2) >= 1 ? 2 : 0) | (c(4) >= 1 ? 4 : 0);
   },
@@ -157,7 +150,7 @@ const CH_ALARM_V2 = {
   /* ================= headless simulation (API_v2 §9.3): R() and plain JSON only ================= */
   sim: {
     dt: 1 / 30, s: null,
-    // ---- the colony (L1, L2, L4): relations to you, each sister with her father's face blaze ----
+    // ---- the colony (L1, L3): relations to you; litters with one or two sires give full and half-sisters (the blaze fields are unused) ----
     colony() {
       const yb = R() < 0.5 ? 'stripe' : 'chevron', ob = yb === 'stripe' ? 'chevron' : 'stripe', col = [], add = (id, rel, sex, blaze) => col.push({ id, rel, sex, blaze: blaze || null, alive: true });
       const nF = 2 + (R() < 0.5 ? 1 : 0), nH = 1 + (R() < 0.5 ? 1 : 0), nC = 2 + (R() < 0.5 ? 1 : 0);
@@ -172,7 +165,7 @@ const CH_ALARM_V2 = {
     tagR(t) { return t === '1/2' ? 0.5 : t === '1/4' ? 0.25 : t === '1/8' ? 0.125 : 0; },
     member(s, id) { for (const m of s.col) if (m.id === id) return m; return null; },
     pool(s) { return s.col.filter(m => m.alive && m.id !== s.me); },
-    // neighbours for an attack: 2–5 squirrels; want: 1 call pays, 0 silence pays, 'low' Σr < 0.55, 'sis' (L2) a sister in view, null any
+    // neighbours for an attack: 2–5 squirrels; want: 1 call pays, 0 silence pays, 'low' Σr < 0.55, null any
     pickNb(s, pred, want) {
       let best = null;
       for (let tries = 0; tries < 40; tries++) {
@@ -182,10 +175,6 @@ const CH_ALARM_V2 = {
         const v = AL_val(sr, pred); best = nb;
         if (want === 'low') { if (sr < 0.55 - 1e-9) return nb; continue; }
         if (Math.abs(v) < 0.02) continue;
-        if (s.level === 1 && tries < 36) {   // L2: the sisters' blazes decide the call (ignoring them, or reading a half-sister as full, would get it wrong)
-          const crit = v > 0 ? sisR > 0 && (sr - sisR) * AL_B < AL_C[pred] - 1e-9 : nhs > 0 && (sr + 0.25 * nhs) * AL_B > AL_C[pred] + 1e-9;
-          if (!crit) continue;
-        }
         if (want == null || (want === 1) === (v > 0)) return nb;
       }
       return best;
@@ -201,7 +190,7 @@ const CH_ALARM_V2 = {
       const s = this.s;
       if (L.colony) return this.reset4(s);
       const c = this.colony(); s.col = c.col; s.yb = c.yb; s.ob = c.ob; s.me = 'me'; s.tags = {}; s.recs = []; s.ai = 0; s.atk = null; s.n = L.n; s.died = 0; s.hawkSeen = false;
-      for (const m of s.col) s.tags[m.id] = L.blaze && (m.rel === 'fs' || m.rel === 'hs') ? null : this.tagOf(m.rel);   // L2: sisters' flags are blank; their face blazes tell full from half
+      for (const m of s.col) s.tags[m.id] = this.tagOf(m.rel);   // every ear tag shows true relatedness (Sherman knew his colony's pedigrees)
       s.plan = this.plan(level);
       this.newAttack(s, []);
     },
@@ -212,7 +201,7 @@ const CH_ALARM_V2 = {
       s.atk = { i: s.ai, pred, nb, tags: nb.map(id => s.tags[id] || null), sr, srt, a: null, slow: false, victim: null, you: false, t: 0, st: 'tell' };
       s.phase = 'attack'; ev.push({ k: 'tell', pred, i: s.ai });
     },
-    decideT(s) { return AL_T.decide[Math.min(s.level, 3)]; },
+    decideT(s) { return AL_T.decide[Math.min(s.level, 2)]; },
     first(s) { return !AL_LV[s.level].colony && s.ai === 0; },   // the first attack of a level waits for you
     choose(s, a, ev) {
       const A = s.atk; if (!A || (A.st !== 'decide' && A.st !== 'tell') || A.a != null) return;   // a call as the predator appears counts too
@@ -244,22 +233,22 @@ const CH_ALARM_V2 = {
     afterAttack(s, ev) {
       if (AL_LV[s.level].colony) { this.season4(s, ev); return; }
       if (s.atk && s.atk.pred === 'hawk') s.hawkSeen = true;   // the first hawk's ledger has shown what a whistle costs
-      s.ai++; const L = AL_LV[s.level];
-      if (L.askAt && s.ai === L.askAt && !s.asked) { s.asked = true; s.atk = null; this.openAsk(s, ev, L.ask); return; }
+      s.ai++;
       if (s.ai >= s.n) { this.finish(s, ev); return; }
       this.newAttack(s, ev);
     },
-    // ---- the one prediction (L1) ----
+    // ---- the one prediction (L2): once the daughter and son seasons are played, where will male calling be at the last season? ----
     openAsk(s, ev, id) {
-      const A = AL_ASK[id]; s.ask = { id, kind: 'y', lo: A.lo, hi: A.hi, tol: A.tol }; s.asks.push(id); s.at0[id] = 0;
+      const A = AL_ASK[id]; s.ask = { id, kind: 'y', lo: A.lo, hi: A.hi, tol: A.tol }; s.asks.push(id); s.at0[id] = this.now(s, id);
+      s.c4.pAsk = s.c4.p.slice(); s.c4.tAsk = s.c4.t;   // the expectation runs on from here (lessons §1.3: scored against the expectation, never the run)
       s.phase = 'ask'; s.pt = 0; ev.push({ k: 'ask', id });
     },
-    now() { return 0; },
-    askDone(s, ev) { s.ask = null; this.newAttack(s, ev); },
-    // ---- L3: the colony (two sex-limited calling loci, Wright–Fisher on 400 copies each) ----
+    now(s) { return s && s.c4 ? s.c4.p[1] : 0; },   // "no change": male calling stays where it is now
+    askDone(s, ev) { s.ask = null; s.asked = true; s.phase = 'auto'; s.pt = 0; },
+    // ---- L2: the colony (two sex-limited calling loci, Wright–Fisher on 400 copies each) ----
     reset4(s) {
-      const j = () => Math.round((0.35 + 0.3 * R()) * 100) / 100;
-      s.c4 = { t: 0, p0: [j(), j()], p: null, hist: [] };
+      const j = (lo, w) => Math.round((lo + w * R()) * 100) / 100;   // females start at 35–65% calling copies; males at 55–80%, so their fall after the call is always plain
+      s.c4 = { t: 0, p0: [j(0.35, 0.3), j(0.55, 0.25)], p: null, hist: [] };
       s.c4.p = s.c4.p0.slice(); s.c4.hist.push([0, s.c4.p[0], s.c4.p[1]]);
       s.recs = []; s.col = []; s.tags = {}; s.me = 'me'; s.ai = 0; s.atk = null;
       this.nextSeason(s, []);
@@ -275,13 +264,18 @@ const CH_ALARM_V2 = {
     },
     wf4(p, a, rnd) { const q = p * (1 + a) / (1 + a * p), n = 2 * AL_C4.N; return this.binom(n, q, rnd) / n; },
     gen4(p, swap, rnd) { const Rf = swap ? AL_C4.Rm : AL_C4.Rf, Rm = swap ? AL_C4.Rf : AL_C4.Rm; return [this.wf4(p[0], this.a4(Rf), rnd), this.wf4(p[1], this.a4(Rm), rnd)]; },
-    exp4(p0, swap, seedv, path) {   // the mean of M replays on a private PRNG; path (optional) receives the mean trajectory [[t, f, m]…]
-      const r = rng(seedv), M = AL_C4.M, T = AL_C4.T, acc = []; for (let t = 0; t <= T; t++) acc.push([t, 0, 0]);
+    exp4(p0, swap, seedv, path, T) {   // the mean of M replays over T seasons (default all 15) on a private PRNG; path (optional) receives the mean trajectory [[t, f, m]…]
+      T = T == null ? AL_C4.T : T; const r = rng(seedv), M = AL_C4.M, acc = []; for (let t = 0; t <= T; t++) acc.push([t, 0, 0]);
       for (let m = 0; m < M; m++) { let p = p0.slice(); acc[0][1] += p[0]; acc[0][2] += p[1]; for (let t = 1; t <= T; t++) { p = this.gen4(p, swap, r); acc[t][1] += p[0]; acc[t][2] += p[1]; } }
       for (const q of acc) { q[1] /= M; q[2] /= M; } if (path) path.push(...acc); return [acc[T][1], acc[T][2]];
     },
-    model4(s) {   // the expected paths the end chart shows dashed (a private PRNG: R() and the run stay untouched)
-      if (!s.exp4) { const P = [], sd = (Math.round(s.c4.p0[0] * 100) * 131 + Math.round(s.c4.p0[1] * 100) * 7) >>> 0; s.exp4 = this.exp4(s.c4.p0, false, sd + 11, P); s.exp4path = P; }
+    model4(s) {   // the expected paths the end chart shows dashed: from the season of the call on, the same replays the call is scored against (a private PRNG: R() and the run stay untouched)
+      if (!s.exp4) {
+        const C = s.c4, P = [];
+        if (C.pAsk) { const sd = (Math.round(C.pAsk[0] * 1000) * 37 + Math.round(C.pAsk[1] * 1000) * 11 + C.tAsk) >>> 0, Q = []; s.exp4 = this.exp4(C.pAsk, false, sd + 5, Q, AL_C4.T - C.tAsk); for (const q of Q) P.push([q[0] + C.tAsk, q[1], q[2]]); }
+        else { const sd = (Math.round(C.p0[0] * 100) * 131 + Math.round(C.p0[1] * 100) * 7) >>> 0; s.exp4 = this.exp4(C.p0, false, sd + 11, P); }
+        s.exp4path = P;
+      }
       return s.exp4;
     },
     vigNb(s, female) {   // the vignette: a daughter's neighbours are mostly kin; a son's are strangers
@@ -296,7 +290,8 @@ const CH_ALARM_V2 = {
         let sr = 0; for (const m of nb) sr += AL_REL[m.rel];
         s.atk = { i: C.t, pred: 'coyote', nb: nb.map(m => m.id), tags: nb.map(m => s.tags[m.id]), sr, srt: sr, a: null, slow: false, victim: null, you: false, t: 0, st: 'tell', vig: female ? 'f' : 'm' };
         s.ai = C.t; s.phase = 'attack'; ev.push({ k: 'tell', pred: 'coyote', i: C.t, vig: female ? 'f' : 'm' });
-      } else { s.phase = 'auto'; s.pt = 0; s.atk = null; }
+      } else if (!s.asked) { s.atk = null; this.openAsk(s, ev, AL_LV[s.level].ask); }
+      else { s.phase = 'auto'; s.pt = 0; s.atk = null; }
     },
     season4(s, ev) {
       const C = s.c4; C.p = this.gen4(C.p, false, R); C.t++; C.hist.push([C.t, C.p[0], C.p[1]]);
@@ -309,7 +304,11 @@ const CH_ALARM_V2 = {
       if (s.c4) this.model4(s);
       ev.push({ k: 'over' });
     },
-    expect(s, id) { return id === 'be' ? AL_C.coyote / AL_B : null; },
+    expect(s, id) {   // male calling at the last season: the mean of replays from the share at the ask (a private PRNG; R() untouched)
+      if (id !== 'ml' || !s.c4 || !s.c4.pAsk) return null; const C = s.c4, sd = (Math.round(C.pAsk[0] * 1000) * 37 + Math.round(C.pAsk[1] * 1000) * 11 + C.tAsk) >>> 0;
+      return this.exp4(C.pAsk, false, sd + 5, null, AL_C4.T - C.tAsk)[1];
+    },
+    real(s) { const e = s.exp.ml, C = s.c4; return e != null && C && C.pAsk && Math.abs(C.pAsk[1] - e) > 2 * AL_ASK.ml.tol; },   // the ask counts only when "no change" would miss
     // ---- the frame ----
     step(dt) {
       const s = this.s, ev = []; s.time += dt;
@@ -334,8 +333,7 @@ const CH_ALARM_V2 = {
     interesting(s) {   // the card's Interesting line, chosen from what happened
       const n = s.level, R0 = (s.recs || []).filter(r => !r.ok);
       if (n === 0) { const o = R0.filter(r => r.a === 1).length, u = R0.filter(r => r.a === 0 && !r.slow).length; if (R0.length >= 2) return o >= u ? 'overcall' : 'undercall'; return null; }
-      if (n === 1) { if (R0.some(r => r.a === 1 && r.rels.indexOf('hs') >= 0)) return 'halfFull'; if (R0.some(r => r.a === 0 && r.rels.indexOf('fs') >= 0)) return 'fullMissed'; return null; }
-      if (n === 2) { const h = s.c4.hist, a = h[0], z = h[h.length - 1]; return z[1] - a[1] >= 0.1 && a[2] - z[2] >= 0.1 ? 'sexGap' : 'sexDrift'; }
+      if (n === 1) { const h = s.c4.hist, a = h[0], z = h[h.length - 1]; return z[1] - a[1] >= 0.1 && a[2] - z[2] >= 0.1 ? 'sexGap' : 'sexDrift'; }
       if (!(s.recs || []).some((r, i) => i >= 2 && r.pred === 'hawk' && r.a === 1 && AL_low(r))) return 'noSelfish';
       return null;
     },
@@ -367,7 +365,7 @@ const CH_ALARM_V2 = {
         if (acts[0].k === 'predict') return S.near(acts, S.now(s, s.ask.id));
         return { k: 'call', a: s.atk.pred === 'hawk' || s.atk.srt * AL_B > AL_C.coyote ? 1 : 0 };
       },
-      expert(s, acts) {   // skilled play (oracle only): reads blazes, whistles at every hawk, calls the break-even
+      expert(s, acts) {   // skilled play (oracle only): calls by true relatedness, whistles at every hawk, predicts the expectation
         const S = CH_ALARM_V2.sim; if (!acts.length) return null;
         if (acts[0].k === 'predict') return S.near(acts, S.expect(s, s.ask.id));
         return { k: 'call', a: s.atk.pred === 'hawk' || s.atk.sr * AL_B > AL_C.coyote ? 1 : 0 };
@@ -380,19 +378,18 @@ const CH_ALARM_V2 = {
     discover: (s, n) => {
       const R = s.recs || [], ok = R.filter(r => r.ok).length;
       if (n === 0) return R.length >= 8 && ok >= 7 && R.some(r => r.a === 1 && r.best === 1) && R.some(r => r.a === 0 && r.best === 0);
-      if (n === 1) return R.length >= 8 && ok >= 7;
-      if (n === 2) { const V = R.filter(r => r.vig); return V.length >= 8 && V.filter(r => r.ok).length >= 7; }
+      if (n === 1) { const V = R.filter(r => r.vig); return V.length >= AL_C4.vig && V.filter(r => r.ok).length >= AL_C4.vig - 1; }
       const P = R.filter((r, i) => i >= 2); return P.length >= 8 && P.filter(r => r.ok).length >= 7;
     },
-    predict: (s, n) => n === 0 && AL_hit(s, 'be'),
+    predict: (s, n) => n === 1 && AL_hit(s, 'ml') && CH_ALARM_V2.sim.real(s),
     transfer: (s, n) => {   // the boss: every few-kin attack handled by the new rule (whistle at the hawk, stay silent at the coyote)
-      if (n !== 3) return false; const P = (s.recs || []).filter((r, i) => i >= 2 && AL_low(r)), H = P.filter(r => r.pred === 'hawk');
+      if (n !== 2) return false; const P = (s.recs || []).filter((r, i) => i >= 2 && AL_low(r)), H = P.filter(r => r.pred === 'hawk');
       return H.length >= 2 && H.every(r => r.a === 1) && P.filter(r => r.pred === 'coyote').every(r => r.a === 0);
     }
   },
-  // assignment links: bits 0–2 level, 3–5 mask, 6–9 good calls, 14–20 the L1 prediction ×100 (clamped)
+  // assignment links: bits 0–2 level, 3–5 mask, 6–9 good calls, 14–20 the L2 prediction (male calling ×100)
   resultBits(s, level) {
-    if (!s) return 0; const r = this.sim.result() || { mask: 0 }, ok = (s.recs || []).filter(q => q.ok).length, p = s.pred && s.pred.be != null ? Math.round(s.pred.be * 100) : 0;
+    if (!s) return 0; const r = this.sim.result() || { mask: 0 }, ok = (s.recs || []).filter(q => q.ok).length, p = s.pred && s.pred.ml != null ? Math.round(s.pred.ml * 100) : 0;
     return (level & 7) | ((r.mask & 7) << 3) | ((Math.min(15, ok)) << 6) | ((Math.min(127, p)) << 14);
   },
   teacherStep() { const s = this.sim.s; if (!s) return; if (s.phase === 'attack' && s.atk && s.atk.st !== 'decide') s.atk.t = 99; else if (s.phase !== 'attack' && s.phase !== 'ask') s.pt = 99; },
@@ -444,7 +441,7 @@ const CH_ALARM_V2 = {
   openAsk() {
     const s = this.sim.s, id = s.ask.id, A = AL_ASK[id]; this._asking = id; this._dockSig = ''; if (typeof Predict === 'undefined') return;
     if (typeof Strip !== 'undefined' && Strip.redraw) Strip.redraw();
-    Predict.ask({ id, chart: A.chart, kind: 'y', axis: { lo: A.lo, hi: A.hi }, start: A.start, tol: A.tol, soft: null, needMove: true, linger: 600,
+    Predict.ask({ id, chart: A.chart, kind: 'y', axis: { lo: A.lo, hi: A.hi }, start: A.start, at: AL_C4.T, tol: A.tol, soft: null, needMove: true, linger: 600,
       onStill: () => this.whisper('drag'), onTimeout: () => Sim.act(this, { k: 'void', id }) });
   },
   finish(r) {
@@ -464,7 +461,6 @@ const CH_ALARM_V2 = {
       const G = this.geo(); v.side = (e.i * 7 + s.level) % 2 ? 1 : -1; v.dash = {}; v.lift = null;
       if (F) F.ring(v.side > 0 ? G.W - 30 : 30, e.pred === 'hawk' ? G.sky - 10 : G.yy - 20, 26, { ms: 300 });
       snd(e.pred === 'hawk' ? 'wing' : 'swish', v.side > 0 ? G.W : 0, G.yy);
-      if (s.level === 1 && this.once('blaze')) this.whisper('blaze');
     } else if (e.k === 'decide') { v.sq = 1; }
     else if (e.k === 'call') {
       const G = this.geo(), p = this.youAt();
@@ -517,7 +513,7 @@ const CH_ALARM_V2 = {
     if (s.ask) t = H[s.ask.id] || H.ask;
     else if (s.phase === 'attack' && A) {
       if (A.vig) t = Txt.f(A.vig === 'f' ? H.vigF : H.vigM, { t: A.i + 1 });
-      else if (A.st === 'tell' || A.st === 'decide') t = n === 0 && s.ai === 0 ? C.firstWords : A.pred === 'hawk' ? (!s.hawkSeen ? H.decideHq : H.decideH) : n === 1 ? H.decideB : H.decideC;
+      else if (A.st === 'tell' || A.st === 'decide') t = n === 0 && s.ai === 0 ? C.firstWords : A.pred === 'hawk' ? (!s.hawkSeen ? H.decideHq : H.decideH) : H.decideC;
       else t = A.st === 'strike' ? H.strike : A.pred === 'hawk' ? H.debriefH : H.debrief;
       num = AL_LV[n].colony ? Txt.f(L.season, { n: s.c4.t + 1, m: AL_C4.T }) : Txt.f(L.attack, { n: Math.min(s.n, s.ai + 1), m: s.n });
     } else if (s.phase === 'season') { t = H.season; num = Txt.f(L.season, { n: s.c4.t, m: AL_C4.T }); }
@@ -534,8 +530,8 @@ const CH_ALARM_V2 = {
     if (v.banner) { const p = v.banner.t / v.banner.ms, a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1; c.save(); c.globalAlpha = Math.max(0, a); Lbl.put('al-banner', v.banner.text, W / 2, this.hudH() + 60, { size: 22 }); c.restore(); }
   },
   /* the meadow backdrop, baked once per size: alpine sky, granite peaks, lodgepole pines, lupins, boulders, burrows */
-  bake(G) {   // cosmetic
-    const key = 'm' + G.W + 'x' + G.H + (typeof Pal !== 'undefined' ? Pal.theme : '');
+  bake(G, bare) {   // cosmetic; bare: no boulders (the colony map, where they would sit on the burrow clusters)
+    const key = 'm' + G.W + 'x' + G.H + 's' + G.sky + (bare ? 'b' : '') + (typeof Pal !== 'undefined' ? Pal.theme : '');
     if (this.v.bg && this.v.bgKey === key) return this.v.bg;
     const L = Layer(G.W, G.H), h = (i, k) => this.hrand(i, k);
     L.redraw((c, w, hh) => {
@@ -548,16 +544,11 @@ const CH_ALARM_V2 = {
       const mg = c.createLinearGradient(0, G.sky, 0, hh); mg.addColorStop(0, '#87A45E'); mg.addColorStop(1, '#6C8C49'); c.fillStyle = mg; c.fillRect(0, G.sky + 4, w, hh - G.sky);
       c.strokeStyle = 'rgba(52,74,34,.35)'; c.lineWidth = 1; for (let i = 0; i < 160; i++) { const x = h(i, 7) * w, y = G.sky + 10 + h(i, 8) * (hh - G.sky - 10); c.beginPath(); c.moveTo(x, y); c.lineTo(x + 2, y - 6); c.stroke(); }
       for (let i = 0; i < 70; i++) { const x = h(i, 9) * w, y = G.sky + 12 + h(i, 10) * (hh - G.sky - 20), lup = h(i, 11) < 0.7; c.fillStyle = lup ? '#7E6BC4' : '#F3EEF5'; if (lup) { for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(x, y - k * 2.6, 2.1 - k * 0.3, 0, TAU); c.fill(); } } else { c.beginPath(); c.arc(x, y, 1.8, 0, TAU); c.fill(); } }
-      for (let i = 0; i < 5; i++) { const x = (0.08 + 0.21 * i + 0.06 * h(i, 12)) * w, y = G.sky + 18 + h(i, 13) * (hh - G.sky) * 0.75, r = 12 + 14 * h(i, 14); c.fillStyle = '#A8A39A'; c.strokeStyle = '#1B1612'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(x, y, r * 1.3, r, 0, 0, TAU); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); c.ellipse(x - r * 0.4, y - r * 0.4, r * 0.5, r * 0.25, -0.3, 0, TAU); c.fill(); c.fillStyle = 'rgba(0,0,0,.14)'; c.beginPath(); c.ellipse(x + r * 0.3, y + r * 0.5, r, r * 0.3, 0, 0, TAU); c.fill(); }
+      if (!bare) for (let i = 0; i < 5; i++) { const x = (0.08 + 0.21 * i + 0.06 * h(i, 12)) * w, y = G.sky + 18 + h(i, 13) * (hh - G.sky) * 0.75, r = 12 + 14 * h(i, 14); c.fillStyle = '#A8A39A'; c.strokeStyle = '#1B1612'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(x, y, r * 1.3, r, 0, 0, TAU); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); c.ellipse(x - r * 0.4, y - r * 0.4, r * 0.5, r * 0.25, -0.3, 0, TAU); c.fill(); c.fillStyle = 'rgba(0,0,0,.14)'; c.beginPath(); c.ellipse(x + r * 0.3, y + r * 0.5, r, r * 0.3, 0, 0, TAU); c.fill(); }
     });
     this.v.bg = L; this.v.bgKey = key; return L;
   },
   hrand(i, k) { let x = Math.imul((i + 1) * 2654435761 ^ (k + 7) * 40503, 2246822519); x ^= x >>> 13; x = Math.imul(x, 3266489917); x ^= x >>> 16; return (x >>> 0) / 4294967296; },
-  blazeBadge(c, x, y, r, kind) {   // the father's face blaze as a badge: stripe, chevron or spot (a designed cue)
-    c.save(); c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = '#F4EEDD'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#1B1612'; c.stroke(); c.fillStyle = '#1B1612'; c.lineWidth = 2.4; c.lineCap = 'round'; c.beginPath();
-    if (kind === 'stripe') { c.moveTo(x, y - r * 0.62); c.lineTo(x, y + r * 0.62); c.stroke(); } else if (kind === 'chevron') { c.moveTo(x - r * 0.55, y + r * 0.3); c.lineTo(x, y - r * 0.35); c.lineTo(x + r * 0.55, y + r * 0.3); c.stroke(); } else { c.arc(x, y, r * 0.36, 0, TAU); c.fill(); }
-    c.restore();
-  },
   burrow(c, x, y, r) { c.fillStyle = '#5B4630'; c.beginPath(); c.ellipse(x, y + 2, r * 1.25, r * 0.5, 0, 0, TAU); c.fill(); c.fillStyle = '#231A12'; c.beginPath(); c.ellipse(x, y, r, r * 0.38, 0, 0, TAU); c.fill(); },
   drawMeadow(c) {
     const s = this.sim.s, v = this.v, G = this.geo(), A = s.atk, calm = typeof Fx !== 'undefined' && Fx.calm;
@@ -576,19 +567,17 @@ const CH_ALARM_V2 = {
       const p = sl[i], m = this.sim.member(s, id), dead = A.victim === id; let x = p[0], y = p[1], al = 1;
       if ((st === 'strike' || deb) && called && !dead) { const k = Math.min(1, (st === 'strike' ? t : 1.5) / 0.7); x += G.act * 0.55 * k; y += G.act * 0.35 * k; al = deb ? Math.min(1, Math.max(0, (t - 0.1) / 0.3)) : 1 - k; if (deb && al > 0) { x = p[0]; y = p[1]; } }
       if (dead && (st === 'strike' || deb)) { if (v.lift && v.lift.id === id && v.lift.t < 1.2) { const k = Math.max(0, v.lift.t - 0.26); if (hawk) { y -= k * 260; al = Math.max(0, 1 - k); } else al = Math.max(0, 1 - k * 3); } else al = 0; }
-      const sis = s.level === 1 && m && (m.rel === 'fs' || m.rel === 'hs');   // L2: a sister shows her father's face blaze
-      if (al > 0.02) Rig.draw(c, 'squirrel', { pose: st === 'decide' || st === 'tell' ? (i % 2 ? 'down' : 'up') : 'up', blaze: sis ? m.blaze : null, age: 1 }, x, y, { size: G.act, alpha: al, id: id, state: 'idle', t: v.t, flip: x > G.yx });
-      if (al > 0.3 || st === 'decide' || st === 'tell') { this.flag(c, 'al-f' + i, s.tags[id], p[0], p[1] - G.act * 0.62, deb ? m : null); if (sis) this.blazeBadge(c, p[0] + 22, p[1] - G.act * 0.62 - 17, 9, m.blaze); }
+      if (al > 0.02) Rig.draw(c, 'squirrel', { pose: st === 'decide' || st === 'tell' ? (i % 2 ? 'down' : 'up') : 'up', blaze: null, age: 1 }, x, y, { size: G.act, alpha: al, id: id, state: 'idle', t: v.t, flip: x > G.yx });
+      if (al > 0.3 || st === 'decide' || st === 'tell') { this.flag(c, 'al-f' + i, s.tags[id], p[0], p[1] - G.act * 0.62, deb ? m : null); }
     });
     // you: freeze upright and trill, or whistle and bolt for the burrow; caught: lifted or dusted
     let yx = G.yx, yy = G.yy, yal = 1;
     if (called && hawk && (st === 'strike' || deb)) { const k = Math.min(1, (st === 'strike' ? t : 1) / 0.35); yx += G.hero * 0.85 * k; yy += (G.by - G.yy) * k; yal = 1 - k; if (deb) { yx = G.yx; yy = G.yy; yal = Math.min(1, t / 0.4); } }
     if (A.you && (st === 'strike' || deb) && v.lift) { const k = Math.max(0, v.lift.t - 0.26); if (hawk) { yy -= k * 260; yal = Math.max(0, 1 - k); } else yal = Math.max(0, 1 - k * 3); if (deb && v.lift.t >= 1.2) { yal = Math.min(1, (t - 0.2) / 0.5); yy = G.yy; } }
     if (yal > 0.02) {
-      const ph = { pose: st === 'tell' || st === 'decide' ? 'up' : called && !hawk ? 'up' : 'up', blaze: s.yb || null, call: called && !hawk && st === 'strike', age: 1 };
+      const ph = { pose: 'up', blaze: null, call: called && !hawk && st === 'strike', age: 1 };
       Rig.draw(c, 'squirrel', ph, yx, yy, { size: G.hero * (1 + 0.06 * Det.sin(Math.PI * v.sq)), alpha: yal, halo: true, id: 'you', state: 'idle', t: v.t });
       Lbl.put('al-you', this.content.labels.you, yx, yy + G.hero * 0.62, { size: 13 });
-      if (s.level === 1 && s.yb) { this.blazeBadge(c, yx - G.hero * 0.62, yy - G.hero * 0.3, 11, s.yb); if (s.ai < 3) Lbl.put('al-yb', this.content.labels.yourBlaze, yx - G.hero * 0.62, yy - G.hero * 0.3 - 22, { size: 12 }); }
     }
     // the decision clock: an arc around you that shrinks
     if (st === 'decide' && !s.unt && !this.sim.first(s)) { const k = Math.max(0, 1 - t / this.sim.decideT(s)); c.save(); c.lineWidth = 5; c.strokeStyle = 'rgba(27,22,18,.7)'; c.beginPath(); c.arc(G.yx, G.yy, G.hero * 0.66, -TAU / 4, -TAU / 4 + TAU * k); c.stroke(); c.lineWidth = 2.5; c.strokeStyle = '#F4EEDD'; c.stroke(); c.restore(); }
@@ -660,12 +649,12 @@ const CH_ALARM_V2 = {
   drawChips(c, G, A) {   // the vignette's role: a daughter at home or a son among strangers
     const L = this.content.labels; if (A.vig) Lbl.put('al-vig', A.vig === 'f' ? L.daughters : L.sons, G.W - 10, G.top + 12, { size: 12, align: 'right' });
   },
-  /* L3: the colony from above, between the vignettes: six burrow clusters of real squirrels (daughters at home, sons that
+  /* L2: the colony from above, between the vignettes: six burrow clusters of real squirrels (daughters at home, sons that
      arrived from other clusters); a caller rears up with a wavy call ring; the genotype read-out (A calling, a silent) sits
      at each squirrel's feet, at the locus its sex expresses (D6 decision 10: the organisms are the picture) */
   drawMap(c) {
     const s = this.sim.s, v = this.v, G = this.geo(), C4 = s.c4, L = this.content.labels, p = C4.p, t = C4.t, calm = typeof Fx !== 'undefined' && Fx.calm;
-    this.bake(Object.assign({}, G, { sky: G.top + 6 })).blit(c, 0, 0);
+    this.bake(Object.assign({}, G, { sky: G.top + 6 }), true).blit(c, 0, 0);
     const cols = G.W > 700 ? 3 : 2, rows = Math.ceil(6 / cols), cw = (G.W - 20) / cols, chh = (G.ledY - G.top - 60) / rows, ex = cw * 0.44, ey = chh * 0.42, sz = clamp(Math.min(ex, ey) * 0.42, 26, 46), cen = [];
     for (let k = 0; k < 6; k++) cen.push([10 + cw * (k % cols + 0.5), G.top + 30 + chh * (Math.floor(k / cols) + 0.5)]);
     const mover = s.phase === 'season' ? clamp(v.mapT / 0.9, 0, 1) : 1;
@@ -697,7 +686,7 @@ const CH_ALARM_V2 = {
       const xs = { lo: 0, hi: s.n + 1, label: L.attackAx };
       const S = [{ label: L.called, shape: 'disc', ink: 'ink', pts: R.map((r, i) => r.a === 1 ? [i + 1, r.sr] : null).filter(Boolean) }, { label: L.silent, shape: 'square', pts: R.map((r, i) => r.a === 0 ? [i + 1, r.sr] : null).filter(Boolean) }];
       const sp = { type: 'scatter', title: L.tKin, x: xs, y: { lo: 0, hi: 2, label: L.sumR }, series: S, frame: 'designed' };
-      if (n !== 0 || over) sp.ghost = [[0, 0.55], [s.n + 1, 0.55]];   // the trill's break-even, Σr = 0.55, once you have called it
+      sp.ghost = [[0, 0.55], [s.n + 1, 0.55]];   // the trill's break-even, Σr = 0.55, shown plainly from the start (D6 decision 9)
       return { stats, charts: [sp] };
     }
     const C = s.c4, xs = { lo: 0, hi: AL_C4.T, label: L.seasonAx }, ys = { lo: 0, hi: 1, fmt: 'pct' };
@@ -710,8 +699,8 @@ const CH_ALARM_V2 = {
     return { stats, charts: [f, m] };
   },
   debrief() {
-    const s = this.sim.s, spec = this.notes().charts[0]; if (!spec) return null;
-    if (s.pred && s.pred.be != null && spec.type === 'scatter') spec.you = { x: (s.n || 8) + 0.5, y: s.pred.be, label: 'you' };
+    const s = this.sim.s, ch = this.notes().charts, spec = s.c4 ? ch[1] : ch[0]; if (!spec) return null;   // the colony's card shows male calling, where the call was
+    if (s.pred && s.pred.ml != null && s.c4) spec.you = { x: AL_C4.T, y: s.pred.ml, label: 'you' };
     return spec;
   }
 };

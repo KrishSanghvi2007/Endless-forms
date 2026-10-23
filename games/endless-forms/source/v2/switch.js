@@ -7,12 +7,13 @@
      L1 Paint the segments   seven columns × five Hox genes; the gene furthest back wins (posterior prevalence). Three
                              ordered flies: four wings (bithorax), legs for antennae (Antennapedia), legs on A1 (Ubx down).
      L2 Body plans           crustaceans: where Ubx/abd-A begins sets how many thoracic legs are feeding legs (Averof & Patel
-                             1997); build three, then place the mantis shrimp's edge by the rule, with its stain hidden (the
+                             1997); build two, then place the mantis shrimp's edge by the rule, with its stain hidden (the
                              chapter's one prediction: the same drag, scored on the first Check).
      L3 Pitx1 switches       three enhancers and a coding sequence; each tap tests a change on an embryo; send the one change
                              that removes only the pelvis (Chan et al. 2010).
-     L4 The lake (boss)      stock trout or dragonfly nymphs; a recessive pelvic-enhancer deletion arises by recurrent
-                             mutation (×N). No hand sets the switch: predators decide, and a rare recessive starts slowly.
+     L4 The lake (boss)      tap the weeds to stock dragonfly nymphs against the lake's trout; a recessive pelvic-enhancer
+                             deletion arises by recurrent mutation (×N). No hand sets the switch: predators decide, and a
+                             rare recessive starts slowly.
    A run is (seed, level, actions); the view juices from Sim.run's events only. Load rule: top level touches legacy objects
    only; engine calls are inside functions or behind typeof guards. */
 
@@ -80,7 +81,7 @@ const SW_C = {
     l5pick: 'No embryos left. Tap the switch to send, then Send.',
     l5test: 'The embryo grows. Green shows where Pitx1 is on.',
     l5sent: 'Sent to the lake. Watch the population.',
-    lake: 'Your lake. Tap open water to add trout, the weeds for dragonfly nymphs.',
+    lake: 'Trout catch spineless fish. Tap the weeds for nymphs, which catch spiny ones.',
     lakeRun: 'Generation {g}. Nymphs catch spiny fish; trout catch spineless ones.',
     lakeSet: 'Generation {g}. Rare and recessive, the deletion starts slowly: Δq ≈ s·q²(1 − q).',
     lakeBack: 'Generation {g}. Trout are back, but carriers hide the deletion from them.',
@@ -97,7 +98,7 @@ const SW_C = {
     sick: 'Alive, but damaged elsewhere.', clean: 'Pelvis gone; nothing else changed.',
     locked: 'The season is set.', full: 'At most four of each.', weeds: 'Weed beds spread: nymphs move in.', set: 'Season set: the nymphs rule now.',
     flip: 'Trout stocked; the weed beds silt up.', idle: 'Tap a glowing cell.', reset: 'Back to the wild type.',
-    sent: 'The lake gets this change.', sendWhy: 'Test a switch first.', retest: 'Tested before: try another switch.'
+    sent: 'The lake gets this change.', sendWhy: 'Test a switch first.', retest: 'Tested before: try another switch.', tapWeeds: 'Tap the weeds to add a nymph.'
   },
   labels: {
     c0: 'head', c1: 'T1', c2: 'T2', c3: 'T3', c4: 'A1', c5: 'A2–A7', c6: 'A8',
@@ -109,10 +110,10 @@ const SW_C = {
     pit: 'pituitary', jaw: 'jaw', pel: 'pelvis', mpit: 'pituitary', mjaw: 'jaw', mpel: 'pelvis', mstop: 'stop', mswap: 'swap',
     pitx1: 'Pitx1', enh: 'enhancers', code: 'coding sequence', dies: 'not viable', sick: 'damaged', clean: 'healthy', embryos: 'embryos',
     trout: 'trout', nymph: 'nymph', weeds: 'weed bed', xn: 'mutation ×N', spiny: 'spiny', spineless: 'spineless', yourCall: 'your call',
-    hatch: 'Hatch', check: 'Check', reset: 'Reset', send: 'Send', addT: 'Add trout', addN: 'Add nymph', set: 'Season set',
+    hatch: 'Hatch', check: 'Check', reset: 'Reset', send: 'Send', addN: 'Add nymph',
     chRow: 'Segment identities', chCr: 'Feeding legs', chTest: 'Tissues changed', chLake: 'Deletion share',
     crEdge: 'Ubx/abd-A edge', crPairs: 'feeding pairs', test: 'test', tissues: 'tissues', gen: 'generation', share: 'deletion share', built: 'built',
-    expected: 'expected', dominant: 'if dominant', del: 'deletion', ss: 'spineless'
+    expected: 'expected', del: 'deletion', ss: 'spineless'
   },
   interesting: {
     l1_tries: 'Some orders took several tries. One cell in the right segment is enough; extra cells change other segments too.',
@@ -140,7 +141,7 @@ const SW_C = {
   stars: { discover: 'Finish the orders and tests in three of the four levels.', predict: 'Build all three ordered flies on the first try.', transfer: 'Place the mantis shrimp’s Ubx edge by the rule.' },
   levelStars: [
     { discover: 'Build all three ordered flies.', predict: 'Build all three on the first try.' },
-    { discover: 'Build all three crustaceans.', transfer: 'Place the mantis shrimp’s Ubx edge exactly.' },
+    { discover: 'Build both crustaceans.', transfer: 'Place the mantis shrimp’s Ubx edge exactly.' },
     { discover: 'Test the pelvic enhancer and a coding change, then send the clean one.' },
     { discover: 'Stock the lake yourself and watch the deletion pass half the copies.' }],
   model: [
@@ -183,7 +184,7 @@ const SW_C = {
 SW_C.intro = {
   game: 'At a fluorescence microscope, you switch Hox genes on in fly embryos and hatch the flies. Then you reshape crustaceans, cut a stickleback gene switch, and stock a lake.',
   biology: 'Hox genes set what each body segment builds: legs, wings or nothing. Changing where a gene switches on changes form, and selection decides which changes spread.',
-  how: 'Tap glowing cells, then Hatch to match the order. Later you drag one edge, tap one gene switch, and add predators to a lake.'
+  how: 'Tap glowing cells, then Hatch to match the order. Later you drag one edge, tap one gene switch, and add dragonfly nymphs to a lake.'
 };
 const SW_ACCENT = '#D63CC4';
 const SW_INK = { Scr: [64, 226, 245], Antp: [166, 245, 60], Ubx: [255, 69, 214], abdA: [176, 140, 255], AbdB: [255, 122, 138],
@@ -206,7 +207,7 @@ const CH_SWITCH_V2 = {
     { name: 'Pitx1 switches', adds: 'enhancers against coding changes', codes: ['K2'], minutes: 2 },
     { name: 'The lake', adds: 'selection in a population', codes: ['K2', 'E3'], minutes: 3 }
   ],
-  keys: { ArrowLeft: 'move', ArrowRight: 'move', ArrowUp: 'move', ArrowDown: 'move', Space: 'switch a cell', Enter: 'hatch or check', R: 'reset', T: 'add trout', N: 'add nymph', X: 'remove a predator' },
+  keys: { ArrowLeft: 'move', ArrowRight: 'move', ArrowUp: 'move', ArrowDown: 'move', Space: 'switch a cell', Enter: 'hatch or check', R: 'reset', N: 'add nymph', X: 'remove a predator' },
   untimed: true,
   teacher: { prompts: ['In a segment where Ubx and abd-A are both on, which one sets what grows there?', 'Why are whole-segment changes rare in evolution, while enhancer changes are common?', 'This model has five genes and seven segments. What does it hide about real Hox regulation?'], pool: 'trace' },
   // genes differ by row position and name as well as stain; identities differ by shape (antenna, leg, wing, haltere); fish by the pelvic spine (shape)
@@ -230,7 +231,7 @@ const CH_SWITCH_V2 = {
         pred: {}, exp: {}, hit: {}, pts: [], thawed: false, lever: null, ub: 1 };
       const s = this.s, pick = a => a.splice((R() * a.length) | 0, 1)[0];
       if (level === 0) s.jobs = K.ORD.map(id => ({ k: 'build', id }));
-      else if (level === 1) { const c = ['artemia', 'isopod', 'lobster']; for (let i = 0; i < 3; i++) s.jobs.push({ k: 'crust', id: pick(c) }); s.jobs.push({ k: 'mantis', id: 'mantis' }); }
+      else if (level === 1) { const c = ['artemia', 'isopod', 'lobster']; for (let i = 0; i < 2; i++) s.jobs.push({ k: 'crust', id: pick(c) }); s.jobs.push({ k: 'mantis', id: 'mantis' }); }   // two of the three crustaceans (D6 decision 9: no third repeat of the same drag)
       if (level <= 1) { this.startJob(); return; }
       if (level === 2) { Object.assign(s, { phase: 'choose', tests: [], sel: null, sent: null, left: K.EMB }); return; }
       const L = K.LAKE, lay = swLay(L.MU), q0 = 0.02 + 0.02 * R();   // L4: a trout lake; the deletion rare
@@ -318,7 +319,7 @@ const CH_SWITCH_V2 = {
         ev.push({ k: 'flip' }); return;
       }
       if (s.thawed || s.set || s.gen < L.SET0) return;
-      const c = this.counts(); let ready = c[1] - c[0] >= 2;   // the season sets once nymphs clearly outnumber trout (or the weed beds spread by themselves)
+      const c = this.counts(); let ready = c[1] > c[0];   // the season sets once nymphs outnumber trout (or the weed beds spread by themselves)
       if (!ready && s.gen >= L.FORCE) { s.preds = K.NYM.map(p => ({ type: 'n', x: p[0], y: p[1] })); s.forced = 1; s.hist[s.hist.length - 1] = this.rec(); ev.push({ k: 'weeds' }); ready = true; }
       if (ready) { s.set = 1; s.askGen = s.gen; s.flip = s.gen + s.H; s.locked = true; s.exp.p6 = this.expect('p6'); ev.push({ k: 'set' }); }
     },
@@ -460,7 +461,7 @@ const CH_SWITCH_V2 = {
 
   /* ---------- stars: pure functions of the final state (D1 G10); each level offers only the stars it can award ---------- */
   stars: {
-    discover: (s, n) => n === 0 || n === 1 ? s.solvedN >= 3
+    discover: (s, n) => n === 0 ? s.solvedN >= 3 : n === 1 ? s.solvedN >= 2
       : n === 2 ? s.sent === 'pel' && s.tests.some(t => t.m === 'pel') && s.tests.some(t => t.m === 'stop' || t.m === 'swap')
       : !!s.set && !s.forced && CH_SWITCH_V2.sim.lakeMax(s) >= 0.5,
     predict: (s, n) => n === 0 && s.first >= 3,
@@ -537,8 +538,7 @@ const CH_SWITCH_V2 = {
     } else if (s.phase === 'hatch' || s.phase === 'judge' || s.phase === 'test' || s.phase === 'send') b.push({ id: 'skip', label: 'Skip', key: 'Enter', fn: act({ k: 'skip' }) });
     else if (s.phase === 'choose' || s.phase === 'pick') b.push({ id: 'send', label: L.send, key: 'Enter', primary: true, disabled: s.sel == null || (s.phase === 'choose' && !s.tests.length), why: this.w('whispers', 'sendWhy'), fn: act({ k: 'send' }) });
     else if (s.phase === 'lake') {
-      if (s.locked) b.push({ id: 'set', label: L.set, disabled: true, why: this.w('whispers', 'locked'), fn: () => this.whisper('locked') });
-      else { const add = ty => () => { const c = this.sim.counts(), P = ty === 'n' ? SWK.NYM : SWK.TRO, q = P[Math.min(3, c[ty === 'n' ? 1 : 0])]; Sim.act(this, { k: 'add', type: ty, x: q[0], y: q[1] }); }; b.push({ id: 'addT', label: L.addT, key: 'T', fn: add('t') }); b.push({ id: 'addN', label: L.addN, key: 'N', fn: add('n') }); }
+      if (!s.locked) { const add = ty => () => { const c = this.sim.counts(), P = ty === 'n' ? SWK.NYM : SWK.TRO, q = P[Math.min(3, c[ty === 'n' ? 1 : 0])]; Sim.act(this, { k: 'add', type: ty, x: q[0], y: q[1] }); }; b.push({ id: 'addN', label: L.addN, key: 'N', fn: add('n') }); }
     }
     const sig = n + ':' + b.map(x => x.id + (x.pressed ? '+' : '') + (x.disabled ? '-' : '') + (x.label || '')).join(',');
     if (sig !== this._dockSig) { this._dockSig = sig; Dock.set(b); }
@@ -665,14 +665,14 @@ const CH_SWITCH_V2 = {
     const pts = s.preds.map(p => { const q = this.lakePx(p.x, p.y); return { x: q[0], y: q[1], r: 26 }; }), i = Stage.hit ? Stage.hit(x, y, pts, 24) : -1;
     if (i >= 0) { Sim.act(this, { k: 'rm', i }); return; }
     const vx = x / Stage.w * 390, vy = y / Stage.h * 540; if (vy < 140) return;
-    Sim.act(this, { k: 'add', type: vy >= 440 ? 'n' : 't', x: vx, y: vy });
+    if (vy >= 420) Sim.act(this, { k: 'add', type: 'n', x: vx, y: vy }); else this.whisper('tapWeeds');   // one verb in the lake: nymphs into the weeds (the trout are already there)
   },
   onKey(k) {
     const s = this.sim.s, n = this.level, v = this.v, J = this.job(); if (!s || !v) return false;
     const d = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[k];
     if ((k === ' ' || k === 'Spacebar' || k === 'Enter') && (s.phase === 'hatch' || s.phase === 'judge' || s.phase === 'test' || s.phase === 'send')) { Sim.act(this, { k: 'skip' }); return true; }
     if (n === 3) {
-      if (k === 't' || k === 'T' || k === 'n' || k === 'N') { const c = this.sim.counts(), ty = k.toLowerCase() === 'n' ? 'n' : 't', P = ty === 'n' ? SWK.NYM : SWK.TRO, p = P[Math.min(3, c[ty === 'n' ? 1 : 0])]; Sim.act(this, { k: 'add', type: ty, x: p[0], y: p[1] }); return true; }
+      if (k === 'n' || k === 'N') { const c = this.sim.counts(), ty = 'n', P = ty === 'n' ? SWK.NYM : SWK.TRO, p = P[Math.min(3, c[ty === 'n' ? 1 : 0])]; Sim.act(this, { k: 'add', type: ty, x: p[0], y: p[1] }); return true; }
       if ((k === 'x' || k === 'X') && s.preds.length) { Sim.act(this, { k: 'rm', i: s.preds.length - 1 }); return true; }
       return false;
     }
@@ -1077,12 +1077,12 @@ const CH_SWITCH_V2 = {
     if (n === 2) {
       const real = []; s.tests.forEach((t, i) => real.push([i + 1, SWK.DARK[t.m].reduce((a, b) => a + b, 0)]));
       stats.push(['Embryos left', String(s.left), ''], ['Sent', s.sent ? L['m' + s.sent] : '–', '']);
-      return { stats, charts: [{ type: 'scatter', title: L.chTest, x: { lo: 0.5, hi: SWK.EMB + 0.5, label: L.test }, y: { lo: 0, hi: 3, label: L.tissues }, frame: 'designed', series: [{ pts: real, shape: 'disc', ink: 'ink', label: L.tissues }] }] };
+      return { stats, charts: [{ type: 'scatter', title: L.chTest, x: { lo: 0.5, hi: SWK.EMB + 0.5, label: L.test }, y: { lo: 0, hi: 3.4, label: L.tissues }, frame: 'designed', series: [{ pts: real, shape: 'disc', ink: 'ink', label: L.tissues }] }] };
     }
     const H = s.hist, ghost = [], Lk = SWK.LAKE;
     const curve = (g0, g1, q0, T, M, dom) => { const out = [[g0, q0]]; let q = q0; for (let g = g0; g < g1; g++) { q = swLakeRec(q, T, M, 1, s.mu, dom); out.push([g + 1, Math.round(q * 1000) / 1000]); } return out; };
-    if (s.set && s.askGen && H[s.askGen - 1]) {   // from the season's start: the expected recessive climb, and how fast a dominant one would go
-      const r = H[s.askGen - 1]; ghost.push({ d: curve(s.askGen, s.flip, r.q, r.T, r.M, false), label: L.expected }); ghost.push({ d: curve(s.askGen, s.flip, r.q, r.T, r.M, true), label: L.dominant });
+    if (s.set && s.askGen && H[s.askGen - 1]) {   // from the season's start: the expected recessive climb
+      const r = H[s.askGen - 1]; ghost.push({ d: curve(s.askGen, s.flip, r.q, r.T, r.M, false), label: L.expected });   // the dominant comparison lives in What if? (one dashed line here, D6 decision 9)
     }
     if (s.ret && H[s.ret - 1]) { const r = H[s.ret - 1]; ghost.push({ d: curve(s.ret, s.end, r.q, r.T, r.M, false), label: L.expected }); }
     stats.push(['Generation', String(s.gen), ''], ['Deletion share', Math.round(this.sim.q() * 100) + '%', 'Share of copies with the enhancer deleted.'], ['Spineless', Math.round(H[H.length - 1].dd * 100) + '%', 'Fish with two deleted copies.']);
