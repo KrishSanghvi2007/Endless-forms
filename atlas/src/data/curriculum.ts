@@ -54,13 +54,13 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     tabLabel: '4',
     section: 'GENETIC DRIFT & CHANCE',
     title: 'Drift Casino',
-    subtitle: 'Sampling error, effective population size (Ne) & bottlenecks',
-    organism: 'Drosophila bottles & island anoles',
+    subtitle: 'Sampling error, Ne, 12-allele bottlenecks, 4Ne·s & 3D coalescent',
+    organism: 'Drosophila bottles, island anoles & gene trees',
     accent: '#9a4768',
-    available: false,
-    actTag: 'Act IV · Forces',
+    available: true,
+    actTag: 'Act IV · Chance & Coalescent',
     summary:
-      'Track allele frequencies across Buri’s fly populations and founder events to feel why small populations lose allelic richness by chance alone.',
+      'Evolve 6 Wright–Fisher crystal jars, see why Buri’s flies and skewed harems shrink Ne, shatter 12 jewel alleles in a volcano bottleneck, test 4Ne·s, and trace 3D Kingman coalescent genealogies.',
   },
   {
     id: 'bitter',

@@ -48,6 +48,15 @@
 
 ---
 
+## Chapter 4: Drift Casino — Genetic Drift, $N_e$ & Coalescent (`ch04_casino`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| 6 Crystal Wright–Fisher Specimen Jars & Buri’s 12 Glass *Drosophila* Vials | `atlas/src/chapters/ch04_casino/CasinoScene3D.ts` | Original procedural Three.js meshes · MIT | Parallel neutral drift jars with cobalt/amber allele pearls + fixation halos, alongside Buri (1956) culture vials and harem sex-ratio $N_e$ comparison plinth. |
+| 3D Volcanic Archipelago, 12-Colour Jewel Alleles & 3D Kingman Coalescent Genealogy Tower | `atlas/src/chapters/ch04_casino/CasinoScene3D.ts` | Original procedural Three.js meshes · MIT | Visualizes rare-allele loss (ghost rings) vs. heterozygosity retention, Kimura $4N_e s$ trajectory tubes, and backward-in-time coalescent branches with ruby mutation pearls & MRCA crown. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |

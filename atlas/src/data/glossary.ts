@@ -267,6 +267,68 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'lichen',
   },
 
+  // --- Genetic Drift, Ne & Coalescent (Chapter 4: Drift Casino) ---
+  genetic_drift: {
+    id: 'genetic_drift',
+    term: 'Genetic Drift',
+    pronunciation: 'jə-NET-ik DRIFT',
+    shortDef:
+      'Random fluctuations in allele frequencies from generation to generation due to finite sampling of gametes—strongest in small populations (Var(Δp) = p(1−p)/(2Ne)).',
+    deepNote:
+      'For strictly neutral alleles (s = 0), drift has no preferred direction (E[p_t] = p₀) and the probability of eventual fixation equals starting frequency p₀.',
+    relatedChapterId: 'casino',
+  },
+  effective_population_size: {
+    id: 'effective_population_size',
+    term: 'Effective Population Size (Ne)',
+    pronunciation: 'i-FEK-tiv pop-yoo-LAY-shən SYZ',
+    shortDef:
+      'The size of an ideal Wright–Fisher population that would experience the same rate of genetic drift (variance in Δp or heterozygosity loss) as the actual population.',
+    deepNote:
+      'Ne is almost always smaller than census count N due to unequal family sizes (Buri 1956: N = 16 behaved like Ne ≈ 11.5), skewed sex ratios (Ne = 4NmNf/(Nm+Nf)), and population crashes (harmonic mean).',
+    relatedChapterId: 'casino',
+  },
+  bottleneck_founder: {
+    id: 'bottleneck_founder',
+    term: 'Bottleneck & Founder Effect',
+    pronunciation: 'BOT-əl-nek',
+    shortDef:
+      'A sharp, temporary drop in population size (or colonization by a few founders) that causes severe sampling error and immediate loss of rare alleles.',
+    deepNote:
+      'Critical distinction (Nei et al. 1975): a single brief bottleneck destroys allelic richness immediately (rare alleles vanish), whereas expected heterozygosity drops more slowly (by 1/(2Ne) per generation).',
+    relatedChapterId: 'casino',
+  },
+  nearly_neutral: {
+    id: 'nearly_neutral',
+    term: 'Effectively Neutral Regime (|4Ne·s| ≲ 1)',
+    pronunciation: 'NEER-lee NOO-trəl',
+    shortDef:
+      'The threshold where random genetic drift overpowers weak natural selection—allowing mildly deleterious alleles to fix and beneficial alleles to be lost by chance.',
+    deepNote:
+      'Follows from Kimura’s (1962) diffusion fixation probability P(fix) = (1 − e^(−4Ne·s·p₀)) / (1 − e^(−4Ne·s)). Selection acts reliably only when |4Ne·s| ≫ 1.',
+    relatedChapterId: 'casino',
+  },
+  coalescent: {
+    id: 'coalescent',
+    term: 'Kingman’s Coalescent',
+    pronunciation: 'koh-ə-LES-ənt',
+    shortDef:
+      'A backward-in-time stochastic process tracing sampled gene copies back through ancestral generations until pairs merge (coalesce) into their Most Recent Common Ancestor (MRCA).',
+    deepNote:
+      'With k active lineages in a diploid population of size Ne, the instantaneous coalescence rate is k(k−1)/(4Ne), giving expected tree height E[T_MRCA] = 4Ne(1 − 1/n).',
+    relatedChapterId: 'casino',
+  },
+  tajimas_d: {
+    id: 'tajimas_d',
+    term: 'Tajima’s D',
+    pronunciation: 'tə-JEE-məz DEE',
+    shortDef:
+      'A population-genomic test statistic comparing pairwise nucleotide diversity (π) against the number of segregating sites (S) to detect departures from constant-size neutrality.',
+    deepNote:
+      'D < 0 indicates an excess of rare singletons (rapid population expansion genome-wide, OR a hard selective sweep at one locus). D > 0 indicates excess intermediate-frequency variants (recent bottleneck or balancing selection).',
+    relatedChapterId: 'casino',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',
