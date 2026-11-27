@@ -33,10 +33,10 @@ The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around
 1. **Equilibrium** *(Hardy–Weinberg & What Breaks It)* — **FINALIZED on `shared-agents`**
 2. **Conflict & Kinship** *(Evolutionary Game Theory & Kin Selection)* — **FINALIZED on `shared-agents`**
 3. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, Industrial Melanism & 3D Fitness Landscapes)* — **FINALIZED on `shared-agents`**
-4. **Drift Casino** *(Genetic Drift, Buri's Bottles & $N_e$, 12-Allele Bottlenecks, $4N_e s$ & 3D Kingman Coalescent)* — **FINALIZED on `shared-agents` (`b351a2d`)**
-5. **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning, Advergence & Aposematism)* — **PLANNED BELOW & STARTING ON `Gemini`**
-6. **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection in Lake Tanganyika)* — Queued next
-7. **The Raffle** *(Sperm Competition, Storage & Sexual Selection)*
+4. **Drift Casino** *(Genetic Drift, Buri's Bottles & $N_e$, 12-Allele Bottlenecks, $4N_e s$ & 3D Kingman Coalescent)* — **FINALIZED on `shared-agents`**
+5. **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning, Advergence & Aposematism)* — **FINALIZED on `shared-agents` (`d2bc5d9`)**
+6. **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection in Lake Tanganyika & Side-Blotched Lizard RPS)* — **PLANNED BELOW (NEXT UP ON `Gemini`)**
+7. **The Raffle** *(Sperm Competition, Storage & Sexual Selection)* — Queued
 8. **Why Sex?** *(Twofold Cost of Males & Red Queen Coevolution)*
 9. **Switches** *(Evo-Devo, Cis-Regulatory Enhancers & Hox Circuits)*
 10. **The Clinic** *(Antibiotic Resistance, MIC/MPC & Plasmids)*
@@ -44,42 +44,37 @@ The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around
 
 ---
 
-## 4. Finalized Chapters on `shared-agents`
+## 4. Finalized Chapters on `shared-agents` (6 of 11 Plates Complete!)
 
 - **Plate 1 — *Equilibrium (Hardy–Weinberg & What Breaks It)*** (`ch01_hwe`): 6-page 3D chapter.
 - **Plate 2 — *Conflict & Kinship (Evolutionary Game Theory & Kin Selection)*** (`ch02_social`): 6-page 3D chapter.
 - **Plate 3 — *The Lichen Wood & Soot (Natural Selection, $R = h^2 S$ & Landscapes)*** (`ch03_lichen`): 6-page 3D chapter.
-- **Plate 4 — *Drift Casino (Genetic Drift, $N_e$, Bottlenecks, $4N_e s$ & 3D Coalescent)*** (`ch04_casino`): 6-page 3D chapter (6 Wright–Fisher crystal jars, Buri's 12 *Drosophila* vials & harem $N_e$, 12-allele volcano archipelago bottleneck, Kimura $4N_e s$ tug-of-war ribbons, 3D Kingman coalescent tower, Check).
+- **Plate 4 — *Drift Casino (Genetic Drift, $N_e$, Bottlenecks, $4N_e s$ & 3D Coalescent)*** (`ch04_casino`): 6-page 3D chapter.
+- **Plate 5 — *Bitter Wings (Batesian & Müllerian Mimicry, Imperfect Mimics & Aposematism)*** (`ch05_bitter`): 6-page 3D chapter (raycastable Neotropical clearing & jacamar, Batesian ratio × noxiousness shield ring, 0–100% imperfect mimicry tray, Müllerian *Heliconius* advergence, solitary vs. kin-clustered aposematic larvae, Check).
 - **Plate 11 — *Same Bones, Different Lives*** (`ch01_limbs`): 6-page 3D homologous tetrapod limb morphing chapter.
 
 ---
 
-## 5. Next Planned Chapter: **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning & Aposematism)* (`ch05_bitter`)
+## 5. Next Planned Chapter: **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection & Balancing Polymorphism)* (`ch06_jaws`)
 
-*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Honours Chai (1986) rufous-tailed jacamar biology, Lindström et al. (1997) / Sherratt (2002) nuanced Batesian ratios, Turner's two-step Müllerian advergence (avoiding the "supergene" error for H. erato/melpomene), and Langham (2004) / Sillén-Tullberg (1988) aposematism origin.*
+*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Features Lake Tanganyika scale-eating cichlids (Perissodus microlepis, Hori 1993) with visibly twisted 3D jaws, realistic partial heritability ($h^2 \approx 0.25$ vs. $0.90$, Takeuchi et al. 2012), and California side-blotched lizards (Uta stansburiana, Sinervo & Lively 1996) cycling Rock–Paper–Scissors.*
 
 ### The 6 Interactive 3D Pages
 
 | Page | Title & Concept | 3D Scene (Three.js) & Direct Manipulation | Key Equation / Undergrad Aha |
 |---|---|---|---|
-| **1** | **Forage as a Jacamar** *(Taste, Retch & Avoid — Batesian Mimicry)* | **3D Neotropical Rainforest Clearing:** Sculpted 3D **butterflies** (crimson-and-black banded unpalatable *Heliconius* models, creamy palatable non-mimics, and crimson-banded palatable **Batesian mimics**) + glassy-winged **dragonflies** fluttering over tropical foliage! Click butterflies directly in 3D (raycast!) to forage as a **rufous-tailed jacamar (*Galbula ruficauda*)** — tasting a bitter model triggers a golden taste-memory shock and builds predator avoidance! | Harmless **Batesian mimics** borrow protection from defended models via predator avoidance learning (Chai 1986; Bates 1862). |
-| **2** | **Model-to-Mimic Ratio & Noxiousness** *(Why "Only While Rare" Is Too Simple)* | **3D Forest Canopy & Avoid-Ring Meter:** Adjust **Model:Mimic ratio** (`12:4` → `4:12` → `2:14`) AND **Model Unpalatability** (mildly bitter vs. violently noxious!). Watch the glowing dashed **Avoidance Shield Ring** around the red-banded pattern shatter when mimics swamp mild models — yet hold firm even when mimics outnumber *highly noxious* models! | Batesian mimicry works **best while mimics are rare relative to models**, but critical threshold depends on **both** ratio and model unpalatability (Lindström et al. 1997; Sherratt 2002). |
-| **3** | **Imperfect Mimicry & Deadly Days** *(When "Good Enough" Survives)* | **3D Specimen Lineup (Resemblance Spectrum `0% → 100%`):** 6 sculpted 3D butterflies graded from pale cream non-mimic to exact crimson-band mimic beneath a live **3D Predator Attack-Probability Curve**. Compare **Low-Cost Model** (only exact mimics escape!) vs. **Highly Noxious Model** (even rough 55% imperfect mimics enjoy steep protection!). | High cost of mistakes flattens predator generalization gradients — explaining why many real hoverflies and butterflies persist as **imperfect mimics** (Sherratt 2002). |
-| **4** | **Müllerian Mimicry & Advergence** *(Sharing the Education Cost)* | **3D Twin-Species Meadow (*Heliconius erato* & *H. melpomene*):** Two **both-defended** unpalatable species (common **Red-Band** vs. rare **Yellow-Spot**). Step generations to watch the rarer species **adverge** onto the commoner pattern via a **large-effect locus** (*optix* / *WntA* — Turner's two-step model!) and compare per-capita learning losses ($L/N_1$ vs. $L/(N_1+N_2)$)! | **Müllerian co-mimics share the fixed cost $L$ of teaching naive predators** (Müller 1879). Mortality drops from $L/N_1$ to $L/(N_1+N_2)$, creating **positive** frequency-dependent selection (advergence of rarer onto commoner). |
-| **5** | **Origin of Warning Colouration** *(Anti-Apostatic Trap & Kin Aggregation)* | **3D Tropical Leaf-Litter & Egg-Cluster Diorama:** A single bright aposematic mutant caterpillar/butterfly suffers **anti-apostatic** predation (Langham 2004) when **Solitary** — naive birds kill it before learning! Switch to **Kin-Clustered Broods** (Sillén-Tullberg 1988): tasting one sibling teaches the bird to spare the remaining cluster! | How does the *very first* conspicuous warning colour survive when rare? **Gregariousness / kin aggregation** turns one sacrificed relative into protection for identical copies nearby ($rB > C$ bridges aposematism & kin selection!). |
-| **6** | **Check** *(Mimicry & Aposematism Mastery)* | 3 tactile undergraduate diagnostic cases: (1) Contrasting Batesian (negative frequency dependence) vs. Müllerian (positive frequency dependence), (2) Explaining imperfect mimicry via noxiousness cost, (3) Why kin aggregation solves the rare-aposematic-mutant paradox. | Unifies predator psychology, frequency-dependent coevolution, and inclusive fitness. |
-
-### Science Guard-Rails
-- Never write "Batesian mimics only work while rare" — write **"work best while rare relative to models, depending on model noxiousness"** (Lindström et al. 1997; Sherratt 2002).
-- Never call *Heliconius erato*/*melpomene* Müllerian advergence a "supergene" — use **"unlinked large-effect colour loci (*optix*, *WntA*, *cortex*)"** (Turner's two-step model; reserve *supergene* for polymorphic *H. numata* *P*, Joron et al. 2011).
-- Present kin aggregation (Sillén-Tullberg 1988) honestly as **one major route** alongside non-lethal taste-rejection (Chai 1986; Wiklund & Järvi 1982).
-- Cite Bates (1862), Müller (1879), Chai (1986), Sillén-Tullberg (1988), Lindström et al. (1997), Sherratt (2002), and Langham (2004).
+| **1** | **Guard the Flanks** *(Scale-Eating Cichlids in Lake Tanganyika)* | **3D Lake Tanganyika Shallows:** Turquoise sunlit sand & shell bed with silver-coral prey cichlids wearing movable golden **Left/Right Flank Guard Plates** and a visibly bent-jawed **3D *Perissodus microlepis*** predator ambushing from behind! Guard the commoner flank and watch the rarer jaw morph slip through. | **Negative frequency-dependent selection (NFDS):** the rarer morph has the feeding edge, preventing either morph from fixing (Hori 1993). |
+| **2** | **The 5-Year Oscillation** *(Lag & Overshoot Around 50:50)* | **3D Tanganyika Morph Pillars + Live Cycle Ribbon:** Step seasons as prey vigilance lags 1 season behind predator composition — watch Left-jawed and Right-jawed frequencies oscillate continuously around 50:50 with a ~5-year period! | Vigilance lag causes damped/sustained **oscillations** around equilibrium; under NFDS, neither type "wins" — **both morphs persist**. |
+| **3** | **Partial Heritability ($h^2 \approx 0.25$ vs. $0.90$)** *(Continuous Jaw Asymmetry)* | **3D Continuous Jaw-Angle Histogram Sculpture:** Compare classic single-locus Mendelian expectations ($h^2 \approx 0.9$) against realistic empirical partial heritability ($h^2 \approx 0.25$, Takeuchi et al. 2012 / Stewart & Albertson 2010), where feeding experience also shapes jaw bend! | Lower heritability damps cycle amplitude and slows evolutionary response ($R = h^2 S$) while still maintaining balancing polymorphism. |
+| **4** | **Rock–Paper–Scissors Lizards** *(Intransitive 3-Morph Cycling — Uta stansburiana)* | **3D California Coastal Sage Hillside:** Sculpted 3D **side-blotched lizards** with **Orange** (ultra-dominant), **Blue** (mate-guarder), and **Yellow** (sneaker) throat badges arranged around a **3D Ternary Simplex Ring** showing the non-transitive 3-way cycle! | **Intransitive dominance** (Orange beats Blue, Blue beats Yellow, Yellow beats Orange; Sinervo & Lively 1996) creates a perpetual 3-morph evolutionary orbit! |
+| **5** | **Balancing Selection & Genomic Footprints** *(MHC, Self-Incompatibility & Tajima's $D > 0$)* | **3D Trans-Species Polymorphism Gene Tree:** Contrasts shallow neutral genealogies against ultra-deep **balancing-selection trees** (MHC immune loci / plant $S$-alleles) where alleles stay polymorphic for tens of millions of years (**Tajima's $D > 0$**)! | Long-term balancing selection maintains ancient allelic lineages across speciation events and leaves an excess of intermediate-frequency variants ($D > 0$). |
+| **6** | **Check** *(NFDS & Balancing Selection Mastery)* | 3 diagnostic undergraduate puzzles uniting *Perissodus* vigilance lag, *Uta* Rock–Paper–Scissors intransitivity, and balancing-selection Tajima's $D > 0$ footprints. | Connects ecological interactions directly to genomic signatures of balancing selection. |
 
 ---
 
 ## 6. Native Offline Single-File Deliverable
-- Built with `npm run build:single` into `games/endless-forms/Endless_Forms_Atlas.html` (~1.10 MB raw / ~404 KB gzip with Plates 1–4 & 11), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
+- Built with `npm run build:single` into `games/endless-forms/Endless_Forms_Atlas.html` (~1.15 MB raw / ~420 KB gzip bundling **Plates 1, 2, 3, 4, 5 & 11**), verified directly via `file://` in Chromium with **0 console errors, 0 page errors**.
 
 ## 7. Notes for Claude
-- **Plates 1–4 (*Equilibrium*, *Conflict & Kinship*, *The Lichen Wood & Soot*, *Drift Casino*) and Plate 11 (*Same Bones*)** are all finalized and merged on `shared-agents`!
-- **Chapter 5 (*Bitter Wings* — Batesian & Müllerian Mimicry, Aposematism & Predator Learning)** is planned in §5 above; Gemini is now building it autonomously on `Gemini`.
+- **6 full 6-page 3D chapters (Plates 1, 2, 3, 4, 5 & 11)** are now finalized and merged on `shared-agents`!
+- **Chapter 6 (*Left Jaw, Right Jaw*)** is planned in §5 above and queued next on `Gemini`.
