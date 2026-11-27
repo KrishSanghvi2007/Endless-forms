@@ -931,3 +931,100 @@ export function createOpossum3D(options: { greyness?: number; scale?: number }):
   return g;
 }
 
+// =============================================================================
+// 12. SCULPTED 3D NEW ZEALAND MUD SNAIL (Potamopyrgus antipodarum — Red Queen)
+// =============================================================================
+
+export function createMudSnail3D(options: {
+  shellHex?: string;
+  infected?: boolean;
+  scale?: number;
+}): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+
+  const shellMat = new THREE.MeshStandardMaterial({
+    color: options.shellHex ?? '#6b533b',
+    roughness: 0.42,
+    metalness: 0.08,
+  });
+  const footMat = new THREE.MeshStandardMaterial({
+    color: options.infected ? 0xc27a72 : 0xb8ad9c,
+    roughness: 0.78,
+  });
+
+  // Soft muscular gastropod foot + paired tentacles
+  const foot = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.24, 6, 10), footMat);
+  foot.rotation.x = Math.PI / 2;
+  foot.scale.set(1.0, 1.0, 0.52);
+  foot.position.set(0, 0.04, 0.08);
+  foot.castShadow = true;
+  g.add(foot);
+
+  for (const s of [-1, 1]) {
+    const tent = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.13, 6), footMat);
+    tent.rotation.x = 1.05;
+    tent.rotation.z = s * -0.35;
+    tent.position.set(s * 0.04, 0.075, 0.24);
+    g.add(tent);
+  }
+
+  // Sculpted turreted spiral shell (4 stacked tapered whorls tilting gracefully backward)
+  const shellGroup = new THREE.Group();
+  shellGroup.position.set(0, 0.11, -0.02);
+  shellGroup.rotation.x = -0.62;
+  const whorls = [
+    { r: 0.125, y: 0.0 },
+    { r: 0.098, y: 0.11 },
+    { r: 0.072, y: 0.20 },
+    { r: 0.044, y: 0.28 },
+    { r: 0.022, y: 0.34 },
+  ];
+  whorls.forEach((w, idx) => {
+    const whorl = new THREE.Mesh(new THREE.SphereGeometry(w.r, 12, 10), shellMat);
+    whorl.scale.set(1.0, 0.78, 1.0);
+    whorl.position.set(idx % 2 === 0 ? 0.008 : -0.008, w.y, 0);
+    whorl.castShadow = true;
+    shellGroup.add(whorl);
+  });
+  g.add(shellGroup);
+
+  return g;
+}
+
+// =============================================================================
+// 13. SCULPTED 3D TREMATODE PARASITE (Microphallus cercaria — Red Queen)
+// =============================================================================
+
+export function createTrematode3D(options: { colorHex?: string; scale?: number }): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: options.colorHex ?? '#c93c42',
+    roughness: 0.25,
+    clearcoat: 0.65,
+    transparent: true,
+    opacity: 0.88,
+  });
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), mat);
+  body.scale.set(0.82, 0.45, 1.48);
+  body.position.set(0, 0.08, 0.04);
+  body.castShadow = true;
+  g.add(body);
+
+  // Sinuous swimming tail
+  const tailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.08, -0.08),
+    new THREE.Vector3(0.06, 0.08, -0.22),
+    new THREE.Vector3(-0.05, 0.08, -0.36),
+  ]);
+  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.02, 6, false), mat);
+  tail.castShadow = true;
+  g.add(tail);
+
+  return g;
+}
+
+

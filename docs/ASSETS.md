@@ -89,6 +89,14 @@
 
 ---
 
+## Chapter 9: Why Sex? & Red Queen (`ch09_sex`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted 3D New Zealand Mud Snails (*Potamopyrgus antipodarum*), *Microphallus* Trematodes, Cleaner Wrasse & Client Reef Fish | `atlas/src/3d/organisms.ts` & `atlas/src/chapters/ch09_sex/SexScene3D.ts` | Original procedural Three.js meshes · MIT | Zero-box plates: twofold cost clonal array, Muller’s ratchet mutation-load towers + ghost rings, Lake Alexandrina Red Queen snail/trematode coevolution ring, cleaner wrasse partner sanctions, and pathogen virulence $R_0(\alpha)$ ridge. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |

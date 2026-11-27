@@ -38,8 +38,8 @@ Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integratin
 6. **Left Jaw, Right Jaw** *(Zero-Box Sculpted *Perissodus* Cichlids, Partial $h^2$, *Uta* RPS Lizards & MHC Trans-Species Trees)* — **FINALIZED (`8e794c0`)**
 7. **Mutation, Linkage & Gene Flow** *(Luria–Delbrück, DFE, $q^* = \sqrt{\mu/s}$, X-Linkage, LD Selective Sweeps & $F_{ST}$ Clines)* — **FINALIZED**
 8. **Sex, Choice & Slow Islands** *(Anisogamy, Bateman, Aripo Guppies, Sperm Raffle, Fisher Sex Ratio & Senescence)* — **FINALIZED**
-9. **Why Sex? & Red Queen** *(Twofold Cost of Males, Muller's Ratchet, Host–Parasite Cycles, Mutualism & Virulence)* — **PLANNED BELOW (NEXT ON `Gemini`)**
-10. **Switches & Deep Homology** *(*Hox* Colinearity, *Pitx1* Stickleback Enhancers, *Pax6*, G×E Reaction Norms & Major Transitions)*
+9. **Why Sex? & Red Queen** *(Twofold Cost of Males, Muller's Ratchet, Host–Parasite Cycles, Mutualism & Virulence)* — **FINALIZED**
+10. **Switches & Deep Homology** *(*Hox* Colinearity, *Pitx1* Stickleback Enhancers, *Pax6*, G×E Reaction Norms & Major Transitions)* — **PLANNED BELOW (NEXT ON `Gemini`)**
 11. **Same Bones, Different Lives** *(Homologous Tetrapod Forelimbs, Analogy & *Hox* Domains)* — **FINALIZED**
 12. **Tree Thinking & Molecular Clocks** *(3D Node Rotation, Parsimony vs. Homoplasy, Molecular Clocks, $d_N/d_S$ & Gene Trees vs. Species Trees / ILS)*
 13. **Splitting Branches** *(Ring Species, Dobzhansky–Muller Incompatibilities, Allopatric/Sympatric Speciation, Reinforcement & Polyploidy)*
@@ -52,23 +52,23 @@ Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integratin
 ## 4. Binding Real-Organism Visual Craft Standard (`atlas/src/3d/organisms.ts`)
 
 - **Real sculpted organisms & anatomy over warm archival rag paper — NO clunky wooden boxes or symbolic pawns/crystals!**
-- Shared reusable library (`atlas/src/3d/organisms.ts`) now includes Tanganyika cichlids, side-blotched lizards, island anoles, elephant seals, veined *Passiflora* leaves, *Drosophila*, Pinacate rock pocket mice, bacterial rods + plasmids, Trinidadian guppies, yellow dung flies, and Virginia opossums.
+- Shared library (`atlas/src/3d/organisms.ts`) now includes Tanganyika cichlids, side-blotched lizards, island anoles, elephant seals, veined *Passiflora* leaves, *Drosophila*, Pinacate rock pocket mice, bacterial rods + plasmids, Trinidadian guppies, yellow dung flies, Virginia opossums, New Zealand mud snails, and *Microphallus* trematodes.
 
 ---
 
-## 5. Next Planned Chapter: **Plate 9 — Why Sex? & Red Queen** (`ch09_sex`)
+## 5. Next Planned Chapter: **Plate 10 — Switches & Deep Homology** (`ch10_switch`)
 
-- **Page 1:** Twofold Cost of Males (sculpted sexual vs. parthenogenetic snails).
-- **Page 2:** Muller's Ratchet (3D asexual vs. recombining genome mutation-load stacks).
-- **Page 3:** New Zealand Mud Snails & Trematodes (Lively 1987 Red Queen coevolutionary cycles).
-- **Page 4:** Mutualism vs. Cheaters (Cleaner wrasse & client reef fish — partner choice & sanctions).
-- **Page 5:** Pathogen Virulence–Transmission Trade-Off ($R_0 = \frac{\beta(\alpha)}{\mu + \alpha + \gamma}$ via non-teleological strain competition!).
+- **Page 1:** Threespine Stickleback *Pitx1* Cis-Regulatory Enhancer (sculpted marine vs. freshwater stickleback losing pelvic spines without breaking jaw/pituitary!).
+- **Page 2:** *Drosophila* *Hox* Colinearity along a sculpted 3D segmented body (Antennapedia / Bithorax complex).
+- **Page 3:** Deep Homology (*Pax6* / *eyeless* homologous master switch building distinct mouse camera & fly compound eyes).
+- **Page 4:** *Daphnia* Inducible Helmet G×E Reaction Norms & Geometric-Mean Bet-Hedging.
+- **Page 5:** Major Transition to Multicellularity (*Volvox* / Snowflake Yeast soma–germline division & cheater suppression).
 - **Page 6:** Check (3 diagnostic undergraduate cases).
 
 ---
 
 ## 6. Native Offline Single-File Deliverable
-- `games/endless-forms/Endless_Forms_Atlas.html` (~1.29 MB raw / ~461 KB gzip bundling **9 live 6-page 3D plates: Plates 1–8 & 11**), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
+- `games/endless-forms/Endless_Forms_Atlas.html` (~1.32 MB raw / ~470 KB gzip bundling **10 live 6-page 3D plates: Plates 1–9 & 11**), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
 
 ## 7. Notes for Claude
-- **Plates 1–8 & 11** are finalized on `shared-agents`; **Plate 9 (*Why Sex? & Red Queen*)** is up next on `Gemini`.
+- **Plates 1–9 & 11** are finalized on `shared-agents`; **Plate 10 (*Switches & Deep Homology*)** is up next on `Gemini`.

@@ -533,6 +533,48 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'raffle',
   },
 
+  // --- Why Sex? & Red Queen (Chapter 9) ---
+  twofold_cost: {
+    id: 'twofold_cost',
+    term: 'Twofold Cost of Males',
+    pronunciation: 'TOO-fohld KOST',
+    shortDef:
+      'Maynard Smith’s (1978) paradox: an asexual parthenogenetic female produces twice as many egg-laying daughters per generation as a sexual female who invests half her offspring in males.',
+    relatedChapterId: 'sex',
+  },
+  mullers_ratchet: {
+    id: 'mullers_ratchet',
+    term: 'Muller’s Ratchet',
+    pronunciation: 'MUL-erz RACH-it',
+    shortDef:
+      'Irreversible stochastic loss of the least-mutated genome class (k = 0) in finite asexual populations due to genetic drift, causing deleterious mutation load to click upward.',
+    relatedChapterId: 'sex',
+  },
+  red_queen: {
+    id: 'red_queen',
+    term: 'Red Queen Hypothesis',
+    pronunciation: 'RED KWEEN',
+    shortDef:
+      'Continuous antagonistic coevolution where hosts must constantly shuffle resistance alleles via sexual recombination just to stay ahead of fast-evolving parasites (Van Valen 1973; Lively 1987).',
+    relatedChapterId: 'sex',
+  },
+  partner_sanctions: {
+    id: 'partner_sanctions',
+    term: 'Partner Choice & Sanctions',
+    pronunciation: 'PAHRT-ner SANGK-shənz',
+    shortDef:
+      'Mechanisms (punishment, withholding rewards, or switching partners) that penalize cheating symbionts and stabilize mutualisms against evolutionary collapse.',
+    relatedChapterId: 'sex',
+  },
+  virulence_tradeoff: {
+    id: 'virulence_tradeoff',
+    term: 'Virulence–Transmission Trade-Off',
+    pronunciation: 'VIR-yoo-ləns TRAYD-of',
+    shortDef:
+      'Evolutionary balance in which higher pathogen replication boosts transmission β(α) but shortens host survival (1/(μ+α+γ)), selecting for whichever strain maximizes R₀.',
+    relatedChapterId: 'sex',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

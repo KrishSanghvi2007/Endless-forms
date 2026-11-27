@@ -131,7 +131,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Twofold cost of males, Muller’s ratchet, Red Queen & virulence',
     organism: 'New Zealand mud snails, trematodes & mutualists',
     accent: '#3e6e7a',
-    available: false,
+    available: true,
     actTag: 'Part III · Coevolutionary Dynamics',
     summary:
       'Pit sexual lineages against invading clones under fast-evolving parasites, watch Muller’s ratchet click in small asexual genomes, and explore mutualism stability and virulence trade-offs.',
