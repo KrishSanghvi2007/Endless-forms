@@ -201,7 +201,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Logarithmic deep time, radiometric dating, Tiktaalik & Big Five extinctions',
     organism: 'Tiktaalik, Pakicetus → whales & K–Pg strata',
     accent: '#7a4f2b',
-    available: false,
+    available: true,
     actTag: 'Part V · Macroevolution',
     summary:
       'Excavate 3D geological strata to predict transitional fossils like Tiktaalik, zoom logarithmically across 3.8 billion years, walk whale ancestors back to sea, and survive the K–Pg mass extinction.',

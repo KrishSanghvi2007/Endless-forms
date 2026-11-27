@@ -550,3 +550,397 @@ export function createInterlockingProteins3D(clash: boolean, scale = 1.0): THREE
 
   return g;
 }
+
+// =============================================================================
+// 5. LOGARITHMIC AMMONITE DEEP-TIME SPIRAL (3.8 Ga -> Present)
+// =============================================================================
+
+export function createAmmoniteSpiral3D(highlightFrac: number, scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  // Continuous logarithmic coiled ammonite shell (2.75 turns)
+  const pts: THREE.Vector3[] = [];
+  const steps = 72;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const theta = t * Math.PI * 5.4;
+    const r = 0.065 * Math.exp(0.185 * theta);
+    pts.push(new THREE.Vector3(Math.cos(theta) * r, 0.24 + t * 0.12, Math.sin(theta) * r));
+  }
+  const curve = new THREE.CatmullRomCurve3(pts);
+
+  const shellMat = createNaturalistMaterial(
+    { base: '#c9a66b', wash: '#9e7740', deep: '#5c401c', highlight: '#f0dfc0', ink: '#3b2610' },
+    'strata',
+    { roughness: 0.78, bumpScale: 0.032, inkStrength: 0.54, seed: 501 }
+  );
+  const shellGeo = createOrganicLoftGeometry(
+    curve,
+    (t) => {
+      // Gently ribbed logarithmic whorl expansion!
+      const rib = 1 + 0.09 * Math.sin(t * 145);
+      return (0.03 + Math.pow(t, 1.35) * 0.31) * rib;
+    },
+    { tubularSegs: 88, radialSegs: 20, aspectAt: () => [0.95, 1.15] }
+  );
+  const shell = new THREE.Mesh(shellGeo, shellMat);
+  shell.castShadow = true;
+  shell.receiveShadow = true;
+  g.add(shell);
+
+  // Milestone golden-carmine amber bead sliding along the spiral at highlightFrac!
+  const pt = curve.getPointAt(Math.max(0.02, Math.min(0.99, highlightFrac)));
+  const beacon = new THREE.Mesh(
+    new THREE.SphereGeometry(0.11, 16, 14),
+    createNaturalistMaterial(
+      { base: '#cf523e', wash: '#a32e1e', deep: '#63150c', highlight: '#f2a996' },
+      'bone',
+      { inkStrength: 0.45 }
+    )
+  );
+  beacon.position.set(pt.x, pt.y + 0.24, pt.z);
+  beacon.castShadow = true;
+  g.add(beacon);
+
+  return g;
+}
+
+// =============================================================================
+// 6. VOLCANIC ZIRCON & FELDSPAR CRYSTAL CLUSTER (Radiometric Decay)
+// =============================================================================
+
+export function createMineralCrystalCluster3D(parentFraction: number, scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  // Hand-painted volcanic ash tuff matrix rock base
+  const rockGeo = new THREE.DodecahedronGeometry(0.95, 2);
+  const pos = rockGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const n = 1 + 0.12 * Math.sin(x * 3.1 + z * 2.7) + 0.08 * Math.cos(y * 4.2);
+    pos.setXYZ(i, x * n * 1.25, Math.max(-0.1, y * 0.52 * n), z * n * 1.1);
+  }
+  rockGeo.computeVertexNormals();
+  const rock = new THREE.Mesh(
+    rockGeo,
+    createNaturalistMaterial(
+      { base: '#9e9280', wash: '#786d5c', deep: '#453e33', highlight: '#ccc2b0' },
+      'strata',
+      { roughness: 0.92, bumpScale: 0.035, inkStrength: 0.5 }
+    )
+  );
+  rock.position.y = 0.24;
+  rock.castShadow = true;
+  rock.receiveShadow = true;
+  g.add(rock);
+
+  const parentMat = createNaturalistMaterial(
+    { base: '#8a5ea8', wash: '#653b82', deep: '#3b1d52', highlight: '#cfaee3', ink: '#29123b' },
+    'keratin',
+    { roughness: 0.42, inkStrength: 0.45, seed: 601 }
+  );
+  const daughterMat = createNaturalistMaterial(
+    { base: '#e0ad48', wash: '#bd8522', deep: '#7a510c', highlight: '#fae0a2', ink: '#4a3006' },
+    'keratin',
+    { roughness: 0.48, inkStrength: 0.45, seed: 609 }
+  );
+
+  // 16 Hexagonal zircon / feldspar crystal prisms sprouting out of the volcanic ash rock!
+  const total = 16;
+  const nParent = Math.round(parentFraction * total);
+  for (let i = 0; i < total; i++) {
+    const ang = i * 2.39996;
+    const rad = 0.18 * Math.sqrt(i + 0.5);
+    const h = 0.45 + (i % 4) * 0.16;
+    const prism = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.065, 0.088, h, 6),
+      i < nParent ? parentMat : daughterMat
+    );
+    prism.position.set(Math.cos(ang) * rad, 0.46 + h * 0.35, Math.sin(ang) * rad);
+    prism.rotation.set(Math.sin(ang) * 0.32, ang, -Math.cos(ang) * 0.32);
+    prism.castShadow = true;
+    g.add(prism);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 7. DEVONIAN SANDSTONE FOSSIL SLAB & TIKTAALIK ROSEAE SKELETON (375 Ma)
+// =============================================================================
+
+export function createTiktaalikFossil3D(strataStage: 'older_385' | 'tiktaalik_375' | 'younger_365', scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  // Carved stratified Ellesmere Island Devonian red-sandstone slab
+  const slabGeo = new THREE.BoxGeometry(3.4, 0.28, 1.95, 16, 4, 10);
+  const pos = slabGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const edgeNoise = 0.06 * Math.sin(x * 2.8 + z * 3.1) + 0.04 * Math.cos(z * 5.2);
+    pos.setXYZ(i, x + edgeNoise * 0.6, y + (y > 0 ? edgeNoise * 0.45 : 0), z + edgeNoise * 0.6);
+  }
+  slabGeo.computeVertexNormals();
+  const slabPalette: WatercolourPalette =
+    strataStage === 'older_385'
+      ? { base: '#9e8c78', wash: '#786858', deep: '#4a3f34', highlight: '#c9bba8' }
+      : strataStage === 'tiktaalik_375'
+        ? { base: '#c28363', wash: '#9c5e40', deep: '#61341f', highlight: '#e3b89d' }
+        : { base: '#b59d76', wash: '#8c7651', deep: '#54452b', highlight: '#dbd0b2' };
+  const slab = new THREE.Mesh(
+    slabGeo,
+    createNaturalistMaterial(slabPalette, 'strata', { roughness: 0.92, bumpScale: 0.032, inkStrength: 0.5 })
+  );
+  slab.position.set(0, 0.14, 0);
+  slab.castShadow = true;
+  slab.receiveShadow = true;
+  g.add(slab);
+
+  // Ivory fossilized skeleton resting in high relief atop the Devonian matrix!
+  const boneMat = createNaturalistMaterial(
+    { base: '#ebdcb9', wash: '#cfb88c', deep: '#8a724a', highlight: '#fbf4e2', ink: '#47361e' },
+    'bone',
+    { roughness: 0.8, bumpScale: 0.025, inkStrength: 0.58, seed: 707 }
+  );
+
+  // Articulated vertebral column
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-1.35, 0.30, 0.05),
+    new THREE.Vector3(-0.65, 0.31, -0.04),
+    new THREE.Vector3(0.15, 0.32, 0.02),
+    new THREE.Vector3(0.88, 0.32, 0.0),
+  ]);
+  const spineMesh = new THREE.Mesh(
+    createOrganicLoftGeometry(spine, (t) => 0.045 + 0.035 * Math.sin(t * Math.PI), {
+      tubularSegs: 28,
+      radialSegs: 12,
+    }),
+    boneMat
+  );
+  spineMesh.castShadow = true;
+  g.add(spineMesh);
+
+  // Flattened crocodile-like skull (shorter/rounder in fish, flat & broad with dorsal eyes in Tiktaalik, wider in Acanthostega!)
+  const skullLen = strataStage === 'older_385' ? 0.45 : strataStage === 'tiktaalik_375' ? 0.62 : 0.56;
+  const skullCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.82, 0.33, 0),
+    new THREE.Vector3(0.82 + skullLen * 0.55, 0.33, 0),
+    new THREE.Vector3(0.82 + skullLen, 0.31, 0),
+  ]);
+  const skull = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      skullCurve,
+      (t) => 0.21 * Math.pow(1 - t * 0.65, 0.8),
+      { tubularSegs: 20, radialSegs: 16, aspectAt: () => [0.42, 1.15] }
+    ),
+    boneMat
+  );
+  skull.castShadow = true;
+  g.add(skull);
+
+  // Ribcage pairs along torso
+  for (let i = 0; i < 8; i++) {
+    const rx = -0.55 + i * 0.16;
+    for (const s of [-1, 1]) {
+      const rib = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(rx, 0.32, 0),
+        new THREE.Vector3(rx - 0.06, 0.31, s * 0.22),
+        new THREE.Vector3(rx - 0.14, 0.29, s * 0.34),
+      ]);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(rib, 8, 0.016, 6, false), boneMat));
+    }
+  }
+
+  // Diagnostic Pectoral Fin / Proto-Wrist / Polydactyl Foot!
+  const finHighlight = createNaturalistMaterial(
+    { base: '#61b8ac', wash: '#2f8a7d', deep: '#1a574f', highlight: '#d2efe9', ink: '#16423b' },
+    'bone',
+    { roughness: 0.78, inkStrength: 0.55 }
+  );
+  for (const s of [-1, 1]) {
+    const hum = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.55, 0.31, s * 0.12),
+      new THREE.Vector3(0.42, 0.30, s * 0.42),
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(hum, 8, 0.044, 10, false), finHighlight));
+
+    const radUlna = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.42, 0.30, s * 0.42),
+      new THREE.Vector3(0.32, 0.29, s * 0.64),
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(radUlna, 8, 0.036, 10, false), finHighlight));
+
+    // Distal rays (fish) -> robust wrist radials (Tiktaalik!) -> 7/8 digits (Acanthostega!)
+    const nDigits = strataStage === 'older_385' ? 4 : strataStage === 'tiktaalik_375' ? 5 : 7;
+    const digitLen = strataStage === 'older_385' ? 0.16 : strataStage === 'tiktaalik_375' ? 0.21 : 0.28;
+    for (let d = 0; d < nDigits; d++) {
+      const spread = (d / (nDigits - 1) - 0.5) * 0.34;
+      const dig = new THREE.LineCurve3(
+        new THREE.Vector3(0.32, 0.29, s * 0.64),
+        new THREE.Vector3(0.32 + spread, 0.29, s * (0.64 + digitLen))
+      );
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(dig, 4, 0.015, 6, false), finHighlight));
+    }
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 8. MORPHING CETACEAN SKELETON (Pakicetus 50 Ma -> Ambulocetus -> Dorudon -> Whale)
+// =============================================================================
+
+export function createWhaleTransitionSkeleton3D(stage: number, scale = 1.0): THREE.Group {
+  // stage: 0.0 = Pakicetus (land), 0.33 = Ambulocetus, 0.66 = Dorudon (vestigial legs!), 1.0 = Modern Whale
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+  const t = Math.max(0, Math.min(1, stage));
+
+  const boneMat = createNaturalistMaterial(
+    { base: '#ecdcb8', wash: '#cfb584', deep: '#876b3f', highlight: '#fcf5e3', ink: '#423118' },
+    'bone',
+    { roughness: 0.78, bumpScale: 0.025, inkStrength: 0.56, seed: 808 }
+  );
+  const vestigialMat = createNaturalistMaterial(
+    { base: '#df7d87', wash: '#bf4b59', deep: '#802431', highlight: '#f7d2d6', ink: '#4d141d' },
+    'bone',
+    { roughness: 0.76, inkStrength: 0.55 }
+  );
+  const blowholeMat = createNaturalistMaterial(
+    { base: '#5eb4a8', wash: '#2d8579', deep: '#17524a', highlight: '#c9ede8', ink: '#123d37' },
+    'bone',
+    { roughness: 0.76, inkStrength: 0.55 }
+  );
+
+  // Undulating vertebral column elongating & streamlining as t -> 1
+  const bodyLen = 1.45 + t * 0.75;
+  const spineCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-bodyLen, 0.55 + t * 0.15, 0),
+    new THREE.Vector3(-bodyLen * 0.45, 0.68 + t * 0.08, 0),
+    new THREE.Vector3(0.05, 0.74, 0),
+    new THREE.Vector3(bodyLen * 0.52, 0.70 - t * 0.04, 0),
+    new THREE.Vector3(bodyLen * 0.85, 0.66 - t * 0.06, 0),
+  ]);
+  const spine = new THREE.Mesh(
+    createOrganicLoftGeometry(spineCurve, (u) => 0.045 + 0.055 * Math.sin(u * Math.PI), {
+      tubularSegs: 40,
+      radialSegs: 14,
+    }),
+    boneMat
+  );
+  spine.castShadow = true;
+  g.add(spine);
+
+  // Cranium + Elongating Rostrum
+  const skullCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(bodyLen * 0.80, 0.66 - t * 0.05, 0),
+    new THREE.Vector3(bodyLen * 0.80 + 0.35 + t * 0.25, 0.65 - t * 0.06, 0),
+    new THREE.Vector3(bodyLen * 0.80 + 0.65 + t * 0.58, 0.58 - t * 0.06, 0),
+  ]);
+  const skull = new THREE.Mesh(
+    createOrganicLoftGeometry(skullCurve, (u) => (0.16 + t * 0.05) * Math.pow(1 - u * 0.72, 0.7), {
+      tubularSegs: 22,
+      radialSegs: 16,
+      aspectAt: () => [0.78, 1.05],
+    }),
+    boneMat
+  );
+  skull.castShadow = true;
+  g.add(skull);
+
+  // Migrating Nostril -> Blowhole! Slides backward from snout tip (t=0) to top of cranium (t=1)!
+  const nostrilU = Math.max(0.18, 0.88 - t * 0.7);
+  const nPt = skullCurve.getPointAt(nostrilU);
+  const nostril = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 10), blowholeMat);
+  nostril.scale.set(1.2, 0.65, 1.0);
+  nostril.position.set(nPt.x, nPt.y + 0.11, 0);
+  g.add(nostril);
+
+  // Ribcage (10 curved pairs)
+  for (let i = 0; i < 10; i++) {
+    const f = 0.38 + (i / 10) * 0.42;
+    const pt = spineCurve.getPointAt(f);
+    const ribSpan = 0.26 + 0.12 * Math.sin((i / 10) * Math.PI);
+    for (const s of [-1, 1]) {
+      const ribCurve = new THREE.CatmullRomCurve3([
+        pt,
+        new THREE.Vector3(pt.x - 0.05, pt.y - 0.16, s * ribSpan),
+        new THREE.Vector3(pt.x - 0.10, pt.y - 0.38, s * ribSpan * 0.45),
+      ]);
+      const rib = new THREE.Mesh(new THREE.TubeGeometry(ribCurve, 10, 0.017, 6, false), boneMat);
+      rib.castShadow = true;
+      g.add(rib);
+    }
+  }
+
+  // Forelimb: Walking leg (t=0) -> Swept Cetacean Flipper (t=1)
+  const shoulder = spineCurve.getPointAt(0.76);
+  for (const s of [-1, 1]) {
+    const fCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(shoulder.x, shoulder.y - 0.12, s * 0.18),
+      new THREE.Vector3(shoulder.x - t * 0.16, shoulder.y - 0.36 + t * 0.08, s * (0.20 + t * 0.18)),
+      new THREE.Vector3(shoulder.x - t * 0.42, 0.08 + t * 0.26, s * (0.18 + t * 0.42)),
+    ]);
+    const fore = new THREE.Mesh(
+      createOrganicLoftGeometry(fCurve, (u) => (0.048 + t * 0.032) * (1 - u * 0.35), {
+        tubularSegs: 16,
+        radialSegs: 10,
+        aspectAt: () => [1.0 + t * 0.9, 1.0 - t * 0.45],
+      }),
+      boneMat
+    );
+    fore.castShadow = true;
+    g.add(fore);
+  }
+
+  // Hindlimb + Pelvis (carmine-rose highlight!): Weight-bearing leg (t=0) -> Tiny floating vestigial pelvic spur (t=1)!
+  const hip = spineCurve.getPointAt(0.32);
+  const legLen = Math.max(0.14, 0.62 * (1 - t * 0.86));
+  for (const s of [-1, 1]) {
+    const hCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(hip.x, hip.y - 0.12 - t * 0.14, s * 0.15),
+      new THREE.Vector3(hip.x - 0.08, hip.y - 0.12 - t * 0.14 - legLen * 0.55, s * (0.16 + (1 - t) * 0.06)),
+      new THREE.Vector3(hip.x - 0.04 - t * 0.12, hip.y - 0.12 - t * 0.14 - legLen, s * 0.15),
+    ]);
+    const hind = new THREE.Mesh(
+      createOrganicLoftGeometry(hCurve, () => 0.044 * (1 - t * 0.52), { tubularSegs: 14, radialSegs: 10 }),
+      vestigialMat
+    );
+    hind.castShadow = true;
+    g.add(hind);
+  }
+
+  // Horizontal Tail Flukes emerging in pelagic whales (t > 0.45)!
+  if (t > 0.4) {
+    const flkScale = (t - 0.4) / 0.6;
+    const flkShape = new THREE.Shape();
+    flkShape.moveTo(0, 0);
+    flkShape.bezierCurveTo(-0.18 * flkScale, 0.25 * flkScale, -0.45 * flkScale, 0.48 * flkScale, -0.58 * flkScale, 0.52 * flkScale);
+    flkShape.bezierCurveTo(-0.32 * flkScale, 0.16 * flkScale, -0.25 * flkScale, 0.04 * flkScale, -0.18 * flkScale, 0);
+    flkShape.bezierCurveTo(-0.25 * flkScale, -0.04 * flkScale, -0.32 * flkScale, -0.16 * flkScale, -0.58 * flkScale, -0.52 * flkScale);
+    flkShape.bezierCurveTo(-0.45 * flkScale, -0.48 * flkScale, -0.18 * flkScale, -0.25 * flkScale, 0, 0);
+    const flkGeo = new THREE.ExtrudeGeometry(flkShape, { depth: 0.025, bevelEnabled: false });
+    flkGeo.rotateX(-Math.PI / 2);
+    const fluke = new THREE.Mesh(
+      flkGeo,
+      createNaturalistMaterial(
+        { base: '#7f99a6', wash: '#56707d', deep: '#2f434d', highlight: '#b8ced9' },
+        'tissue',
+        { roughness: 0.8, transparent: true, opacity: 0.85, inkStrength: 0.45 }
+      )
+    );
+    fluke.position.set(-bodyLen + 0.05, 0.55 + t * 0.15, 0);
+    fluke.castShadow = true;
+    g.add(fluke);
+  }
+
+  return g;
+}
+

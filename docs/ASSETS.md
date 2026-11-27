@@ -132,6 +132,14 @@
 
 ---
 
+## Chapter 14: Strata, Fossils & Mass Extinctions (`ch14_deeptime`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Logarithmic Ammonite Deep-Time Spiral, Volcanic Zircon/Feldspar Crystal Cluster, Ellesmere Island *Tiktaalik roseae* Devonian Sandstone Slab, Morphing *Pakicetus*→*Balaenoptera* Cetacean Skeleton & K–Pg Stratified Cliff | `atlas/src/3d/naturalistSpecimens.ts` & `atlas/src/chapters/ch14_deeptime/DeepTimeScene3D.ts` | Original continuous-lofted osteology & watercolour/sepia-ink Canvas PBR textures · MIT | Natural-history paleontological plates featuring live nostril→blowhole & hindlimb→vestigial-pelvis 3D morphing and high-relief Devonian fossil osteology. |
+
+---
+
 ## Planned External Open-Licence Scans (Upcoming Chapters)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

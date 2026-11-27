@@ -701,6 +701,40 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'species',
   },
 
+  // --- Deep Time, Fossils & Mass Extinctions (Chapter 14) ---
+  deep_time: {
+    id: 'deep_time',
+    term: 'Deep Geological Time',
+    pronunciation: 'DEEP TYM',
+    shortDef:
+      'The 4.54-billion-year span of Earth history (~3.8 Ga of life), during which microbial life dominated for >85% of time before animal radiations in the Phanerozoic.',
+    relatedChapterId: 'deeptime',
+  },
+  radiometric_dating: {
+    id: 'radiometric_dating',
+    term: 'Radiometric Dating',
+    pronunciation: 'ray-dee-oh-MET-rik DAY-ting',
+    shortDef:
+      'Absolute age determination measuring radioactive parent-to-daughter isotope ratios via exponential decay N(t) = N₀(½)^n (e.g. ¹⁴C for <50 ka organics; ⁴⁰K/⁴⁰Ar & U–Pb for volcanic ash beds).',
+    relatedChapterId: 'deeptime',
+  },
+  transitional_fossil: {
+    id: 'transitional_fossil',
+    term: 'Transitional Fossil',
+    pronunciation: 'tran-ZISH-ən-əl FOS-əl',
+    shortDef:
+      'A fossilized organism exhibiting a predicted mosaic of ancestral and derived homologous traits bridging major clades (e.g. Tiktaalik roseae, Archaeopteryx, Ambulocetus).',
+    relatedChapterId: 'deeptime',
+  },
+  adaptive_radiation: {
+    id: 'adaptive_radiation',
+    term: 'Adaptive Radiation',
+    pronunciation: 'ə-DAP-tiv ray-dee-AY-shən',
+    shortDef:
+      'Rapid evolutionary diversification of a single ancestral lineage into an array of ecologically distinct species following ecological opportunity (such as mass extinctions or island colonization).',
+    relatedChapterId: 'deeptime',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',
