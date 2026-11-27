@@ -57,28 +57,86 @@ interface FlyingGamete {
 const COL_A = 0x2e61d1;      // D4 fixed cobalt blue for Allele A
 const COL_a = 0xe5ae1e;      // D4 fixed warm amber for Allele a
 const COL_INK = 0x29211b;
-const COL_WALNUT = 0x5c4028;
 const COL_BRASS = 0xb88b3b;
-const COL_SAND = 0xe6d6b5;
-const COL_MARSH = 0x9aa38a;
 const COL_PAPER_IVORY = 0xf4ecda;
 
-/** Create subtle sandy-beach watercolour procedural texture */
-function createSandTexture(baseHex: string, speckHex: string): THREE.CanvasTexture {
+// =============================================================================
+// PROCEDURAL NATURALIST PBR TEXTURES & ENGRAVED 3D PLAQUES
+// =============================================================================
+
+/** Engraved museum-ivory & ink 3D label plaque sitting cleanly inside the diorama */
+function createEngravedPlaque(
+  text: string,
+  subtext?: string,
+  width = 1.15,
+  accentHex = '#29211b'
+): THREE.Mesh {
+  const cw = 320;
+  const ch = subtext ? 112 : 76;
+  const c = document.createElement('canvas');
+  c.width = cw;
+  c.height = ch;
+  const ctx = c.getContext('2d')!;
+
+  // Parchment card fill with delicate brass double border
+  ctx.fillStyle = '#faf5e8';
+  ctx.beginPath();
+  ctx.roundRect(4, 4, cw - 8, ch - 8, 12);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(92, 68, 42, 0.45)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(184, 139, 59, 0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(10, 10, cw - 20, ch - 20, 8);
+  ctx.stroke();
+
+  ctx.fillStyle = accentHex;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '600 28px Georgia, serif';
+  ctx.fillText(text, cw / 2, subtext ? ch * 0.38 : ch * 0.52);
+
+  if (subtext) {
+    ctx.fillStyle = '#685b4e';
+    ctx.font = '500 20px ui-monospace, Menlo, monospace';
+    ctx.fillText(subtext, cw / 2, ch * 0.72);
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+
+  const h = width * (ch / cw);
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, h),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+  );
+  mesh.rotation.x = -Math.PI / 2;
+  return mesh;
+}
+
+/** Rich organic wood-grain texture for carved walnut specimen trays */
+function createWalnutTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 256;
   c.height = 256;
   const ctx = c.getContext('2d')!;
-  ctx.fillStyle = baseHex;
+  ctx.fillStyle = '#5c3f27';
   ctx.fillRect(0, 0, 256, 256);
 
-  const rng = createSeededRng(42);
-  for (let i = 0; i < 600; i++) {
-    ctx.fillStyle = i % 3 === 0 ? '#faf4e6' : speckHex;
-    ctx.globalAlpha = 0.08 + rng.next() * 0.1;
+  const rng = createSeededRng(202);
+  for (let i = 0; i < 90; i++) {
+    const y = rng.range(0, 256);
+    ctx.strokeStyle = i % 2 === 0 ? 'rgba(40, 24, 12, 0.25)' : 'rgba(130, 92, 56, 0.18)';
+    ctx.lineWidth = rng.range(1, 3.8);
     ctx.beginPath();
-    ctx.arc(rng.range(0, 256), rng.range(0, 256), rng.range(0.8, 3.2), 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(85, y + rng.range(-8, 8), 170, y + rng.range(-8, 8), 256, y);
+    ctx.stroke();
   }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -87,7 +145,165 @@ function createSandTexture(baseHex: string, speckHex: string): THREE.CanvasTextu
   return tex;
 }
 
-/** Build a sculpted glossy 3D beetle with hinged left/right wing cases (elytra) */
+/** Watercolour sandy shore or dune/meadow texture with soft organic ripples & mottling */
+function createTerrainTexture(
+  baseHex: string,
+  warmHex: string,
+  speckHex: string,
+  seed: number,
+  ripples = true
+): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 256;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, 256, 256);
+
+  const rng = createSeededRng(seed);
+  // Soft watercolour wash patches
+  for (let i = 0; i < 45; i++) {
+    ctx.fillStyle = i % 2 === 0 ? warmHex : speckHex;
+    ctx.globalAlpha = 0.08;
+    ctx.beginPath();
+    ctx.ellipse(
+      rng.range(0, 256),
+      rng.range(0, 256),
+      rng.range(18, 52),
+      rng.range(12, 36),
+      rng.range(0, Math.PI),
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+  // Subtle wind-sand ripples
+  if (ripples) {
+    ctx.strokeStyle = speckHex;
+    ctx.globalAlpha = 0.09;
+    for (let y = 10; y < 256; y += 22) {
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(85, y - 6, 170, y + 6, 256, y);
+      ctx.stroke();
+    }
+  }
+  // Mineral & organic grain flecks
+  for (let i = 0; i < 650; i++) {
+    ctx.fillStyle = i % 3 === 0 ? '#faf4e6' : speckHex;
+    ctx.globalAlpha = 0.07 + rng.next() * 0.1;
+    ctx.beginPath();
+    ctx.arc(rng.range(0, 256), rng.range(0, 256), rng.range(0.7, 2.6), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+/** Cobblestone & timber-yard texture for the twilight Norway rat farmyard */
+function createFarmyardTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 256;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#4f463b';
+  ctx.fillRect(0, 0, 256, 256);
+
+  const rng = createSeededRng(707);
+  // Subtle worn flagstones & straw flecks
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 6; col++) {
+      const x = col * 44 + (row % 2) * 20 - 8;
+      const y = row * 32 + 2;
+      const shade = Math.round(82 + rng.range(-12, 14));
+      ctx.fillStyle = `rgb(${shade + 8}, ${shade}, ${shade - 10})`;
+      ctx.beginPath();
+      ctx.roundRect(x, y, 39, 27, 5);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(30, 22, 16, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+  // Scattered golden hay straws
+  ctx.strokeStyle = '#c8aa68';
+  ctx.globalAlpha = 0.32;
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < 60; i++) {
+    const x = rng.range(0, 256);
+    const y = rng.range(0, 256);
+    const a = rng.range(0, Math.PI * 2);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(a) * 14, y + Math.sin(a) * 14);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 1.2);
+  return tex;
+}
+
+/** Iridescent grooved elytra texture for sculpted beetles */
+function createElytraTexture(baseHex: string, lightHex: string, darkHex: string): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 128;
+  const ctx = c.getContext('2d')!;
+  const grad = ctx.createLinearGradient(0, 0, 128, 128);
+  grad.addColorStop(0, lightHex);
+  grad.addColorStop(0.5, baseHex);
+  grad.addColorStop(1, darkHex);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+
+  // Delicate longitudinal wing-case striae (beetle elytron grooves)
+  ctx.strokeStyle = darkHex;
+  ctx.globalAlpha = 0.24;
+  ctx.lineWidth = 1.5;
+  for (let x = 10; x < 128; x += 12) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 128);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Woven canvas burlap texture for grain sacks */
+function createBurlapTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 128;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#d7be89';
+  ctx.fillRect(0, 0, 128, 128);
+  ctx.strokeStyle = 'rgba(110, 84, 46, 0.24)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 128; i += 6) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, 128);
+    ctx.moveTo(0, i);
+    ctx.lineTo(128, i);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Build a sculpted glossy 3D beetle with hinged left/right grooved wing cases */
 function createSculptedBeetle3D(
   genotype: Genotype,
   mats: {
@@ -109,10 +325,9 @@ function createSculptedBeetle3D(
   const group = new THREE.Group();
   group.scale.setScalar(scale);
 
-  // Phenotype: A is dominant, so AA and Aa look glossy cobalt blue; aa looks amber
   const phenoMat = genotype === 'aa' ? mats.shella : mats.shellA;
 
-  // Abdomen base (dark glossy underside revealed when elytra swing open)
+  // Abdomen base
   const abGeo = new THREE.SphereGeometry(0.16, 16, 12);
   abGeo.scale(0.85, 0.42, 1.15);
   const abdomen = new THREE.Mesh(abGeo, mats.darkBody);
@@ -122,39 +337,36 @@ function createSculptedBeetle3D(
 
   // Pronotum (thorax shield)
   const proGeo = new THREE.SphereGeometry(0.115, 14, 10);
-  proGeo.scale(1.0, 0.62, 0.78);
+  proGeo.scale(1.02, 0.62, 0.8);
   const pronotum = new THREE.Mesh(proGeo, phenoMat);
   pronotum.position.set(0, 0.10, -0.15);
   pronotum.castShadow = true;
   group.add(pronotum);
 
-  // Head + antennae
-  const headGeo = new THREE.SphereGeometry(0.068, 12, 10);
-  const head = new THREE.Mesh(headGeo, mats.darkBody);
+  // Head + eyes + articulated antennae & legs
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.068, 12, 10), mats.darkBody);
   head.position.set(0, 0.09, -0.25);
   head.castShadow = true;
   group.add(head);
 
-  const legGeo = new THREE.CylinderGeometry(0.011, 0.008, 0.14, 5);
+  const legGeo = new THREE.CylinderGeometry(0.011, 0.008, 0.145, 5);
   for (const side of [-1, 1]) {
-    // Antenna
     const ant = new THREE.Mesh(legGeo, mats.darkBody);
-    ant.scale.set(0.7, 0.85, 0.7);
-    ant.position.set(side * 0.048, 0.10, -0.31);
-    ant.rotation.set(1.1, 0, side * -0.45);
+    ant.scale.set(0.7, 0.88, 0.7);
+    ant.position.set(side * 0.05, 0.10, -0.31);
+    ant.rotation.set(1.12, 0, side * -0.45);
     group.add(ant);
 
-    // 3 legs per side
     for (let l = 0; l < 3; l++) {
       const leg = new THREE.Mesh(legGeo, mats.darkBody);
-      leg.position.set(side * 0.145, 0.045, -0.11 + l * 0.115);
+      leg.position.set(side * 0.148, 0.045, -0.11 + l * 0.115);
       leg.rotation.z = side * 1.12;
       leg.rotation.y = (l - 1) * 0.25 * side;
       group.add(leg);
     }
   }
 
-  // Hinged left & right wing cases (elytra)
+  // Hinged left & right grooved wing cases
   const elyGeo = new THREE.SphereGeometry(0.175, 16, 12, 0, Math.PI, 0, Math.PI * 0.62);
   elyGeo.scale(0.49, 0.56, 1.24);
 
@@ -176,7 +388,7 @@ function createSculptedBeetle3D(
   rightElytron.add(rMesh);
   group.add(rightElytron);
 
-  // Two allele pearls nestled inside beneath the wing cases (one per copy!)
+  // Two glowing allele pearls tucked inside
   const pGeo = new THREE.SphereGeometry(0.058, 14, 12);
   const leftIsA = genotype === 'AA' || genotype === 'Aa';
   const rightIsA = genotype === 'AA';
@@ -191,7 +403,6 @@ function createSculptedBeetle3D(
   rightPearl.scale.setScalar(0.01);
   group.add(rightPearl);
 
-  // Invisible generous hit sphere for effortless clicking
   const hitMesh = new THREE.Mesh(
     new THREE.SphereGeometry(0.26, 8, 8),
     new THREE.MeshBasicMaterial({ visible: false })
@@ -202,7 +413,7 @@ function createSculptedBeetle3D(
   return { group, leftElytron, rightElytron, leftPearl, rightPearl, hitMesh };
 }
 
-/** Build a stylized 3D Norway rat for Warfarin heterozygote advantage (Page 5C) */
+/** Upgraded sculpted 3D Norway rat (rounded body, snout, eyes, whiskers, paws, brass allele collar) */
 function createRat3D(
   genotype: Genotype,
   mats: {
@@ -210,6 +421,8 @@ function createRat3D(
     bodyAa: THREE.Material;
     bodyaa: THREE.Material;
     ear: THREE.Material;
+    eye: THREE.Material;
+    brass: THREE.Material;
     pearlA: THREE.Material;
     pearla: THREE.Material;
   }
@@ -218,44 +431,73 @@ function createRat3D(
   const bodyMat =
     genotype === 'AA' ? mats.bodyAA : genotype === 'Aa' ? mats.bodyAa : mats.bodyaa;
 
-  const torsoGeo = new THREE.SphereGeometry(0.14, 14, 12);
-  torsoGeo.scale(1.45, 0.85, 0.92);
-  const torso = new THREE.Mesh(torsoGeo, bodyMat);
-  torso.position.set(0, 0.11, 0);
-  torso.castShadow = true;
-  g.add(torso);
+  // Haunch + torso (organic pear-shaped rodent silhouette)
+  const haunch = new THREE.Mesh(new THREE.SphereGeometry(0.145, 16, 12), bodyMat);
+  haunch.scale.set(1.28, 0.88, 0.96);
+  haunch.position.set(-0.04, 0.115, 0);
+  haunch.castShadow = true;
+  g.add(haunch);
 
-  const headGeo = new THREE.ConeGeometry(0.085, 0.2, 12);
-  headGeo.rotateZ(-Math.PI / 2);
-  const head = new THREE.Mesh(headGeo, bodyMat);
-  head.position.set(0.22, 0.11, 0);
-  head.castShadow = true;
-  g.add(head);
+  const chest = new THREE.Mesh(new THREE.SphereGeometry(0.112, 14, 10), bodyMat);
+  chest.scale.set(1.1, 0.85, 0.88);
+  chest.position.set(0.11, 0.108, 0);
+  chest.castShadow = true;
+  g.add(chest);
 
-  // Pink ears
-  const earGeo = new THREE.SphereGeometry(0.042, 10, 8);
-  earGeo.scale(0.5, 1.0, 0.9);
+  // Rounded snout + pink button nose + dark bead eyes
+  const snout = new THREE.Mesh(new THREE.SphereGeometry(0.072, 12, 10), bodyMat);
+  snout.scale.set(1.48, 0.74, 0.78);
+  snout.position.set(0.23, 0.105, 0);
+  snout.castShadow = true;
+  g.add(snout);
+
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), mats.ear);
+  nose.position.set(0.325, 0.105, 0);
+  g.add(nose);
+
+  const earGeo = new THREE.SphereGeometry(0.046, 12, 10);
+  earGeo.scale(0.45, 1.0, 0.92);
+  const eyeGeo = new THREE.SphereGeometry(0.017, 8, 8);
+  const pawGeo = new THREE.SphereGeometry(0.028, 8, 8);
+  pawGeo.scale(1.3, 0.55, 0.8);
+
   for (const s of [-1, 1]) {
     const ear = new THREE.Mesh(earGeo, mats.ear);
-    ear.position.set(0.14, 0.19, s * 0.062);
+    ear.position.set(0.16, 0.195, s * 0.068);
+    ear.rotation.z = -0.25;
     g.add(ear);
+
+    const eye = new THREE.Mesh(eyeGeo, mats.eye);
+    eye.position.set(0.24, 0.135, s * 0.048);
+    g.add(eye);
+
+    // Front & hind paws
+    const fp = new THREE.Mesh(pawGeo, mats.ear);
+    fp.position.set(0.12, 0.02, s * 0.065);
+    const hp = new THREE.Mesh(pawGeo, mats.ear);
+    hp.position.set(-0.08, 0.02, s * 0.08);
+    g.add(fp, hp);
   }
 
-  // Curved tail
+  // Sinuous tapered tail
   const tailCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-0.17, 0.09, 0),
-    new THREE.Vector3(-0.34, 0.07, 0.05),
-    new THREE.Vector3(-0.48, 0.05, -0.02),
+    new THREE.Vector3(-0.19, 0.08, 0),
+    new THREE.Vector3(-0.34, 0.055, 0.055),
+    new THREE.Vector3(-0.48, 0.04, -0.025),
   ]);
-  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.015, 6, false), mats.ear);
+  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 14, 0.014, 6, false), mats.ear);
   g.add(tail);
 
-  // Subtle dorsal genotype allele collar pearls (left & right) so genotype reads unmistakably
-  const bGeo = new THREE.SphereGeometry(0.034, 10, 8);
+  // Brass saddle collar holding the two genotype allele pearls clearly
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.018, 12), mats.brass);
+  collar.position.set(0.01, 0.21, 0);
+  g.add(collar);
+
+  const bGeo = new THREE.SphereGeometry(0.036, 12, 10);
   const p1 = new THREE.Mesh(bGeo, genotype === 'aa' ? mats.pearla : mats.pearlA);
-  p1.position.set(0.02, 0.22, -0.036);
+  p1.position.set(0.01, 0.232, -0.038);
   const p2 = new THREE.Mesh(bGeo, genotype === 'AA' ? mats.pearlA : mats.pearla);
-  p2.position.set(0.02, 0.22, 0.036);
+  p2.position.set(0.01, 0.232, 0.038);
   g.add(p1, p2);
 
   return g;
@@ -292,7 +534,7 @@ export class HweScene3D {
   private p1JarACount = 0;
   private p1JaraCount = 0;
   private flyingPearls: FlyingPearl[] = [];
-  private p1JarAPos = new THREE.Vector3(2.15, 0.55, -0.42);
+  private p1JarAPos = new THREE.Vector3(2.15, 0.55, -0.46);
   private p1JaraPos = new THREE.Vector3(2.15, 0.55, 0.62);
 
   // --- Page 2: 3D p × q Gamete Square + Merging Columns ---
@@ -344,7 +586,7 @@ export class HweScene3D {
   private p5WahlLeftInst!: THREE.InstancedMesh;
   private p5WahlRightInst!: THREE.InstancedMesh;
   private p5RatGroup = new THREE.Group();
-  private p5TrayMeshes: THREE.Mesh[] = [];
+  private p5TrayGroups: THREE.Group[] = [];
   private p5RatEntries: { group: THREE.Group; laneZ: number; phase: number; speed: number }[] = [];
 
   // --- Page 6: Check Specimens ---
@@ -392,23 +634,23 @@ export class HweScene3D {
     host.appendChild(this.renderer.domElement);
 
     // Warm museum sunlight + sky bounce
-    this.scene.add(new THREE.HemisphereLight(0xfffaf0, 0xd8c9aa, 1.15));
+    this.scene.add(new THREE.HemisphereLight(0xfffaf0, 0xd8c9aa, 1.18));
 
-    const key = new THREE.DirectionalLight(0xfff6e3, 1.55);
+    const key = new THREE.DirectionalLight(0xfff6e3, 1.58);
     key.position.set(-2.5, 8.2, 3.4);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 22;
-    key.shadow.camera.left = -4.5;
-    key.shadow.camera.right = 4.5;
-    key.shadow.camera.top = 3.5;
-    key.shadow.camera.bottom = -3.5;
+    key.shadow.camera.left = -4.6;
+    key.shadow.camera.right = 4.6;
+    key.shadow.camera.top = 3.8;
+    key.shadow.camera.bottom = -3.8;
     key.shadow.radius = 5;
     key.shadow.bias = -0.0005;
     this.scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0xd9eaf6, 0.55);
+    const rim = new THREE.DirectionalLight(0xd9eaf6, 0.56);
     rim.position.set(4.0, 3.2, -3.6);
     this.scene.add(rim);
 
@@ -456,35 +698,35 @@ export class HweScene3D {
 
   private initSharedMaterials(): void {
     this.shellAMat = new THREE.MeshPhysicalMaterial({
-      color: COL_A,
-      roughness: 0.24,
-      metalness: 0.14,
-      clearcoat: 0.72,
-      clearcoatRoughness: 0.18,
+      map: createElytraTexture('#2e61d1', '#5a8bf0', '#1c3e91'),
+      roughness: 0.22,
+      metalness: 0.16,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.15,
     });
     this.shellaMat = new THREE.MeshPhysicalMaterial({
-      color: COL_a,
-      roughness: 0.26,
-      metalness: 0.12,
-      clearcoat: 0.68,
-      clearcoatRoughness: 0.2,
+      map: createElytraTexture('#e5ae1e', '#f8d568', '#a67208'),
+      roughness: 0.24,
+      metalness: 0.14,
+      clearcoat: 0.76,
+      clearcoatRoughness: 0.18,
     });
     this.darkBodyMat = new THREE.MeshStandardMaterial({
-      color: 0x261f1a,
-      roughness: 0.55,
-      metalness: 0.1,
+      color: 0x241d17,
+      roughness: 0.52,
+      metalness: 0.12,
     });
     this.pearlAMat = new THREE.MeshStandardMaterial({
       color: 0x457cf0,
-      roughness: 0.28,
-      metalness: 0.08,
+      roughness: 0.24,
+      metalness: 0.1,
       emissive: 0x163175,
       emissiveIntensity: 0.22,
     });
     this.pearlaMat = new THREE.MeshStandardMaterial({
       color: 0xf2c138,
-      roughness: 0.28,
-      metalness: 0.08,
+      roughness: 0.24,
+      metalness: 0.1,
       emissive: 0x6e4a06,
       emissiveIntensity: 0.18,
     });
@@ -493,29 +735,29 @@ export class HweScene3D {
       roughness: 0.08,
       metalness: 0.0,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.3,
       depthWrite: false,
       side: THREE.DoubleSide,
     });
     this.walnutMat = new THREE.MeshStandardMaterial({
-      color: COL_WALNUT,
-      roughness: 0.66,
-      metalness: 0.04,
+      map: createWalnutTexture(),
+      roughness: 0.62,
+      metalness: 0.05,
     });
     this.brassMat = new THREE.MeshStandardMaterial({
       color: COL_BRASS,
-      roughness: 0.34,
-      metalness: 0.65,
+      roughness: 0.32,
+      metalness: 0.68,
     });
   }
 
   private computeFitDistance(aspect: number): number {
     const tanHalfFov = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
-    const neededW = 6.2;
-    const neededH = 3.6;
+    const neededW = 6.35;
+    const neededH = 3.75;
     const dW = neededW / (2 * tanHalfFov * Math.max(aspect, 0.58));
     const dH = neededH / (2 * tanHalfFov);
-    return Math.max(6.8, dW, dH);
+    return Math.max(7.0, dW, dH);
   }
 
   // =========================================================================
@@ -525,24 +767,21 @@ export class HweScene3D {
   private buildPage1Copies(): void {
     const g = this.pageGroups.copies;
 
-    // Carved walnut specimen tray framing warm Beetle Isle sand
-    const trayFrame = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.14, 3.15), this.walnutMat);
-    trayFrame.position.set(-0.62, 0.07, 0.05);
+    const trayFrame = new THREE.Mesh(new THREE.BoxGeometry(4.32, 0.15, 3.16), this.walnutMat);
+    trayFrame.position.set(-0.62, 0.075, 0.05);
     trayFrame.castShadow = true;
     trayFrame.receiveShadow = true;
     g.add(trayFrame);
 
     const sandMat = new THREE.MeshStandardMaterial({
-      map: createSandTexture('#e9dbc0', '#b89f74'),
+      map: createTerrainTexture('#eadcc0', '#dcc59a', '#b59a6e', 42, true),
       roughness: 0.92,
     });
-    const sandBed = new THREE.Mesh(new THREE.BoxGeometry(4.06, 0.155, 2.92), sandMat);
-    sandBed.position.set(-0.62, 0.075, 0.05);
+    const sandBed = new THREE.Mesh(new THREE.BoxGeometry(4.06, 0.16, 2.92), sandMat);
+    sandBed.position.set(-0.62, 0.08, 0.05);
     sandBed.receiveShadow = true;
     g.add(sandBed);
 
-    // Build 20 beetles: 2 AA, 8 Aa (10 blue = 50% look blue!), 10 aa (50% look amber!)
-    // Total copies: 12 A (30%!) and 28 a (70%!)
     const genotypes: Genotype[] = [
       'AA', 'Aa', 'aa', 'Aa', 'aa',
       'aa', 'Aa', 'aa', 'AA', 'Aa',
@@ -564,7 +803,7 @@ export class HweScene3D {
       const x = -2.18 + col * 0.78 + rng.range(-0.11, 0.11);
       const z = -0.94 + row * 0.66 + rng.range(-0.08, 0.08);
       const b = createSculptedBeetle3D(geno, mats, 0.96);
-      b.group.position.set(x, 0.16, z);
+      b.group.position.set(x, 0.165, z);
       b.group.rotation.y = rng.range(-0.7, 0.7);
       b.hitMesh.userData.beetleId = idx;
       g.add(b.group);
@@ -578,30 +817,27 @@ export class HweScene3D {
       });
     });
 
-    // Brass coaster + Two Glass Allele Specimen Jars on the right
-    const coaster = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.08, 2.45), this.walnutMat);
-    coaster.position.set(2.15, 0.04, 0.1);
+    // Carved walnut jar coaster + two labelled glass allele jars
+    const coaster = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.09, 2.65), this.walnutMat);
+    coaster.position.set(2.15, 0.045, 0.08);
     coaster.castShadow = true;
     coaster.receiveShadow = true;
     g.add(coaster);
 
     const makeJar = (pos: THREE.Vector3, fillMat: THREE.Material, collarColor: number): THREE.Mesh => {
       const jarG = new THREE.Group();
-      jarG.position.set(pos.x, 0.08, pos.z);
+      jarG.position.set(pos.x, 0.09, pos.z);
 
-      // Base brass ring
       const base = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.42, 0.07, 24), this.brassMat);
       base.position.y = 0.035;
       base.castShadow = true;
       jarG.add(base);
 
-      // Inner rising allele fill column
       const fill = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 1.0, 24), fillMat);
       fill.position.y = 0.08;
       fill.scale.set(1, 0.02, 1);
       jarG.add(fill);
 
-      // Outer borosilicate glass wall
       const wall = new THREE.Mesh(
         new THREE.CylinderGeometry(0.39, 0.39, 1.08, 24, 1, true),
         this.glassMat
@@ -609,10 +845,9 @@ export class HweScene3D {
       wall.position.y = 0.59;
       jarG.add(wall);
 
-      // Coloured rim collar
       const rim = new THREE.Mesh(
         new THREE.TorusGeometry(0.38, 0.036, 10, 28),
-        new THREE.MeshStandardMaterial({ color: collarColor, roughness: 0.35, metalness: 0.25 })
+        new THREE.MeshStandardMaterial({ color: collarColor, roughness: 0.32, metalness: 0.28 })
       );
       rim.rotation.x = Math.PI / 2;
       rim.position.y = 1.13;
@@ -624,6 +859,15 @@ export class HweScene3D {
 
     this.p1JarAFill = makeJar(this.p1JarAPos, this.pearlAMat, COL_A);
     this.p1JaraFill = makeJar(this.p1JaraPos, this.pearlaMat, COL_a);
+
+    // Engraved museum plaques right beside the glass jars!
+    const plaqueA = createEngravedPlaque('A Jar', 'blue copies (p)', 1.05, '#2653b8');
+    plaqueA.position.set(2.15, 0.098, -1.08);
+    g.add(plaqueA);
+
+    const plaquea = createEngravedPlaque('a Jar', 'amber copies (q)', 1.05, '#9e6e0a');
+    plaquea.position.set(2.15, 0.098, 1.24);
+    g.add(plaquea);
   }
 
   public openBeetleById(id: number, emitPearl = true): void {
@@ -717,39 +961,37 @@ export class HweScene3D {
   private buildPage2Square(): void {
     const g = this.pageGroups.square;
 
-    // Carved walnut game table plinth
-    const boardBase = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.14, 3.4), this.walnutMat);
-    boardBase.position.set(0.15, 0.07, 0.15);
+    const boardBase = new THREE.Mesh(new THREE.BoxGeometry(3.42, 0.15, 3.42), this.walnutMat);
+    boardBase.position.set(0.15, 0.075, 0.15);
     boardBase.castShadow = true;
     boardBase.receiveShadow = true;
     g.add(boardBase);
 
     const innerPaper = new THREE.Mesh(
-      new THREE.BoxGeometry(3.12, 0.15, 3.12),
+      new THREE.BoxGeometry(3.12, 0.16, 3.12),
       new THREE.MeshStandardMaterial({ color: COL_PAPER_IVORY, roughness: 0.88 })
     );
-    innerPaper.position.set(0.15, 0.076, 0.15);
+    innerPaper.position.set(0.15, 0.08, 0.15);
     innerPaper.receiveShadow = true;
     g.add(innerPaper);
 
-    // 4 quadrant area tiles + 4 translucent rising 3D zygote columns
     const makeTileAndCol = (tileCol: number, colCol: number) => {
       const tile = new THREE.Mesh(
         new THREE.BoxGeometry(1, 0.05, 1),
-        new THREE.MeshStandardMaterial({ color: tileCol, roughness: 0.45, metalness: 0.08 })
+        new THREE.MeshStandardMaterial({ color: tileCol, roughness: 0.42, metalness: 0.08 })
       );
       tile.receiveShadow = true;
       g.add(tile);
 
       const col = new THREE.Mesh(
-        new THREE.BoxGeometry(0.55, 1, 0.55),
+        new THREE.BoxGeometry(0.54, 1, 0.54),
         new THREE.MeshPhysicalMaterial({
           color: colCol,
-          roughness: 0.22,
-          metalness: 0.06,
-          clearcoat: 0.65,
+          roughness: 0.2,
+          metalness: 0.08,
+          clearcoat: 0.7,
           transparent: true,
-          opacity: 0.9,
+          opacity: 0.92,
         })
       );
       col.castShadow = true;
@@ -759,8 +1001,8 @@ export class HweScene3D {
     };
 
     const qAA = makeTileAndCol(0x3a6ed8, 0x2e61d1);
-    const qAa = makeTileAndCol(0x528d88, 0x3b867e);
-    const qaA = makeTileAndCol(0x528d88, 0x3b867e);
+    const qAa = makeTileAndCol(0x4b948b, 0x2f857b);
+    const qaA = makeTileAndCol(0x4b948b, 0x2f857b);
     const qaa = makeTileAndCol(0xe7b630, 0xe0a518);
 
     this.p2TileAA = qAA.tile;
@@ -772,7 +1014,17 @@ export class HweScene3D {
     this.p2Tileaa = qaa.tile;
     this.p2Colaa = qaa.col;
 
-    // Female egg row along top edge (-Z) & Male sperm row along left edge (-X)
+    // Engraved edge plaques: Eggs (top) & Sperm (left)
+    const eggPlaque = createEngravedPlaque('Eggs (p · q)', undefined, 1.35, '#29211b');
+    eggPlaque.position.set(0.15, 0.04, -2.18);
+    g.add(eggPlaque);
+
+    const spermPlaque = createEngravedPlaque('Sperm (p · q)', undefined, 1.35, '#29211b');
+    spermPlaque.position.set(-2.32, 0.04, 0.15);
+    spermPlaque.rotation.z = Math.PI / 2;
+    g.add(spermPlaque);
+
+    // Egg row (top) & Sperm row (left)
     const eggGeo = new THREE.SphereGeometry(0.085, 12, 10);
     for (let i = 0; i < 10; i++) {
       const egg = new THREE.Mesh(eggGeo, this.pearlAMat);
@@ -811,7 +1063,6 @@ export class HweScene3D {
       Math.max(0.05, q * q * scaleH),
     ];
 
-    // Recolour top egg row & left sperm row in proportion to p
     const aCount = Math.round(this.p2P * 10);
     for (let i = 0; i < 10; i++) {
       const isA = i < aCount;
@@ -869,25 +1120,23 @@ export class HweScene3D {
     const zQ = topEdge + wP + gap + wQ / 2;
 
     this.p2TileAA.scale.set(wP, 1, wP);
-    this.p2TileAA.position.set(xP, 0.175, zP);
+    this.p2TileAA.position.set(xP, 0.18, zP);
 
     this.p2TileAa.scale.set(wQ, 1, wP);
-    this.p2TileAa.position.set(xQ, 0.175, zP);
+    this.p2TileAa.position.set(xQ, 0.18, zP);
 
     this.p2TileaA.scale.set(wP, 1, wQ);
-    this.p2TileaA.position.set(xP, 0.175, zQ);
+    this.p2TileaA.position.set(xP, 0.18, zQ);
 
     this.p2Tileaa.scale.set(wQ, 1, wQ);
-    this.p2Tileaa.position.set(xQ, 0.175, zQ);
+    this.p2Tileaa.position.set(xQ, 0.18, zQ);
   }
 
   // =========================================================================
   // PAGE 3: 3D BRASS & IVORY DE FINETTI TRIANGLE SCULPTURE
   // =========================================================================
 
-  /** Convert genotype triple [AA, Aa, aa] to 3D triangle local XZ coordinates */
   private triToXZ(aa: number, het: number, rec: number): [number, number] {
-    // Left corner AA = (-2.1, +1.25), Right corner aa = (+2.1, +1.25), Top apex Aa = (0, -1.65)
     const x = (rec - aa) * 2.1;
     const z = 1.25 - het * 2.9;
     return [x, z];
@@ -896,7 +1145,6 @@ export class HweScene3D {
   private buildPage3DeFinetti(): void {
     const g = this.pageGroups.definetti;
 
-    // Beveled triangular ivory plinth
     const shape = new THREE.Shape();
     shape.moveTo(-2.35, -1.42);
     shape.lineTo(2.35, -1.42);
@@ -920,14 +1168,12 @@ export class HweScene3D {
     plinth.receiveShadow = true;
     g.add(plinth);
 
-    // Clickable invisible triangle hit plane
     const hitGeo = new THREE.ShapeGeometry(shape);
     hitGeo.rotateX(-Math.PI / 2);
     this.p3TriHitMesh = new THREE.Mesh(hitGeo, new THREE.MeshBasicMaterial({ visible: false }));
     this.p3TriHitMesh.position.y = 0.22;
     g.add(this.p3TriHitMesh);
 
-    // Brass border rails around the 3 triangle sides
     const corners = [
       new THREE.Vector3(-2.1, 0.22, 1.25),
       new THREE.Vector3(2.1, 0.22, 1.25),
@@ -941,11 +1187,10 @@ export class HweScene3D {
       g.add(rail);
     }
 
-    // 3 Corner vertex finials (AA blue, Aa split, aa amber)
     const addCornerPost = (pos: THREE.Vector3, col: number) => {
       const m = new THREE.Mesh(
         new THREE.SphereGeometry(0.13, 16, 12),
-        new THREE.MeshStandardMaterial({ color: col, roughness: 0.3, metalness: 0.15 })
+        new THREE.MeshStandardMaterial({ color: col, roughness: 0.28, metalness: 0.18 })
       );
       m.position.copy(pos).add(new THREE.Vector3(0, 0.06, 0));
       m.castShadow = true;
@@ -953,9 +1198,21 @@ export class HweScene3D {
     };
     addCornerPost(corners[0], COL_A);
     addCornerPost(corners[1], COL_a);
-    addCornerPost(corners[2], 0x3b867e);
+    addCornerPost(corners[2], 0x2f857b);
 
-    // Faint vertical p-lines inlaid on the ivory surface
+    // Engraved vertex plaques (AA, Aa, aa)
+    const pAA = createEngravedPlaque('100% AA', 'p = 1.0', 0.96, '#2653b8');
+    pAA.position.set(-2.35, 0.03, 1.72);
+    g.add(pAA);
+
+    const paa = createEngravedPlaque('100% aa', 'p = 0.0', 0.96, '#9e6e0a');
+    paa.position.set(2.35, 0.03, 1.72);
+    g.add(paa);
+
+    const pAa = createEngravedPlaque('100% Aa', 'all het', 0.96, '#1f6a60');
+    pAa.position.set(0, 0.03, -2.14);
+    g.add(pAa);
+
     const gridMat = new THREE.LineBasicMaterial({ color: 0x8c7b65, transparent: true, opacity: 0.32 });
     for (const pTick of [0.2, 0.4, 0.5, 0.6, 0.8]) {
       const x = (1 - 2 * pTick) * 2.1;
@@ -968,7 +1225,7 @@ export class HweScene3D {
       g.add(new THREE.Line(lg, gridMat));
     }
 
-    // Raised golden 3D Hardy–Weinberg Parabola Arch: [p², 2pq, q²]
+    // Raised golden 3D Hardy–Weinberg Parabola Arch
     const hwPts: THREE.Vector3[] = [];
     for (let i = 0; i <= 48; i++) {
       const p = i / 48;
@@ -978,11 +1235,11 @@ export class HweScene3D {
     }
     const hwCurve = new THREE.CatmullRomCurve3(hwPts);
     const hwTube = new THREE.Mesh(
-      new THREE.TubeGeometry(hwCurve, 64, 0.042, 10, false),
+      new THREE.TubeGeometry(hwCurve, 64, 0.044, 10, false),
       new THREE.MeshStandardMaterial({
         color: 0xd4942a,
-        roughness: 0.28,
-        metalness: 0.52,
+        roughness: 0.26,
+        metalness: 0.56,
         emissive: 0x6e4306,
         emissiveIntensity: 0.2,
       })
@@ -990,7 +1247,6 @@ export class HweScene3D {
     hwTube.castShadow = true;
     g.add(hwTube);
 
-    // Parent beacon (hollow brass torus ring)
     this.p3ParentBeacon = new THREE.Mesh(
       new THREE.TorusGeometry(0.15, 0.036, 12, 24),
       new THREE.MeshStandardMaterial({ color: COL_INK, roughness: 0.4 })
@@ -999,7 +1255,6 @@ export class HweScene3D {
     this.p3ParentBeacon.position.set(0, 0.25, 1.25);
     g.add(this.p3ParentBeacon);
 
-    // Gen 1 offspring beacon (glowing crimson-terracotta jewel)
     this.p3OffspringBeacon = new THREE.Mesh(
       new THREE.SphereGeometry(0.14, 18, 14),
       new THREE.MeshStandardMaterial({
@@ -1013,26 +1268,20 @@ export class HweScene3D {
     this.p3OffspringBeacon.castShadow = true;
     g.add(this.p3OffspringBeacon);
 
-    // Gen 2 beacon (for unequal-sex 2-step landing!)
     this.p3Gen2Beacon = new THREE.Mesh(
       new THREE.SphereGeometry(0.115, 16, 12),
-      new THREE.MeshStandardMaterial({
-        color: 0x2d8a7e,
-        roughness: 0.25,
-        metalness: 0.2,
-      })
+      new THREE.MeshStandardMaterial({ color: 0x2d8a7e, roughness: 0.25, metalness: 0.2 })
     );
     this.p3Gen2Beacon.visible = false;
     g.add(this.p3Gen2Beacon);
 
-    // Parabolic jump arc connecting Parent -> Offspring
     const arcGeo = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(),
       new THREE.Vector3(),
     ]);
     this.p3JumpArc = new THREE.Line(
       arcGeo,
-      new THREE.LineBasicMaterial({ color: 0xb84a27, linewidth: 2 })
+      new THREE.LineBasicMaterial({ color: 0xb84a27 })
     );
     g.add(this.p3JumpArc);
 
@@ -1049,7 +1298,6 @@ export class HweScene3D {
     this.p3ParentTarget.set(px, 0.25, pz);
     this.p3OffspringTarget.set(ox, 0.32, oz);
 
-    // Update jump arc curve
     const mid = new THREE.Vector3(
       (px + ox) / 2,
       0.78 + Math.hypot(ox - px, oz - pz) * 0.16,
@@ -1081,26 +1329,24 @@ export class HweScene3D {
   private buildPage4Census(): void {
     const g = this.pageGroups.census;
 
-    // Sandy beach slab
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(5.55, 0.14, 3.25), this.walnutMat);
-    frame.position.set(0, 0.07, 0);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(5.56, 0.15, 3.26), this.walnutMat);
+    frame.position.set(0, 0.075, 0);
     frame.castShadow = true;
     frame.receiveShadow = true;
     g.add(frame);
 
     const sandMat = new THREE.MeshStandardMaterial({
-      map: createSandTexture('#eadcc0', '#bba275'),
+      map: createTerrainTexture('#ebdcb9', '#dbc496', '#b39567', 99, true),
       roughness: 0.92,
     });
-    this.p4BeachHit = new THREE.Mesh(new THREE.BoxGeometry(5.32, 0.16, 3.02), sandMat);
-    this.p4BeachHit.position.set(0, 0.075, 0);
+    this.p4BeachHit = new THREE.Mesh(new THREE.BoxGeometry(5.32, 0.165, 3.02), sandMat);
+    this.p4BeachHit.position.set(0, 0.08, 0);
     this.p4BeachHit.receiveShadow = true;
     g.add(this.p4BeachHit);
 
-    // Instanced split-wing miniature 3D beetles (left half + right half = 300 instances each)
     const halfGeo = new THREE.SphereGeometry(0.068, 10, 8);
     halfGeo.scale(0.62, 0.55, 1.28);
-    const instMat = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.1 });
+    const instMat = new THREE.MeshStandardMaterial({ roughness: 0.34, metalness: 0.12 });
 
     this.p4LeftInst = new THREE.InstancedMesh(halfGeo, instMat, 300);
     this.p4RightInst = new THREE.InstancedMesh(halfGeo, instMat, 300);
@@ -1108,10 +1354,9 @@ export class HweScene3D {
     this.p4RightInst.castShadow = true;
     g.add(this.p4LeftInst, this.p4RightInst);
 
-    // 3D Brass stakes & crimson-hemp sampling quadrat (1.25 × 1.25)
     this.p4Quadrat = new THREE.Group();
     const qs = 0.66;
-    const ropeMat = new THREE.MeshStandardMaterial({ color: 0xb84a27, roughness: 0.6 });
+    const ropeMat = new THREE.MeshStandardMaterial({ color: 0xb84a27, roughness: 0.58 });
     const barGeoX = new THREE.CylinderGeometry(0.022, 0.022, qs * 2, 8);
     barGeoX.rotateZ(Math.PI / 2);
     const barGeoZ = new THREE.CylinderGeometry(0.022, 0.022, qs * 2, 8);
@@ -1156,15 +1401,13 @@ export class HweScene3D {
       const sin = Math.sin(b.rot);
       const off = 0.034;
 
-      // Left wing case
-      dummy.position.set(b.x - cos * off, 0.19, b.z + sin * off);
+      dummy.position.set(b.x - cos * off, 0.195, b.z + sin * off);
       dummy.rotation.set(0, b.rot, 0);
       dummy.scale.setScalar(b.sampled ? 1.15 : 0.92);
       dummy.updateMatrix();
       this.p4LeftInst.setMatrixAt(i, dummy.matrix);
 
-      // Right wing case
-      dummy.position.set(b.x + cos * off, 0.19, b.z - sin * off);
+      dummy.position.set(b.x + cos * off, 0.195, b.z - sin * off);
       dummy.updateMatrix();
       this.p4RightInst.setMatrixAt(i, dummy.matrix);
 
@@ -1186,146 +1429,254 @@ export class HweScene3D {
   }
 
   // =========================================================================
-  // PAGE 5: 3D FORCE LAB (INBREEDING · WAHLUND · WARFARIN RATS)
+  // PAGE 5: UPGRADED 3D FORCE LAB (INBREEDING · WAHLUND · WARFARIN RATS)
   // =========================================================================
 
   private buildPage5Forces(): void {
     const g = this.pageGroups.forces;
     g.add(this.p5InbGroup, this.p5WahlGroup, this.p5WarfGroup);
 
-    // --- 5A: Inbreeding Family Burrows + Unchanging p/q Jars ---
+    // --- 5A: Inbreeding Textured Meadow + Earthy Burrows + Grass Tufts + Labelled Jars ---
+    const rimRing = new THREE.Mesh(new THREE.CylinderGeometry(2.38, 2.44, 0.13, 40), this.walnutMat);
+    rimRing.position.set(-0.62, 0.065, 0);
+    rimRing.castShadow = true;
+    this.p5InbGroup.add(rimRing);
+
     const meadow = new THREE.Mesh(
-      new THREE.CylinderGeometry(2.25, 2.35, 0.14, 36),
-      new THREE.MeshStandardMaterial({ color: 0xbdbf99, roughness: 0.9 })
+      new THREE.CylinderGeometry(2.26, 2.28, 0.15, 40),
+      new THREE.MeshStandardMaterial({
+        map: createTerrainTexture('#b4be8e', '#99aa72', '#7a8a58', 303, false),
+        roughness: 0.92,
+      })
     );
-    meadow.position.set(-0.55, 0.07, 0);
+    meadow.position.set(-0.62, 0.075, 0);
     meadow.receiveShadow = true;
-    meadow.castShadow = true;
     this.p5InbGroup.add(meadow);
 
-    const moundMat = new THREE.MeshStandardMaterial({ color: 0x8b6e4e, roughness: 0.92 });
-    const holeMat = new THREE.MeshStandardMaterial({ color: 0x261d15, roughness: 1.0 });
+    const moundMat = new THREE.MeshStandardMaterial({
+      map: createTerrainTexture('#8f6f4c', '#765738', '#523b24', 309, false),
+      roughness: 0.94,
+    });
+    const holeMat = new THREE.MeshStandardMaterial({ color: 0x221912, roughness: 1.0 });
+    const tuftMat = new THREE.MeshStandardMaterial({ color: 0x627c44, roughness: 0.85 });
+    const pebbleMat = new THREE.MeshStandardMaterial({ color: 0xa69d8c, roughness: 0.88 });
+
+    const rng5 = createSeededRng(505);
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
-      const bx = -0.55 + Math.cos(a) * 1.48;
-      const bz = Math.sin(a) * 1.42;
-      const mound = new THREE.Mesh(new THREE.SphereGeometry(0.32, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), moundMat);
-      mound.scale.set(1.15, 0.55, 1.15);
-      mound.position.set(bx, 0.14, bz);
+      const bx = -0.62 + Math.cos(a) * 1.46;
+      const bz = Math.sin(a) * 1.40;
+      const mound = new THREE.Mesh(
+        new THREE.SphereGeometry(0.33, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+        moundMat
+      );
+      mound.scale.set(1.16, 0.54, 1.12);
+      mound.position.set(bx, 0.145, bz);
       mound.castShadow = true;
       this.p5InbGroup.add(mound);
 
-      const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.05, 12), holeMat);
-      hole.position.set(bx, 0.22, bz);
+      const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.055, 14), holeMat);
+      hole.position.set(bx, 0.295, bz);
       this.p5InbGroup.add(hole);
+
+      // Tiny 3D grass blades & pebbles around burrows
+      for (let t = 0; t < 3; t++) {
+        const ta = a + rng5.range(-0.6, 0.6);
+        const blade = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.13, 5), tuftMat);
+        blade.position.set(bx + Math.cos(ta) * 0.34, 0.19, bz + Math.sin(ta) * 0.34);
+        blade.rotation.z = rng5.range(-0.35, 0.35);
+        this.p5InbGroup.add(blade);
+      }
+      const peb = new THREE.Mesh(new THREE.DodecahedronGeometry(0.045, 0), pebbleMat);
+      peb.position.set(bx * 0.7 - 0.15, 0.16, bz * 0.7);
+      peb.scale.set(1.2, 0.6, 0.9);
+      this.p5InbGroup.add(peb);
     }
 
-    // Steady A & a glass jars beside the burrows showing p NEVER MOVES under inbreeding!
-    const makeSmallJar = (zPos: number, fillMat: THREE.Material): THREE.Mesh => {
+    // Center engraved plaque on meadow
+    const medPlaque = createEngravedPlaque('8 Family Burrows', '2 loci tracked', 1.28, '#3f4f2b');
+    medPlaque.position.set(-0.62, 0.158, 0);
+    this.p5InbGroup.add(medPlaque);
+
+    // Steady A & a glass jars on carved walnut stand
+    const jarStand = new THREE.Mesh(new THREE.BoxGeometry(1.06, 0.08, 2.38), this.walnutMat);
+    jarStand.position.set(2.26, 0.04, 0);
+    jarStand.castShadow = true;
+    this.p5InbGroup.add(jarStand);
+
+    const makeSmallJar = (zPos: number, fillMat: THREE.Material, collarCol: number): THREE.Mesh => {
       const jg = new THREE.Group();
-      jg.position.set(2.25, 0.06, zPos);
+      jg.position.set(2.26, 0.08, zPos);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.36, 0.05, 22), this.brassMat);
+      base.position.y = 0.025;
+      jg.add(base);
       const fill = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 1.0, 20), fillMat);
       fill.position.y = 0.28;
       fill.scale.set(1, 0.5, 1);
       jg.add(fill);
       const wall = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 1.0, 20, 1, true), this.glassMat);
-      wall.position.y = 0.52;
+      wall.position.y = 0.53;
       jg.add(wall);
+      const rim = new THREE.Mesh(
+        new THREE.TorusGeometry(0.32, 0.03, 10, 24),
+        new THREE.MeshStandardMaterial({ color: collarCol, roughness: 0.35, metalness: 0.25 })
+      );
+      rim.rotation.x = Math.PI / 2;
+      rim.position.y = 1.03;
+      jg.add(rim);
       this.p5InbGroup.add(jg);
       return fill;
     };
-    this.p5InbJarAFill = makeSmallJar(-0.55, this.pearlAMat);
-    this.p5InbJaraFill = makeSmallJar(0.55, this.pearlaMat);
+    this.p5InbJarAFill = makeSmallJar(-0.56, this.pearlAMat, COL_A);
+    this.p5InbJaraFill = makeSmallJar(0.56, this.pearlaMat, COL_a);
 
-    // --- 5B: Two Demes (Wahlund Beach: Dune left p=0.80, Marsh right p=0.20) ---
-    const wFrame = new THREE.Mesh(new THREE.BoxGeometry(5.45, 0.14, 3.05), this.walnutMat);
-    wFrame.position.set(0, 0.07, 0);
+    const inbLabel = createEngravedPlaque('p = 0.50 fixed', 'jars stay level', 1.15, '#285e82');
+    inbLabel.position.set(2.26, 0.04, 1.48);
+    this.p5InbGroup.add(inbLabel);
+
+    // --- 5B: Two Demes (Wahlund Beach: Dune Sand vs. Marsh Reeds) ---
+    const wFrame = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.15, 3.08), this.walnutMat);
+    wFrame.position.set(0, 0.075, 0);
     wFrame.castShadow = true;
     this.p5WahlGroup.add(wFrame);
 
     const duneBed = new THREE.Mesh(
-      new THREE.BoxGeometry(2.6, 0.16, 2.82),
-      new THREE.MeshStandardMaterial({ color: COL_SAND, roughness: 0.92 })
+      new THREE.BoxGeometry(2.62, 0.165, 2.84),
+      new THREE.MeshStandardMaterial({
+        map: createTerrainTexture('#eddcb8', '#dfc798', '#ba9b6a', 611, true),
+        roughness: 0.92,
+      })
     );
-    duneBed.position.set(-1.3, 0.075, 0);
+    duneBed.position.set(-1.31, 0.08, 0);
     duneBed.receiveShadow = true;
     this.p5WahlGroup.add(duneBed);
 
     const marshBed = new THREE.Mesh(
-      new THREE.BoxGeometry(2.6, 0.16, 2.82),
-      new THREE.MeshStandardMaterial({ color: COL_MARSH, roughness: 0.92 })
+      new THREE.BoxGeometry(2.62, 0.165, 2.84),
+      new THREE.MeshStandardMaterial({
+        map: createTerrainTexture('#96a382', '#7e8f6b', '#5e6e4d', 612, false),
+        roughness: 0.92,
+      })
     );
-    marshBed.position.set(1.3, 0.075, 0);
+    marshBed.position.set(1.31, 0.08, 0);
     marshBed.receiveShadow = true;
     this.p5WahlGroup.add(marshBed);
 
+    // Decorative 3D marsh reeds along the far-right marsh border
+    for (let r = 0; r < 10; r++) {
+      const reed = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.02, 0.34, 6), tuftMat);
+      reed.position.set(2.48, 0.28, -1.1 + r * 0.24);
+      reed.rotation.z = -0.15 + (r % 3) * 0.12;
+      this.p5WahlGroup.add(reed);
+    }
+
+    const dunePlaque = createEngravedPlaque('Dune Deme', 'p = 0.80', 1.15, '#2653b8');
+    dunePlaque.position.set(-1.32, 0.03, 1.84);
+    this.p5WahlGroup.add(dunePlaque);
+
+    const marshPlaque = createEngravedPlaque('Marsh Deme', 'p = 0.20', 1.15, '#9e6e0a');
+    marshPlaque.position.set(1.32, 0.03, 1.84);
+    this.p5WahlGroup.add(marshPlaque);
+
     const halfGeo = new THREE.SphereGeometry(0.07, 10, 8);
     halfGeo.scale(0.62, 0.55, 1.28);
-    const instMat = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.1 });
+    const instMat = new THREE.MeshStandardMaterial({ roughness: 0.34, metalness: 0.12 });
     this.p5WahlLeftInst = new THREE.InstancedMesh(halfGeo, instMat, 240);
     this.p5WahlRightInst = new THREE.InstancedMesh(halfGeo, instMat, 240);
     this.p5WahlGroup.add(this.p5WahlLeftInst, this.p5WahlRightInst);
 
-    // 3D Crimson-and-Brass Deme Boundary Rope that lowers down the centre when split!
     this.p5WahlRope = new THREE.Group();
     const ropeBar = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.032, 0.032, 2.84, 10),
+      new THREE.CylinderGeometry(0.032, 0.032, 2.86, 10),
       new THREE.MeshStandardMaterial({ color: 0xb83828, roughness: 0.45 })
     );
     ropeBar.rotation.x = Math.PI / 2;
-    ropeBar.position.y = 0.28;
+    ropeBar.position.y = 0.3;
     ropeBar.castShadow = true;
     this.p5WahlRope.add(ropeBar);
-    for (const zEnd of [-1.4, 1.4]) {
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.42, 10), this.brassMat);
-      post.position.set(0, 0.21, zEnd);
+    for (const zEnd of [-1.42, 1.42]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.44, 10), this.brassMat);
+      post.position.set(0, 0.22, zEnd);
       this.p5WahlRope.add(post);
     }
     this.p5WahlRope.position.y = 1.6;
     this.p5WahlGroup.add(this.p5WahlRope);
 
-    // --- 5C: Warfarin-Resistant Norway Rat Farmyard Diorama ---
+    // --- 5C: Upgraded Cobblestone Farmyard, Burlap Grain Sacks & Brass Bait Trays ---
+    const yardFrame = new THREE.Mesh(new THREE.BoxGeometry(5.58, 0.15, 3.16), this.walnutMat);
+    yardFrame.position.set(0, 0.075, 0);
+    yardFrame.castShadow = true;
+    this.p5WarfGroup.add(yardFrame);
+
     const yard = new THREE.Mesh(
-      new THREE.BoxGeometry(5.45, 0.14, 3.05),
-      new THREE.MeshStandardMaterial({ color: 0x5c5346, roughness: 0.94 })
+      new THREE.BoxGeometry(5.32, 0.165, 2.92),
+      new THREE.MeshStandardMaterial({ map: createFarmyardTexture(), roughness: 0.92 })
     );
-    yard.position.set(0, 0.07, 0);
+    yard.position.set(0, 0.08, 0);
     yard.receiveShadow = true;
-    yard.castShadow = true;
     this.p5WarfGroup.add(yard);
 
-    // 4 Burrow entrances on the left + 4 Golden Grain Sacks on the right
-    const sackMat = new THREE.MeshStandardMaterial({ color: 0xd9bc7c, roughness: 0.88 });
+    const burlapMat = new THREE.MeshStandardMaterial({ map: createBurlapTexture(), roughness: 0.9 });
+    const pelletMat = new THREE.MeshStandardMaterial({ color: 0x36a394, roughness: 0.6 });
+    const trayRimMat = new THREE.MeshStandardMaterial({ color: 0xb53c2e, roughness: 0.4, metalness: 0.3 });
+
     for (let i = 0; i < 4; i++) {
       const z = -1.02 + i * 0.68;
-      const arch = new THREE.Mesh(
-        new THREE.TorusGeometry(0.22, 0.06, 8, 16, Math.PI),
-        moundMat
-      );
+
+      // Earth & timber burrow tunnel entrance on the left
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.065, 10, 18, Math.PI), moundMat);
       arch.rotation.y = Math.PI / 2;
-      arch.position.set(-2.38, 0.14, z);
+      arch.position.set(-2.36, 0.16, z);
+      arch.castShadow = true;
       this.p5WarfGroup.add(arch);
 
-      const sack = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), sackMat);
-      sack.scale.set(0.85, 1.15, 0.95);
-      sack.position.set(2.32, 0.28, z);
-      sack.castShadow = true;
-      this.p5WarfGroup.add(sack);
+      const darkMouth = new THREE.Mesh(new THREE.CircleGeometry(0.18, 12, 0, Math.PI), holeMat);
+      darkMouth.rotation.y = Math.PI / 2;
+      darkMouth.position.set(-2.35, 0.16, z);
+      this.p5WarfGroup.add(darkMouth);
 
-      // Brass Warfarin Bait Tray in each run lane
-      const tray = new THREE.Mesh(
-        new THREE.BoxGeometry(0.46, 0.07, 0.34),
-        new THREE.MeshStandardMaterial({
-          color: 0xc24838,
-          roughness: 0.38,
-          metalness: 0.25,
-        })
-      );
-      tray.position.set(0.05 + (i % 2) * 0.35 - 0.17, 0.17, z);
-      tray.castShadow = true;
-      this.p5TrayMeshes.push(tray);
-      this.p5WarfGroup.add(tray);
+      // Sculpted burlap grain sack with cinched rope neck on the right
+      const sackG = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 12), burlapMat);
+      body.scale.set(0.9, 1.15, 0.95);
+      body.position.y = 0.23;
+      body.castShadow = true;
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(0.10, 0.022, 8, 16), this.walnutMat);
+      tie.rotation.x = Math.PI / 2;
+      tie.position.y = 0.44;
+      const top = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.14, 10), burlapMat);
+      top.rotation.x = Math.PI;
+      top.position.y = 0.49;
+      sackG.add(body, tie, top);
+      sackG.position.set(2.26, 0.14, z);
+      this.p5WarfGroup.add(sackG);
+
+      // Realistic metallic warfarin bait tray filled with teal-green bait pellets
+      const trayG = new THREE.Group();
+      const dish = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.06, 0.36), trayRimMat);
+      dish.position.y = 0.03;
+      dish.castShadow = true;
+      trayG.add(dish);
+      for (let p = 0; p < 7; p++) {
+        const pel = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.05, 6), pelletMat);
+        pel.rotation.z = Math.PI / 2;
+        pel.rotation.y = p * 0.9;
+        pel.position.set(-0.12 + (p % 3) * 0.11, 0.072, -0.08 + Math.floor(p / 3) * 0.07);
+        trayG.add(pel);
+      }
+      trayG.position.set(0.05 + (i % 2) * 0.34 - 0.17, 0.16, z);
+      this.p5TrayGroups.push(trayG);
+      this.p5WarfGroup.add(trayG);
     }
+
+    // Engraved farmyard labels
+    const lBur = createEngravedPlaque('Burrows', undefined, 0.92, '#4f3a25');
+    lBur.position.set(-2.15, 0.03, 1.85);
+    const lBait = createEngravedPlaque('Warfarin Bait', undefined, 1.24, '#9c2d20');
+    lBait.position.set(0.0, 0.03, 1.85);
+    const lGrain = createEngravedPlaque('Grain Sacks', undefined, 1.12, '#7d5f24');
+    lGrain.position.set(2.12, 0.03, 1.85);
+    this.p5WarfGroup.add(lBur, lBait, lGrain);
 
     this.p5WarfGroup.add(this.p5RatGroup);
     this.setForceMode('inbreeding');
@@ -1339,7 +1690,6 @@ export class HweScene3D {
   }
 
   public updateInbreedingScene(p: number, F: number): void {
-    // Clear previous beetles around burrows
     this.p5InbBeetles.forEach((b) => this.p5InbGroup.remove(b));
     this.p5InbBeetles = [];
 
@@ -1356,17 +1706,17 @@ export class HweScene3D {
     ];
     const rng = createSeededRng(77 + Math.round(F * 100));
 
-    // Create simple 3D split-shell beetles around the 8 family burrows
     const halfGeo = new THREE.SphereGeometry(0.095, 12, 10);
     halfGeo.scale(0.62, 0.55, 1.28);
     const spotGeo = new THREE.SphereGeometry(0.042, 10, 8);
+    const creamMat = new THREE.MeshStandardMaterial({ color: 0xf7f1e3 });
 
     list.forEach((geno, idx) => {
       const burrowIdx = idx % 8;
       const slot = Math.floor(idx / 8);
       const a = (burrowIdx / 8) * Math.PI * 2;
-      const bx = -0.55 + Math.cos(a) * 1.48;
-      const bz = Math.sin(a) * 1.42;
+      const bx = -0.62 + Math.cos(a) * 1.46;
+      const bz = Math.sin(a) * 1.40;
       const sa = a + (slot - 1) * 0.85;
 
       const bg = new THREE.Group();
@@ -1377,21 +1727,16 @@ export class HweScene3D {
       right.position.x = 0.046;
       right.castShadow = true;
 
-      // Second unlinked locus (head spot: dark vs cream) also losing heterozygotes under F!
-      const spot = new THREE.Mesh(
-        spotGeo,
-        rng.next() < 0.5 ? this.darkBodyMat : new THREE.MeshStandardMaterial({ color: 0xf7f1e3 })
-      );
+      const spot = new THREE.Mesh(spotGeo, rng.next() < 0.5 ? this.darkBodyMat : creamMat);
       spot.position.set(0, 0.04, -0.11);
 
       bg.add(left, right, spot);
-      bg.position.set(bx + Math.cos(sa) * 0.44, 0.19, bz + Math.sin(sa) * 0.44);
+      bg.position.set(bx + Math.cos(sa) * 0.44, 0.195, bz + Math.sin(sa) * 0.44);
       bg.rotation.y = rng.range(0, Math.PI * 2);
       this.p5InbGroup.add(bg);
       this.p5InbBeetles.push(bg);
     });
 
-    // Keep jars visually reflecting p (unchanged!)
     this.p5InbJarAFill.scale.set(1, Math.max(0.05, p * 0.9), 1);
     this.p5InbJarAFill.position.y = 0.06 + (p * 0.9) / 2;
     this.p5InbJaraFill.scale.set(1, Math.max(0.05, (1 - p) * 0.9), 1);
@@ -1411,13 +1756,13 @@ export class HweScene3D {
       const sin = Math.sin(b.rot);
       const off = 0.036;
 
-      dummy.position.set(b.x - cos * off, 0.195, b.z + sin * off);
+      dummy.position.set(b.x - cos * off, 0.2, b.z + sin * off);
       dummy.rotation.set(0, b.rot, 0);
       dummy.scale.setScalar(1.08);
       dummy.updateMatrix();
       this.p5WahlLeftInst.setMatrixAt(i, dummy.matrix);
 
-      dummy.position.set(b.x + cos * off, 0.195, b.z - sin * off);
+      dummy.position.set(b.x + cos * off, 0.2, b.z - sin * off);
       dummy.updateMatrix();
       this.p5WahlRightInst.setMatrixAt(i, dummy.matrix);
 
@@ -1433,7 +1778,7 @@ export class HweScene3D {
   }
 
   public updateWarfarinScene(adults: GenotypeTriple, traysCount: number): void {
-    this.p5TrayMeshes.forEach((m, idx) => {
+    this.p5TrayGroups.forEach((m, idx) => {
       m.visible = idx < traysCount;
     });
 
@@ -1443,10 +1788,12 @@ export class HweScene3D {
     this.p5RatEntries = [];
 
     const mats = {
-      bodyAA: new THREE.MeshStandardMaterial({ color: 0x7c8ea6, roughness: 0.72 }),
-      bodyAa: new THREE.MeshStandardMaterial({ color: 0x8f8472, roughness: 0.72 }),
-      bodyaa: new THREE.MeshStandardMaterial({ color: 0xb89662, roughness: 0.72 }),
-      ear: new THREE.MeshStandardMaterial({ color: 0xd99ca0, roughness: 0.6 }),
+      bodyAA: new THREE.MeshStandardMaterial({ color: 0x7a899c, roughness: 0.78 }),
+      bodyAa: new THREE.MeshStandardMaterial({ color: 0x8f8170, roughness: 0.78 }),
+      bodyaa: new THREE.MeshStandardMaterial({ color: 0xb49464, roughness: 0.78 }),
+      ear: new THREE.MeshStandardMaterial({ color: 0xdba0a4, roughness: 0.58 }),
+      eye: new THREE.MeshStandardMaterial({ color: 0x161210, roughness: 0.2 }),
+      brass: this.brassMat,
       pearlA: this.pearlAMat,
       pearla: this.pearlaMat,
     };
@@ -1465,13 +1812,13 @@ export class HweScene3D {
       const rat = createRat3D(geno, mats);
       const laneZ = -1.02 + (idx % 4) * 0.68 + ((idx % 3) - 1) * 0.08;
       const phase = (idx / total) * Math.PI * 2;
-      rat.position.set(-1.6 + ((idx * 0.71) % 3.1), 0.14, laneZ);
+      rat.position.set(-0.15 + Math.sin(phase) * 1.7, 0.16, laneZ);
       this.p5RatGroup.add(rat);
       this.p5RatEntries.push({
         group: rat,
         laneZ,
         phase,
-        speed: 0.65 + (idx % 3) * 0.18,
+        speed: 0.62 + (idx % 3) * 0.16,
       });
     });
   }
@@ -1486,17 +1833,19 @@ export class HweScene3D {
     }
 
     if (questionIndex === 0) {
-      // 4% amber beach (25 beetles: 16 AA + 8 Aa + 1 aa -> 1/25 = 4% amber, 32% carriers!)
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.14, 3.2), this.walnutMat);
-      frame.position.y = 0.07;
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.15, 3.2), this.walnutMat);
+      frame.position.y = 0.075;
       frame.castShadow = true;
       this.p6Container.add(frame);
 
       const sand = new THREE.Mesh(
-        new THREE.BoxGeometry(4.56, 0.155, 2.96),
-        new THREE.MeshStandardMaterial({ map: createSandTexture('#eadcc0', '#bba275'), roughness: 0.92 })
+        new THREE.BoxGeometry(4.56, 0.165, 2.96),
+        new THREE.MeshStandardMaterial({
+          map: createTerrainTexture('#eadcc0', '#dbc496', '#b39567', 81, true),
+          roughness: 0.92,
+        })
       );
-      sand.position.y = 0.075;
+      sand.position.y = 0.08;
       sand.receiveShadow = true;
       this.p6Container.add(sand);
 
@@ -1512,16 +1861,14 @@ export class HweScene3D {
         const b = createSculptedBeetle3D(geno, mats, 0.85);
         const col = i % 5;
         const row = Math.floor(i / 5);
-        b.group.position.set(-1.72 + col * 0.86, 0.16, -1.04 + row * 0.52);
+        b.group.position.set(-1.72 + col * 0.86, 0.165, -1.04 + row * 0.52);
         b.group.rotation.y = (i % 4) * 0.35 - 0.4;
         this.p6Container.add(b.group);
       }
     } else if (questionIndex === 1) {
-      // Drifting small island on the HW curve: mini 3D de Finetti showing trajectory sliding ALONG the golden HW curve!
       const clone = this.pageGroups.definetti.clone();
       clone.visible = true;
       this.p6Container.add(clone);
-      // Add 4 glowing beads sliding right along the HW parabola from p=0.50 -> 0.58 -> 0.66 -> 0.74
       [0.5, 0.58, 0.66, 0.74].forEach((p, i) => {
         const [aa, het, rec] = hwExpected(p);
         const [x, z] = this.triToXZ(aa, het, rec);
@@ -1536,7 +1883,6 @@ export class HweScene3D {
         this.p6Container.add(dot);
       });
     } else {
-      // Two-locus inbreeding visual hint: show burrows
       const clone = this.p5InbGroup.clone();
       clone.visible = true;
       this.p6Container.add(clone);
@@ -1553,7 +1899,6 @@ export class HweScene3D {
       this.pageGroups[k].visible = k === page;
     });
 
-    // Tailored museum camera angles per diorama
     if (page === 'copies') {
       this.targetAzimuth = 0.08;
       this.targetPolar = 0.66;
@@ -1567,8 +1912,8 @@ export class HweScene3D {
       this.targetAzimuth = 0.0;
       this.targetPolar = 0.52;
     } else if (page === 'forces') {
-      this.targetAzimuth = 0.12;
-      this.targetPolar = 0.72;
+      this.targetAzimuth = 0.1;
+      this.targetPolar = 0.68;
     } else {
       this.targetAzimuth = 0.05;
       this.targetPolar = 0.62;
@@ -1602,7 +1947,7 @@ export class HweScene3D {
     const y = Math.cos(this.curPolar) * this.curDist;
     const z = Math.cos(this.curAzimuth) * Math.sin(this.curPolar) * this.curDist;
     this.camera.position.set(x, y, z);
-    this.camera.lookAt(0, 0.22, 0.04);
+    this.camera.lookAt(0, 0.2, 0.08);
   }
 
   private bindPointerEvents(): void {
@@ -1630,7 +1975,6 @@ export class HweScene3D {
         this.targetAzimuth -= dx * 0.0065;
         this.targetPolar = Math.max(0.2, Math.min(1.25, this.targetPolar - dy * 0.0055));
       } else {
-        // Hover cursor cue for interactive 3D elements
         this.raycaster.setFromCamera(this.pointerNdc, this.camera);
         let hitSomething = false;
         if (this.activePage === 'copies') {
@@ -1715,7 +2059,6 @@ export class HweScene3D {
     const elapsed = this.clock.elapsedTime;
     const ease = 1 - Math.exp(-9 * dt);
 
-    // Page 1: animate hinged beetle wing cases & flying allele pearls + glass jar fill
     if (this.activePage === 'copies') {
       for (const b of this.p1Beetles) {
         const target = b.opened ? 1 : 0;
@@ -1753,7 +2096,6 @@ export class HweScene3D {
       }
     }
 
-    // Page 2: animate 3D zygote columns & smooth merging of Aa + aA -> 2pq double pillar!
     if (this.activePage === 'square') {
       this.p2MergeT += ((this.p2Merged ? 1 : 0) - this.p2MergeT) * (1 - Math.exp(-6.5 * dt));
       for (let i = 0; i < 4; i++) {
@@ -1771,7 +2113,6 @@ export class HweScene3D {
       this.p2ColAa.scale.y = hAa;
       this.p2ColAa.position.set(this.p2TileAa.position.x, 0.2 + hAa / 2, this.p2TileAa.position.z);
 
-      // Smoothly glide aA pillar across and stack right on top of Aa pillar!
       const mx = THREE.MathUtils.lerp(this.p2TileaA.position.x, this.p2TileAa.position.x, this.p2MergeT);
       const mz = THREE.MathUtils.lerp(this.p2TileaA.position.z, this.p2TileAa.position.z, this.p2MergeT);
       const my = THREE.MathUtils.lerp(0.2 + haA / 2, 0.2 + hAa + haA / 2 + 0.02, this.p2MergeT);
@@ -1795,7 +2136,6 @@ export class HweScene3D {
       }
     }
 
-    // Page 3: animate de Finetti beacons
     if (this.activePage === 'definetti') {
       this.p3ParentBeacon.position.lerp(this.p3ParentTarget, ease);
       this.p3OffspringBeacon.position.lerp(this.p3OffspringTarget, ease);
@@ -1804,28 +2144,25 @@ export class HweScene3D {
       }
     }
 
-    // Page 4: smooth quadrat drop
     if (this.activePage === 'census') {
       this.p4Quadrat.position.lerp(this.p4QuadratTarget, ease);
     }
 
-    // Page 5: animate Wahlund rope & scurrying Norway rats
     if (this.activePage === 'forces') {
       if (this.p5ForceMode === 'wahlund') {
         this.p5WahlRope.position.y += (this.p5WahlRopeY - this.p5WahlRope.position.y) * ease;
       } else if (this.p5ForceMode === 'warfarin') {
         for (const r of this.p5RatEntries) {
           const cycle = (elapsed * r.speed + r.phase) % (Math.PI * 2);
-          const x = -0.15 + Math.sin(cycle) * 1.85;
-          const prevX = -0.15 + Math.sin(cycle - 0.05) * 1.85;
+          const x = -0.15 + Math.sin(cycle) * 1.82;
+          const prevX = -0.15 + Math.sin(cycle - 0.05) * 1.82;
           r.group.position.x = x;
           r.group.rotation.y = x >= prevX ? 0 : Math.PI;
-          r.group.position.y = 0.14 + Math.abs(Math.sin(elapsed * 8 + r.phase)) * 0.02;
+          r.group.position.y = 0.16 + Math.abs(Math.sin(elapsed * 8 + r.phase)) * 0.02;
         }
       }
     }
 
-    // Smooth camera orbit damping
     const camEase = 1 - Math.exp(-9 * dt);
     this.curAzimuth += (this.targetAzimuth - this.curAzimuth) * camEase;
     this.curPolar += (this.targetPolar - this.curPolar) * camEase;

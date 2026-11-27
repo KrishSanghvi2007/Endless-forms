@@ -788,8 +788,8 @@ export const CH01_HWE: AtlasChapter = {
             ${renderGenoBarsHtml(obs, exp)}
           </div>
           <div class="hwe-eq-box">
-            Aa = 2pq(1 − F) = <strong>${pct(obs[1])}</strong> &nbsp;·&nbsp; Jars unchanged: <strong>p = 0.50</strong>
-            <div class="hwe-eq-sub">Inbreeding reduces heterozygotes across ALL genes (wing colour &amp; head spots); 1 gen of mixing restores 2pq.</div>
+            Locus 1 (wing <em>Aa</em>): <strong>${pct(obs[1])}</strong> &nbsp;·&nbsp; Locus 2 (head-spot <em>Bb</em>): <strong>${pct(obs[1])}</strong> &nbsp;·&nbsp; <strong>p = 0.50</strong>
+            <div class="hwe-eq-sub">Because relatives share ancestry across all chromosomes, <strong>Aa = 2pq(1 − F)</strong> drops at every locus simultaneously—unlike assortative mating by wing colour.</div>
           </div>
         `;
 
@@ -894,8 +894,13 @@ export const CH01_HWE: AtlasChapter = {
             </svg>
           </div>
           <div class="hwe-eq-box">
-            q̂ = s₁ / (s₁ + s₂) = <strong>${qHat.toFixed(2)}</strong>
-            <div class="hwe-eq-sub">Selection acts after birth: newborns sit ON the HW curve, while surviving adults show <strong>heterozygote excess</strong>!</div>
+            ${
+              p5WarfTrays === 0
+                ? `Bait withdrawn: Δq ≈ −s₂pq² / (1 − s₂q²) &nbsp;·&nbsp; q = <strong>${p5WarfQ.toFixed(2)}</strong>
+                   <div class="hwe-eq-sub">Without warfarin, only <em>aa</em> pays the vitamin-K cost; rare <em>a</em> copies hide in <em>Aa</em> carriers so resistance fades ever more slowly!</div>`
+                : `q̂ = s₁ / (s₁ + s₂) = <strong>${qHat.toFixed(2)}</strong>
+                   <div class="hwe-eq-sub">Selection acts after birth: newborns sit ON the HW curve, while surviving adults show <strong>heterozygote excess</strong>!</div>`
+            }
           </div>
         `;
 
