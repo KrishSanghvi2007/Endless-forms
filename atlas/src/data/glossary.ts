@@ -735,6 +735,56 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'deeptime',
   },
 
+  // --- Ecology & Eco-Evo Dynamics (Chapter 15: Ecology in Motion) ---
+  character_displacement: {
+    id: 'character_displacement',
+    term: 'Ecological Character Displacement',
+    pronunciation: 'KAR-ik-ter dis-PLAYS-mənt',
+    shortDef:
+      'Evolutionary divergence of resource-use traits (such as Galápagos finch beak depth) between competing species where they co-occur in sympatry (Grant & Grant 2006).',
+    relatedChapterId: 'ecology',
+  },
+  trophic_cascade: {
+    id: 'trophic_cascade',
+    term: 'Trophic Cascade',
+    pronunciation: 'TROH-fik kas-KAYD',
+    shortDef:
+      'Top-down ecological chain reaction in which predators suppress herbivores, indirectly boosting primary producers (e.g. sea otters suppressing sea urchins so giant kelp forests thrive).',
+    relatedChapterId: 'ecology',
+  },
+  keystone_species: {
+    id: 'keystone_species',
+    term: 'Keystone Species',
+    pronunciation: 'KEE-stohn SPEE-sheez',
+    shortDef:
+      'A species exerting a disproportionately large structuring effect on community diversity and ecosystem state relative to its total biomass or abundance.',
+    relatedChapterId: 'ecology',
+  },
+  island_biogeography: {
+    id: 'island_biogeography',
+    term: 'Island Biogeography Equilibrium (S*)',
+    pronunciation: 'by-oh-jee-OG-rə-fee',
+    shortDef:
+      'MacArthur & Wilson’s (1967) dynamic balance between island colonization (decreasing with distance) and local extinction (decreasing with area), maintaining equilibrium richness S* with ongoing species turnover.',
+    relatedChapterId: 'ecology',
+  },
+  ifd: {
+    id: 'ifd',
+    term: 'Ideal Free Distribution (IFD)',
+    pronunciation: 'eye-DEEL FREE',
+    shortDef:
+      'Fretwell & Lucas (1970) foraging equilibrium in which mobile individuals settle across patches in direct proportion to food supply (input matching), equalizing per-capita intake everywhere.',
+    relatedChapterId: 'ecology',
+  },
+  extinction_vortex: {
+    id: 'extinction_vortex',
+    term: 'Extinction Vortex',
+    pronunciation: 'ik-STINGK-shən VOR-teks',
+    shortDef:
+      'Positive feedback spiral in tiny isolated populations where genetic drift, inbreeding depression, and demographic stochasticity reinforce one another toward extinction unless broken by genetic rescue.',
+    relatedChapterId: 'ecology',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

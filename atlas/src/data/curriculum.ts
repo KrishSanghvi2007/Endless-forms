@@ -215,7 +215,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Character displacement, trophic cascades, island biogeography & IFD',
     organism: 'Galápagos finches, sea otters & archipelagos',
     accent: '#2f6d4f',
-    available: false,
+    available: true,
     actTag: 'Part VI · Evolutionary Ecology',
     summary:
       'Watch Galápagos finch beaks diverge via character displacement, remove keystone sea otters to trigger a kelp-forest trophic cascade, balance MacArthur–Wilson island turnover, and test Ideal Free Distribution.',

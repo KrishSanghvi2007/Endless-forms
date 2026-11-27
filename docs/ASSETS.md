@@ -140,6 +140,14 @@
 
 ---
 
+## Chapter 15: Ecology in Motion (`ch15_ecology`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Galápagos Ground Finches (*Geospiza fortis* & *G. magnirostris* with live morphing beaks), Pacific Sea Otters (*Enhydra lutris*), Purple Sea Urchins (*Strongylocentrotus purpuratus*) & Pacific Giant Kelp Fronds (*Macrocystis pyrifera*) | `atlas/src/3d/naturalistSpecimens.ts` & `atlas/src/chapters/ch15_ecology/EcologyScene3D.ts` | Original continuous-lofted meshes & 512×512 watercolour/sepia-ink Canvas PBR textures · MIT | Naturalist ecological plates illustrating Grant & Grant character displacement, Estes & Palmisano kelp trophic cascades, MacArthur–Wilson volcanic island biogeography, Ideal Free Distribution, and genetic rescue corridors. |
+
+---
+
 ## Planned External Open-Licence Scans (Upcoming Chapters)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

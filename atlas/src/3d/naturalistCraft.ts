@@ -271,8 +271,10 @@ export function createWatercolourTextures(
   return { map, bumpMap };
 }
 
+const NATURALIST_MAT_CACHE = new Map<string, THREE.MeshStandardMaterial>();
+
 /**
- * Creates a matte hand-illustrated natural-history watercolour material with
+ * Creates (or returns cached) matte hand-illustrated natural-history watercolour material with
  * subtle Fresnel sepia-ink silhouette rim darkening (matching iamtechartist.com/evolution!).
  */
 export function createNaturalistMaterial(
@@ -288,6 +290,24 @@ export function createNaturalistMaterial(
     inkStrength?: number;
   }
 ): THREE.MeshStandardMaterial {
+  const key = [
+    palette.base,
+    palette.wash,
+    palette.deep,
+    palette.highlight,
+    palette.ink ?? '#3b291a',
+    pattern,
+    options?.roughness ?? 0.84,
+    options?.bumpScale ?? 0.022,
+    options?.transparent ? 1 : 0,
+    options?.opacity ?? 1.0,
+    options?.side ?? THREE.FrontSide,
+    options?.inkStrength ?? 0.48,
+  ].join('|');
+
+  const cached = NATURALIST_MAT_CACHE.get(key);
+  if (cached) return cached;
+
   const { map, bumpMap } = createWatercolourTextures(palette, pattern, options?.seed ?? 1337);
   const inkColor = new THREE.Color(palette.ink ?? '#3b291a');
   const inkStrength = options?.inkStrength ?? 0.48;
@@ -322,6 +342,7 @@ export function createNaturalistMaterial(
   };
   mat.customProgramCacheKey = () => `naturalist_ink_${inkStrength.toFixed(2)}`;
 
+  NATURALIST_MAT_CACHE.set(key, mat);
   return mat;
 }
 

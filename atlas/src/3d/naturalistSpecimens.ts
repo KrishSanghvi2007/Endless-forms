@@ -19,7 +19,7 @@ import {
 export interface SongbirdOptions {
   dorsalPalette: WatercolourPalette;
   bellyPalette?: WatercolourPalette;
-  wingBars?: 1 | 2;
+  wingBars?: 0 | 1 | 2;
   beakDepth?: number; // 0.6 (slender warbler) .. 2.1 (crushing ground finch!)
   beakLength?: number;
   scale?: number;
@@ -943,4 +943,648 @@ export function createWhaleTransitionSkeleton3D(stage: number, scale = 1.0): THR
 
   return g;
 }
+
+// =============================================================================
+// 9. SCULPTED PACIFIC SEA OTTER (Enhydra lutris — Keystone Trophic Cascade)
+// =============================================================================
+
+export function createSeaOtter3D(scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  const furMat = createNaturalistMaterial(
+    { base: '#6e523c', wash: '#4f3827', deep: '#2e1e13', highlight: '#9c7c60', ink: '#1f130b' },
+    'fur',
+    { roughness: 0.9, bumpScale: 0.032, inkStrength: 0.52, seed: 901 }
+  );
+  const faceMat = createNaturalistMaterial(
+    { base: '#cfc1aa', wash: '#ad9c82', deep: '#786850', highlight: '#ede4d3', ink: '#423626' },
+    'fur',
+    { roughness: 0.9, bumpScale: 0.024, inkStrength: 0.45, seed: 902 }
+  );
+
+  // Continuous undulating otter torso floating gracefully on its back!
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.34, 0.56),   // Crown / head
+    new THREE.Vector3(0, 0.25, 0.30),   // Neck & chest
+    new THREE.Vector3(0, 0.22, -0.05),  // Torso
+    new THREE.Vector3(0, 0.20, -0.42),  // Pelvis
+    new THREE.Vector3(0, 0.16, -0.88),  // Broad rudder tail
+  ]);
+  const bodyGeo = createOrganicLoftGeometry(
+    spine,
+    (t) => {
+      const head = 0.165 * Math.exp(-Math.pow((t - 0.08) / 0.12, 2));
+      const trunk = 0.22 * Math.sin(Math.pow(Math.max(0, (t - 0.05) / 0.85), 0.72) * Math.PI);
+      const tail = 0.068 * Math.exp(-Math.pow((t - 0.88) / 0.18, 2));
+      return Math.max(0.035, Math.max(head, trunk, tail));
+    },
+    {
+      tubularSegs: 42,
+      radialSegs: 24,
+      aspectAt: (t) => [t > 0.75 ? 1.35 : 1.05, t > 0.75 ? 0.42 : 0.84],
+      noiseAmp: 0.022,
+    }
+  );
+  const body = new THREE.Mesh(bodyGeo, furMat);
+  body.castShadow = true;
+  g.add(body);
+
+  // Pale cream otter muzzle & dark button nose
+  const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.115, 16, 12), faceMat);
+  muzzle.scale.set(1.08, 0.85, 0.92);
+  muzzle.position.set(0, 0.41, 0.57);
+  g.add(muzzle);
+
+  const nose = new THREE.Mesh(
+    new THREE.SphereGeometry(0.038, 10, 8),
+    new THREE.MeshStandardMaterial({ color: 0x1e1815, roughness: 0.35 })
+  );
+  nose.scale.set(1.25, 0.85, 0.8);
+  nose.position.set(0, 0.46, 0.62);
+  g.add(nose);
+
+  // Rounded ears & expressive dark eyes
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x14100e, roughness: 0.15 });
+  for (const s of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.036, 10, 8), furMat);
+    ear.position.set(s * 0.135, 0.36, 0.48);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), eyeMat);
+    eye.position.set(s * 0.075, 0.44, 0.56);
+    // Folded forepaws resting on chest
+    const pawCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(s * 0.18, 0.24, 0.26),
+      new THREE.Vector3(s * 0.13, 0.36, 0.24),
+      new THREE.Vector3(s * 0.06, 0.39, 0.26),
+    ]);
+    const paw = new THREE.Mesh(
+      createOrganicLoftGeometry(pawCurve, () => 0.048, { tubularSegs: 12, radialSegs: 10 }),
+      furMat
+    );
+    paw.castShadow = true;
+    // Webbed hind flippers
+    const flipShape = new THREE.Shape();
+    flipShape.moveTo(0, 0);
+    flipShape.bezierCurveTo(0.08, 0.06, 0.18, 0.14, 0.14, 0.24);
+    flipShape.bezierCurveTo(0.04, 0.26, -0.06, 0.18, -0.04, 0);
+    const flipGeo = new THREE.ExtrudeGeometry(flipShape, { depth: 0.022, bevelEnabled: false });
+    flipGeo.rotateX(-Math.PI / 2);
+    const flip = new THREE.Mesh(flipGeo, furMat);
+    flip.position.set(s * 0.15, 0.18, -0.45);
+    flip.rotation.y = s * -0.45;
+    if (s === -1) flip.scale.x = -1;
+    g.add(ear, eye, paw, flip);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 10. SCULPTED PURPLE SEA URCHIN (Strongylocentrotus purpuratus)
+// =============================================================================
+
+export function createPurpleSeaUrchin3D(scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  const testMat = createNaturalistMaterial(
+    { base: '#6e4782', wash: '#4e2b61', deep: '#2c133b', highlight: '#b08ec2', ink: '#210d2e' },
+    'strata',
+    { roughness: 0.84, inkStrength: 0.55, seed: 911 }
+  );
+  const spineMat = createNaturalistMaterial(
+    { base: '#875c9e', wash: '#5e3875', deep: '#341945', highlight: '#cbb0db', ink: '#241030' },
+    'bone',
+    { roughness: 0.78, inkStrength: 0.48, seed: 912 }
+  );
+
+  // Flattened pentaradial calcareous test
+  const test = new THREE.Mesh(new THREE.SphereGeometry(0.26, 20, 14), testMat);
+  test.scale.set(1.0, 0.68, 1.0);
+  test.position.y = 0.2;
+  test.castShadow = true;
+  g.add(test);
+
+  // 44 Tapered radiating calcareous spines covering the upper hemisphere
+  const spineGeo = new THREE.ConeGeometry(0.017, 0.34, 6);
+  spineGeo.translate(0, 0.17, 0);
+  for (let i = 0; i < 44; i++) {
+    const phi = Math.acos(1 - (i + 0.5) / 56); // Upper 78% of sphere
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    const dir = new THREE.Vector3(
+      Math.sin(phi) * Math.cos(theta),
+      Math.cos(phi),
+      Math.sin(phi) * Math.sin(theta)
+    );
+    const sp = new THREE.Mesh(spineGeo, spineMat);
+    sp.position.set(dir.x * 0.22, 0.2 + dir.y * 0.15, dir.z * 0.22);
+    sp.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    sp.castShadow = true;
+    g.add(sp);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 11. SCULPTED PACIFIC GIANT KELP FROND (Macrocystis pyrifera)
+// =============================================================================
+
+export function createGiantKelpFrond3D(heightFactor = 1.0, scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+  const h = Math.max(0.25, heightFactor);
+
+  const kelpMat = createNaturalistMaterial(
+    { base: '#6e8c45', wash: '#4e6b2a', deep: '#2d4214', highlight: '#b0c975', ink: '#22330e' },
+    'kelp',
+    { roughness: 0.76, side: THREE.DoubleSide, inkStrength: 0.48, seed: 921 }
+  );
+  const bladderMat = createNaturalistMaterial(
+    { base: '#b8963c', wash: '#8f6e1e', deep: '#573f0a', highlight: '#e6cf7e' },
+    'fruit',
+    { roughness: 0.72, inkStrength: 0.45, seed: 922 }
+  );
+
+  // Sinuous rising kelp stipe
+  const stipeCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0.14, 0.55 * h, 0.08),
+    new THREE.Vector3(-0.12, 1.15 * h, -0.06),
+    new THREE.Vector3(0.08, 1.75 * h, 0.04),
+  ]);
+  const stipe = new THREE.Mesh(
+    createOrganicLoftGeometry(stipeCurve, (t) => 0.028 * (1 - t * 0.45), { tubularSegs: 28, radialSegs: 10 }),
+    kelpMat
+  );
+  stipe.castShadow = true;
+  g.add(stipe);
+
+  // Ruffled botanical blades + golden pneumatocyst gas bladders along the stipe!
+  const bShape = new THREE.Shape();
+  bShape.moveTo(0, 0);
+  bShape.bezierCurveTo(0.14, 0.15, 0.16, 0.48, 0.06, 0.78);
+  bShape.lineTo(0, 0.92);
+  bShape.lineTo(-0.06, 0.78);
+  bShape.bezierCurveTo(-0.16, 0.48, -0.14, 0.15, 0, 0);
+  const bGeo = new THREE.ExtrudeGeometry(bShape, { depth: 0.008, bevelEnabled: false });
+  bGeo.rotateX(-Math.PI / 2);
+  const pos = bGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const z = pos.getZ(i);
+    pos.setY(i, pos.getY(i) + Math.sin(z * 11) * 0.032);
+  }
+  bGeo.computeVertexNormals();
+
+  const nBlades = Math.max(3, Math.round(h * 8));
+  for (let i = 1; i <= nBlades; i++) {
+    const f = i / (nBlades + 0.5);
+    const pt = stipeCurve.getPointAt(f);
+    const ang = i * 2.2;
+    const bladder = new THREE.Mesh(new THREE.SphereGeometry(0.042, 10, 8), bladderMat);
+    bladder.scale.set(0.85, 1.25, 0.85);
+    bladder.position.set(pt.x + Math.cos(ang) * 0.05, pt.y, pt.z + Math.sin(ang) * 0.05);
+    g.add(bladder);
+
+    const blade = new THREE.Mesh(bGeo, kelpMat);
+    blade.position.copy(bladder.position);
+    blade.rotation.set(0.32, ang, 0.18);
+    blade.scale.setScalar(0.65 + (1 - f) * 0.35);
+    blade.castShadow = true;
+    g.add(blade);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 12. SCULPTED CONJUGATING BACTERIA + SEX PILUS + CIRCULAR R-PLASMID (Plate 16)
+// =============================================================================
+
+export function createConjugatingBacteria3D(
+  transferProgress = 0.6,
+  resistantLevel = 0.5,
+  scale = 1.0
+): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  const donorMat = createNaturalistMaterial(
+    { base: '#c98a5b', wash: '#a66238', deep: '#633318', highlight: '#f0c59e', ink: '#42200e' },
+    'membrane',
+    { roughness: 0.72, transparent: true, opacity: 0.88, inkStrength: 0.55, seed: 951 }
+  );
+  const recipBase = resistantLevel > 0.55 ? '#c4926c' : '#85a68e';
+  const recipWash = resistantLevel > 0.55 ? '#9c6844' : '#5e8268';
+  const recipMat = createNaturalistMaterial(
+    { base: recipBase, wash: recipWash, deep: '#354f3d', highlight: '#c7decb', ink: '#24382b' },
+    'membrane',
+    { roughness: 0.74, transparent: true, opacity: 0.88, inkStrength: 0.55, seed: 952 }
+  );
+  const plasmidMat = createNaturalistMaterial(
+    { base: '#e0a838', wash: '#ba7e18', deep: '#754b06', highlight: '#fce08b', ink: '#4a2e04' },
+    'keratin',
+    { roughness: 0.52, inkStrength: 0.45, seed: 953 }
+  );
+  const dnaMat = createNaturalistMaterial(
+    { base: '#5a6e82', wash: '#3f5163', deep: '#243240', highlight: '#94abc2' },
+    'keratin',
+    { roughness: 0.8, inkStrength: 0.38, seed: 954 }
+  );
+  const pilusMat = createNaturalistMaterial(
+    { base: '#cbb894', wash: '#a38d65', deep: '#6b5839', highlight: '#ebe0c7' },
+    'keratin',
+    { roughness: 0.82, inkStrength: 0.42, seed: 955 }
+  );
+
+  const buildBacillus = (
+    xOffset: number,
+    yaw: number,
+    mat: THREE.Material,
+    hasPlasmid: boolean,
+    flagDir: number
+  ) => {
+    const bGroup = new THREE.Group();
+    bGroup.position.set(xOffset, 0.58, 0);
+    bGroup.rotation.y = yaw;
+
+    // Slightly curved organic rod body (naturalist bacillus, not rigid pill!)
+    const rodCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.72, -0.02, 0.04),
+      new THREE.Vector3(-0.24, 0.03, -0.02),
+      new THREE.Vector3(0.24, 0.02, -0.02),
+      new THREE.Vector3(0.72, -0.03, 0.05),
+    ]);
+    const rodGeo = createOrganicLoftGeometry(
+      rodCurve,
+      (t) => 0.30 * Math.pow(Math.sin(t * Math.PI), 0.36),
+      { tubularSegs: 36, radialSegs: 24, noiseAmp: 0.015 }
+    );
+    const body = new THREE.Mesh(rodGeo, mat);
+    body.castShadow = true;
+    body.receiveShadow = true;
+    bGroup.add(body);
+
+    // Internal tangled chromosomal nucleoid loop
+    const nucPts: THREE.Vector3[] = [];
+    for (let i = 0; i <= 16; i++) {
+      const a = (i / 16) * Math.PI * 2;
+      nucPts.push(
+        new THREE.Vector3(
+          Math.cos(a) * 0.34,
+          Math.sin(a * 2) * 0.09,
+          Math.sin(a) * 0.11
+        )
+      );
+    }
+    const nucCurve = new THREE.CatmullRomCurve3(nucPts, true);
+    const nuc = new THREE.Mesh(
+      createOrganicLoftGeometry(nucCurve, () => 0.026, { tubularSegs: 42, radialSegs: 8 }),
+      dnaMat
+    );
+    bGroup.add(nuc);
+
+    // Circular golden R-plasmid inside donor (or recipient after transfer!)
+    if (hasPlasmid) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.026, 10, 26), plasmidMat);
+      ring.position.set(flagDir * -0.28, 0.04, 0.12);
+      ring.rotation.set(0.3, 0.4, 0.2);
+      bGroup.add(ring);
+    }
+
+    // 3 Delicate undulating flagella streaming from the outer pole
+    for (let f = -1; f <= 1; f++) {
+      const fCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(flagDir * 0.68, f * 0.06, 0.04),
+        new THREE.Vector3(flagDir * 1.15, f * 0.14 + 0.05, 0.12 * f),
+        new THREE.Vector3(flagDir * 1.62, f * 0.04 - 0.06, -0.08 * f),
+        new THREE.Vector3(flagDir * 2.05, f * 0.12 + 0.04, 0.06 * f),
+      ]);
+      const flag = new THREE.Mesh(
+        createOrganicLoftGeometry(fCurve, (t) => 0.015 * (1 - t * 0.6), {
+          tubularSegs: 24,
+          radialSegs: 6,
+        }),
+        pilusMat
+      );
+      flag.castShadow = true;
+      bGroup.add(flag);
+    }
+
+    return bGroup;
+  };
+
+  // Left: Donor F+ bacterium; Right: Recipient F- bacterium
+  g.add(buildBacillus(-1.28, 0.12, donorMat, true, -1));
+  g.add(buildBacillus(1.28, -0.12, recipMat, transferProgress > 0.72, 1));
+
+  // Delicate arched conjugative sex pilus bridge connecting donor -> recipient
+  const pilusCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.62, 0.60, 0.05),
+    new THREE.Vector3(-0.18, 0.78, 0.16),
+    new THREE.Vector3(0.22, 0.76, 0.14),
+    new THREE.Vector3(0.62, 0.60, 0.05),
+  ]);
+  const pilus = new THREE.Mesh(
+    createOrganicLoftGeometry(pilusCurve, () => 0.038, { tubularSegs: 28, radialSegs: 10 }),
+    pilusMat
+  );
+  pilus.castShadow = true;
+  g.add(pilus);
+
+  // Moving circular R-plasmid travelling along the pilus bridge!
+  if (transferProgress > 0.05) {
+    const pt = pilusCurve.getPointAt(Math.max(0.08, Math.min(0.92, transferProgress)));
+    const transferRing = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.032, 10, 24), plasmidMat);
+    transferRing.position.copy(pt);
+    transferRing.rotation.y = Math.PI / 2;
+    transferRing.castShadow = true;
+    g.add(transferRing);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 13. SCULPTED CLONAL CANCER TUMOUR SPECIMEN (Sensitive vs Resistant Clones)
+// =============================================================================
+
+export function createTumourClonalSphere3D(
+  sensitiveShare = 0.7,
+  resistantShare = 0.3,
+  totalBurden = 0.7,
+  scale = 1.0
+): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  const stromaMat = createNaturalistMaterial(
+    { base: '#e6d6c3', wash: '#ccb59d', deep: '#8c7258', highlight: '#f7eee4' },
+    'membrane',
+    { roughness: 0.9, inkStrength: 0.42, seed: 960 }
+  );
+  const sensMat = createNaturalistMaterial(
+    { base: '#5f8f96', wash: '#3f6e75', deep: '#214247', highlight: '#a3cdd4', ink: '#183033' },
+    'membrane',
+    { roughness: 0.76, inkStrength: 0.56, seed: 961 }
+  );
+  const resMat = createNaturalistMaterial(
+    { base: '#b83c48', wash: '#8c222d', deep: '#520f17', highlight: '#e88b94', ink: '#3b0910' },
+    'membrane',
+    { roughness: 0.72, inkStrength: 0.58, seed: 962 }
+  );
+  const vesselMat = createNaturalistMaterial(
+    { base: '#a6414c', wash: '#7a252f', deep: '#4a1118', highlight: '#d9848d' },
+    'keratin',
+    { roughness: 0.7, inkStrength: 0.45, seed: 963 }
+  );
+
+  // Soft curved stromal tissue bed on rag paper
+  const bed = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.72, 0.16, 36), stromaMat);
+  bed.position.y = 0.08;
+  bed.receiveShadow = true;
+  bed.castShadow = true;
+  g.add(bed);
+
+  // Sculpted organic lobulated tumour cell cluster (Fibonacci sphere + radial size by burden)
+  const cellCount = Math.max(12, Math.round(18 + totalBurden * 28));
+  const resCount = Math.round(cellCount * Math.max(0, Math.min(1, resistantShare)));
+  const clusterR = 0.48 + totalBurden * 0.52;
+
+  const baseCellGeo = new THREE.IcosahedronGeometry(0.24, 2);
+  const pos = baseCellGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const bump = 1 + 0.08 * Math.sin(x * 16 + y * 12) * Math.cos(z * 14);
+    pos.setXYZ(i, x * bump, y * bump, z * bump);
+  }
+  baseCellGeo.computeVertexNormals();
+
+  for (let i = 0; i < cellCount; i++) {
+    const isResistant = i < resCount;
+    const phi = Math.acos(1 - (2 * (i + 0.5)) / cellCount);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    const r = clusterR * (0.45 + 0.55 * ((i * 7) % 11) / 10);
+    const cell = new THREE.Mesh(baseCellGeo, isResistant ? resMat : sensMat);
+    const cy = Math.max(0.24, 0.65 + Math.cos(phi) * r * 0.72);
+    cell.position.set(
+      Math.sin(phi) * Math.cos(theta) * r * 1.08 + (isResistant ? 0.14 : -0.06),
+      cy,
+      Math.sin(phi) * Math.sin(theta) * r * 0.95
+    );
+    cell.scale.setScalar(0.75 + ((i * 13) % 7) * 0.08);
+    cell.rotation.set(i * 0.7, i * 1.1, i * 0.5);
+    cell.castShadow = true;
+    cell.receiveShadow = true;
+    g.add(cell);
+  }
+
+  // Feeding angiogenic micro-capillaries curving across the stroma into the tumour
+  for (let v = 0; v < 3; v++) {
+    const ang = v * 2.1 + 0.4;
+    const vCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(Math.cos(ang) * 1.48, 0.17, Math.sin(ang) * 1.48),
+      new THREE.Vector3(Math.cos(ang + 0.25) * 0.98, 0.22, Math.sin(ang + 0.25) * 0.98),
+      new THREE.Vector3(Math.cos(ang + 0.1) * 0.48, 0.36, Math.sin(ang + 0.1) * 0.48),
+    ]);
+    const cap = new THREE.Mesh(
+      createOrganicLoftGeometry(vCurve, (t) => 0.032 * (1 - t * 0.45), {
+        tubularSegs: 16,
+        radialSegs: 8,
+      }),
+      vesselMat
+    );
+    cap.castShadow = true;
+    g.add(cap);
+  }
+
+  // Keep reference to sensitiveShare for future extensions (avoids unused warning)
+  g.userData.sensitiveShare = sensitiveShare;
+  return g;
+}
+
+// =============================================================================
+// 14. SCULPTED MORPHING HOMININ CRANIUM OSTEOLOGY (A. afarensis -> H. sapiens)
+// =============================================================================
+
+export function createHomininCranium3D(
+  stage = 1.0,
+  isNeanderthal = false,
+  scale = 1.0
+): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  // Fossil patina subtly shifts from warm Miocene-Pliocene ochre -> ivory parchment bone
+  const boneMat = createNaturalistMaterial(
+    stage < 0.45
+      ? { base: '#d9c49e', wash: '#b89f76', deep: '#755f3e', highlight: '#f2e5cb', ink: '#473620' }
+      : { base: '#e8dec8', wash: '#cfc1a3', deep: '#8a7b5d', highlight: '#f7f2e6', ink: '#4a3f2d' },
+    'bone',
+    { roughness: 0.84, bumpScale: 0.025, inkStrength: 0.56, seed: 971 + Math.round(stage * 10) }
+  );
+  const cavityMat = createNaturalistMaterial(
+    { base: '#3d3228', wash: '#261e17', deep: '#120e0a', highlight: '#5c4e40' },
+    'strata',
+    { roughness: 0.96, inkStrength: 0.2, seed: 972 }
+  );
+  const toothMat = createNaturalistMaterial(
+    { base: '#f5efe0', wash: '#e0d5ba', deep: '#9e9072', highlight: '#fffdf7' },
+    'keratin',
+    { roughness: 0.55, inkStrength: 0.35, seed: 973 }
+  );
+
+  // Morph parameters (0 = A. afarensis, 0.36 = H. erectus, 0.68+neand = Neanderthal, 1.0 = H. sapiens)
+  const brainScaleY = isNeanderthal ? 0.94 : 0.72 + stage * 0.38; // Globular high dome in sapiens!
+  const brainScaleZ = isNeanderthal ? 1.24 : 0.86 + stage * 0.24; // Elongated + occipital bun in Neanderthal
+  const brainScaleX = isNeanderthal ? 1.08 : 0.80 + stage * 0.24;
+  const prognathism = isNeanderthal ? 0.18 : 0.44 * (1 - stage); // Jaw sticks forward in afarensis, retracts in sapiens
+  const browSize = isNeanderthal ? 0.145 : 0.135 * (1 - stage * 0.72); // Prominent double brow in archaic taxa
+  const chinProj = isNeanderthal ? 0.01 : Math.max(0, (stage - 0.65) * 0.32); // True mental eminence ONLY in sapiens!
+
+  // 1. Sculpted Neurocranium Vault (deformed high-res sphere with parietal bossing & occipital contour)
+  const vaultGeo = new THREE.SphereGeometry(0.76, 36, 28);
+  const vPos = vaultGeo.attributes.position;
+  for (let i = 0; i < vPos.count; i++) {
+    let x = vPos.getX(i);
+    let y = vPos.getY(i);
+    let z = vPos.getZ(i);
+
+    x *= brainScaleX;
+    y *= brainScaleY;
+    z *= brainScaleZ;
+
+    // Vertical forehead rise in H. sapiens vs sloping frontal in early hominins
+    if (z > 0.25 && y > 0.05) {
+      const slopePull = (1 - stage) * 0.18 * (y / 0.75);
+      z -= slopePull;
+    }
+    // Distinct occipital bun in H. neanderthalensis!
+    if (isNeanderthal && z < -0.55 && Math.abs(y) < 0.28) {
+      z -= 0.14 * Math.exp(-Math.pow(y / 0.22, 2));
+    }
+    // Taper cranial base smoothly toward foramen magnum
+    if (y < -0.25) {
+      const basePinch = 1 - Math.abs(y + 0.25) * 0.42;
+      x *= Math.max(0.55, basePinch);
+    }
+    vPos.setXYZ(i, x, y, z);
+  }
+  vaultGeo.computeVertexNormals();
+  const vault = new THREE.Mesh(vaultGeo, boneMat);
+  vault.position.set(0, 1.05, -0.14);
+  vault.castShadow = true;
+  vault.receiveShadow = true;
+  g.add(vault);
+
+  // 2. Continuous Sculpted Supraorbital Brow Torus (double-arched in Neanderthal/erectus!)
+  const browCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.48 * brainScaleX, 1.04, 0.56),
+    new THREE.Vector3(-0.22, 1.11 + browSize * 0.3, 0.66 + browSize * 0.5),
+    new THREE.Vector3(0, 1.07, 0.65 + browSize * 0.35),
+    new THREE.Vector3(0.22, 1.11 + browSize * 0.3, 0.66 + browSize * 0.5),
+    new THREE.Vector3(0.48 * brainScaleX, 1.04, 0.56),
+  ]);
+  const brow = new THREE.Mesh(
+    createOrganicLoftGeometry(browCurve, (t) => browSize * (0.65 + 0.35 * Math.sin(t * Math.PI)), {
+      tubularSegs: 26,
+      radialSegs: 12,
+      aspectAt: () => [1.15, 0.82],
+    }),
+    boneMat
+  );
+  brow.castShadow = true;
+  g.add(brow);
+
+  // 3. Facial Skeleton (Maxilla & Cheekbones) + Recessed Eye Orbits + Nasal Piriform Aperture
+  const faceGeo = new THREE.SphereGeometry(0.46, 24, 20);
+  faceGeo.scale(0.92, 0.88, 0.85 + prognathism * 0.75);
+  const face = new THREE.Mesh(faceGeo, boneMat);
+  face.position.set(0, 0.72, 0.42 + prognathism * 0.55);
+  face.castShadow = true;
+  g.add(face);
+
+  // Recessed dark eye sockets framed by orbital rims
+  for (const s of [-1, 1]) {
+    const orbit = new THREE.Mesh(new THREE.SphereGeometry(0.165, 16, 12), cavityMat);
+    orbit.scale.set(1.08, 0.92, 0.75);
+    orbit.position.set(s * 0.24, 0.93, 0.64 + prognathism * 0.15);
+    g.add(orbit);
+
+    // Swept zygomatic arch connecting cheekbone to temporal bone
+    const zygCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(s * 0.34, 0.76, 0.58 + prognathism * 0.2),
+      new THREE.Vector3(s * (0.56 + (1 - stage) * 0.1), 0.74, 0.24),
+      new THREE.Vector3(s * 0.54 * brainScaleX, 0.78, -0.18),
+    ]);
+    const zyg = new THREE.Mesh(
+      createOrganicLoftGeometry(zygCurve, () => 0.055, {
+        tubularSegs: 18,
+        radialSegs: 8,
+        aspectAt: () => [0.68, 1.35],
+      }),
+      boneMat
+    );
+    zyg.castShadow = true;
+    g.add(zyg);
+  }
+
+  // Piriform nasal cavity
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.24, 8), cavityMat);
+  nose.position.set(0, 0.76, 0.78 + prognathism * 0.42);
+  nose.rotation.x = 0.22;
+  g.add(nose);
+
+  // 4. Articulated Mandible (Jawbone U-arch + Ascending Ramus + True Chin in H. sapiens!)
+  const jawZ = 0.68 + prognathism * 0.88 + chinProj * 0.45;
+  const mandCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.44, 0.74, 0.02),
+    new THREE.Vector3(-0.40, 0.38, 0.14),
+    new THREE.Vector3(-0.24, 0.26, jawZ * 0.82),
+    new THREE.Vector3(0, 0.24, jawZ),
+    new THREE.Vector3(0.24, 0.26, jawZ * 0.82),
+    new THREE.Vector3(0.40, 0.38, 0.14),
+    new THREE.Vector3(0.44, 0.74, 0.02),
+  ]);
+  const mandible = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      mandCurve,
+      (t) => 0.095 + 0.03 * Math.sin(t * Math.PI),
+      { tubularSegs: 36, radialSegs: 12, aspectAt: () => [0.75, 1.32] }
+    ),
+    boneMat
+  );
+  mandible.castShadow = true;
+  mandible.receiveShadow = true;
+  g.add(mandible);
+
+  // Sculpted projecting chin (mental eminence) unique to Homo sapiens!
+  if (chinProj > 0.02) {
+    const chin = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), boneMat);
+    chin.scale.set(1.25, 0.9, 1.1);
+    chin.position.set(0, 0.20, jawZ + chinProj * 0.52);
+    chin.castShadow = true;
+    g.add(chin);
+  }
+
+  // Upper & lower ivory dental arcade (subtle curved row of teeth!)
+  for (let t = -3; t <= 3; t++) {
+    const ang = t * 0.24;
+    const tx = Math.sin(ang) * 0.26;
+    const tz = 0.52 + prognathism * 0.75 + Math.cos(ang) * 0.24;
+    const toothU = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.075, 0.045), toothMat);
+    toothU.position.set(tx, 0.44, tz);
+    toothU.rotation.y = ang;
+    const toothL = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.068, 0.042), toothMat);
+    toothL.position.set(tx * 0.94, 0.36, tz - 0.02);
+    toothL.rotation.y = ang;
+    g.add(toothU, toothL);
+  }
+
+  return g;
+}
+
+
 
