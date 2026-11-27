@@ -332,4 +332,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Compare additive, magnitude, sign, and reciprocal sign epistasis on a 3D fitness cube, trace Weinreich’s 18/120 accessible β-lactamase pathways, bend evolutionary response via Lande’s Δz̄ = Gβ, contrast Mendelian vs polygenic GWAS skylines, and visualize antagonistic pleiotropy trade-offs.',
   },
+  {
+    id: 'cooperation',
+    number: 24,
+    tabLabel: '24',
+    section: 'RECIPROCITY, EUSOCIALITY & MUTUALISMS',
+    title: 'Reciprocity, Eusociality & Mutualisms',
+    subtitle: 'Vampire bat blood debts, image scoring, Boomsma monogamy, legume host sanctions & symbionts',
+    organism: 'Roosting vampire bats, honeybee comb, clover root nodules & pea aphids',
+    accent: '#8a5236',
+    available: true,
+    actTag: 'Part VIII · Social & Mutualistic Evolution',
+    summary:
+      'Model Axelrod’s shadow of the future and Generous TFT with roosting vampire bats, explore indirect reputation halos, unlock eusociality via Boomsma’s monogamy window, enforce legume host sanctions against cheater Rhizobia, and compare vertical vs horizontal symbionts.',
+  },
 ];

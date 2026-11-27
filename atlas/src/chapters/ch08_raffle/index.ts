@@ -9,6 +9,8 @@ import {
   computeBateman,
   computeFisherSexRatio,
   computeGuppyBalance,
+  computeHamiltonLmc,
+  computeParkerAnisogamy,
   computeSenescence,
   computeSpermRaffle,
 } from './raffleMath';
@@ -227,13 +229,14 @@ export const CH08_RAFFLE: AtlasChapter = {
     (plateStageEl.querySelector('#rf-reset') as HTMLElement).addEventListener('click', () => scene.resetView());
 
     let currentStep = 0;
-    let osr = 2.2;
-    let predation = 0.2;
+    let osr = 2.6;
+    let zygoteBeta = 1.8;
+    let predation = 0.25;
     let femPref = 0.85;
     let copMin = 41;
     let maleFrac = 0.25;
-    let extMort = 0.12;
-
+    let lmcFoundresses = 1;
+    let extMort = 0.14;
     const answers: Record<string, string> = {};
     let stamped = false;
 
@@ -243,8 +246,9 @@ export const CH08_RAFFLE: AtlasChapter = {
 
       if (pageId === 'bateman') {
         const res = computeBateman(osr);
+        const pbs = computeParkerAnisogamy(zygoteBeta);
         scene.updateBateman(res);
-        captionEl.textContent = 'Plate VIII.1 · Anisogamy & Bateman Gradients';
+        captionEl.textContent = `Plate VIII.1 · ${pbs.isAnisogamous ? 'Anisogamy (PBS β > 1)' : 'Isogamy (β ≤ 1)'} & Bateman Gradients`;
         legendEl.innerHTML = `
           <span><i class="hwe-dot" style="background:#f4c752"></i>Nutrient-Rich Ovum</span>
           <span><i class="hwe-dot" style="background:#2f658e"></i>Male Gradient / Sperm</span>
@@ -253,25 +257,34 @@ export const CH08_RAFFLE: AtlasChapter = {
         leftPanelEl.innerHTML = `
           <div class="lic-controls-wrap">
             <div class="hwe-card">
-              <div class="hwe-kicker">Operational Sex Ratio (Receptive ♂ : ♀)</div>
+              <div class="hwe-kicker">1. Parker–Baker–Smith (1972): Origin of Anisogamy</div>
+              <label style="display:block;font-size:0.84rem;">
+                Zygote Size-Survival Exponent β = <strong>${zygoteBeta.toFixed(1)}</strong>
+                <input type="range" id="rf-pbs" min="0.6" max="2.2" step="0.1" value="${zygoteBeta}" style="width:100%;" />
+              </label>
+              <p style="font-size:11.5px;margin:4px 0 0;color:#4a4033;line-height:1.4;">${pbs.summary}</p>
+            </div>
+            <div class="hwe-card">
+              <div class="hwe-kicker">2. Operational Sex Ratio (Receptive ♂ : ♀)</div>
               <label style="display:block;font-size:0.84rem;">
                 OSR = <strong>${osr.toFixed(1)} : 1</strong>
                 <input type="range" id="rf-osr" min="0.3" max="4.0" step="0.1" value="${osr}" style="width:100%;" />
               </label>
-              <div class="lic-stat-row" style="margin-top:8px;">
+              <div class="lic-stat-row" style="margin-top:6px;">
                 <span class="hwe-stat-badge">♂ Slope: ${res.maleSlope.toFixed(2)}</span>
                 <span class="hwe-stat-badge">♀ Slope: ${res.femaleSlope.toFixed(2)}</span>
               </div>
-              <div class="lic-mode-grid" style="grid-template-columns:1fr 1fr;margin-top:8px;">
+              <div class="lic-mode-grid" style="grid-template-columns:1fr 1fr;margin-top:6px;">
                 <button class="lic-pill-btn ${osr < 0.8 ? 'active' : ''}" id="rf-pipefish">Pipefish (0.4)</button>
                 <button class="lic-pill-btn ${osr > 2.5 ? 'active' : ''}" id="rf-seal">Elephant Seal (3.5)</button>
               </div>
             </div>
-            <div class="lic-formula-card">
-              <p style="margin:0;line-height:1.45;"><strong>Bateman’s Principle:</strong> The sex that invests less per offspring re-enters the mating pool faster (higher OSR), creating steeper variance in mating success—and reversing completely when males brood young!</p>
-            </div>
           </div>
         `;
+        leftPanelEl.querySelector('#rf-pbs')?.addEventListener('input', (e) => {
+          zygoteBeta = Number((e.target as HTMLInputElement).value);
+          renderPage();
+        });
         leftPanelEl.querySelector('#rf-osr')?.addEventListener('input', (e) => {
           osr = Number((e.target as HTMLInputElement).value);
           renderPage();
@@ -311,7 +324,7 @@ export const CH08_RAFFLE: AtlasChapter = {
               </div>
             </div>
             <div class="lic-formula-card">
-              <p style="margin:0;line-height:1.45;"><strong>Opposing Selection:</strong> Bright carotenoid spots win mates (mating edge ${res.matingAdvantage.toFixed(2)}×) via sensory bias &amp; good-genes foraging vigour, yet draw visual predators in downstream pools.</p>
+              <p style="margin:0;line-height:1.45;"><strong>Opposing Selection &amp; Chase-Away Conflict:</strong> Bright carotenoid spots win mates (${res.matingAdvantage.toFixed(2)}×), yet can also spark <em>interlocus sexual conflict</em> (Holland &amp; Rice 1998) when male persistence lowers female fitness, driving female resistance!</p>
             </div>
           </div>
         `;
@@ -355,8 +368,9 @@ export const CH08_RAFFLE: AtlasChapter = {
         });
       } else if (pageId === 'fisher') {
         const res = computeFisherSexRatio(maleFrac);
+        const lmc = computeHamiltonLmc(lmcFoundresses);
         scene.updateFisher(res);
-        captionEl.textContent = 'Plate VIII.4 · Fisher’s 1:1 Sex-Ratio Balance';
+        captionEl.textContent = 'Plate VIII.4 · Fisher 1:1 Balance & Hamilton Local Mate Competition';
         legendEl.innerHTML = `
           <span><i class="hwe-dot" style="background:#f05a1e"></i>Sons (♂)</span>
           <span><i class="hwe-dot" style="background:#9aa392"></i>Daughters (♀)</span>
@@ -364,19 +378,24 @@ export const CH08_RAFFLE: AtlasChapter = {
         leftPanelEl.innerHTML = `
           <div class="lic-controls-wrap">
             <div class="hwe-card">
-              <div class="hwe-kicker">Population Offspring Sex Ratio</div>
+              <div class="hwe-kicker">1. Panmictic Fisher (1930) Sex-Ratio Balance</div>
               <label style="display:block;font-size:0.84rem;">
                 Fraction Sons = <strong>${(maleFrac * 100).toFixed(0)}%</strong>
                 <input type="range" id="rf-mf" min="0.10" max="0.90" step="0.05" value="${maleFrac}" style="width:100%;" />
               </label>
-              <div class="lic-stat-row" style="margin-top:8px;">
+              <div class="lic-stat-row" style="margin-top:6px;">
                 <span class="hwe-stat-badge">Son Payoff: ${res.sonPayoff.toFixed(2)}×</span>
                 <span class="hwe-stat-badge">Daughter: ${res.daughterPayoff.toFixed(2)}×</span>
               </div>
-              <button class="lic-btn primary" id="rf-step-fisher" style="width:100%;margin-top:8px;">Evolve 1 Generation →</button>
+              <button class="lic-btn primary" id="rf-step-fisher" style="width:100%;margin-top:6px;">Evolve 1 Generation →</button>
             </div>
-            <div class="lic-formula-card">
-              <p style="margin:0;line-height:1.45;"><strong>Fisher (1930):</strong> Because total male reproductive output must equal total female output, a rare sex yields strictly higher per-capita grand-offspring—pulling parental investment back to <strong>1:1</strong>.</p>
+            <div class="hwe-card">
+              <div class="hwe-kicker">2. Hamilton (1967) Local Mate Competition (Fig Wasps)</div>
+              <label style="display:block;font-size:0.84rem;">
+                Foundress Mothers in Fig n = <strong>${lmcFoundresses}</strong> → Optimal Sons = <strong>${(lmc.optimalSonFrac * 100).toFixed(0)}%</strong>
+                <input type="range" id="rf-lmc" min="1" max="15" step="1" value="${lmcFoundresses}" style="width:100%;" />
+              </label>
+              <p style="font-size:11px;margin:4px 0 0;color:#4a4033;line-height:1.4;">${lmc.summary}</p>
             </div>
           </div>
         `;
@@ -388,10 +407,14 @@ export const CH08_RAFFLE: AtlasChapter = {
           maleFrac = Number(res.nextGenMaleFraction.toFixed(2));
           renderPage();
         });
+        leftPanelEl.querySelector('#rf-lmc')?.addEventListener('input', (e) => {
+          lmcFoundresses = Number((e.target as HTMLInputElement).value);
+          renderPage();
+        });
       } else if (pageId === 'opossums') {
         const res = computeSenescence(extMort);
         scene.updateOpossums(res);
-        captionEl.textContent = 'Plate VIII.5 · Slow Island Opossums & Evolution of Ageing';
+        captionEl.textContent = 'Plate VIII.5 · Slow Island Opossums (See Plate 19 for Full Ageing Theory!)';
         legendEl.innerHTML = `
           <span><i class="hwe-dot" style="background:#2f7d6e"></i>Strong Early Selection</span>
           <span><i class="hwe-dot" style="background:#c4483a"></i>Selection Shadow (Late Age)</span>
@@ -414,7 +437,7 @@ export const CH08_RAFFLE: AtlasChapter = {
               </div>
             </div>
             <div class="lic-formula-card">
-              <p style="margin:0;line-height:1.45;"><strong>Medawar &amp; Williams:</strong> High predation casts a "selection shadow" over old age—late-acting mutations accumulate and early reproduction beats somatic repair.</p>
+              <p style="margin:0;line-height:1.45;"><strong>Medawar &amp; Williams:</strong> High predation casts a "selection shadow" over old age. Explore Kirkwood’s Disposable Soma, Lack’s clutch size &amp; parity in full depth on <strong>Plate 19 (Ageing &amp; Life Histories)</strong>!</p>
             </div>
           </div>
         `;

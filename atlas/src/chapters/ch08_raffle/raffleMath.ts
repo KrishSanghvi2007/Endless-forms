@@ -122,3 +122,52 @@ export function computeSenescence(extrinsicMortality: number): SenescenceResult 
     litterSize,
   };
 }
+
+export interface AnisogamyOriginResult {
+  zygoteSteepness: number; // PBS exponent beta: <=1 favors isogamy, >1 triggers disruptive split into tiny sperm + huge eggs!
+  isAnisogamous: boolean;
+  summary: string;
+}
+
+/**
+ * Parker, Baker & Smith (1972) Disruptive Selection Evolution of Anisogamy from Isogamy:
+ * Under a fixed gamete resource budget M = n*m, when zygote survival scales steeply with
+ * total volume S(v) ~ v^beta (beta > 1), intermediate gametes are outcompeted by both tiny
+ * abundant microgametes (sperm) and huge well-provisioned macrogametes (eggs)!
+ */
+export function computeParkerAnisogamy(zygoteSteepness: number): AnisogamyOriginResult {
+  const b = Math.max(0.5, Math.min(2.4, zygoteSteepness));
+  const isAnisogamous = b > 1.15;
+  return {
+    zygoteSteepness: b,
+    isAnisogamous,
+    summary: isAnisogamous
+      ? `Disruptive Selection Active (β = ${b.toFixed(1)} > 1): Intermediate isogametes lose to BOTH tiny abundant sperm AND large nutrient-rich eggs — splitting ancestral isogamy into two sexes (Parker–Baker–Smith 1972)!`
+      : `Isogamy Stable (β = ${b.toFixed(1)} ≤ 1): Mild size-survival scaling keeps equal-sized gametes (e.g., unicellular green algae Chlamydomonas) stable.`,
+  };
+}
+
+export interface LmcResult {
+  foundressN: number; // Number of mother fig wasps laying eggs inside one syconium (1..20)
+  optimalSonFrac: number; // Hamilton (1967): (n - 1) / (2n)
+  summary: string;
+}
+
+/**
+ * Hamilton (1967) Local Mate Competition (LMC) in Fig Wasps:
+ * When brothers mate solely with sisters inside a closed fig, producing excess sons wastes
+ * resources on brother–brother competition! Optimal son fraction = (n - 1) / (2n).
+ */
+export function computeHamiltonLmc(foundressN: number): LmcResult {
+  const n = Math.max(1, Math.min(20, Math.round(foundressN)));
+  const raw = (n - 1) / (2 * n);
+  const optimalSonFrac = n === 1 ? 0.08 : raw; // 1 foundress still needs a few sons (~8%) to fertilize all sisters!
+  return {
+    foundressN: n,
+    optimalSonFrac,
+    summary:
+      n === 1
+        ? 'Single Fig-Wasp Foundress (n = 1): Brothers only compete against EACH OTHER! Selection favours ~92% daughters & just enough sons (~8%) to fertilize sisters (Hamilton 1967 LMC)!'
+        : `Foundresses n = ${n}: Hamilton’s LMC optimal son fraction (n−1)/(2n) = ${(optimalSonFrac * 100).toFixed(1)}% — converging smoothly back to Fisher’s 50% as n → ∞!`,
+  };
+}

@@ -1111,4 +1111,20 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Rapid quantitative trait evolution driven by subtle, coordinated allele-frequency shifts across hundreds of small-effect loci across the genome without fixing any single locus.',
     relatedChapterId: 'epistasis',
   },
+  reciprocal_altruism: {
+    id: 'reciprocal_altruism',
+    term: 'Reciprocal Altruism (Direct & Indirect)',
+    pronunciation: 'ri-SIP-rə-kəl AL-troo-iz-əm',
+    shortDef:
+      'Cooperative helping among non-relatives stabilized when repeated encounters (shadow of the future w > c/b, Axelrod & Hamilton 1981) or public reputation scores (q > c/b) ensure reciprocation — famously shown in vampire bats.',
+    relatedChapterId: 'cooperation',
+  },
+  eusociality: {
+    id: 'eusociality',
+    term: 'Eusociality & The Monogamy Hypothesis',
+    pronunciation: 'yoo-soh-shee-AL-i-tee',
+    shortDef:
+      'Highest tier of sociality (overlapping generations, cooperative brood care, reproductive division of labour) unlocked when strict ancestral monogamy keeps sibling relatedness r = 0.50 alongside ecological fortress defense (Boomsma 2009).',
+    relatedChapterId: 'cooperation',
+  },
 };

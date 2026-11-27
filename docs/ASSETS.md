@@ -212,6 +212,14 @@
 
 ---
 
+## Chapter 24: Reciprocity, Eusociality & Mutualisms (`ch24_cooperation`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Roosting Vampire Bats (*Desmodus rotundus*) on Cave Branch with Blood-Sharing Arc, Reputation Halo Community Ring, Hexagonal Beeswax Comb & Workers, Trifoliate Clover Shoot + Branching Roots with Pink vs. Pale *Rhizobium* Nodules & Sculpted Pea Aphids (*Buchnera* Transmission) | `atlas/src/chapters/ch24_cooperation/CooperationScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Revives Tangled Bank *Blood Debts* & *The Guest* with Axelrod–Hamilton IPD + Generous TFT, Nowak–Sigmund image scoring, Boomsma (2009) Monogamy Hypothesis, Kiers et al. (2003) host sanctions, and vertical vs. horizontal symbiont alignment. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.
