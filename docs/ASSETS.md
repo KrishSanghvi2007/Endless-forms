@@ -180,6 +180,14 @@
 
 ---
 
+## Chapter 20: Embryos, Heterochrony & Evo-Devo (`ch20_embryos`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Translucent Vertebrate Embryos (Zebrafish, Salamander, Chick, Human across Early/Phylotypic/Late Stages), Developmental Hourglass Lathe, Live-Morphing Axolotl with Feathery Pink Gills, Downy Theropod Proto-Feather vs. Asymmetric Flight Feather & Waddington 3D Epigenetic Landscape | `atlas/src/chapters/ch20_embryos/EmbryoScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Closes Techartist Comparative Embryology gap with honest Richardson et al. (1997) / Kalinka et al. (2010) developmental hourglass framing, heterochrony, exaptation, and Hsp90 canalization. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

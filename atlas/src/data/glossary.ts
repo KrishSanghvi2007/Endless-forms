@@ -991,4 +991,36 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Kirkwood’s (1977) physiological Y-model trade-off: under finite metabolic budgets and extrinsic mortality, organisms allocate less energy to permanent somatic DNA repair than needed for immortality, favouring earlier reproduction.',
     relatedChapterId: 'senescence',
   },
+  developmental_hourglass: {
+    id: 'developmental_hourglass',
+    term: 'Developmental Hourglass',
+    pronunciation: 'di-vel-əp-MEN-təl OWR-glas',
+    shortDef:
+      'Pattern of evolutionary conservation across embryogenesis: early cleavage and late organogenesis diverge widely, whereas the mid-embryonic phylotypic stage (pharyngula, Hox patterning) is maximally conserved.',
+    relatedChapterId: 'embryos',
+  },
+  heterochrony: {
+    id: 'heterochrony',
+    term: 'Heterochrony (Paedomorphosis)',
+    pronunciation: 'het-ə-ROK-rə-nee',
+    shortDef:
+      'An evolutionary shift in the timing or rate of developmental events relative to ancestors — e.g., axolotl paedomorphosis (neoteny), where sexual maturity occurs while retaining larval gills.',
+    relatedChapterId: 'embryos',
+  },
+  exaptation: {
+    id: 'exaptation',
+    term: 'Exaptation (Co-option)',
+    pronunciation: 'ek-sap-TAY-shən',
+    shortDef:
+      'A trait originally shaped by selection for one function (or arising as a by-product) that is subsequently co-opted for a new role — such as insulating dinosaur proto-feathers co-opted for bird flight (Gould & Vrba 1982).',
+    relatedChapterId: 'embryos',
+  },
+  canalization: {
+    id: 'canalization',
+    term: 'Canalization (Waddington Landscape)',
+    pronunciation: 'kan-ə-ly-ZAY-shən',
+    shortDef:
+      'Developmental buffering (e.g., via chaperone Hsp90) that channels diverse genotypes into a consistent wild-type phenotype despite minor mutations or noise, storing cryptic variation until stress releases it.',
+    relatedChapterId: 'embryos',
+  },
 };

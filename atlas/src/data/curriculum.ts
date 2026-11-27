@@ -276,4 +276,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Compare Medawar’s mutation accumulation against Williams’s antagonistic pleiotropy, balance Kirkwood’s Y-model DNA repair budget, inspect Type I–III survivorship curves, optimize Lack’s clutch size, and solve Cole’s parity paradox.',
   },
+  {
+    id: 'embryos',
+    number: 20,
+    tabLabel: '20',
+    section: 'COMPARATIVE EMBRYOLOGY & EVO-DEVO',
+    title: 'Embryos, Heterochrony & Evo-Devo',
+    subtitle: 'Vertebrate pharyngula stages, developmental hourglass, axolotl neoteny & exaptation',
+    organism: 'Zebrafish, axolotl, chick, human embryos & theropod proto-feathers',
+    accent: '#9c4e5b',
+    available: true,
+    actTag: 'Part VIII · Comparative Evo-Devo',
+    summary:
+      'Compare translucent 3D zebrafish, salamander, chick, and human embryos across the developmental hourglass, trigger axolotl metamorphosis via thyroid signalling, contrast proto-feathers with flight feathers, and perturb Waddington’s valleys.',
+  },
 ];
