@@ -876,11 +876,11 @@ export class LimbScene3D {
   /** Automatically frame the ~5.7-unit specimen nicely inside ANY plate aspect ratio */
   private computeFitDistance(aspect: number): number {
     const tanHalfFov = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
-    const neededWidth = 6.35;
-    const neededHeight = 3.45;
+    const neededWidth = 5.75;
+    const neededHeight = 3.2;
     const distForWidth = neededWidth / (2 * tanHalfFov * Math.max(aspect, 0.55));
     const distForHeight = neededHeight / (2 * tanHalfFov);
-    return Math.max(7.2, distForWidth, distForHeight);
+    return Math.max(6.8, distForWidth, distForHeight);
   }
 
   private createRegionMaterials(
@@ -1305,7 +1305,7 @@ export class LimbScene3D {
       this.hoofMesh.visible = false;
     }
 
-    this.updateTissueVisibility(pose.tissueType);
+    this.updateTissueVisibility(this.activeSpecies);
   }
 
   private updateTissueVisibility(activeType: TetrapodSpeciesId): void {

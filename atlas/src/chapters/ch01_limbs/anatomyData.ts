@@ -164,7 +164,7 @@ export const ANALOGY_SPECIMENS: Record<AnalogySpecimenId, AnalogyInfo> = {
     id: 'bat',
     name: 'Bat Wing',
     latin: 'Pteropus · Mammalia',
-    caption: 'Bat wing — skin patagium stretched across four elongated digits (II–V)',
+    caption: 'Bat wing — patagium over elongated digits II–V',
     homologyBadge: 'Tetrapod forelimb · Flight evolved independently',
     verdict: 'Homologous to bird wing as a forelimb; analogous as a wing.',
     detail:
@@ -174,7 +174,7 @@ export const ANALOGY_SPECIMENS: Record<AnalogySpecimenId, AnalogyInfo> = {
     id: 'bird',
     name: 'Bird Wing',
     latin: 'Columba livia · Aves',
-    caption: 'Bird wing — fused carpometacarpus & digits II–IV supporting flight feathers',
+    caption: 'Columba livia — fused carpometacarpus & flight feathers',
     homologyBadge: 'Tetrapod forelimb · Flight evolved independently',
     verdict: 'Homologous to bat wing as a forelimb; analogous as a wing.',
     detail:
@@ -184,7 +184,7 @@ export const ANALOGY_SPECIMENS: Record<AnalogySpecimenId, AnalogyInfo> = {
     id: 'insect',
     name: 'Insect Wing',
     latin: 'Anax imperator · Insecta',
-    caption: 'Dragonfly wing — chitinous cuticle reinforced by hollow tracheated veins',
+    caption: 'Anax imperator — chitinous wing with hollow veins',
     homologyBadge: 'Non-homologous structure (Pure Analogy)',
     verdict: 'Analogous to both bat and bird wings — zero bone blueprint.',
     detail:
