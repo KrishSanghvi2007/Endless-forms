@@ -329,6 +329,54 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'casino',
   },
 
+  // --- Mimicry & Aposematism (Chapter 5: Bitter Wings) ---
+  batesian_mimicry: {
+    id: 'batesian_mimicry',
+    term: 'Batesian Mimicry',
+    pronunciation: 'BAYT-see-ən MIM-ik-ree',
+    shortDef:
+      'Evolution of a warning signal in a palatable (harmless) species that resembles a chemically or physically defended model, borrowing protection from educated predators.',
+    deepNote:
+      'Works best while mimics are rare relative to models (negative frequency-dependent selection), though the critical breakdown threshold p* = C/(B+C) rises when models are strongly noxious (Lindström et al. 1997; Sherratt 2002).',
+    relatedChapterId: 'bitter',
+  },
+  mullerian_mimicry: {
+    id: 'mullerian_mimicry',
+    term: 'Müllerian Mimicry',
+    pronunciation: 'myoo-LAIR-ee-ən MIM-ik-ree',
+    shortDef:
+      'Convergence of two or more genuinely defended species onto a shared warning signal so they share the fixed cost L of teaching naive predators.',
+    deepNote:
+      'Creates positive frequency-dependent selection: per-capita learning mortality drops from L/N₁ to L/(N₁ + N₂) (Müller 1879).',
+    relatedChapterId: 'bitter',
+  },
+  imperfect_mimicry: {
+    id: 'imperfect_mimicry',
+    term: 'Imperfect Mimicry',
+    pronunciation: 'im-PER-fikt MIM-ik-ree',
+    shortDef:
+      'Persistence of palatable mimics that only roughly resemble their toxic models, explained largely by steep mistake costs widening predator avoidance generalization (Sherratt 2002).',
+    relatedChapterId: 'bitter',
+  },
+  advergence: {
+    id: 'advergence',
+    term: 'Asymmetric Advergence',
+    pronunciation: 'ad-VER-jəns',
+    shortDef:
+      'One-sided evolutionary convergence in which a rarer defended species shifts its warning pattern onto an abundant co-mimic (e.g. Heliconius melpomene onto H. erato via unlinked large-effect loci optix/WntA).',
+    relatedChapterId: 'bitter',
+  },
+  aposematism: {
+    id: 'aposematism',
+    term: 'Aposematism (Warning Colouration)',
+    pronunciation: 'ap-ə-SEM-ə-tiz-əm',
+    shortDef:
+      'Conspicuous colours, patterns, or signals advertising genuine chemical or physical defence to potential predators.',
+    deepNote:
+      'Rare novel warning mutants suffer anti-apostatic mortality (Langham 2004); kin aggregation (Sillén-Tullberg 1988) and non-lethal taste-rejection (Chai 1986) are major routes enabling aposematism to invade from rarity.',
+    relatedChapterId: 'bitter',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

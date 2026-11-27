@@ -68,13 +68,13 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     tabLabel: '5',
     section: 'COEVOLUTION & MIMICRY',
     title: 'Bitter Wings',
-    subtitle: 'Batesian & Müllerian mimicry under predator learning',
-    organism: 'Neotropical butterflies & jacamar',
+    subtitle: 'Batesian & Müllerian mimicry, imperfect mimics & aposematism',
+    organism: 'Heliconius butterflies & rufous-tailed jacamar',
     accent: '#a8442a',
-    available: false,
-    actTag: 'Act V · Adaptation',
+    available: true,
+    actTag: 'Act V · Coevolution & Mimicry',
     summary:
-      'Forage as a jacamar learning which wing patterns taste foul—and see why Batesian mimics succeed only while rare relative to their models.',
+      'Forage as a 3D rufous-tailed jacamar, test model:mimic ratio × noxiousness thresholds, see why Deadly Days protect imperfect mimics, watch Müllerian advergence, and solve the aposematism origin paradox.',
   },
   {
     id: 'jaws',

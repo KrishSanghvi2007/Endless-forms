@@ -57,6 +57,14 @@
 
 ---
 
+## Chapter 5: Bitter Wings — Mimicry & Aposematism (`ch05_bitter`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted 3D *Heliconius* Butterflies, Glassy-Winged Dragonflies & Rufous-Tailed Jacamar (*Galbula ruficauda*) | `atlas/src/chapters/ch05_bitter/BitterScene3D.ts` | Original procedural Three.js meshes & wing-pattern textures · MIT | Supports raycastable jacamar foraging (Chai 1986 taste-release), continuous 0–100% imperfect mimicry wing gradients, Müllerian Red-Band vs. Yellow-Spot advergence, and solitary vs. kin-clustered aposematic larvae. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |
