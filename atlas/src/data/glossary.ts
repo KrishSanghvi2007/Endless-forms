@@ -659,6 +659,48 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'trees',
   },
 
+  // --- Speciation & Hybridization (Chapter 13: Splitting Branches) ---
+  ring_species: {
+    id: 'ring_species',
+    term: 'Ring Species',
+    pronunciation: 'RING SPEE-sheez',
+    shortDef:
+      'A connected geographic chain of interbreeding populations encircling a barrier (e.g. Greenish Warblers around the Tibetan Plateau) whose terminal ends overlap without interbreeding.',
+    relatedChapterId: 'species',
+  },
+  bdm_incompatibility: {
+    id: 'bdm_incompatibility',
+    term: 'Dobzhansky–Muller Incompatibility (BDM)',
+    pronunciation: 'dohb-ZHAN-skee MUL-er',
+    shortDef:
+      'Intrinsic hybrid inviability or sterility caused by negative epistatic interactions between derived alleles at two or more loci that evolved independently without crossing a fitness valley.',
+    relatedChapterId: 'species',
+  },
+  sympatric_speciation: {
+    id: 'sympatric_speciation',
+    term: 'Sympatric Speciation',
+    pronunciation: 'sim-PAT-rik spee-shee-AY-shən',
+    shortDef:
+      'Divergence into reproductively isolated lineages within the same geographic range without physical barriers, driven by strong disruptive ecological selection + assortative mating or polyploidy.',
+    relatedChapterId: 'species',
+  },
+  reinforcement: {
+    id: 'reinforcement',
+    term: 'Reinforcement',
+    pronunciation: 'ree-in-FORS-mənt',
+    shortDef:
+      'Natural selection directly strengthening prezygotic mate discrimination in sympatry to avoid wasting reproductive effort on low-fitness hybrids.',
+    relatedChapterId: 'species',
+  },
+  allopolyploidy: {
+    id: 'allopolyploidy',
+    term: 'Allopolyploidy',
+    pronunciation: 'al-oh-POL-ee-ploy-dee',
+    shortDef:
+      'Whole-genome doubling following interspecific hybridization, restoring fertile homologous chromosome pairing while instantly isolating the new polyploid from both parent species.',
+    relatedChapterId: 'species',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

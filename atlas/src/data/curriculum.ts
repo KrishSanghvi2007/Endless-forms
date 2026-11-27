@@ -187,7 +187,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Allopatry, Dobzhansky–Muller incompatibilities, reinforcement & polyploidy',
     organism: 'Greenish warblers, apple maggots & Tragopogon',
     accent: '#6e5838',
-    available: false,
+    available: true,
     actTag: 'Part V · Speciation',
     summary:
       'Trace Dobzhansky–Muller genetic incompatibilities across geographic barriers, watch reinforcement sharpen mating songs, explore sympatric host shifts, and trigger instant allopolyploid speciation.',

@@ -124,6 +124,14 @@
 
 ---
 
+## Chapter 13: Splitting Branches (`ch13_species`) — Naturalist Watercolour Engine
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Naturalist Watercolour + Sepia-Ink 3D Craft Engine, Continuous-Lofted Greenish Warblers (*Phylloscopus trochiloides*), *Malus* Apple & *Crataegus* Hawthorn Botanical Twigs, *Tragopogon* Goatsbeard Blossoms & Interlocking Biopolymer Proteins | `atlas/src/3d/naturalistCraft.ts`, `atlas/src/3d/naturalistSpecimens.ts`, `atlas/src/chapters/ch13_species/SpeciesScene3D.ts` | Original continuous-lofted Three.js meshes & 512×512 watercolour/ink Canvas PBR textures · MIT | Full museum-plate craft inspired by Plate 11 & natural-history lithographs: continuous `createOrganicLoftGeometry` forms, Fresnel sepia-ink silhouette contours, matte watercolour pigment washes, and zero floating 3D floor-card clutter. |
+
+---
+
 ## Planned External Open-Licence Scans (Upcoming Chapters)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.
