@@ -16,7 +16,18 @@
 
 ---
 
-## Chapter 1: Same Bones, Different Lives (`ch01_limbs`)
+## Chapter 1: Equilibrium — Hardy–Weinberg (`ch01_hwe`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| 3D Hinged-Elytra Beetles & Glass Allele Jars | `atlas/src/chapters/ch01_hwe/HweScene3D.ts` | Original procedural Three.js meshes · MIT | Glossy cobalt (`A`) and golden-amber (`a`) beetles whose wing cases swing open to reveal two allele pearls that arc into glass jars. |
+| 3D Resizing $p \times q$ Gamete Square & Merging $2pq$ Pillars | `atlas/src/chapters/ch01_hwe/HweScene3D.ts` | Original procedural Three.js meshes · MIT | Egg/sperm cells and translucent zygote columns whose areas and heights dynamically track $p^2, 2pq, q^2$. |
+| 3D Brass & Ivory de Finetti Triangle Sculpture | `atlas/src/chapters/ch01_hwe/HweScene3D.ts` | Original procedural Three.js meshes · MIT | Raised ternary plinth with glowing golden HW parabola arch and animated parent→offspring jump beacon. |
+| 300-Beetle Instanced Beach, Brass Quadrat, Family Burrows & Stylized 3D Norway Rats (*VKORC1*) | `atlas/src/chapters/ch01_hwe/HweScene3D.ts` | Original procedural Three.js meshes · MIT | Supports 60 fps quadrat sampling, Wahlund deme boundary rope, and non-human warfarin heterozygote advantage per D6 decision 5. |
+
+---
+
+## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |
 |---|---|---|---|

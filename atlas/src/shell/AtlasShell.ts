@@ -19,7 +19,7 @@ function loadProgress(): AtlasProgressState {
   const fallback: AtlasProgressState = {
     completed: {},
     visitedSteps: {},
-    activeChapterId: 'limbs',
+    activeChapterId: 'hwe',
     readableMode: false,
     learnerName: '',
   };
@@ -30,7 +30,7 @@ function loadProgress(): AtlasProgressState {
     return {
       completed: parsed.completed ?? {},
       visitedSteps: parsed.visitedSteps ?? {},
-      activeChapterId: parsed.activeChapterId ?? 'limbs',
+      activeChapterId: parsed.activeChapterId ?? 'hwe',
       readableMode: Boolean(parsed.readableMode),
       learnerName: parsed.learnerName ?? '',
     };
