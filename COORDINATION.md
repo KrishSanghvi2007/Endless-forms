@@ -86,39 +86,41 @@ Every chapter exports an object matching `AtlasChapter`:
 
 ## 4. Current Build Plan — One Chapter at a Time
 
-### Active Milestone: Phase 0 (Atlas Shell) + Chapter 1 (*Same bones, different lives*)
-- **Lead:** Gemini (building on `Gemini` branch)
-- **Scope:**
-  1. Stand up `atlas/` Vite + TypeScript + Three.js project + offline font pack + `docs/ASSETS.md`.
-  2. Build the full **Atlas Book Shell** matching and elevating the natural-history plate aesthetic:
-     - Tactile desk mat, textured archival rag paper, spine shadow & crimson silk ribbon, die-cut right-edge chapter tabs.
-     - Top pills: `Atlas X/10`, `Teacher's Guide` (printable), `Model & Science`, plus inline tap-to-define `Glossary` terms and `Certificate` view.
-     - Full responsive layout (open spread on desktop/landscape, clean stacked folio on tablet/phone).
-  3. Build **Chapter 1: Same bones, different lives** (*Evidence from Anatomy*):
-     - **Custom sculpted 3D skeletal morphing engine (`LimbScene3D`):** Realistic lofted osteological geometry (humeral head/condyles, radius, ulna with olecranon, sculpted carpals, metacarpals, articulated phalanges) with warm bone-ivory + hand-tinted watercolour washes (ochre Stylopod/Humerus, verdigris-teal Zeugopod/Radius & Ulna, carmine Autopod/Wrist & Hand) and real soft shadow onto the paper page.
-     - **6 Steps:**
-       1. **Human Arm** — tap any bone in 3D or on the legend to inspect the 1–2–cluster–5 pentadactyl tetrapod blueprint (31 cm / 24 cm / 18 cm = 73 cm).
-       2. **Bat Wing** (*Pteropus* / flying fox) — smooth live 3D morph watching metacarpals & digits II–V elongate into wing struts; toggle translucent wing membrane (*patagium*) ghost.
-       3. **Whale Flipper** (*Megaptera* / odontocete-mysticete comparison) — watch humerus/radius/ulna shorten & broaden into a rigid hydrodynamic paddle with hyperphalangy; toggle flipper silhouette ghost.
-       4. **Horse Leg** (*Equus caballus*) — watch central digit III elongate into the cannon bone & hoof while digits II & IV shrink to vestigial splint bones and digits I & V vanish.
-       5. **Deep Homology & Analogy** (Undergraduate depth) — (a) Toggle *HoxA/HoxD* + *Tbx5* / *Fgf8* / *Shh* developmental expression zones directly on the 3D limb; (b) Interactive **Homology vs. Analogy** specimen switcher comparing **Bat Wing**, **Bird Wing** (fused carpometacarpus, digits II–IV — homologous *as forelimbs*, analogous *as wings*), and **Insect Wing** (chitinous cuticular outgrowth — neither homologous as limb nor wing).
-       6. **Visual Check** — 3 interactive anatomy challenges (including clicking directly on the 3D specimen to identify homologous bones!) that record completion in the Atlas progress map.
-     - **Continuous Morph Scrubber + Live Proportion Bars:** Smoothly scrub between species and watch both the 3D skeleton, dynamic scale bar (`cm`), and proportional length stacked bars animate simultaneously.
-  4. **Verification & Visual Report:** Build production bundle, run Playwright headless capture across all steps + modals + mobile viewport, inspect screenshots critically against `docs/benchmark/techartist_evolution_lesson1.png`, iterate until museum-grade, commit & push to `Gemini`, and report back to designer with screenshots.
+### Active Milestone Status (Updated 2026-11-27)
+- **Phase 0 (Atlas Shell) + Plate 1 (*Same bones, different lives*): BUILT & VERIFIED on `Gemini` (`1915da3`)**
+  - Vite + TypeScript + Three.js (`atlas/`), 100% offline with embedded WOFF2 fonts (~311 KB gzip single-file build).
+  - Full open-book Atlas Shell: archival rag paper, crimson silk ribbon, die-cut chapter tabs, inline tap-to-define glossary, Atlas Progress Map, printable Teacher's Guide, Model & Science/Standards card, Readable font toggle, and printable Naturalist Certificate.
+  - Plate 1 (`atlas/src/chapters/ch01_limbs/`): sculpted 3D tetrapod osteology morphing smoothly across Human, Flying Fox Bat, Bottlenose Dolphin/Whale, and Horse; continuous morph scrubber; live 4-species proportion bars; curved translucent Soft Tissue envelopes (*patagium*, flipper, hoof); Step 5 undergraduate depth (Bat vs. Bird vs. Insect wing Homology/Analogy + *HoxA/HoxD* deep homology); Step 6 interactive 3D bone-clicking mastery check.
+  - Playwright verified across all 6 steps + modals + mobile: 0 console errors, 0 page errors. Awaiting designer side-by-side review before proceeding to Plate 2.
 
 ---
 
-## 5. Up Next (Queued — Not Started Yet)
-1. **Chapter 2: The Lichen Wood** *(Natural Selection — 2D Naturalist Plate + ported v2 `lichen.js` deterministic sim + inked live selection-response graph $R = h^2 S$)*.
-2. **Chapter 3: Vertebrate Embryos** *(Comparative Embryology + honest Haeckel/Richardson 1997 history + phylotypic stage + link to Hox/Switches)*.
-3. **Chapter 4: Cytochrome *c* & Molecular Trees** *(Real sequence alignment, distance matrix, tree building)*.
-4. **Chapter 5: Whales Walking to Sea** *(3D transitional skeleton morph: Pakicetus → Ambulocetus → Rodhocetus → Dorudon → Mysticeti)*.
-5. **Chapter 6: Deep Time (3.8 Billion Years)** *(Draggable geological ribbon + mass extinctions)*.
-6. **Chapter 7: Radiometric Half-Lives & Strata** *(Expanding The Dig's zircon clock & fossil excavation)*.
-7. **Porting remaining 23 v2 chapters** in batches with science sign-offs cleared.
+## 5. Next Planned Chapter: Plate 2 — *The Lichen Wood* (Natural Selection)
+*(Planned now so Claude can review/comment on science or sim-bridge details before Gemini builds it on `Gemini`.)*
+
+- **Goal:** Rebuild our flagship selection chapter (*Biston betularia* peppered moths) to full Atlas quality — retiring the old dark dashed-chart sidebar and code-blob moths while keeping our real undergraduate quantitative genetics model ($R = h^2 S$).
+- **Visual Craft (2D Naturalist Plate):**
+  - High-detail procedural watercolour birch bark + foliose *Parmelia* lichen / industrial soot crossfade plate rendered inside the right-hand Atlas frame (no dark dashboard chrome).
+  - Anatomically detailed speckled peppered moth illustrations (forewings, hindwings, dark carbonaria vs. pale typica / continuous wing-tone morphs) with realistic cast shadows on bark.
+  - **Inked live distribution figure** drawn directly onto the left rag-paper page (hollow = eaten, solid = spared, hatched = next-morning offspring) with the Breeder's Equation ($R = h^2 S$) printed in prose the moment the player's own hunting produces a measurable shift.
+- **Steps (1–5):**
+  1. **1 Hunt (Pale Lichen)** — You are a hungry bird feeding four chicks on lichen-covered birch. Tap the moths you spot; watch overproduction (eggs → spring hatch) and selective survival shift wing camouflage by next morning.
+  2. **2 Heredity ($R = h^2 S$)** — Compare a high-heritability population ($h^2 \approx 0.85$) vs. environmental-luck coloration ($h^2 = 0$): see why selection without heritable variation produces $R = 0$.
+  3. **3 Industrial Soot (*carbonaria*)** — Soot darkens the birch trunks (19th-century Britain, Majerus 2009 / Cook et al. 2012). Watch the rare dominant *carbonaria* allele surge, then reverse after the Clean Air Act—with realistic heterozygous lag.
+  4. **4 Frequency-Dependent / Apostatic Twist** — Three morphs on mixed bark: hunting the commonest morph creates negative frequency-dependent selection that maintains polymorphism.
+  5. **5 Check** — Visual interpretation challenge on real selection differentials & heritability.
+- **Sim Core:** Deterministic seeded simulation adapted via `atlas/src/sim/adapter.ts` from `games/endless-forms/source/v2/lichen.js` and `soot.js`, preserving all Wave 1–2 science guard-rails (no "individuals evolve", honest realised heritability handling when $R/S < 0$, real Majerus/Cook citations).
+
+### Subsequent Queue (One Chapter at a Time)
+3. **Plate 3:** Vertebrate Embryos (*Echoes in the embryo* — comparative embryology + honest Haeckel/Richardson 1997 history).
+4. **Plate 4:** Cytochrome *c* & Molecular Trees (*Letters of descent*).
+5. **Plate 5:** The Dig & Half-Lives (Stratigraphy + zircon radiometric decay).
+6. **Plate 6:** Walking to Sea (3D *Pakicetus* → *Ambulocetus* → *Rodhocetus* → *Dorudon* → modern whale morph).
+7. **Plate 7–10 & v2 Ports:** Galápagos Finches, The Clinic, 3.8 Billion Years Deep Time, Equilibrium & the remaining 23 v2 chapters.
 
 ---
 
 ## 6. Notes for Claude
-- Feel free to read `COORDINATION.md` and `atlas/src/types/atlas.ts` (once synced to `shared-agents`) for the locked `AtlasChapter` contract.
-- If you want to review Chapter 1's science claims/citations or propose edits to the contract or upcoming Chapter 2 (*The Lichen Wood*) sim-adapter interface, leave notes in a `## Claude Notes` section below on `shared-agents`.
+- `atlas/src/types/atlas.ts` (on `Gemini`) locks the `AtlasChapter` contract. Once the designer signs off on Plate 1, we can sync `atlas/` core types/shell into `shared-agents` if you want to build or review plates in parallel.
+- Please review the **Plate 2 (*The Lichen Wood*)** science plan above (and Plate 1's citations in `atlas/src/chapters/ch01_limbs/index.ts` on `Gemini`) and leave any suggestions in a `## Claude Notes` section below on `shared-agents`.
+
