@@ -740,3 +740,194 @@ export function createBacteriumRod3D(options: {
 
   return g;
 }
+
+// =============================================================================
+// 9. SCULPTED 3D TRINIDADIAN GUPPY (Poecilia reticulata — Sexual Selection)
+// =============================================================================
+
+export function createGuppy3D(options: {
+  isMale: boolean;
+  orangeScore?: number; // 0..1 ornament intensity
+  tailLength?: number;  // 0.7..1.8
+  scale?: number;
+}): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+  const orange = options.orangeScore ?? (options.isMale ? 0.85 : 0);
+  const tailScale = options.tailLength ?? (options.isMale ? 1.25 : 0.85);
+
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: options.isMale ? 0x6b92a8 : 0x9aa392,
+    roughness: 0.35,
+    metalness: 0.15,
+  });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), bodyMat);
+  body.scale.set(0.55, 0.85, options.isMale ? 2.1 : 2.35);
+  body.position.set(0, 0.16, 0.05);
+  body.castShadow = true;
+  g.add(body);
+
+  // Vibrant carotenoid orange flank spots on ornamented males!
+  if (options.isMale && orange > 0.08) {
+    const spotMat = new THREE.MeshStandardMaterial({
+      color: 0xf05a1e,
+      emissive: 0x6b1c04,
+      emissiveIntensity: orange * 0.35,
+      roughness: 0.28,
+    });
+    const spotCount = Math.max(1, Math.round(orange * 4));
+    for (let i = 0; i < spotCount; i++) {
+      for (const s of [-1, 1]) {
+        const spot = new THREE.Mesh(new THREE.SphereGeometry(0.032 + orange * 0.014, 10, 8), spotMat);
+        spot.scale.set(0.32, 0.9, 1.25);
+        spot.position.set(s * 0.056, 0.16 + (i % 2 === 0 ? 0.02 : -0.02), 0.12 - i * 0.07);
+        g.add(spot);
+      }
+    }
+  }
+
+  // Fan-shaped caudal tail fin (longer & bright orange-rimmed in ornamented males)
+  const tShape = new THREE.Shape();
+  tShape.moveTo(0, 0);
+  tShape.quadraticCurveTo(0.11 * tailScale, 0.13 * tailScale, 0.24 * tailScale, 0.12 * tailScale);
+  tShape.quadraticCurveTo(0.19 * tailScale, 0, 0.24 * tailScale, -0.12 * tailScale);
+  tShape.quadraticCurveTo(0.11 * tailScale, -0.13 * tailScale, 0, 0);
+  const tGeo = new THREE.ExtrudeGeometry(tShape, { depth: 0.012, bevelEnabled: false });
+  tGeo.rotateY(Math.PI / 2);
+  const tailMat = new THREE.MeshStandardMaterial({
+    color: options.isMale && orange > 0.25 ? 0xf27c24 : 0xb8c0b4,
+    roughness: 0.42,
+    side: THREE.DoubleSide,
+  });
+  const tail = new THREE.Mesh(tGeo, tailMat);
+  tail.position.set(-0.006, 0.16, -0.16);
+  tail.castShadow = true;
+  g.add(tail);
+
+  // Dark glassy eyes
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101216, roughness: 0.1 });
+  for (const s of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), eyeMat);
+    eye.position.set(s * 0.044, 0.185, 0.22);
+    g.add(eye);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 10. SCULPTED 3D YELLOW DUNG FLY (Scathophaga stercoraria — Sperm Raffle)
+// =============================================================================
+
+export function createDungFly3D(options: { isMale: boolean; scale?: number }): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar((options.scale ?? 1.0) * (options.isMale ? 1.15 : 0.92));
+
+  const coatMat = new THREE.MeshStandardMaterial({
+    color: options.isMale ? 0xdca024 : 0x8f8860,
+    roughness: 0.72,
+  });
+  const eyeMat = new THREE.MeshPhysicalMaterial({ color: 0x9c281c, roughness: 0.2, clearcoat: 0.8 });
+  const wingMat = new THREE.MeshPhysicalMaterial({
+    color: 0xf7f2df,
+    transparent: true,
+    opacity: 0.52,
+    roughness: 0.18,
+    side: THREE.DoubleSide,
+  });
+
+  const thorax = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), coatMat);
+  thorax.scale.set(0.9, 0.9, 1.25);
+  thorax.position.set(0, 0.16, 0.06);
+  thorax.castShadow = true;
+  g.add(thorax);
+
+  const abd = new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 10), coatMat);
+  abd.scale.set(0.84, 0.82, 1.75);
+  abd.position.set(0, 0.145, -0.2);
+  abd.castShadow = true;
+  g.add(abd);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 10), coatMat);
+  head.position.set(0, 0.17, 0.23);
+  g.add(head);
+
+  for (const s of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 10, 8), eyeMat);
+    eye.position.set(s * 0.062, 0.185, 0.245);
+    g.add(eye);
+  }
+
+  const wShape = new THREE.Shape();
+  wShape.moveTo(0, 0);
+  wShape.bezierCurveTo(0.12, 0.06, 0.36, 0.03, 0.45, -0.07);
+  wShape.bezierCurveTo(0.38, -0.17, 0.16, -0.14, 0, -0.04);
+  const wGeo = new THREE.ExtrudeGeometry(wShape, { depth: 0.006, bevelEnabled: false });
+  wGeo.rotateX(-Math.PI / 2);
+  for (const s of [-1, 1]) {
+    const wing = new THREE.Mesh(wGeo, wingMat);
+    wing.position.set(s * 0.05, 0.24, 0.08);
+    wing.rotation.y = s * -0.42;
+    if (s === -1) wing.scale.x = -1;
+    g.add(wing);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 11. SCULPTED 3D VIRGINIA OPOSSUM (Didelphis virginiana — Slow Island Ageing)
+// =============================================================================
+
+export function createOpossum3D(options: { greyness?: number; scale?: number }): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+  const grey = options.greyness ?? 0.3;
+
+  const furCol = new THREE.Color(0x9a938a).lerp(new THREE.Color(0xc8c3bc), grey);
+  const furMat = new THREE.MeshStandardMaterial({ color: furCol, roughness: 0.9 });
+  const faceMat = new THREE.MeshStandardMaterial({ color: 0xe6ddd0, roughness: 0.85 });
+  const earMat = new THREE.MeshStandardMaterial({ color: 0x3b3334, roughness: 0.75 });
+  const pinkMat = new THREE.MeshStandardMaterial({ color: 0xd99a98, roughness: 0.6 });
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 12), furMat);
+  body.scale.set(0.92, 0.85, 1.55);
+  body.position.set(0, 0.18, -0.02);
+  body.castShadow = true;
+  g.add(body);
+
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.3, 12), faceMat);
+  head.rotation.x = Math.PI / 2;
+  head.position.set(0, 0.2, 0.32);
+  head.castShadow = true;
+  g.add(head);
+
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), pinkMat);
+  nose.position.set(0, 0.2, 0.47);
+  g.add(nose);
+
+  for (const s of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.052, 10, 8), earMat);
+    ear.scale.set(0.35, 1.05, 0.95);
+    ear.position.set(s * 0.085, 0.29, 0.22);
+    const eye = new THREE.Mesh(
+      new THREE.SphereGeometry(0.02, 8, 8),
+      new THREE.MeshStandardMaterial({ color: 0x151212, roughness: 0.15 })
+    );
+    eye.position.set(s * 0.055, 0.22, 0.33);
+    g.add(ear, eye);
+  }
+
+  // Hairless pink prehensile marsupial tail
+  const tailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.14, -0.26),
+    new THREE.Vector3(0.09, 0.09, -0.52),
+    new THREE.Vector3(0.02, 0.07, -0.78),
+  ]);
+  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 14, 0.024, 7, false), pinkMat);
+  tail.castShadow = true;
+  g.add(tail);
+
+  return g;
+}
+

@@ -117,7 +117,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Anisogamy, Bateman, Fisher runaway, sperm raffle & senescence',
     organism: 'Trinidadian guppies, dung flies & island opossums',
     accent: '#8a6b24',
-    available: false,
+    available: true,
     actTag: 'Part III · Sex & Life History',
     summary:
       'Explore anisogamy, Bateman gradients, Aripo guppy predation vs. mate choice, sperm competition raffles, Fisher sex ratios, and why low-predation islands evolve slower ageing (senescence).',

@@ -475,6 +475,64 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'engine',
   },
 
+  // --- Sexual Selection & Life History (Chapter 8: Sex, Choice & Slow Islands) ---
+  anisogamy: {
+    id: 'anisogamy',
+    term: 'Anisogamy',
+    pronunciation: 'an-eye-SOG-ə-mee',
+    shortDef:
+      'Fusion of gametes of starkly unequal sizes—large, resource-rich eggs and tiny, abundant sperm—which typically drives asymmetric parental investment and sexual selection.',
+    relatedChapterId: 'raffle',
+  },
+  osr: {
+    id: 'osr',
+    term: 'Operational Sex Ratio (OSR)',
+    pronunciation: 'op-ə-RAY-shən-əl',
+    shortDef:
+      'The ratio of sexually receptive males to sexually receptive females in a population at a given moment; dictates which sex competes more intensely for mates.',
+    relatedChapterId: 'raffle',
+  },
+  bateman_gradient: {
+    id: 'bateman_gradient',
+    term: 'Bateman Gradient',
+    pronunciation: 'BAYT-mən GRAY-dee-ənt',
+    shortDef:
+      'The slope of reproductive success (offspring produced) regressed on number of mates—steeper in the sex limited by mate access rather than gamete/brooding capacity.',
+    relatedChapterId: 'raffle',
+  },
+  fisher_runaway: {
+    id: 'fisher_runaway',
+    term: 'Fisherian Runaway Selection',
+    pronunciation: 'FISH-er-ee-ən',
+    shortDef:
+      'Self-reinforcing coevolution of female mate preference and an elaborate male ornament via linkage disequilibrium between preference and trait alleles (“sexy sons”).',
+    relatedChapterId: 'raffle',
+  },
+  sperm_competition: {
+    id: 'sperm_competition',
+    term: 'Sperm Competition',
+    pronunciation: 'SPURM kom-pi-TISH-ən',
+    shortDef:
+      'Post-copulatory sexual selection in which ejaculates from two or more males compete inside a female’s reproductive tract to fertilize a given set of ova (Parker 1970).',
+    relatedChapterId: 'raffle',
+  },
+  fisher_sex_ratio: {
+    id: 'fisher_sex_ratio',
+    term: 'Fisher’s Sex-Ratio Principle',
+    pronunciation: 'FISH-erz SEKS RAY-shee-oh',
+    shortDef:
+      'Negative frequency-dependent selection stabilizing equal 50:50 parental investment in sons and daughters, because individuals of the rarer sex have higher expected reproductive success.',
+    relatedChapterId: 'raffle',
+  },
+  senescence: {
+    id: 'senescence',
+    term: 'Evolutionary Senescence (Ageing)',
+    pronunciation: 'si-NES-əns',
+    shortDef:
+      'Age-related decline in survival and fertility evolving because extrinsic mortality weakens Hamilton’s force of natural selection at older ages (Medawar 1952; Williams 1957).',
+    relatedChapterId: 'raffle',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

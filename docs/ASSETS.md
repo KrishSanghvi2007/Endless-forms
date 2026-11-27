@@ -81,6 +81,14 @@
 
 ---
 
+## Chapter 8: Sex, Choice & Slow Islands (`ch08_raffle`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted 3D Trinidadian Aripo Guppies (*Poecilia reticulata*), Yellow Dung Flies (*Scathophaga stercoraria*) & Virginia Opossums (*Didelphis virginiana*) | `atlas/src/3d/organisms.ts` & `atlas/src/chapters/ch08_raffle/RaffleScene3D.ts` | Original procedural Three.js meshes · MIT | Zero-box plates: anisogamy ovum/sperm + Bateman slope beams, carotenoid-spotted male guppies vs. pike-cichlids, Parker sperm-competition raffle disk, Fisher brass sex-ratio seesaw, and Sapelo Island vs. mainland opossums with Hamilton age-selection pillars. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |

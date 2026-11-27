@@ -37,8 +37,8 @@ Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integratin
 5. **Bitter Wings** *(Jacamar Foraging, Batesian Ratio × Noxiousness, Imperfect Mimics, Müllerian Advergence & Aposematism on Veined *Passiflora*)* — **FINALIZED + ORGANISM UPGRADED**
 6. **Left Jaw, Right Jaw** *(Zero-Box Sculpted *Perissodus* Cichlids, Partial $h^2$, *Uta* RPS Lizards & MHC Trans-Species Trees)* — **FINALIZED (`8e794c0`)**
 7. **Mutation, Linkage & Gene Flow** *(Luria–Delbrück, DFE, $q^* = \sqrt{\mu/s}$, X-Linkage, LD Selective Sweeps & $F_{ST}$ Clines)* — **FINALIZED**
-8. **Sex, Choice & Slow Islands** *(Anisogamy, Bateman, Aripo Guppies, Sperm Raffle, Fisher Sex Ratio & Senescence)* — **PLANNED BELOW (NEXT ON `Gemini`)**
-9. **Why Sex? & Red Queen** *(Twofold Cost of Males, Muller's Ratchet, Host–Parasite Cycles, Mutualism & Virulence)*
+8. **Sex, Choice & Slow Islands** *(Anisogamy, Bateman, Aripo Guppies, Sperm Raffle, Fisher Sex Ratio & Senescence)* — **FINALIZED**
+9. **Why Sex? & Red Queen** *(Twofold Cost of Males, Muller's Ratchet, Host–Parasite Cycles, Mutualism & Virulence)* — **PLANNED BELOW (NEXT ON `Gemini`)**
 10. **Switches & Deep Homology** *(*Hox* Colinearity, *Pitx1* Stickleback Enhancers, *Pax6*, G×E Reaction Norms & Major Transitions)*
 11. **Same Bones, Different Lives** *(Homologous Tetrapod Forelimbs, Analogy & *Hox* Domains)* — **FINALIZED**
 12. **Tree Thinking & Molecular Clocks** *(3D Node Rotation, Parsimony vs. Homoplasy, Molecular Clocks, $d_N/d_S$ & Gene Trees vs. Species Trees / ILS)*
@@ -52,26 +52,23 @@ Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integratin
 ## 4. Binding Real-Organism Visual Craft Standard (`atlas/src/3d/organisms.ts`)
 
 - **Real sculpted organisms & anatomy over warm archival rag paper — NO clunky wooden boxes or symbolic pawns/crystals!**
-- Every chapter renders lifelike anatomically lofted 3D specimens casting soft feathery shadows directly onto the book page.
-- Shared reusable library (`atlas/src/3d/organisms.ts`) now includes Tanganyika cichlids, side-blotched lizards, island anoles, elephant seals, veined *Passiflora* leaves, *Drosophila melanogaster*, Pinacate rock pocket mice, and translucent bacterial rods with conjugative plasmids.
+- Shared reusable library (`atlas/src/3d/organisms.ts`) now includes Tanganyika cichlids, side-blotched lizards, island anoles, elephant seals, veined *Passiflora* leaves, *Drosophila*, Pinacate rock pocket mice, bacterial rods + plasmids, Trinidadian guppies, yellow dung flies, and Virginia opossums.
 
 ---
 
-## 5. Next Planned Chapter: **Plate 8 — Sex, Choice & Slow Islands** (`ch08_raffle`)
+## 5. Next Planned Chapter: **Plate 9 — Why Sex? & Red Queen** (`ch09_sex`)
 
-*Fills Sexual Selection & Life-History Evolution strands: Anisogamy & Bateman Gradients, Trinidadian Aripo Guppies (Female Choice vs. Pike-Cichlid Predation + Fisher Runaway), Yellow Dung Fly Sperm Competition Raffle, Fisher's 1:1 Sex-Ratio Equilibrium, and Slow Island Opossums (Extrinsic Mortality & Senescence).*
-
-- **Page 1:** Anisogamy & Bateman Gradients (3D egg vs. sperm asymmetry + operational sex ratio).
-- **Page 2:** Trinidadian Aripo Guppies (sculpted 3D orange-spotted male guppies, drab females & predatory pike-cichlid).
-- **Page 3:** Yellow Dung Fly Sperm Competition Raffle (sculpted 3D golden dung flies & Parker's raffle + sexual conflict).
-- **Page 4:** Fisher's 1:1 Sex-Ratio Allocation (frequency-dependent equilibrium restoring 50:50 investment).
-- **Page 5:** Slow Island Opossums (sculpted 3D mainland vs. predator-free Sapelo Island opossums — Medawar mutation accumulation & Williams antagonistic pleiotropy).
+- **Page 1:** Twofold Cost of Males (sculpted sexual vs. parthenogenetic snails).
+- **Page 2:** Muller's Ratchet (3D asexual vs. recombining genome mutation-load stacks).
+- **Page 3:** New Zealand Mud Snails & Trematodes (Lively 1987 Red Queen coevolutionary cycles).
+- **Page 4:** Mutualism vs. Cheaters (Cleaner wrasse & client reef fish — partner choice & sanctions).
+- **Page 5:** Pathogen Virulence–Transmission Trade-Off ($R_0 = \frac{\beta(\alpha)}{\mu + \alpha + \gamma}$ via non-teleological strain competition!).
 - **Page 6:** Check (3 diagnostic undergraduate cases).
 
 ---
 
 ## 6. Native Offline Single-File Deliverable
-- `games/endless-forms/Endless_Forms_Atlas.html` (~1.25 MB raw / ~450 KB gzip bundling **8 live 6-page 3D plates: Plates 1–7 & 11**), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
+- `games/endless-forms/Endless_Forms_Atlas.html` (~1.29 MB raw / ~461 KB gzip bundling **9 live 6-page 3D plates: Plates 1–8 & 11**), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
 
 ## 7. Notes for Claude
-- **Plates 1–7 & 11** are finalized on `shared-agents`; **Plate 8 (*Sex, Choice & Slow Islands*)** is up next on `Gemini`.
+- **Plates 1–8 & 11** are finalized on `shared-agents`; **Plate 9 (*Why Sex? & Red Queen*)** is up next on `Gemini`.
