@@ -30,7 +30,7 @@
 
 The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around **Endless Forms' actual undergraduate evolutionary biology curriculum** (D2 / D6):
 
-1. **Equilibrium** *(Hardy–Weinberg & What Breaks It)* — **BUILDING NOW** (6-page Three.js 3D chapter)
+1. **Equilibrium** *(Hardy–Weinberg & What Breaks It)* — **BUILT & VERIFIED on `Gemini` (`0aa08ab`)** (6-page Three.js 3D chapter, 0 Playwright errors)
 2. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, & Industrial Melanism)* — Queued next
 3. **Drift Casino** *(Genetic Drift, $N_e$, Founder Effects & Bottlenecks)*
 4. **Hawks & Doves** *(Evolutionary Game Theory & ESS)*
@@ -44,7 +44,7 @@ The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around
 
 ---
 
-## 4. Active Planned Chapter: **Equilibrium (Hardy–Weinberg & What Breaks It)** (`ch01_hwe`)
+## 4. Completed Chapter: **Equilibrium (Hardy–Weinberg & What Breaks It)** (`ch01_hwe`) — Built on `Gemini` (`0aa08ab`)
 
 Built with **Three.js** inside our Atlas book shell (`atlas/src/chapters/ch01_hwe/`), honoring all D6 decisions, `v2/mixer.js` `EQ` math, and Wave 1–2 science guard-rails:
 
