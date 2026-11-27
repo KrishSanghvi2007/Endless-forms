@@ -26,55 +26,57 @@
 
 ---
 
-## 3. Atlas Curriculum Order (Our Own Endless Forms Spine)
+## 3. Comprehensive 16-Plate Undergraduate Evo-Eco-Devo Atlas Syllabus (`atlas/src/data/curriculum.ts`)
 
-The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around **Endless Forms' actual undergraduate evolutionary biology curriculum** (D2 / D6):
+Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integrating Endless Forms, Tangled Bank, comparative/macroevolutionary museum plates, and all 25 previously missing exam topics from R8:
 
-1. **Equilibrium** *(Hardy–Weinberg & What Breaks It)* — **FINALIZED on `shared-agents`**
-2. **Conflict & Kinship** *(Evolutionary Game Theory & Kin Selection)* — **FINALIZED on `shared-agents`**
-3. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, Industrial Melanism & 3D Fitness Landscapes)* — **FINALIZED on `shared-agents`**
-4. **Drift Casino** *(Genetic Drift, Buri's Bottles & $N_e$, 12-Allele Bottlenecks, $4N_e s$ & 3D Kingman Coalescent)* — **FINALIZED on `shared-agents`**
-5. **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning, Advergence & Aposematism)* — **FINALIZED on `shared-agents` (`d2bc5d9`)**
-6. **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection in Lake Tanganyika & Side-Blotched Lizard RPS)* — **PLANNED BELOW (NEXT UP ON `Gemini`)**
-7. **The Raffle** *(Sperm Competition, Storage & Sexual Selection)* — Queued
-8. **Why Sex?** *(Twofold Cost of Males & Red Queen Coevolution)*
-9. **Switches** *(Evo-Devo, Cis-Regulatory Enhancers & Hox Circuits)*
-10. **The Clinic** *(Antibiotic Resistance, MIC/MPC & Plasmids)*
-11. **Same Bones, Different Lives** *(Comparative Tetrapod Anatomy — **FINALIZED on `shared-agents`**)*
-
----
-
-## 4. Finalized Chapters on `shared-agents` (6 of 11 Plates Complete!)
-
-- **Plate 1 — *Equilibrium (Hardy–Weinberg & What Breaks It)*** (`ch01_hwe`): 6-page 3D chapter.
-- **Plate 2 — *Conflict & Kinship (Evolutionary Game Theory & Kin Selection)*** (`ch02_social`): 6-page 3D chapter.
-- **Plate 3 — *The Lichen Wood & Soot (Natural Selection, $R = h^2 S$ & Landscapes)*** (`ch03_lichen`): 6-page 3D chapter.
-- **Plate 4 — *Drift Casino (Genetic Drift, $N_e$, Bottlenecks, $4N_e s$ & 3D Coalescent)*** (`ch04_casino`): 6-page 3D chapter.
-- **Plate 5 — *Bitter Wings (Batesian & Müllerian Mimicry, Imperfect Mimics & Aposematism)*** (`ch05_bitter`): 6-page 3D chapter (raycastable Neotropical clearing & jacamar, Batesian ratio × noxiousness shield ring, 0–100% imperfect mimicry tray, Müllerian *Heliconius* advergence, solitary vs. kin-clustered aposematic larvae, Check).
-- **Plate 11 — *Same Bones, Different Lives*** (`ch01_limbs`): 6-page 3D homologous tetrapod limb morphing chapter.
+1. **Equilibrium** *(Hardy–Weinberg, $\chi^2$ Power, Inbreeding $F$, Wahlund & Warfarin Rats)* — **FINALIZED**
+2. **Conflict & Kinship** *(ESS, Bourgeois, War of Attrition, 3D Pedigrees & Hamilton's Rule)* — **FINALIZED**
+3. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, Industrial Melanism & Sewall Wright 3D Landscape)* — **FINALIZED**
+4. **Drift Casino** *(Wright–Fisher, Buri's Vials & Elephant Seal Harem $N_e$, 12-Anole Volcano Bottleneck, $4N_e s$ & 3D Coalescent)* — **FINALIZED + ORGANISM UPGRADED**
+5. **Bitter Wings** *(Jacamar Foraging, Batesian Ratio × Noxiousness, Imperfect Mimics, Müllerian Advergence & Aposematism on Veined *Passiflora*)* — **FINALIZED + ORGANISM UPGRADED**
+6. **Left Jaw, Right Jaw** *(Zero-Box Sculpted *Perissodus* Cichlids, Partial $h^2$, *Uta* RPS Lizards & MHC Trans-Species Trees)* — **FINALIZED (`8e794c0`)**
+7. **Mutation, Linkage & Gene Flow** *(Luria–Delbrück, DFE, $q^* = \sqrt{\mu/s}$, X-Linkage, LD Selective Sweeps & $F_{ST}$ Clines)* — **PLANNED BELOW (NEXT ON `Gemini`)**
+8. **Sex, Choice & Slow Islands** *(Anisogamy, Bateman, Aripo Guppies, Sperm Raffle, Fisher Sex Ratio & Senescence)*
+9. **Why Sex? & Red Queen** *(Twofold Cost of Males, Muller's Ratchet, Host–Parasite Cycles, Mutualism & Virulence)*
+10. **Switches & Deep Homology** *(*Hox* Colinearity, *Pitx1* Stickleback Enhancers, *Pax6*, G×E Reaction Norms & Major Transitions)*
+11. **Same Bones, Different Lives** *(Homologous Tetrapod Forelimbs, Analogy & *Hox* Domains)* — **FINALIZED**
+12. **Tree Thinking & Molecular Clocks** *(3D Node Rotation, Parsimony vs. Homoplasy, Molecular Clocks, $d_N/d_S$ & Gene Trees vs. Species Trees / ILS)*
+13. **Splitting Branches** *(Ring Species, Dobzhansky–Muller Incompatibilities, Allopatric/Sympatric Speciation, Reinforcement & Polyploidy)*
+14. **Strata, Fossils & Mass Extinctions** *(Logarithmic Deep Time, Radiometric Dating, *Tiktaalik*, *Pakicetus*→Whales & Big Five / K–Pg)*
+15. **Ecology in Motion** *(Galápagos Character Displacement, Sea Otter Trophic Cascades, MacArthur–Wilson Island Biogeography & IFD)*
+16. **The Clinic & Human Origins** *(MIC/MPC Antibiotic Windows, Plasmid HGT, Clonal Cancer Evolution, Hominin Tree, Out of Africa & Clinal Human Variation)*
 
 ---
 
-## 5. Next Planned Chapter: **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection & Balancing Polymorphism)* (`ch06_jaws`)
+## 4. Binding Real-Organism Visual Craft Standard (`atlas/src/3d/organisms.ts`)
 
-*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Features Lake Tanganyika scale-eating cichlids (Perissodus microlepis, Hori 1993) with visibly twisted 3D jaws, realistic partial heritability ($h^2 \approx 0.25$ vs. $0.90$, Takeuchi et al. 2012), and California side-blotched lizards (Uta stansburiana, Sinervo & Lively 1996) cycling Rock–Paper–Scissors.*
+- **Real sculpted organisms & anatomy over warm archival rag paper — NO clunky wooden boxes or symbolic pawns/crystals!**
+- Every chapter renders lifelike anatomically lofted 3D specimens (`LatheGeometry`, tapered `TubeGeometry`, extruded fins/wings/veined leaves, hand-tinted scale/skin/feather textures, living tail/wing animations) casting soft feathery shadows directly onto the book page.
+- Shared reusable library lives in `atlas/src/3d/organisms.ts` (currently powering Tanganyika cichlids, California side-blotched lizards, island anoles, elephant seals, and arched veined *Passiflora* leaves — expanding with every new plate AND upgrading earlier plates in passes!).
+
+---
+
+## 5. Next Planned Chapter: **Plate 7 — Mutation, Linkage & Gene Flow** *(The Genetic Engine)* (`ch07_engine`)
+
+*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Fills R8's biggest population-genetics exam gaps: Luria–Delbrück random mutation + DFE (B3), X-linked inheritance (B2), Mutation–Selection Balance (C8), Recombination/LD/Selective Sweeps (B4/C11), and Gene Flow / $F_{ST}$ Clines (C5).*
 
 ### The 6 Interactive 3D Pages
 
-| Page | Title & Concept | 3D Scene (Three.js) & Direct Manipulation | Key Equation / Undergrad Aha |
+| Page | Title & Concept | 3D Organism / Specimen Scene (Zero-Box Standard) | Key Equation / Undergrad Aha |
 |---|---|---|---|
-| **1** | **Guard the Flanks** *(Scale-Eating Cichlids in Lake Tanganyika)* | **3D Lake Tanganyika Shallows:** Turquoise sunlit sand & shell bed with silver-coral prey cichlids wearing movable golden **Left/Right Flank Guard Plates** and a visibly bent-jawed **3D *Perissodus microlepis*** predator ambushing from behind! Guard the commoner flank and watch the rarer jaw morph slip through. | **Negative frequency-dependent selection (NFDS):** the rarer morph has the feeding edge, preventing either morph from fixing (Hori 1993). |
-| **2** | **The 5-Year Oscillation** *(Lag & Overshoot Around 50:50)* | **3D Tanganyika Morph Pillars + Live Cycle Ribbon:** Step seasons as prey vigilance lags 1 season behind predator composition — watch Left-jawed and Right-jawed frequencies oscillate continuously around 50:50 with a ~5-year period! | Vigilance lag causes damped/sustained **oscillations** around equilibrium; under NFDS, neither type "wins" — **both morphs persist**. |
-| **3** | **Partial Heritability ($h^2 \approx 0.25$ vs. $0.90$)** *(Continuous Jaw Asymmetry)* | **3D Continuous Jaw-Angle Histogram Sculpture:** Compare classic single-locus Mendelian expectations ($h^2 \approx 0.9$) against realistic empirical partial heritability ($h^2 \approx 0.25$, Takeuchi et al. 2012 / Stewart & Albertson 2010), where feeding experience also shapes jaw bend! | Lower heritability damps cycle amplitude and slows evolutionary response ($R = h^2 S$) while still maintaining balancing polymorphism. |
-| **4** | **Rock–Paper–Scissors Lizards** *(Intransitive 3-Morph Cycling — Uta stansburiana)* | **3D California Coastal Sage Hillside:** Sculpted 3D **side-blotched lizards** with **Orange** (ultra-dominant), **Blue** (mate-guarder), and **Yellow** (sneaker) throat badges arranged around a **3D Ternary Simplex Ring** showing the non-transitive 3-way cycle! | **Intransitive dominance** (Orange beats Blue, Blue beats Yellow, Yellow beats Orange; Sinervo & Lively 1996) creates a perpetual 3-morph evolutionary orbit! |
-| **5** | **Balancing Selection & Genomic Footprints** *(MHC, Self-Incompatibility & Tajima's $D > 0$)* | **3D Trans-Species Polymorphism Gene Tree:** Contrasts shallow neutral genealogies against ultra-deep **balancing-selection trees** (MHC immune loci / plant $S$-alleles) where alleles stay polymorphic for tens of millions of years (**Tajima's $D > 0$**)! | Long-term balancing selection maintains ancient allelic lineages across speciation events and leaves an excess of intermediate-frequency variants ($D > 0$). |
-| **6** | **Check** *(NFDS & Balancing Selection Mastery)* | 3 diagnostic undergraduate puzzles uniting *Perissodus* vigilance lag, *Uta* Rock–Paper–Scissors intransitivity, and balancing-selection Tajima's $D > 0$ footprints. | Connects ecological interactions directly to genomic signatures of balancing selection. |
+| **1** | **Random Before Need** *(Luria–Delbrück & DFE)* | **3D Glass Petri Dishes of Living *E. coli* Colonies & Bacteriophage:** Compare pre-existing jackpot resistance plates (high variance) vs. induced adaptation (Poisson), plus a 3D **Distribution of Fitness Effects (DFE)** specimen sculpture (lethal, deleterious, neutral, rare beneficial). | Mutations arise **randomly with respect to need**; most coding mutations are neutral or deleterious, with rare beneficial winners (Luria & Delbrück 1943). |
+| **2** | **Mutation–Selection Balance** *(Why Genetic Diseases Persist)* | **3D Chromosomes & Living Diploid Carriers:** Recurring mutation ($\mu$) feeds deleterious alleles into a population while selection ($s$) removes them; adjust $\mu$ and $s$ for **Recessive** vs. **Dominant** disorders. | **Recessive: $\hat{q} = \sqrt{\mu / s}$** vs. **Dominant: $\hat{q} = \mu / s$** — explains why recessive lethal alleles persist at far higher carrier frequencies! |
+| **3** | **Sex-Linked Inheritance** *(X-Linked Recessives & Hemizygous Males)* | **3D Sculpted *Drosophila* Flies (Red vs. White-Eyed Males & Females):** Visualizes hemizygous XY males expressing X-linked recessives directly at frequency $q$ while XX females express at $q^2$, plus cross-generational male/female allele oscillation! | X-linked recessive incidence is **$q$ in males vs. $q^2$ in females** (at $q = 0.08$, males are 12.5× more affected!). |
+| **4** | **Recombination, LD & Selective Sweeps** *(Genetic Hitchhiking)* | **3D Translucent Paired Homologous Chromosomes Crossing Over:** Watch a beneficial sweep drag linked flanking DNA to fixation (creating a deep diversity valley & strong **Linkage Disequilibrium $D$**), then watch **Recombination ($r$)** decay LD as $D_t = D_0(1-r)^t$! | Hard selective sweeps carve **diversity valleys** around selected sites; recombination breaks up LD exponentially ($D_t = D_0(1-r)^t$). |
+| **5** | **Gene Flow, Clines & $F_{ST}$** *(Migration–Selection Balance)* | **3D Rock Pocket Mice (*Chaetodipus intermedius*) Across Pale Desert Sand & Black Lava Flow:** Sculpted light & dark 3D pocket mice spanning a desert-to-lava ecotone! Adjust migration rate $m$ vs. selection $s$ to see steep clines vs. **gene swamping**, plus live **$F_{ST} = \frac{H_T - H_S}{H_T} \approx \frac{1}{4N_e m + 1}$**! | Even **1 migrant per generation ($N_e m \approx 1$)** prevents neutral populations from diverging completely; local adaptation persists only when selection beats swamping ($s > m$). |
+| **6** | **Check** *(Genetic Engine Mastery)* | 3 undergraduate cases: Luria–Delbrück variance signature, recessive vs. dominant mutation–selection equilibrium, and $F_{ST}$ / gene-swamping diagnosis. | Unifies mutation, recombination, sex linkage, and spatial gene flow. |
 
 ---
 
 ## 6. Native Offline Single-File Deliverable
-- Built with `npm run build:single` into `games/endless-forms/Endless_Forms_Atlas.html` (~1.15 MB raw / ~420 KB gzip bundling **Plates 1, 2, 3, 4, 5 & 11**), verified directly via `file://` in Chromium with **0 console errors, 0 page errors**.
+- Built with `npm run build:single` into `games/endless-forms/Endless_Forms_Atlas.html` (~1.21 MB raw / ~436 KB gzip bundling **7 live 6-page 3D plates: Plates 1–6 & 11** across the 16-plate Evo-Eco-Devo Atlas), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
 
 ## 7. Notes for Claude
-- **6 full 6-page 3D chapters (Plates 1, 2, 3, 4, 5 & 11)** are now finalized and merged on `shared-agents`!
-- **Chapter 6 (*Left Jaw, Right Jaw*)** is planned in §5 above and queued next on `Gemini`.
+- **Plates 1–6 & 11** are finalized on `shared-agents`, with **Plate 6 (*Left Jaw, Right Jaw*)** debuting our new **Zero-Box Sculpted Real-Organism Visual Standard** (`atlas/src/3d/organisms.ts`) and upgrading Plates 4 & 5 with sculpted elephant seals, island anoles, and veined *Passiflora* leaves.
+- **Full 16-Plate Evo-Eco-Devo Syllabus** is live in `atlas/src/data/curriculum.ts`; **Plate 7 (*Mutation, Linkage & Gene Flow*)** is planned above and up next on `Gemini`.
