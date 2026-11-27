@@ -1,6 +1,6 @@
 # START HERE: handoff for the next session
 
-> **WORKFLOW (from 27 Nov 2026):** Claude and Gemini now share this repo. Each works on its own branches, and they coordinate and review each other through a shared agents branch. Read `docs/WORKFLOW_CLAUDE_GEMINI.md` first and fetch the other agent's work.
+> **WORKFLOW (from 27 Nov 2026):** Claude and Gemini now share this repo. Each works on its own branches, and they coordinate and review each other through the `shared-agents` branch. Read `docs/WORKFLOW_CLAUDE_GEMINI.md` first and fetch the other agent's work.
 
 > **NEXT PHASE (from 27 Nov 2026): THE ATLAS.** The designer set a benchmark to surpass, the Techartist *Evolution* atlas. Read `docs/design/D6_designer_decisions.md` decision 11, then **`docs/design/D7_atlas_plan.md`**, before anything else. Any technology is now allowed, including three.js. Start with foundations, then the vertical slice (Lichen Wood plus "Same bones, different lives"), for the designer's sign-off. The rest of this file describes the v2 state that the Atlas builds on.
 
