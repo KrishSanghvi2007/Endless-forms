@@ -8,119 +8,67 @@
 
 | Branch | Owner | Purpose |
 |---|---|---|
-| `Gemini` | Gemini | Gemini's primary build branch for the Atlas (`atlas/`) and related docs. |
+| `Gemini` | Gemini | Gemini's primary build branch for the Endless Forms Atlas (`atlas/`) and docs. |
 | `claude/evolution-game-critique-9m7vmx` | Claude | Claude's working branch. **Gemini never writes, commits, or pushes here.** |
-| `shared-agents` | Shared | Shared planning, contracts, API specs, and agreed milestone syncs. |
+| `shared-agents` | Shared | Shared planning, contracts, API specs, and milestone syncs. |
 | `main` | Designer | Protected / merged by designer via PR. |
 
-- Whenever a new phase or chapter is planned, the plan is committed and pushed here on `shared-agents` before building on `Gemini`.
-- Legacy `games/endless-forms/` (v1 & v2) stays untouched as reference and sim-core source. All Atlas code lives in `atlas/`.
+- Whenever a chapter is planned, the plan is committed and pushed here on `shared-agents` for Claude to see before building on `Gemini`.
+- Legacy `games/endless-forms/` (v1 & v2) stays untouched as reference and math/sim source.
 
 ---
 
-## 2. Strategic Goal (D6 Decision 11 + D7)
+## 2. Designer Clarification (27 Nov 2026 — Binding)
 
-Build **Endless Forms: An Interactive Atlas of Evolution** — surpassing the Techartist *Evolution* atlas on visual craft, direct physical manipulation, and instant clarity while delivering Oxford-level undergraduate evolutionary biology depth and real simulation models.
-
-Five core improvement pillars from the designer:
-1. **Visuals, interactiveness & enjoyability:** Tactile open naturalist's atlas spread, warm archival paper, real 3D/illustrated specimens with soft cast shadows, zero "programmer art" or dark dashed dashboards.
-2. **Clunkiness & mechanisms:** One clear physical verb per plate, progressive sub-step tabs (`1 … 6`), no unnecessary timers/star gates/fiddly prediction dialogs.
-3. **Concepts (new + improved):** Add the 6 missing benchmark lessons (homologous limbs, vertebrate embryos, cytochrome *c*, whale transition, 3.8 Ga deep time, radiometric half-lives) at undergraduate depth; simplify and visually elevate existing v2 concepts.
-4. **Overall feel & integration:** One cohesive book with shared shell — chapter index tabs, Atlas progress map, tap-to-define inline glossary, printable Teacher's Guide, Model & Science/Standards drawer, visual Check per chapter, and Completion Certificate.
-5. **Correctness & communicability:** Sourced primary literature, explicit MODEL cards (`×N`, simplifications, contested badges), honest biology (no teleology, no "individuals evolve"), verified via automated checks + visual screenshot review.
+- **Do NOT copy Techartist's website or school syllabus.**
+- **Use Techartist ONLY as inspiration** for design craft, visual polish, tactile aesthetics, clean UI, and effortless communicability (archival rag paper, open-book layout, soft 3D shadows, clear editorial typography, direct manipulation, zero clunky dark dashboards).
+- **Build OUR OWN app with OUR OWN Endless Forms concepts**, starting with the chapters **already in Endless Forms** — beginning right now with **Equilibrium (Hardy–Weinberg & What Breaks It)** as a **multi-page interactive Three.js 3D chapter**.
 
 ---
 
-## 3. Technical Architecture (`atlas/`)
+## 3. Atlas Curriculum Order (Our Own Endless Forms Spine)
 
-- **Stack:** Vite + TypeScript + Three.js + Vanilla CSS (design-token driven, zero Tailwind bloat).
-- **Fonts (100% offline):** Reuse the embedded WOFF2 base64 packs from `games/endless-forms/source/shell.html` (`Fraunces`, `Spectral`, `IBM Plex Mono`, `EF Symbols Serif/Mono`, `Atkinson Hyperlegible`) in `atlas/src/styles/fonts.css`. Zero external CDN calls.
-- **Packaging:** `base: './'` static offline-capable production build (`npm run build` → `atlas/dist/`).
-- **Asset Ledger:** `docs/ASSETS.md` tracks every procedural mesh, 3D scan, and 2D illustration with licence, attribution, and scientific notes.
+The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around **Endless Forms' actual undergraduate evolutionary biology curriculum** (D2 / D6):
 
-### Directory Layout
-```text
-atlas/
-├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── src/
-    ├── main.ts                  # Bootstraps AtlasApp
-    ├── types/
-    │   └── atlas.ts             # Shared AtlasChapter, Step, Glossary, ModelCard, Check types
-    ├── styles/
-    │   ├── fonts.css            # Embedded offline WOFF2 fonts (from v2 shell.html)
-    │   ├── tokens.css           # Paper, ink, watercolour washes, D4 data inks, spacing
-    │   └── shell.css            # Two-page book spread, spine ribbon, tabs, modals, print CSS
-    ├── data/
-    │   ├── glossary.ts          # Central tap-to-define evolutionary biology glossary
-    │   └── curriculum.ts        # Full Atlas chapter directory (10 core + upcoming v2 acts)
-    ├── shell/
-    │   ├── AtlasShell.ts        # Open-book frame, chapter switcher, progress persistence
-    │   ├── GlossaryPopover.ts   # Inline term highlighting + field-note definition popover
-    │   ├── AtlasMapModal.ts     # Interactive Atlas Table of Contents & Progress Map
-    │   ├── TeacherGuideModal.ts # Printable chapter Teacher's Guide + curriculum tags
-    │   ├── ScienceCardModal.ts  # MODEL card, citations, simplifications, standards
-    │   └── CertificateModal.ts  # Printable/downloadable Atlas Completion Certificate
-    ├── sim/
-    │   └── adapter.ts           # Clean TypeScript wrapper interface for reusing v2 sim cores
-    └── chapters/
-        └── ch01_limbs/          # Lesson 1: Same bones, different lives (Three.js 3D morph)
-            ├── index.ts         # Chapter definition implementing AtlasChapter
-            ├── anatomyData.ts   # Real morphometric measurements, Hox domains, citations
-            ├── LimbScene3D.ts   # Parametric sculpted 3D osteology + smooth bone morphing
-            └── CheckWidget.ts   # Interactive visual/3D mastery check
-```
-
-### Shared Chapter Contract (`AtlasChapter`)
-Every chapter exports an object matching `AtlasChapter`:
-- `id: string`, `number: number`, `section: string`, `title: string`, `subtitle: string`
-- `accent: string`, `organism: string`, `available: boolean`
-- `steps: ChapterStep[]` (each step configures the left-page narrative, interactive prompt, data readout/controls, and right-page specimen state)
-- `teacherGuide: TeacherGuide` (objectives, time, misconceptions, discussion prompts, module tags)
-- `scienceCard: ScienceCard` (model assumptions, parameter tags, contested notes, primary references, curriculum standards)
-- `mount(stageEl, leftDynamicEl, ctx): ChapterInstance` (mounts the interactive 3D/2D plate and syncs bidirectional events between left-page controls and right-page specimen)
+1. **Equilibrium** *(Hardy–Weinberg & What Breaks It)* — **BUILDING NOW** (6-page Three.js 3D chapter)
+2. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, & Industrial Melanism)* — Queued next
+3. **Drift Casino** *(Genetic Drift, $N_e$, Founder Effects & Bottlenecks)*
+4. **Hawks & Doves** *(Evolutionary Game Theory & ESS)*
+5. **Bitter Wings** *(Batesian & Müllerian Mimicry, Frequency Dependence)*
+6. **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection)*
+7. **The Raffle** *(Sperm Competition & Sexual Selection)*
+8. **Alarm Call** *(Kin Selection & Hamilton’s Rule $rB > C$)*
+9. **Switches** *(Evo-Devo, Hox Circuits & Deep Homology)*
+10. **The Clinic** *(Antibiotic Resistance, MIC/MPC & Plasmids)*
+11. **Same Bones, Different Lives** *(Comparative Tetrapod Anatomy — already built in 3D on `Gemini` as an evidence plate!)*
 
 ---
 
-## 4. Current Build Plan — One Chapter at a Time
+## 4. Active Planned Chapter: **Equilibrium (Hardy–Weinberg & What Breaks It)** (`ch01_hwe`)
 
-### Active Milestone Status (Updated 2026-11-27)
-- **Phase 0 (Atlas Shell) + Plate 1 (*Same bones, different lives*): BUILT & VERIFIED on `Gemini` (`1915da3`)**
-  - Vite + TypeScript + Three.js (`atlas/`), 100% offline with embedded WOFF2 fonts (~311 KB gzip single-file build).
-  - Full open-book Atlas Shell: archival rag paper, crimson silk ribbon, die-cut chapter tabs, inline tap-to-define glossary, Atlas Progress Map, printable Teacher's Guide, Model & Science/Standards card, Readable font toggle, and printable Naturalist Certificate.
-  - Plate 1 (`atlas/src/chapters/ch01_limbs/`): sculpted 3D tetrapod osteology morphing smoothly across Human, Flying Fox Bat, Bottlenose Dolphin/Whale, and Horse; continuous morph scrubber; live 4-species proportion bars; curved translucent Soft Tissue envelopes (*patagium*, flipper, hoof); Step 5 undergraduate depth (Bat vs. Bird vs. Insect wing Homology/Analogy + *HoxA/HoxD* deep homology); Step 6 interactive 3D bone-clicking mastery check.
-  - Playwright verified across all 6 steps + modals + mobile: 0 console errors, 0 page errors. Awaiting designer side-by-side review before proceeding to Plate 2.
+Built with **Three.js** inside our Atlas book shell (`atlas/src/chapters/ch01_hwe/`), honoring all D6 decisions, `v2/mixer.js` `EQ` math, and Wave 1–2 science guard-rails:
 
----
+### The 6 Interactive 3D Pages
 
-## 5. Next Planned Chapter: Plate 2 — *The Lichen Wood* (Natural Selection)
-*(Planned now so Claude can review/comment on science or sim-bridge details before Gemini builds it on `Gemini`.)*
+| Page | Title & Concept | 3D Scene (Three.js) & Direct Manipulation | Key Equation / Aha |
+|---|---|---|---|
+| **1** | **Two Copies Each** *(Alleles vs. Genotypes & Yule's Error)* | **3D Beetle Isle Specimen Tray:** 30 sculpted glossy 3D beetles (metallic cobalt-blue `AA`/`Aa`, golden-amber `aa`) with **hinged wing cases (elytra)**. Tap any 3D beetle (or *Open All*) — its wing cases flutter open in 3D, revealing its two allele pearls (`A` blue, `a` amber) which arc into **two 3D glass specimen jars**. Run a **30-generation time-lapse** across 20,000 beetles. | **51% look blue**, yet only **30% of copies are $A$** ($p=0.30, q=0.70$). Blue stays at 51% (never climbs to Yule's 75%): **dominance alone moves nothing.** |
+| **2** | **The Gamete Square** *(Random Pairing & $p^2 + 2pq + q^2 = 1$)* | **3D Glass Gamete Pairing Table:** Female & male beetles shed 3D **egg** and **sperm** cells onto an interactive **$p \times q$ 3D area board** whose tile dimensions physically resize as you drag the **$p$ slider** ($0.05 \to 0.95$). Click **Pair Gametes** to watch 3D eggs + sperm fuse into glowing zygote columns on the four cells, then toggle **Merge $Aa$ Cells** to watch both mixed cells physically stack into the **$2pq$ column** (`×2`). | **The square IS the equation:** $p^2 + 2pq + q^2 = 1$. $Aa$ forms two ways ($A \times a$ and $a \times A$), hence $2pq$. |
+| **3** | **One Generation** *(3D de Finetti Landscape)* | **3D Brass-and-Ivory de Finetti Triangle:** Raised isometric ternary surface (`AA`, `Aa`, `aa` corners) with the glowing **Hardy–Weinberg parabola** crest. Pick any extreme starting mix (**50% AA + 50% aa**, **100% Aa**, **80/0/20**, or **Unequal Sexes: $p_f=0.9, p_m=0.3$**) or tap directly on the 3D triangle, then click **Mate 1 Generation**. | Any equal-sex starting mix leaps **vertically onto the HW curve in 1 generation** while $p$ stays fixed. Unequal sexes overshoot above the curve (`0.27 / 0.66 / 0.07`) and need **2 generations**. |
+| **4** | **The Census** *(Quadrat Sampling, $\chi^2$ & Power)* | **3D Coastal Beach (300 Beetles) + Rope Quadrat:** Drag/click a 3D brass-and-rope quadrat across Beach A (true HW) or Beach B (hidden $F = 0.20$ deficit) to genotype ~25 beetles per drop, watching live observed-vs-expected bars and a **$\chi^2$ (1 df) gauge vs. 3.84** before running the **Full Census ($n = 500$)**. | Small samples ($n \approx 40$) fit almost anything (~19% power at $F=0.20$). **Failing to reject HW is NOT proof of equilibrium.** |
+| **5** | **What Breaks It?** *(Inbreeding $F$, Wahlund & Warfarin Rats)* | **3D Interactive Force Lab** with three real biological tabs:<br>• **Close Relatives ($F$):** 3D family burrows; step through 3 gens of sib-mating ($F = 0.25 \to 0.375 \to 0.50$) showing heterozygote loss at **both** colour & unlinked head-spot loci while $p$ stays frozen; 1 gen of Mix restores HW.<br>• **Two Demes (Wahlund):** 3D Dune ($p=0.8$) + Marsh ($p=0.2$) beach; pooled shows deficit $2\text{Var}(p)$; slide the **3D boundary rope** to split them and watch both demes fit HW!<br>• **Warfarin Rats (*VKORC1*):** Night 3D farmyard with warfarin bait trays ($s_1$) and stylized 3D Norway rats (`AA` susceptible, `Aa` resistant, `aa` vitamin-K cost $s_2=0.5$). Newborns sit ON the curve; adults show **heterozygote excess**; resistance settles at $\hat{q} = s_1/(s_1+s_2)$ and declines slowly once bait is withdrawn. | Three distinct signatures: inbreeding cuts heterozygotes genome-wide ($2pq(1-F)$), Wahlund is a sampling artefact ($2\text{Var}(p)$), and heterozygote advantage creates **adult excess** and stable polymorphism $\hat{q} = s_1/(s_1+s_2)$. |
+| **6** | **Check** *(Diagnose Real Populations)* | 3 tactile 3D diagnostic challenges: (1) Hidden carriers from amber share ($q = \sqrt{aa} \Rightarrow 2pq$), (2) **Fit Is Not Stasis** (drifting small island that stays ON the HW curve while $p$ moves!), (3) Diagnosing Inbreeding vs. Wahlund vs. Selection from multi-locus + spatial clues. | **Boss takeaway:** A departure points to a cause; a fit rules nothing out. |
 
-- **Goal:** Rebuild our flagship selection chapter (*Biston betularia* peppered moths) to full Atlas quality — retiring the old dark dashed-chart sidebar and code-blob moths while keeping our real undergraduate quantitative genetics model ($R = h^2 S$).
-- **Visual Craft (2D Naturalist Plate):**
-  - High-detail procedural watercolour birch bark + foliose *Parmelia* lichen / industrial soot crossfade plate rendered inside the right-hand Atlas frame (no dark dashboard chrome).
-  - Anatomically detailed speckled peppered moth illustrations (forewings, hindwings, dark carbonaria vs. pale typica / continuous wing-tone morphs) with realistic cast shadows on bark.
-  - **Inked live distribution figure** drawn directly onto the left rag-paper page (hollow = eaten, solid = spared, hatched = next-morning offspring) with the Breeder's Equation ($R = h^2 S$) printed in prose the moment the player's own hunting produces a measurable shift.
-- **Steps (1–5):**
-  1. **1 Hunt (Pale Lichen)** — You are a hungry bird feeding four chicks on lichen-covered birch. Tap the moths you spot; watch overproduction (eggs → spring hatch) and selective survival shift wing camouflage by next morning.
-  2. **2 Heredity ($R = h^2 S$)** — Compare a high-heritability population ($h^2 \approx 0.85$) vs. environmental-luck coloration ($h^2 = 0$): see why selection without heritable variation produces $R = 0$.
-  3. **3 Industrial Soot (*carbonaria*)** — Soot darkens the birch trunks (19th-century Britain, Majerus 2009 / Cook et al. 2012). Watch the rare dominant *carbonaria* allele surge, then reverse after the Clean Air Act—with realistic heterozygous lag.
-  4. **4 Frequency-Dependent / Apostatic Twist** — Three morphs on mixed bark: hunting the commonest morph creates negative frequency-dependent selection that maintains polymorphism.
-  5. **5 Check** — Visual interpretation challenge on real selection differentials & heritability.
-- **Sim Core:** Deterministic seeded simulation adapted via `atlas/src/sim/adapter.ts` from `games/endless-forms/source/v2/lichen.js` and `soot.js`, preserving all Wave 1–2 science guard-rails (no "individuals evolve", honest realised heritability handling when $R/S < 0$, real Majerus/Cook citations).
-
-### Subsequent Queue (One Chapter at a Time)
-3. **Plate 3:** Vertebrate Embryos (*Echoes in the embryo* — comparative embryology + honest Haeckel/Richardson 1997 history).
-4. **Plate 4:** Cytochrome *c* & Molecular Trees (*Letters of descent*).
-5. **Plate 5:** The Dig & Half-Lives (Stratigraphy + zircon radiometric decay).
-6. **Plate 6:** Walking to Sea (3D *Pakicetus* → *Ambulocetus* → *Rodhocetus* → *Dorudon* → modern whale morph).
-7. **Plate 7–10 & v2 Ports:** Galápagos Finches, The Clinic, 3.8 Billion Years Deep Time, Equilibrium & the remaining 23 v2 chapters.
+### Science Guard-Rails (Verified from `D6` & `docs/changes/wave2/census.md`)
+- $\chi^2$ for two-allele genotype counts has **1 degree of freedom** (5% threshold = **3.84**; note expected count $< 5$ caveat).
+- **Non-human heterozygote advantage only** (D6 decision 5): warfarin resistance in Norway rats (*VKORC1*, Rost et al. 2004, Pelz et al. 2005, Greaves et al. 1977, Partridge 1979). Note in Model Card that real Welsh heterozygotes also paid a partial vitamin-K cost (~0.77 fitness without warfarin).
+- Equal-sexes autosomal equilibrium takes **1 generation**; unequal sexes take **2 generations**; X-linked loci oscillate toward equilibrium (Model Card note pointing to *The Royal Line*).
+- Never say individuals "evolve", "choose", or "need".
+- Fixed D4 data inks: **Allele `A` blue (`#2F5FD0`)**, **Allele `a` amber (`#E8B416`)** (paired with split wing cases + letter/dot cues for colour-vision safety).
 
 ---
 
-## 6. Notes for Claude
-- `atlas/src/types/atlas.ts` (on `Gemini`) locks the `AtlasChapter` contract. Once the designer signs off on Plate 1, we can sync `atlas/` core types/shell into `shared-agents` if you want to build or review plates in parallel.
-- Please review the **Plate 2 (*The Lichen Wood*)** science plan above (and Plate 1's citations in `atlas/src/chapters/ch01_limbs/index.ts` on `Gemini`) and leave any suggestions in a `## Claude Notes` section below on `shared-agents`.
-
+## 5. Notes for Claude
+- Gemini is building **Equilibrium (Hardy–Weinberg)** (`atlas/src/chapters/ch01_hwe/`) now on `Gemini`.
+- Our completed 3D Comparative Anatomy chapter (`ch01_limbs`) remains cleanly preserved in `atlas/src/chapters/ch01_limbs/` as Plate 11 in the Atlas.
+- Feel free to review our HWE equations, citations, or wording in `COORDINATION.md` and leave any notes below on `shared-agents`.
