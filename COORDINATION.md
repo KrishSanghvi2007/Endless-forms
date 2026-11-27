@@ -32,10 +32,10 @@ The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around
 
 1. **Equilibrium** *(Hardy–Weinberg & What Breaks It)* — **FINALIZED on `shared-agents`**
 2. **Conflict & Kinship** *(Evolutionary Game Theory & Kin Selection)* — **FINALIZED on `shared-agents`**
-3. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, Industrial Melanism & 3D Fitness Landscapes)* — **FINALIZED on `shared-agents` (`21adfa4`)**
-4. **Drift Casino** *(Genetic Drift, Buri's Bottles & $N_e$, 12-Allele Bottlenecks, $4N_e s$ & 3D Kingman Coalescent)* — **PLANNED BELOW & STARTING ON `Gemini`**
-5. **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning & Aposematism)* — Queued next
-6. **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection in Lake Tanganyika)*
+3. **The Lichen Wood & Soot** *(Natural Selection, $R = h^2 S$, Industrial Melanism & 3D Fitness Landscapes)* — **FINALIZED on `shared-agents`**
+4. **Drift Casino** *(Genetic Drift, Buri's Bottles & $N_e$, 12-Allele Bottlenecks, $4N_e s$ & 3D Kingman Coalescent)* — **FINALIZED on `shared-agents` (`b351a2d`)**
+5. **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning, Advergence & Aposematism)* — **PLANNED BELOW & STARTING ON `Gemini`**
+6. **Left Jaw, Right Jaw** *(Negative Frequency-Dependent Selection in Lake Tanganyika)* — Queued next
 7. **The Raffle** *(Sperm Competition, Storage & Sexual Selection)*
 8. **Why Sex?** *(Twofold Cost of Males & Red Queen Coevolution)*
 9. **Switches** *(Evo-Devo, Cis-Regulatory Enhancers & Hox Circuits)*
@@ -46,39 +46,40 @@ The Atlas Table of Contents (`atlas/src/data/curriculum.ts`) is organized around
 
 ## 4. Finalized Chapters on `shared-agents`
 
-- **Plate 1 — *Equilibrium (Hardy–Weinberg & What Breaks It)*** (`ch01_hwe`): 6-page 3D chapter (hinged beetles, $p \times q$ board, de Finetti triangle, quadrat census, Force Lab with $F$/Wahlund/warfarin rats, Check).
-- **Plate 2 — *Conflict & Kinship (Evolutionary Game Theory & Kin Selection)*** (`ch02_social`): 6-page 3D chapter (Hawk–Dove shoreline, Bourgeois pillars, War of Attrition ring, 3D pedigree IBD tubes, Hamilton's Sierra meadow, Check).
-- **Plate 3 — *The Lichen Wood & Soot (Natural Selection, $R = h^2 S$ & Landscapes)*** (`ch03_lichen`): 6-page 3D chapter (raycastable peppered moths on birch bark + Pinned Moth #7 + 120-egg tray, 3D Breeder's Equation + brass $h^2$ slope beam, Black Country birch grove + Gene-Pool Lens, Modes of Selection + $W(z)$ arch, sculpted contoured 3D Sewall Wright Adaptive Landscape, Check).
+- **Plate 1 — *Equilibrium (Hardy–Weinberg & What Breaks It)*** (`ch01_hwe`): 6-page 3D chapter.
+- **Plate 2 — *Conflict & Kinship (Evolutionary Game Theory & Kin Selection)*** (`ch02_social`): 6-page 3D chapter.
+- **Plate 3 — *The Lichen Wood & Soot (Natural Selection, $R = h^2 S$ & Landscapes)*** (`ch03_lichen`): 6-page 3D chapter.
+- **Plate 4 — *Drift Casino (Genetic Drift, $N_e$, Bottlenecks, $4N_e s$ & 3D Coalescent)*** (`ch04_casino`): 6-page 3D chapter (6 Wright–Fisher crystal jars, Buri's 12 *Drosophila* vials & harem $N_e$, 12-allele volcano archipelago bottleneck, Kimura $4N_e s$ tug-of-war ribbons, 3D Kingman coalescent tower, Check).
 - **Plate 11 — *Same Bones, Different Lives*** (`ch01_limbs`): 6-page 3D homologous tetrapod limb morphing chapter.
 
 ---
 
-## 5. Next Planned Chapter: **Drift Casino** *(Genetic Drift, Effective Population Size $N_e$, Bottlenecks, $4N_e s$ & 3D Kingman Coalescent)* (`ch04_casino`)
+## 5. Next Planned Chapter: **Bitter Wings** *(Batesian & Müllerian Mimicry, Predator Learning & Aposematism)* (`ch05_bitter`)
 
-*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Unifies Endless Forms' Drift Casino, Buri's 107 Drosophila bottles, 12-allele volcano bottlenecks, and Kingman's Coalescent (properly sequenced AFTER drift, fixing the old v1/v2 sequencing bug noted in R8!).*
+*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Honours Chai (1986) rufous-tailed jacamar biology, Lindström et al. (1997) / Sherratt (2002) nuanced Batesian ratios, Turner's two-step Müllerian advergence (avoiding the "supergene" error for H. erato/melpomene), and Langham (2004) / Sillén-Tullberg (1988) aposematism origin.*
 
 ### The 6 Interactive 3D Pages
 
 | Page | Title & Concept | 3D Scene (Three.js) & Direct Manipulation | Key Equation / Undergrad Aha |
 |---|---|---|---|
-| **1** | **The Wright–Fisher Jars** *(Sampling Error & $P(\text{fix}) = p_0$)* | **3D Specimen Table of 6 Parallel Crystal Jars:** Six Wright–Fisher jars filled with cobalt (`A`) and amber (`a`) allele pearls evolving in parallel. Compare **Small $N = 10$** vs. **Large $N = 200$** and adjust initial frequency $p_0$ (`0.20`, `0.50`, `0.80`) to watch random walks hit fixation/loss and form the classic U-shaped distribution. | Under pure neutrality, drift is **directionless** on average ($E[p_t] = p_0$), variance grows each generation ($\text{Var}(\Delta p) = \frac{p(1-p)}{2N}$), and **probability of eventual fixation equals starting frequency: $P(\text{fix}) = p_0$** (ONLY under neutrality!). |
-| **2** | **Buri’s 107 Bottles & $N_e$** *(Effective Population Size)* | **3D Laboratory Tray of *Drosophila* Culture Vials + Harem Sex-Ratio Diorama:** Visualizes Buri's (1956) classic experiment ($N = 16$ flies per bottle drifting like **$N_e \approx 11.5$** because of reproductive variance) AND interactive **Sex-Ratio Skew** ($N_m$ males vs. $N_f$ females). | **$N_e = \frac{4 N_m N_f}{N_m + N_f}$**. Census count $N$ overestimates genetic stability whenever family sizes vary or sex ratios skew (1 male + 19 females = $N = 20$, yet $N_e = 3.8$!). |
-| **3** | **The 12-Allele Volcano Bottleneck** *(Allelic Richness vs. Heterozygosity & Harmonic Mean)* | **3D Volcanic Island Archipelago & 12-Colour Jewel Allele Bowl:** 12 distinct coloured jewel alleles in a mainland bowl; trigger a **Volcanic Bottleneck** or **Founder Raft** ($N_b = 4, 8, 25$) and watch rare jewel colours vanish immediately while heterozygosity drops slowly! Includes a multi-generation **Harmonic Mean $N_e$** calculator. | Bottlenecks **shatter allelic richness in 1 generation** (rare alleles disappear first), whereas heterozygosity decays gradually at $H_t = H_0(1 - \frac{1}{2N_e})$. Long-term $N_e$ is dominated by the **smallest** bottleneck (harmonic mean). |
-| **4** | **Drift vs. Selection ($4N_e s$)** *(When Chance Beats Adaptation)* | **3D Tug-of-War Plinth:** Six parallel trajectories of a beneficial allele ($s = +0.04$) competing against sampling noise across **Small Island ($N_e = 15$, $4N_e s = 2.4$)** vs. **Large Mainland ($N_e = 400$, $4N_e s = 64$)** with Kimura's exact fixation probability pillar. | Selection dominates when **$|4N_e s| \gg 1$**; when **$|4N_e s| \lesssim 1$**, alleles behave **effectively neutrally** — beneficial mutants are often lost and mildly deleterious mutants can fix! |
-| **5** | **Running Time Backwards: 3D Coalescent** *(Kingman's Coalescent & Demographic Signatures)* | **3D Vertical Genealogy Tower:** 8 sampled gene copies rise backwards through time and physically merge at glowing brass **coalescence nodes** up to the **MRCA** ($E[T_{\text{MRCA}}] \approx 4N_e(1 - 1/n)$), studded with crimson **mutation pearls** (segregating sites $S$). Toggle **Constant Size**, **Recent Bottleneck** (pinched hourglass), and **Rapid Expansion** (star-like comb + negative Tajima's $D$)! | Gene trees preserve demographic history: exponential growth leaves long external branches (excess rare variants, **Tajima's $D < 0$**), while bottlenecks prune deep internal diversity (**Tajima's $D > 0$**). |
-| **6** | **Check** *(Drift, $N_e$ & Coalescent Mastery)* | 3 tactile diagnostic cases: (1) Neutral $P(\text{fix}) = p_0$ vs. selection caveat, (2) Computing $N_e$ under extreme sex-ratio skew or bottleneck harmonic mean, (3) Reading demographic history (expansion vs. bottleneck) from a 3D coalescent genealogy. | Unifies forward-time Wright–Fisher sampling with backward-time coalescent genomics. |
+| **1** | **Forage as a Jacamar** *(Taste, Retch & Avoid — Batesian Mimicry)* | **3D Neotropical Rainforest Clearing:** Sculpted 3D **butterflies** (crimson-and-black banded unpalatable *Heliconius* models, creamy palatable non-mimics, and crimson-banded palatable **Batesian mimics**) + glassy-winged **dragonflies** fluttering over tropical foliage! Click butterflies directly in 3D (raycast!) to forage as a **rufous-tailed jacamar (*Galbula ruficauda*)** — tasting a bitter model triggers a golden taste-memory shock and builds predator avoidance! | Harmless **Batesian mimics** borrow protection from defended models via predator avoidance learning (Chai 1986; Bates 1862). |
+| **2** | **Model-to-Mimic Ratio & Noxiousness** *(Why "Only While Rare" Is Too Simple)* | **3D Forest Canopy & Avoid-Ring Meter:** Adjust **Model:Mimic ratio** (`12:4` → `4:12` → `2:14`) AND **Model Unpalatability** (mildly bitter vs. violently noxious!). Watch the glowing dashed **Avoidance Shield Ring** around the red-banded pattern shatter when mimics swamp mild models — yet hold firm even when mimics outnumber *highly noxious* models! | Batesian mimicry works **best while mimics are rare relative to models**, but critical threshold depends on **both** ratio and model unpalatability (Lindström et al. 1997; Sherratt 2002). |
+| **3** | **Imperfect Mimicry & Deadly Days** *(When "Good Enough" Survives)* | **3D Specimen Lineup (Resemblance Spectrum `0% → 100%`):** 6 sculpted 3D butterflies graded from pale cream non-mimic to exact crimson-band mimic beneath a live **3D Predator Attack-Probability Curve**. Compare **Low-Cost Model** (only exact mimics escape!) vs. **Highly Noxious Model** (even rough 55% imperfect mimics enjoy steep protection!). | High cost of mistakes flattens predator generalization gradients — explaining why many real hoverflies and butterflies persist as **imperfect mimics** (Sherratt 2002). |
+| **4** | **Müllerian Mimicry & Advergence** *(Sharing the Education Cost)* | **3D Twin-Species Meadow (*Heliconius erato* & *H. melpomene*):** Two **both-defended** unpalatable species (common **Red-Band** vs. rare **Yellow-Spot**). Step generations to watch the rarer species **adverge** onto the commoner pattern via a **large-effect locus** (*optix* / *WntA* — Turner's two-step model!) and compare per-capita learning losses ($L/N_1$ vs. $L/(N_1+N_2)$)! | **Müllerian co-mimics share the fixed cost $L$ of teaching naive predators** (Müller 1879). Mortality drops from $L/N_1$ to $L/(N_1+N_2)$, creating **positive** frequency-dependent selection (advergence of rarer onto commoner). |
+| **5** | **Origin of Warning Colouration** *(Anti-Apostatic Trap & Kin Aggregation)* | **3D Tropical Leaf-Litter & Egg-Cluster Diorama:** A single bright aposematic mutant caterpillar/butterfly suffers **anti-apostatic** predation (Langham 2004) when **Solitary** — naive birds kill it before learning! Switch to **Kin-Clustered Broods** (Sillén-Tullberg 1988): tasting one sibling teaches the bird to spare the remaining cluster! | How does the *very first* conspicuous warning colour survive when rare? **Gregariousness / kin aggregation** turns one sacrificed relative into protection for identical copies nearby ($rB > C$ bridges aposematism & kin selection!). |
+| **6** | **Check** *(Mimicry & Aposematism Mastery)* | 3 tactile undergraduate diagnostic cases: (1) Contrasting Batesian (negative frequency dependence) vs. Müllerian (positive frequency dependence), (2) Explaining imperfect mimicry via noxiousness cost, (3) Why kin aggregation solves the rare-aposematic-mutant paradox. | Unifies predator psychology, frequency-dependent coevolution, and inclusive fitness. |
 
 ### Science Guard-Rails
-- Explicitly correct the v1 Drift Casino error caught by R7: **$P(\text{fix}) = p_0$ holds ONLY under neutrality ($s = 0$)**; under selection use Kimura's (1962) formula $P(\text{fix}) = \frac{1 - e^{-4N_e s p_0}}{1 - e^{-4N_e s}}$.
-- Emphasize **allelic richness loss vs. heterozygosity decay** on Page 3 (fixing R8's critique of Eq L13).
-- Note the **selective sweep vs. population expansion confound** in Model & Science (both produce star-like trees and negative Tajima's $D$, distinguished by genome-wide vs. locus-specific signatures).
-- Cite Wright (1931), Buri (1956), Kimura (1962), Kingman (1982), Tajima (1989), and Nei, Maruyama & Chakraborty (1975).
+- Never write "Batesian mimics only work while rare" — write **"work best while rare relative to models, depending on model noxiousness"** (Lindström et al. 1997; Sherratt 2002).
+- Never call *Heliconius erato*/*melpomene* Müllerian advergence a "supergene" — use **"unlinked large-effect colour loci (*optix*, *WntA*, *cortex*)"** (Turner's two-step model; reserve *supergene* for polymorphic *H. numata* *P*, Joron et al. 2011).
+- Present kin aggregation (Sillén-Tullberg 1988) honestly as **one major route** alongside non-lethal taste-rejection (Chai 1986; Wiklund & Järvi 1982).
+- Cite Bates (1862), Müller (1879), Chai (1986), Sillén-Tullberg (1988), Lindström et al. (1997), Sherratt (2002), and Langham (2004).
 
 ---
 
 ## 6. Native Offline Single-File Deliverable
-- Every finalized chapter is built with `npm run build:single` (`vite-plugin-singlefile`) into `games/endless-forms/Endless_Forms_Atlas.html` (~1.05 MB raw / ~386 KB gzip with Plates 1, 2, 3 & 11), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
+- Built with `npm run build:single` into `games/endless-forms/Endless_Forms_Atlas.html` (~1.10 MB raw / ~404 KB gzip with Plates 1–4 & 11), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
 
 ## 7. Notes for Claude
-- **Plates 1 (*Equilibrium*), 2 (*Conflict & Kinship*), 3 (*The Lichen Wood & Soot*), and 11 (*Same Bones*)** are all finalized and merged on `shared-agents`!
-- **Chapter 4 (*Drift Casino*: Genetic Drift, $N_e$, Bottlenecks, $4N_e s$ & 3D Coalescent)** is planned in §5 above; Gemini is now building it autonomously on `Gemini`.
+- **Plates 1–4 (*Equilibrium*, *Conflict & Kinship*, *The Lichen Wood & Soot*, *Drift Casino*) and Plate 11 (*Same Bones*)** are all finalized and merged on `shared-agents`!
+- **Chapter 5 (*Bitter Wings* — Batesian & Müllerian Mimicry, Aposematism & Predator Learning)** is planned in §5 above; Gemini is now building it autonomously on `Gemini`.
