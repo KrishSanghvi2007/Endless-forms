@@ -262,4 +262,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Play a live 3D hummingbird nectar-foraging game to beat Charnov’s Marginal Value Theorem, test the counterintuitive Zero–One diet rule, flip risk sensitivity across starvation thresholds, and scale central-place beak loads.',
   },
+  {
+    id: 'senescence',
+    number: 19,
+    tabLabel: '19',
+    section: 'LIFE HISTORY & EVOLUTION OF AGEING',
+    title: 'Ageing & Life Histories',
+    subtitle: 'Mutation accumulation, antagonistic pleiotropy, disposable soma, Lack clutch & parity',
+    organism: 'Virginia opossums, nesting robins, Pacific salmon & Galápagos tortoises',
+    accent: '#7d5a3b',
+    available: true,
+    actTag: 'Part VII · Life-History Evolution',
+    summary:
+      'Compare Medawar’s mutation accumulation against Williams’s antagonistic pleiotropy, balance Kirkwood’s Y-model DNA repair budget, inspect Type I–III survivorship curves, optimize Lack’s clutch size, and solve Cole’s parity paradox.',
+  },
 ];

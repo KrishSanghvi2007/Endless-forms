@@ -172,6 +172,14 @@
 
 ---
 
+## Chapter 19: Ageing & Life Histories (`ch19_senescence`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Opossum Age Cohorts, Kirkwood Metabolic Y-Model Conduit & Repair Shield, Type I–III Survivorship Ribbons, Woven Twig Nest with Robin's-Egg Blue Clutch, Pacific Salmon & Domed Galápagos Tortoise | `atlas/src/chapters/ch19_senescence/SenescenceScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Dedicated life-history evolution plate contrasting Medawar MA vs. Williams AP, Disposable Soma trade-offs, demographic life tables, Lack's clutch size vs. parental survival costs, and Charnov–Schaffer parity thresholds. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

@@ -20,6 +20,7 @@ import { CH15_ECOLOGY } from './chapters/ch15_ecology';
 import { CH16_CLINIC } from './chapters/ch16_clinic';
 import { CH17_PRICE } from './chapters/ch17_price';
 import { CH18_FORAGER } from './chapters/ch18_forager';
+import { CH19_SENESCENCE } from './chapters/ch19_senescence';
 import { AtlasShell } from './shell/AtlasShell';
 
 const root = document.getElementById('atlas-root');
@@ -27,4 +28,4 @@ if (!root) {
   throw new Error('Missing #atlas-root mount element');
 }
 
-new AtlasShell(root, [CH01_HWE, CH02_SOCIAL, CH03_LICHEN, CH04_CASINO, CH05_BITTER, CH06_JAWS, CH07_ENGINE, CH08_RAFFLE, CH09_SEX, CH10_SWITCH, CH01_LIMBS, CH12_TREES, CH13_SPECIES, CH14_DEEPTIME, CH15_ECOLOGY, CH16_CLINIC, CH17_PRICE, CH18_FORAGER]);
+new AtlasShell(root, [CH01_HWE, CH02_SOCIAL, CH03_LICHEN, CH04_CASINO, CH05_BITTER, CH06_JAWS, CH07_ENGINE, CH08_RAFFLE, CH09_SEX, CH10_SWITCH, CH01_LIMBS, CH12_TREES, CH13_SPECIES, CH14_DEEPTIME, CH15_ECOLOGY, CH16_CLINIC, CH17_PRICE, CH18_FORAGER, CH19_SENESCENCE]);

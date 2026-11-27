@@ -975,4 +975,20 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Preference for variance in food reward driven by non-linear survival thresholds (Jensen’s inequality): well-fed animals prefer steady rewards (risk-averse), whereas starving animals below threshold prefer high-variance patches (risk-prone).',
     relatedChapterId: 'forager',
   },
+  antagonistic_pleiotropy: {
+    id: 'antagonistic_pleiotropy',
+    term: 'Antagonistic Pleiotropy',
+    pronunciation: 'an-tag-ə-NIS-tik ply-OT-rə-pee',
+    shortDef:
+      'Williams’s (1957) evolutionary theory of senescence: a single gene that enhances early-life reproduction is positively selected even if it causes harmful cellular ageing late in life when selection is weak.',
+    relatedChapterId: 'senescence',
+  },
+  disposable_soma: {
+    id: 'disposable_soma',
+    term: 'Disposable Soma Theory',
+    pronunciation: 'di-SPOH-zə-bəl SOH-mə',
+    shortDef:
+      'Kirkwood’s (1977) physiological Y-model trade-off: under finite metabolic budgets and extrinsic mortality, organisms allocate less energy to permanent somatic DNA repair than needed for immortality, favouring earlier reproduction.',
+    relatedChapterId: 'senescence',
+  },
 };
