@@ -783,15 +783,15 @@ export class SocialScene3D {
     g.add(sand);
     g.add(this.p2CrabGroup);
 
-    // Right: Brass plinth with 3 rising translucent 3D frequency pillars (Hawk / Dove / Bourgeois)
-    const plinth = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.12, 3.05), this.walnutMat);
-    plinth.position.set(2.08, 0.06, 0);
+    // Right: Brass plinth with 3 rising translucent 3D frequency pillars side-by-side (H · D · B)
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(1.92, 0.12, 1.85), this.walnutMat);
+    plinth.position.set(2.24, 0.06, 0);
     plinth.castShadow = true;
     g.add(plinth);
 
-    const makeCol = (col: number, z: number) => {
+    const makeCol = (col: number, x: number) => {
       const m = new THREE.Mesh(
-        new THREE.BoxGeometry(0.68, 1.0, 0.62),
+        new THREE.BoxGeometry(0.44, 1.0, 0.62),
         new THREE.MeshPhysicalMaterial({
           color: col,
           roughness: 0.22,
@@ -800,23 +800,24 @@ export class SocialScene3D {
           opacity: 0.92,
         })
       );
-      m.position.set(2.08, 0.2, z);
+      m.position.set(x, 0.2, 0);
       m.castShadow = true;
       g.add(m);
       return m;
     };
 
-    this.p2ColH = makeCol(COL_HAWK, -0.92);
-    this.p2ColD = makeCol(COL_DOVE, 0.0);
-    this.p2ColB = makeCol(COL_BOURG, 0.92);
+    this.p2ColH = makeCol(COL_HAWK, 1.70);
+    this.p2ColD = makeCol(COL_DOVE, 2.24);
+    this.p2ColB = makeCol(COL_BOURG, 2.78);
 
     const pl1 = createEngravedPlaque('Ownership Shore', 'flag = shell owner', 1.38, '#1f6a60');
     pl1.position.set(-0.82, 0.03, 1.82);
     const pl2 = createEngravedPlaque('Strategy Mix', 'H · D · Bourgeois', 1.35, '#29211b');
-    pl2.position.set(2.08, 0.03, 1.82);
+    pl2.position.set(2.24, 0.03, 1.32);
     g.add(pl1, pl2);
 
     this.updateBourgeoisScene([0.5, 0.5, 0]);
+    g.position.x = -0.28;
   }
 
   public updateBourgeoisScene(freqs: [number, number, number]): void {
@@ -904,7 +905,7 @@ export class SocialScene3D {
     }
 
     const pTitle = createEngravedPlaque('Display Time p(t)', 'ESS = (1/V)·e^(−t/V)', 1.55, '#6e3a16');
-    pTitle.position.set(0, 0.03, -1.94);
+    pTitle.position.set(0, 0.03, 2.52);
     g.add(pTitle);
 
     this.setAttritionDistribution('ess', 4);
@@ -999,8 +1000,20 @@ export class SocialScene3D {
       ring.position.set(p.x, 0.31, p.z);
       g.add(ring);
 
-      const lbl = createEngravedPlaque(d.label, undefined, 0.86, '#29211b');
-      lbl.position.set(p.x, 0.162, p.z + 0.36);
+      const lbl = createEngravedPlaque(d.label, undefined, 0.84, '#29211b');
+      const labelPos: Record<string, [number, number]> = {
+        GM: [-1.52, -1.08],
+        GF: [1.52, -1.08],
+        F1: [-2.02, -0.58],
+        M1: [-0.14, -0.02],
+        A1: [2.08, -0.05],
+        S1: [p.x, p.z + 0.38],
+        S2: [p.x, p.z + 0.38],
+        H1: [p.x, p.z + 0.38],
+        C1: [p.x, p.z + 0.38],
+      };
+      const [lx, lz] = labelPos[d.id] ?? [p.x, p.z + 0.38];
+      lbl.position.set(lx, 0.168, lz);
       g.add(lbl);
 
       this.p4Nodes[d.id] = { pos: p, mesh: cyl, ring };
@@ -1383,7 +1396,7 @@ export class SocialScene3D {
       const rz = 0.95;
       this.p5Hawk.position.set(Math.cos(ang) * rx, 1.82 + Math.sin(elapsed * 1.4) * 0.06, Math.sin(ang) * rz);
       this.p5Hawk.rotation.y = -ang;
-      this.p5Hawk.rotation.z = 0.24; // graceful banked turn!
+      this.p5Hawk.rotation.z = 0.12;
 
       if (this.p5StrikeTimer > 0) {
         this.p5StrikeTimer = Math.max(0, this.p5StrikeTimer - dt);

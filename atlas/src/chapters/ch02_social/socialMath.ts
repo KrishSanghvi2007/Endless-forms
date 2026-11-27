@@ -87,7 +87,7 @@ export function stepThreeWay(
 ): { freqs: [number, number, number]; injuryRate: number; meanPayoff: number } {
   const strats: ContestStrategy[] = ['hawk', 'dove', 'bourgeois'];
   let f: [number, number, number] = [...freqs];
-  const w0 = Math.max(14, C * 0.85);
+  const w0 = Math.max(24, C * 0.38);
 
   let meanPayoff = 0;
   for (let s = 0; s < steps; s++) {

@@ -96,7 +96,7 @@ export const CH02_SOCIAL: AtlasChapter = {
       eyebrow: 'OWNERSHIP CONVENTIONS & ESS ≠ GROUP OPTIMUM',
       heading: 'How property resolves conflict',
       bodyHtml: `Notice a paradox: at the Hawk–Dove ESS, average payoff is <em>lower</em> than in an all-Dove world, yet pure Doves cannot resist a Hawk mutant. Now introduce ${gloss('bourgeois', 'Bourgeois')} (“play Hawk if you own the shell, Dove if intruder”) and watch injuries vanish.`,
-      promptHint: 'Click “Introduce 5% Bourgeois” and step generations to watch the ownership convention sweep the shore.',
+      promptHint: 'Click “Introduce Bourgeois” and step generations to watch the ownership convention sweep the shore.',
     },
     {
       id: 'attrition',
@@ -331,7 +331,7 @@ export const CH02_SOCIAL: AtlasChapter = {
       const dd = hawkDovePayoff('dove', 'dove', p1V, p1C);
 
       scene3d.updateShorelinePopulation(p1HawkFreq);
-      captionEl.textContent = 'Tidal Shoreline — hermit crabs contesting spiral shells';
+      captionEl.textContent = 'Tidal Shoreline — hermit crab contests';
       tagEl.textContent = `Gen ${p1Gen} · ESS p* = ${pct(essP)}`;
       legendEl.innerHTML = `
         <span><i class="hwe-dot soc-dot-hawk"></i>Hawk (raised claws)</span>
@@ -443,7 +443,7 @@ export const CH02_SOCIAL: AtlasChapter = {
       const V = 40;
       const C = 100;
       scene3d.updateBourgeoisScene(p2Freqs);
-      captionEl.textContent = 'Ownership Shore — Bourgeois crabs respect shell possession';
+      captionEl.textContent = 'Ownership Shore — Bourgeois convention';
       tagEl.textContent = `Injuries ${pct(p2Injury)} · Mean +${p2MeanPay.toFixed(1)}`;
       legendEl.innerHTML = `
         <span><i class="hwe-dot soc-dot-hawk"></i>Hawk</span>
@@ -477,8 +477,8 @@ export const CH02_SOCIAL: AtlasChapter = {
           <div class="hwe-btn-row">
             ${
               !hasB
-                ? `<button type="button" class="hwe-action-btn primary" data-intro-b>Introduce 5% Bourgeois →</button>`
-                : `<button type="button" class="hwe-action-btn primary" data-step-b>Evolve +10 Generations →</button>`
+                ? `<button type="button" class="hwe-action-btn primary" data-intro-b>Introduce Bourgeois →</button>`
+                : `<button type="button" class="hwe-action-btn primary" data-step-b>Evolve +20 Generations →</button>`
             }
             <button type="button" class="hwe-action-btn" data-reset-b>Reset to H–D ESS</button>
           </div>
@@ -491,21 +491,21 @@ export const CH02_SOCIAL: AtlasChapter = {
       `;
 
       leftPanelEl.querySelector('[data-intro-b]')?.addEventListener('click', () => {
-        p2Freqs = [0.38, 0.57, 0.05];
-        const res = stepThreeWay(p2Freqs, V, C, 4);
+        p2Freqs = [0.32, 0.50, 0.18];
+        const res = stepThreeWay(p2Freqs, V, C, 12);
         p2Freqs = res.freqs;
         p2Injury = res.injuryRate;
         p2MeanPay = res.meanPayoff;
-        p2Gen += 4;
+        p2Gen += 12;
         renderPage2Left();
       });
 
       leftPanelEl.querySelector('[data-step-b]')?.addEventListener('click', () => {
-        const res = stepThreeWay(p2Freqs, V, C, 10);
+        const res = stepThreeWay(p2Freqs, V, C, 20);
         p2Freqs = res.freqs;
         p2Injury = res.injuryRate;
         p2MeanPay = res.meanPayoff;
-        p2Gen += 10;
+        p2Gen += 20;
         renderPage2Left();
       });
 
@@ -749,6 +749,12 @@ export const CH02_SOCIAL: AtlasChapter = {
       scene3d.setCheckSpecimen(checkIdx);
       captionEl.textContent = `Social Evolution Check — Case ${checkIdx + 1} of ${SOCIAL_CHECKS.length}`;
       tagEl.textContent = `Score ${checkScore}/${SOCIAL_CHECKS.length}`;
+      legendEl.innerHTML =
+        checkIdx === 0
+          ? `<span><i class="hwe-dot soc-dot-hawk"></i>Hawk</span><span><i class="hwe-dot soc-dot-dove"></i>Dove</span>`
+          : checkIdx === 1
+            ? `<span><i class="hwe-dot soc-dot-hawk"></i>Hawk</span><span><i class="hwe-dot soc-dot-dove"></i>Dove</span><span><i class="hwe-dot soc-dot-bourg"></i>Bourgeois</span>`
+            : `<span><i class="hwe-dot" style="background:#d6534b;"></i>Maternal path</span><span><i class="hwe-dot soc-dot-hawk"></i>Paternal path</span>`;
 
       if (checkDone) {
         leftPanelEl.innerHTML = `
