@@ -959,4 +959,20 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'The partial rate of increase in mean fitness attributable to natural selection equals the additive genetic variance in fitness divided by mean fitness (Δw̄_NS = V_A(w)/w̄ ≥ 0), distinct from environmental deterioration (Price 1972).',
     relatedChapterId: 'price',
   },
+  marginal_value_theorem: {
+    id: 'marginal_value_theorem',
+    term: 'Marginal Value Theorem (MVT)',
+    pronunciation: 'MAR-ji-nəl VAL-yoo',
+    shortDef:
+      'Charnov’s (1976) foraging theorem: to maximize long-term energy intake across depleting patches, leave a patch the moment its instantaneous marginal intake rate drops to the habitat’s overall average rate (including travel time T_t).',
+    relatedChapterId: 'forager',
+  },
+  risk_sensitive_foraging: {
+    id: 'risk_sensitive_foraging',
+    term: 'Risk-Sensitive Foraging',
+    pronunciation: 'risk SEN-si-tiv',
+    shortDef:
+      'Preference for variance in food reward driven by non-linear survival thresholds (Jensen’s inequality): well-fed animals prefer steady rewards (risk-averse), whereas starving animals below threshold prefer high-variance patches (risk-prone).',
+    relatedChapterId: 'forager',
+  },
 };

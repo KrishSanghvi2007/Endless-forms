@@ -248,4 +248,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Time dispersal floods across Maynard Smith’s Haystack Commons, watch Simpson’s paradox resolve live inside the Price Equation, explore Fisher’s Fundamental Theorem of Natural Selection, and separate weak from strong altruism.',
   },
+  {
+    id: 'forager',
+    number: 18,
+    tabLabel: '18',
+    section: 'BEHAVIOURAL & FORAGING ECOLOGY',
+    title: 'Optimal Foraging & MVT',
+    subtitle: 'Playable nectar-patch game, Charnov tangent, Zero–One diet rule & risk sensitivity',
+    organism: 'Hovering nectar birds, starlings & depleting flower patches',
+    accent: '#c95c38',
+    available: true,
+    actTag: 'Part VII · Behavioural Ecology',
+    summary:
+      'Play a live 3D hummingbird nectar-foraging game to beat Charnov’s Marginal Value Theorem, test the counterintuitive Zero–One diet rule, flip risk sensitivity across starvation thresholds, and scale central-place beak loads.',
+  },
 ];

@@ -164,6 +164,14 @@
 
 ---
 
+## Chapter 18: Optimal Foraging & MVT (`ch18_forager`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Hovering Emerald Nectar Bird, 8 Depleting/Drooping Scarlet Nectar Blossoms, Rich Beetle Grubs & Grass Seeds, Safe vs. Lottery Foraging Mounds & Central-Place Twig Nest with Starling Beak Loads | `atlas/src/chapters/ch18_forager/ForagerScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Playable 3D nectar-patch MVT foraging game comparing player intake rate against Charnov's (1976) tangent optimum, plus Optimal Diet Zero–One Rule, Risk-Sensitive Jensen's inequality, and Orians–Pearson Central-Place foraging. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.
