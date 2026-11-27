@@ -229,7 +229,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Antibiotic MIC/MPC, plasmid HGT, cancer clones & Out of Africa',
     organism: 'Pathogenic bacteria, tumour lineages & Homo sapiens',
     accent: '#9a3040',
-    available: false,
+    available: true,
     actTag: 'Part VI · Applied & Human Evolution',
     summary:
       'Dose living bacterial populations across MIC/MPC mutant-selection windows with conjugative plasmid HGT, track clonal cancer evolution, and trace hominin dispersals, archaic admixture, and clinal human variation.',

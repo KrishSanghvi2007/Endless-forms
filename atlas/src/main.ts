@@ -17,6 +17,7 @@ import { CH12_TREES } from './chapters/ch12_trees';
 import { CH13_SPECIES } from './chapters/ch13_species';
 import { CH14_DEEPTIME } from './chapters/ch14_deeptime';
 import { CH15_ECOLOGY } from './chapters/ch15_ecology';
+import { CH16_CLINIC } from './chapters/ch16_clinic';
 import { AtlasShell } from './shell/AtlasShell';
 
 const root = document.getElementById('atlas-root');
@@ -24,4 +25,4 @@ if (!root) {
   throw new Error('Missing #atlas-root mount element');
 }
 
-new AtlasShell(root, [CH01_HWE, CH02_SOCIAL, CH03_LICHEN, CH04_CASINO, CH05_BITTER, CH06_JAWS, CH07_ENGINE, CH08_RAFFLE, CH09_SEX, CH10_SWITCH, CH01_LIMBS, CH12_TREES, CH13_SPECIES, CH14_DEEPTIME, CH15_ECOLOGY]);
+new AtlasShell(root, [CH01_HWE, CH02_SOCIAL, CH03_LICHEN, CH04_CASINO, CH05_BITTER, CH06_JAWS, CH07_ENGINE, CH08_RAFFLE, CH09_SEX, CH10_SWITCH, CH01_LIMBS, CH12_TREES, CH13_SPECIES, CH14_DEEPTIME, CH15_ECOLOGY, CH16_CLINIC]);

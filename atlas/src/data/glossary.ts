@@ -895,4 +895,52 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     deepNote: 'Retained because Gremlin and Fgf8 suppress interdigital apoptosis in bat embryos.',
     relatedChapterId: 'limbs',
   },
+  mutant_selection_window: {
+    id: 'mutant_selection_window',
+    term: 'Mutant-Selection Window (MSW)',
+    pronunciation: 'MYOO-tənt si-LEK-shən',
+    shortDef:
+      'The antibiotic concentration range between the wild-type MIC and the Mutant Prevention Concentration (MPC) where drug-sensitive cells are killed while single-step resistant mutants survive and rapidly expand.',
+    relatedChapterId: 'clinic',
+  },
+  conjugation: {
+    id: 'conjugation',
+    term: 'Bacterial Conjugation',
+    pronunciation: 'kon-joo-GAY-shən',
+    shortDef:
+      'Direct cell-to-cell horizontal gene transfer in which a donor bacterium extends a sex pilus and transfers a circular R-plasmid (often carrying multi-drug resistance genes) into a recipient cell.',
+    relatedChapterId: 'clinic',
+  },
+  competitive_release: {
+    id: 'competitive_release',
+    term: 'Competitive Release',
+    pronunciation: 'kəm-PET-i-tiv ri-LEES',
+    shortDef:
+      'Rapid expansion of a previously suppressed resistant subpopulation (such as resistant cancer clones or pathogens) after aggressive therapy eliminates its drug-sensitive ecological competitors.',
+    relatedChapterId: 'clinic',
+  },
+  adaptive_therapy: {
+    id: 'adaptive_therapy',
+    term: 'Adaptive Therapy',
+    pronunciation: 'ə-DAP-tiv THER-ə-pee',
+    shortDef:
+      'An evolutionary oncology strategy (Gatenby et al. 2009) that pulses drug dosing on and off to preserve drug-sensitive tumour cells so they competitively suppress costly drug-resistant clones.',
+    relatedChapterId: 'clinic',
+  },
+  serial_founder_effect: {
+    id: 'serial_founder_effect',
+    term: 'Serial Founder Effect',
+    pronunciation: 'SEER-ee-əl FOWN-der',
+    shortDef:
+      'Sequential sampling bottlenecks during range expansion out of Africa that produce a smooth geographic cline of declining neutral heterozygosity with increasing overland distance from East Africa.',
+    relatedChapterId: 'clinic',
+  },
+  archaic_admixture: {
+    id: 'archaic_admixture',
+    term: 'Archaic Admixture (Introgression)',
+    pronunciation: 'ahr-KAY-ik ad-MIKS-chər',
+    shortDef:
+      'Interbreeding between dispersing modern Homo sapiens and coexisting sister hominin lineages such as Neanderthals (~2% ancestry outside Africa) and Denisovans (~3–5% in Melanesia/Oceania).',
+    relatedChapterId: 'clinic',
+  },
 };

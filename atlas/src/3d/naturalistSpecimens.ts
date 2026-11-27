@@ -1171,14 +1171,14 @@ export function createConjugatingBacteria3D(
 
   const donorMat = createNaturalistMaterial(
     { base: '#c98a5b', wash: '#a66238', deep: '#633318', highlight: '#f0c59e', ink: '#42200e' },
-    'membrane',
+    'tissue',
     { roughness: 0.72, transparent: true, opacity: 0.88, inkStrength: 0.55, seed: 951 }
   );
   const recipBase = resistantLevel > 0.55 ? '#c4926c' : '#85a68e';
   const recipWash = resistantLevel > 0.55 ? '#9c6844' : '#5e8268';
   const recipMat = createNaturalistMaterial(
     { base: recipBase, wash: recipWash, deep: '#354f3d', highlight: '#c7decb', ink: '#24382b' },
-    'membrane',
+    'tissue',
     { roughness: 0.74, transparent: true, opacity: 0.88, inkStrength: 0.55, seed: 952 }
   );
   const plasmidMat = createNaturalistMaterial(
@@ -1320,17 +1320,17 @@ export function createTumourClonalSphere3D(
 
   const stromaMat = createNaturalistMaterial(
     { base: '#e6d6c3', wash: '#ccb59d', deep: '#8c7258', highlight: '#f7eee4' },
-    'membrane',
+    'tissue',
     { roughness: 0.9, inkStrength: 0.42, seed: 960 }
   );
   const sensMat = createNaturalistMaterial(
     { base: '#5f8f96', wash: '#3f6e75', deep: '#214247', highlight: '#a3cdd4', ink: '#183033' },
-    'membrane',
+    'tissue',
     { roughness: 0.76, inkStrength: 0.56, seed: 961 }
   );
   const resMat = createNaturalistMaterial(
     { base: '#b83c48', wash: '#8c222d', deep: '#520f17', highlight: '#e88b94', ink: '#3b0910' },
-    'membrane',
+    'tissue',
     { roughness: 0.72, inkStrength: 0.58, seed: 962 }
   );
   const vesselMat = createNaturalistMaterial(
@@ -1479,19 +1479,19 @@ export function createHomininCranium3D(
   vault.receiveShadow = true;
   g.add(vault);
 
-  // 2. Continuous Sculpted Supraorbital Brow Torus (double-arched in Neanderthal/erectus!)
+  // 2. Continuous Sculpted Supraorbital Brow Torus (anchored smoothly into frontal bone!)
   const browCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-0.48 * brainScaleX, 1.04, 0.56),
-    new THREE.Vector3(-0.22, 1.11 + browSize * 0.3, 0.66 + browSize * 0.5),
-    new THREE.Vector3(0, 1.07, 0.65 + browSize * 0.35),
-    new THREE.Vector3(0.22, 1.11 + browSize * 0.3, 0.66 + browSize * 0.5),
-    new THREE.Vector3(0.48 * brainScaleX, 1.04, 0.56),
+    new THREE.Vector3(-0.42 * brainScaleX, 1.02, 0.40),
+    new THREE.Vector3(-0.22, 1.09 + browSize * 0.25, 0.62 + browSize * 0.48),
+    new THREE.Vector3(0, 1.06, 0.61 + browSize * 0.32),
+    new THREE.Vector3(0.22, 1.09 + browSize * 0.25, 0.62 + browSize * 0.48),
+    new THREE.Vector3(0.42 * brainScaleX, 1.02, 0.40),
   ]);
   const brow = new THREE.Mesh(
-    createOrganicLoftGeometry(browCurve, (t) => browSize * (0.65 + 0.35 * Math.sin(t * Math.PI)), {
+    createOrganicLoftGeometry(browCurve, (t) => browSize * (0.45 + 0.55 * Math.sin(t * Math.PI)), {
       tubularSegs: 26,
       radialSegs: 12,
-      aspectAt: () => [1.15, 0.82],
+      aspectAt: () => [1.1, 0.78],
     }),
     boneMat
   );
@@ -1537,13 +1537,13 @@ export function createHomininCranium3D(
   nose.rotation.x = 0.22;
   g.add(nose);
 
-  // 4. Articulated Mandible (Jawbone U-arch + Ascending Ramus + True Chin in H. sapiens!)
-  const jawZ = 0.68 + prognathism * 0.88 + chinProj * 0.45;
+  // 4. Articulated Mandible (Jawbone U-arch + Ascending Ramus + Seamless Mental Eminence in H. sapiens!)
+  const jawZ = 0.66 + prognathism * 0.88 + chinProj * 0.68;
   const mandCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-0.44, 0.74, 0.02),
     new THREE.Vector3(-0.40, 0.38, 0.14),
     new THREE.Vector3(-0.24, 0.26, jawZ * 0.82),
-    new THREE.Vector3(0, 0.24, jawZ),
+    new THREE.Vector3(0, 0.23 - chinProj * 0.08, jawZ),
     new THREE.Vector3(0.24, 0.26, jawZ * 0.82),
     new THREE.Vector3(0.40, 0.38, 0.14),
     new THREE.Vector3(0.44, 0.74, 0.02),
@@ -1551,23 +1551,14 @@ export function createHomininCranium3D(
   const mandible = new THREE.Mesh(
     createOrganicLoftGeometry(
       mandCurve,
-      (t) => 0.095 + 0.03 * Math.sin(t * Math.PI),
-      { tubularSegs: 36, radialSegs: 12, aspectAt: () => [0.75, 1.32] }
+      (t) => 0.092 + (0.03 + chinProj * 0.12) * Math.pow(Math.sin(t * Math.PI), 2),
+      { tubularSegs: 36, radialSegs: 12, aspectAt: () => [0.78, 1.32] }
     ),
     boneMat
   );
   mandible.castShadow = true;
   mandible.receiveShadow = true;
   g.add(mandible);
-
-  // Sculpted projecting chin (mental eminence) unique to Homo sapiens!
-  if (chinProj > 0.02) {
-    const chin = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), boneMat);
-    chin.scale.set(1.25, 0.9, 1.1);
-    chin.position.set(0, 0.20, jawZ + chinProj * 0.52);
-    chin.castShadow = true;
-    g.add(chin);
-  }
 
   // Upper & lower ivory dental arcade (subtle curved row of teeth!)
   for (let t = -3; t <= 3; t++) {

@@ -148,6 +148,14 @@
 
 ---
 
-## Planned External Open-Licence Scans (Upcoming Chapters)
+## Chapter 16: The Clinic & Human Origins (`ch16_clinic`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Antibiotic MIC/MPC Agar Petri Lawn, Sculpted Conjugating Bacilli + Arched Sex Pilus + Circular R-Plasmid, Clonal Cancer Tumour Mass with Micro-Capillaries, Live-Morphing Hominin Cranium Osteology (*A. afarensis* → *H. erectus* → *H. neanderthalensis* → *H. sapiens*), and Out-of-Africa Serial Founder Relief Map | `atlas/src/3d/naturalistSpecimens.ts` & `atlas/src/chapters/ch16_clinic/ClinicScene3D.ts` | Original continuous-lofted osteology/microbiology meshes & 512×512 watercolour/sepia-ink Canvas PBR textures · MIT | Natural-history applied-evolution & paleoanthropology plates demonstrating the Mutant-Selection Window + stewardship caveats, conjugative HGT, MTD competitive release vs. Adaptive Therapy, branching hominin bush morphometrics (vault, brow torus, occipital bun, prognathism, true chin), archaic admixture, and >85% within-population clinal variation. |
+
+---
+
+## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.
