@@ -318,4 +318,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Break Mendel’s fair meiosis with selfish centromere drive, test CRISPR homing drives against NHEJ resistance escape, solve the C-value enigma with jumping transposons, trace Ohno/DDC gene duplication fates, and model Haig’s placental imprinting tug-of-war.',
   },
+  {
+    id: 'epistasis',
+    number: 23,
+    tabLabel: '23',
+    section: 'EPISTASIS & QUANTITATIVE GENETICS',
+    title: 'Sign Epistasis & Quantitative G-Matrices',
+    subtitle: '2-locus fitness cubes, Weinreich β-lactamase paths, Lande Δz̄ = Gβ & GWAS skylines',
+    organism: 'TEM-1 β-lactamase mutants, multivariate trait ellipses & chromosomal GWAS peaks',
+    accent: '#3e7858',
+    available: true,
+    actTag: 'Part VIII · Quantitative Genetics',
+    summary:
+      'Compare additive, magnitude, sign, and reciprocal sign epistasis on a 3D fitness cube, trace Weinreich’s 18/120 accessible β-lactamase pathways, bend evolutionary response via Lande’s Δz̄ = Gβ, contrast Mendelian vs polygenic GWAS skylines, and visualize antagonistic pleiotropy trade-offs.',
+  },
 ];

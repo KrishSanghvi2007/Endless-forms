@@ -204,6 +204,14 @@
 
 ---
 
+## Chapter 23: Sign Epistasis & Quantitative G-Matrices (`ch23_epistasis`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| 2-Locus 3D Fitness Cube & Directional Pathway Bridges, Weinreich 5-Mutation $\beta$-Lactamase Stepping-Stone Ascent, 3D Translucent $\mathbf{G}$-Matrix Covariance Ellipse with $\boldsymbol{\beta}$ vs. $\Delta\bar{\mathbf{z}}$ Vectors, 18-Chromosome 3D GWAS Manhattan Skyline & Antagonistic Pleiotropy Trade-Off Wall | `atlas/src/chapters/ch23_epistasis/EpistasisScene3D.ts` | Original watercolour Three.js meshes · MIT | Revives Tangled Bank *Landscape* (`ch25.js`) and adds exact Lande (1979) $\Delta\bar{\mathbf{z}} = \mathbf{G}\boldsymbol{\beta}$ deflection, Weinreich et al. (2006) 18/120 accessible trajectories, and polygenic GWAS architecture. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

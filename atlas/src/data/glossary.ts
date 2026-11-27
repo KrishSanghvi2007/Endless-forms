@@ -1087,4 +1087,28 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Parent-of-origin epigenetic silencing of alleles explained by Haig’s (1993) kinship theory: under multiple paternity, paternally expressed growth promoters (Igf2) tug against maternally expressed growth brakes (Igf2r).',
     relatedChapterId: 'conflict',
   },
+  sign_epistasis: {
+    id: 'sign_epistasis',
+    term: 'Sign & Reciprocal Sign Epistasis',
+    pronunciation: 'SYN ep-i-STAY-sis',
+    shortDef:
+      'Gene–gene interaction in which a mutation flips from deleterious to beneficial depending on genetic background; reciprocal sign epistasis carves multi-peaked fitness valleys (Weinreich et al. 2006).',
+    relatedChapterId: 'epistasis',
+  },
+  g_matrix: {
+    id: 'g_matrix',
+    term: 'Genetic Covariance Matrix (G) & Lande Equation',
+    pronunciation: 'JEE MAY-triks',
+    shortDef:
+      'Matrix of additive genetic variances and cross-trait covariances governing multivariate evolution (Δz̄ = Gβ; Lande 1979), deflecting evolutionary trajectories along genetic lines of least resistance.',
+    relatedChapterId: 'epistasis',
+  },
+  polygenic_adaptation: {
+    id: 'polygenic_adaptation',
+    term: 'Polygenic Adaptation (GWAS Architecture)',
+    pronunciation: 'pol-ee-JEN-ik',
+    shortDef:
+      'Rapid quantitative trait evolution driven by subtle, coordinated allele-frequency shifts across hundreds of small-effect loci across the genome without fixing any single locus.',
+    relatedChapterId: 'epistasis',
+  },
 };
