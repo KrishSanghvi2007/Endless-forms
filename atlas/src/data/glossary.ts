@@ -1055,4 +1055,36 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'A non-functional genomic remnant (such as the primate GULO Exon-10 Vitamin-C deletion) or shared endogenous retrovirus at identical chromosomal coordinates providing decisive evidence of common ancestry.',
     relatedChapterId: 'cytochrome',
   },
+  meiotic_drive: {
+    id: 'meiotic_drive',
+    term: 'Meiotic Drive (Segregation Distortion)',
+    pronunciation: 'my-OT-ik DRYV',
+    shortDef:
+      'A selfish genetic element that manipulates meiosis or gametogenesis to enter >50% of functional gametes (k > 0.5), enabling it to spread even while lowering individual survival or fertility (e.g. mouse t-haplotype).',
+    relatedChapterId: 'conflict',
+  },
+  gene_drive: {
+    id: 'gene_drive',
+    term: 'CRISPR Homing Gene Drive',
+    pronunciation: 'JEEN DRYV',
+    shortDef:
+      'A synthetic selfish element encoding Cas9 and guide RNA that cuts the homologous wild-type chromosome and copies itself into the break via homology-directed repair — though error-prone NHEJ can create cleavage-resistant escape alleles.',
+    relatedChapterId: 'conflict',
+  },
+  transposon: {
+    id: 'transposon',
+    term: 'Transposable Element (Jumping Gene)',
+    pronunciation: 'tranz-POH-zon',
+    shortDef:
+      'Self-replicating DNA sequences (retrotransposons & DNA transposons) that copy or move across host chromosomes, accounting for ~45% of human DNA, ~85% of maize DNA, and the vast C-value enigma.',
+    relatedChapterId: 'conflict',
+  },
+  genomic_imprinting: {
+    id: 'genomic_imprinting',
+    term: 'Genomic Imprinting (Kinship Theory)',
+    pronunciation: 'jə-NOH-mik im-PRIN-ting',
+    shortDef:
+      'Parent-of-origin epigenetic silencing of alleles explained by Haig’s (1993) kinship theory: under multiple paternity, paternally expressed growth promoters (Igf2) tug against maternally expressed growth brakes (Igf2r).',
+    relatedChapterId: 'conflict',
+  },
 };

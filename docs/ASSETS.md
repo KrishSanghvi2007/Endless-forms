@@ -196,6 +196,14 @@
 
 ---
 
+## Chapter 22: Genomic Conflict & Selfish Elements (`ch22_conflict`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Translucent Asymmetric Oocyte Meiotic Spindle & Driving Centromere, CRISPR/Cas9 Homing Scissors & NHEJ Resistance Columns, 5-Taxon C-Value DNA Spools, Gene-Duplication Chromatin + Enhancer Medallions & Placental *Igf2*/*Igf2r* Imprinting Tug-of-War | `atlas/src/chapters/ch22_conflict/ConflictScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Revives Tangled Bank *Selfish Spindle*, *Copy & Paste*, and *Nest* with exact meiotic-drive recursions, Unckless et al. (2017) CRISPR resistance escape, Force et al. (1999) DDC subfunctionalization, and Haig (1993) kinship theory of imprinting. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

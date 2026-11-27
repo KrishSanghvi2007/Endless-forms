@@ -304,4 +304,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Inspect real eukaryotic Cytochrome c sequences on a 3D folded heme protein, build an empirical distance phylogram, defeat phylogenetic pseudoreplication with Felsenstein’s PIC, explore ancestral-state saturation, and compare shared GULO pseudogenes & ERVs.',
   },
+  {
+    id: 'conflict',
+    number: 22,
+    tabLabel: '22',
+    section: 'INTRAGENOMIC CONFLICT & SELFISH ELEMENTS',
+    title: 'Genomic Conflict & Selfish Elements',
+    subtitle: 'Meiotic drive, CRISPR homing drives, transposons, gene duplication & genomic imprinting',
+    organism: 'Meiotic oocyte spindles, Cas9 complexes, giant lungfish genomes & mammalian placentas',
+    accent: '#c44536',
+    available: true,
+    actTag: 'Part VIII · Genome Evolution',
+    summary:
+      'Break Mendel’s fair meiosis with selfish centromere drive, test CRISPR homing drives against NHEJ resistance escape, solve the C-value enigma with jumping transposons, trace Ohno/DDC gene duplication fates, and model Haig’s placental imprinting tug-of-war.',
+  },
 ];
