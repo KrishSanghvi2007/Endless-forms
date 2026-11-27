@@ -1,0 +1,1018 @@
+/* ==========================================================================
+   Endless Forms Atlas — Open-Book Spread & Naturalist Plate Shell
+   ========================================================================== */
+
+.atlas-desk {
+  position: relative;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 1.5vw, 22px) clamp(26px, 3vw, 48px) clamp(14px, 1.8vw, 24px) clamp(12px, 1.8vw, 24px);
+  background:
+    radial-gradient(ellipse at 50% 35%, var(--desk-bg-light) 0%, var(--desk-bg) 72%, #14221e 100%);
+}
+
+/* Subtle gilt desk-pad hairline framing the study table */
+.atlas-desk::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid var(--desk-trim);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* Outer hardcover volume wrapper */
+.atlas-book-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1420px;
+  height: 100%;
+  max-height: 880px;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Hardcover book board shadow & leather edge */
+.atlas-book {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(360px, 41.5%) minmax(460px, 58.5%);
+  background: var(--paper);
+  border-radius: 10px 8px 8px 10px;
+  box-shadow:
+    0 0 0 4px var(--cover-leather),
+    0 0 0 5.5px var(--cover-edge),
+    0 24px 60px rgba(6, 13, 11, 0.56),
+    0 8px 20px rgba(6, 13, 11, 0.35);
+  overflow: hidden;
+}
+
+/* Page thickness edges on left and right outer margins */
+.atlas-book::before,
+.atlas-book::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 7px;
+  pointer-events: none;
+  z-index: 6;
+}
+.atlas-book::before {
+  left: 0;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(66, 51, 34, 0.16) 0px,
+    rgba(66, 51, 34, 0.03) 1px,
+    rgba(255, 250, 238, 0.5) 2px
+  );
+  border-right: 1px solid rgba(58, 44, 30, 0.09);
+}
+.atlas-book::after {
+  right: 0;
+  background: repeating-linear-gradient(
+    to left,
+    rgba(66, 51, 34, 0.15) 0px,
+    rgba(66, 51, 34, 0.03) 1px,
+    rgba(255, 250, 238, 0.5) 2px
+  );
+  border-left: 1px solid rgba(58, 44, 30, 0.08);
+}
+
+/* Center spine shadow & crimson silk bookmark ribbon */
+.atlas-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 41.5%;
+  width: 34px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 8;
+  background: linear-gradient(
+    to right,
+    rgba(40, 28, 18, 0) 0%,
+    rgba(40, 28, 18, 0.08) 34%,
+    rgba(40, 28, 18, 0.22) 48%,
+    rgba(40, 28, 18, 0.14) 55%,
+    rgba(40, 28, 18, 0.05) 72%,
+    rgba(40, 28, 18, 0) 100%
+  );
+}
+
+.atlas-ribbon {
+  position: absolute;
+  top: -4px;
+  bottom: -14px;
+  left: 50%;
+  width: 4.5px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to right,
+    #7e1d1e 0%,
+    var(--ribbon-crimson) 45%,
+    #b63738 75%,
+    #6e1617 100%
+  );
+  box-shadow: 1px 0 3px rgba(20, 10, 8, 0.28);
+}
+
+/* ==========================================================================
+   Pages (Left Narrative & Right Interactive Specimen Plate)
+   ========================================================================== */
+
+.atlas-page {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  background-color: var(--paper);
+  background-image: var(--paper-grain);
+  overflow: hidden;
+}
+
+.atlas-page-left {
+  display: flex;
+  flex-direction: column;
+  padding: 22px 30px 16px 32px;
+  background-image:
+    var(--paper-grain),
+    linear-gradient(to right, rgba(72, 54, 34, 0.04) 0%, transparent 6%, transparent 91%, rgba(56, 40, 24, 0.08) 100%);
+}
+
+.atlas-page-right {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 22px 16px 26px;
+  background-image:
+    var(--paper-grain),
+    linear-gradient(to right, rgba(56, 40, 24, 0.08) 0%, transparent 7%, transparent 95%, rgba(72, 54, 34, 0.03) 100%);
+}
+
+/* Delicate naturalist plate margin border inside the right page */
+.plate-frame {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(72, 56, 38, 0.14);
+  border-radius: 5px;
+  background: radial-gradient(circle at 52% 48%, rgba(255, 253, 247, 0.56) 0%, rgba(244, 237, 222, 0.12) 70%, rgba(226, 214, 189, 0.2) 100%);
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Left Page Header, Pills & Editorial Typography
+   ========================================================================== */
+
+.page-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.page-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.utility-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.util-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--paper-border-strong);
+  background: rgba(255, 252, 244, 0.72);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-body);
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out), transform 140ms var(--ease-out);
+  white-space: nowrap;
+}
+
+.util-pill:hover {
+  background: #fffdf7;
+  border-color: var(--accent);
+  color: var(--ink);
+  transform: translateY(-0.5px);
+}
+
+.util-pill svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--accent);
+  flex-shrink: 0;
+}
+
+.util-pill .pill-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.util-pill.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fdf9f0;
+}
+
+.util-pill.is-active svg {
+  stroke: #fdf9f0;
+}
+
+.chapter-title {
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: clamp(1.75rem, 2.35vw, 2.35rem);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0 0 12px 0;
+}
+
+.left-scroll-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(88, 70, 50, 0.28) transparent;
+}
+
+.step-kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 6px 0;
+}
+
+.step-prose {
+  font-size: 15.5px;
+  line-height: 1.54;
+  color: var(--ink-body);
+  margin: 0 0 12px 0;
+}
+
+.step-prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Tap-to-define inline glossary term */
+.gloss-term {
+  border-bottom: 1.5px dotted var(--accent);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0 1px;
+  border-radius: 2px;
+  transition: background 140ms ease;
+}
+
+.gloss-term:hover,
+.gloss-term:focus-visible {
+  background: var(--accent-soft);
+}
+
+.prompt-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  font-size: 13px;
+  line-height: 1.35;
+  color: #6d2c15;
+  margin-bottom: 14px;
+}
+
+.prompt-strip-star {
+  color: var(--accent);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.left-dynamic-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+/* ==========================================================================
+   Bottom Step Navigator on Left Page
+   ========================================================================== */
+
+.step-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--paper-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.step-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.step-pill {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 140ms var(--ease-out);
+}
+
+.step-pill:hover {
+  color: var(--ink);
+  background: rgba(66, 51, 34, 0.06);
+}
+
+.step-pill.is-current {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.step-pill.is-visited::after {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.45;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.step-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-step-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fdf9f0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 140ms ease, transform 140ms ease;
+}
+
+.btn-step-next:hover:not(:disabled) {
+  filter: brightness(1.07);
+  transform: translateY(-0.5px);
+}
+
+.btn-step-next:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-step-prev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--paper-border-strong);
+  background: rgba(255, 252, 244, 0.7);
+  color: var(--ink-body);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.btn-step-prev:hover:not(:disabled) {
+  background: #fffdf7;
+  border-color: var(--accent);
+}
+
+.btn-step-prev:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ==========================================================================
+   Right-Edge Die-Cut Chapter Index Tabs
+   ========================================================================== */
+
+.atlas-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 0 18px 0;
+  margin-left: -2px;
+  z-index: 4;
+}
+
+.chapter-tab {
+  position: relative;
+  width: 34px;
+  height: 38px;
+  border: 1px solid rgba(46, 33, 21, 0.25);
+  border-left: none;
+  border-radius: 0 7px 7px 0;
+  background: #eae0ca;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px rgba(8, 16, 14, 0.24), inset 3px 0 4px rgba(56, 40, 24, 0.08);
+  transition: width 160ms var(--ease-out), background 160ms ease, color 160ms ease;
+}
+
+.chapter-tab:hover {
+  width: 40px;
+  background: #f5eedf;
+  color: var(--ink);
+}
+
+.chapter-tab.is-active {
+  width: 42px;
+  background: var(--accent);
+  color: #fffaf0;
+  border-color: rgba(34, 18, 10, 0.25);
+  box-shadow: 3px 3px 8px rgba(8, 16, 14, 0.32);
+  z-index: 2;
+}
+
+.chapter-tab.is-locked {
+  opacity: 0.72;
+}
+
+.chapter-tab.is-complete::after {
+  content: '✓';
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 8px;
+  color: currentColor;
+  opacity: 0.85;
+}
+
+.chapter-tab-cert {
+  margin-top: auto;
+  background: #dfd2b5;
+  color: #5a4424;
+}
+
+.chapter-tab-tooltip {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+  background: #221b15;
+  color: #f6f1e4;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease, transform 140ms ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+  z-index: 40;
+}
+
+.chapter-tab:hover .chapter-tab-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ==========================================================================
+   Glossary Popover
+   ========================================================================== */
+
+.glossary-popover {
+  position: fixed;
+  z-index: 90;
+  width: min(340px, calc(100vw - 24px));
+  background: #fbf7ee;
+  border: 1.5px solid var(--paper-border-strong);
+  border-top: 3px solid var(--accent);
+  border-radius: 9px;
+  padding: 14px 16px;
+  box-shadow: 0 18px 40px rgba(18, 14, 10, 0.28);
+  animation: popIn 160ms var(--ease-out);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.glossary-pop-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.glossary-pop-term {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--ink);
+  margin: 0;
+}
+
+.glossary-pop-pron {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.glossary-pop-close {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-muted);
+  cursor: pointer;
+  padding: 2px 5px;
+}
+
+.glossary-pop-short {
+  font-size: 14px;
+  line-height: 1.48;
+  color: var(--ink-body);
+  margin: 0 0 8px 0;
+}
+
+.glossary-pop-deep {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+  padding-top: 8px;
+  border-top: 1px solid var(--paper-border);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Modals (Atlas Map, Teacher's Guide, Model & Science, Certificate)
+   ========================================================================== */
+
+.atlas-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(16, 24, 21, 0.64);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 150ms ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.atlas-modal {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: min(86vh, 780px);
+  background: var(--paper);
+  background-image: var(--paper-grain);
+  border-radius: 10px;
+  border: 1.5px solid var(--paper-border-strong);
+  box-shadow: 0 28px 70px rgba(8, 12, 10, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.atlas-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 26px 14px;
+  border-bottom: 1px solid var(--paper-border);
+  background: rgba(255, 252, 244, 0.45);
+}
+
+.atlas-modal-head h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 650;
+  margin: 4px 0 0 0;
+  color: var(--ink);
+}
+
+.atlas-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.atlas-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--paper-border-strong);
+  background: #fffdf7;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.atlas-modal-body {
+  padding: 20px 26px 26px;
+  overflow-y: auto;
+  line-height: 1.55;
+}
+
+/* Atlas Map Grid */
+.atlas-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.atlas-map-card {
+  text-align: left;
+  padding: 14px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-border-strong);
+  background: var(--paper-card);
+  cursor: pointer;
+  transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.atlas-map-card:hover:not(:disabled) {
+  border-color: var(--card-accent, var(--accent));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(34, 24, 16, 0.09);
+}
+
+.atlas-map-card:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.atlas-map-card.is-current {
+  border-width: 1.5px;
+  border-color: var(--card-accent, var(--accent));
+  background: #fffdf7;
+}
+
+.map-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.map-card-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.map-card-badge.ready {
+  background: rgba(45, 138, 126, 0.14);
+  color: #1c5f56;
+}
+
+.map-card-badge.done {
+  background: rgba(184, 74, 39, 0.14);
+  color: #8c3114;
+}
+
+.map-card-badge.soon {
+  background: rgba(58, 44, 30, 0.08);
+  color: var(--ink-muted);
+}
+
+.map-card-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.map-card-sub {
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
+/* Teacher Guide & Science Card Blocks */
+.modal-section {
+  margin-bottom: 18px;
+}
+
+.modal-section h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--paper-border);
+}
+
+.modal-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14.5px;
+  color: var(--ink-body);
+}
+
+.modal-list li {
+  margin-bottom: 6px;
+}
+
+.misconception-row {
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: rgba(255, 252, 244, 0.8);
+  border: 1px solid var(--paper-border);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.assumption-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  background: rgba(255, 252, 244, 0.78);
+  border: 1px solid var(--paper-border);
+  margin-bottom: 7px;
+  font-size: 13.5px;
+}
+
+.assumption-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.assumption-tag.realistic {
+  background: rgba(45, 138, 126, 0.14);
+  color: #1c5f56;
+}
+.assumption-tag.simplified {
+  background: rgba(212, 148, 42, 0.18);
+  color: #7d530b;
+}
+.assumption-tag.scaled {
+  background: rgba(47, 95, 208, 0.13);
+  color: #21469c;
+}
+.assumption-tag.contested {
+  background: rgba(199, 75, 91, 0.16);
+  color: #8c2937;
+}
+
+/* Certificate Plate */
+.cert-frame {
+  border: 2px double rgba(140, 102, 46, 0.55);
+  border-radius: 8px;
+  padding: 28px 32px;
+  text-align: center;
+  background: linear-gradient(180deg, #fcf9f1 0%, #f5eedd 100%);
+}
+
+.cert-seal {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.cert-name-input {
+  border: none;
+  border-bottom: 1.5px solid var(--paper-border-strong);
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 26px;
+  text-align: center;
+  color: var(--ink);
+  padding: 4px 12px;
+  width: min(360px, 90%);
+  margin: 10px auto 14px;
+  display: block;
+}
+
+.cert-name-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+/* ==========================================================================
+   Toast notification (for coming-soon chapter tabs)
+   ========================================================================== */
+
+.atlas-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  background: #221b15;
+  color: #f6f1e4;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
+  animation: popIn 160ms var(--ease-out);
+}
+
+/* ==========================================================================
+   Responsive (Tablet / Phone Stacked Folio)
+   ========================================================================== */
+
+@media (max-width: 960px) {
+  .atlas-desk {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding: 10px 10px 18px 10px;
+    align-items: flex-start;
+  }
+
+  .atlas-book-wrap {
+    max-height: none;
+    height: auto;
+    flex-direction: column;
+  }
+
+  .atlas-book {
+    grid-template-columns: 1fr;
+    border-radius: 10px;
+  }
+
+  .atlas-spine {
+    display: none;
+  }
+
+  .atlas-page-right {
+    order: -1;
+    height: 410px;
+    min-height: 380px;
+    padding: 12px 12px;
+    border-bottom: 2px solid rgba(58, 44, 30, 0.14);
+  }
+
+  .plate-frame {
+    height: 100%;
+    min-height: 356px;
+  }
+
+  .atlas-page-left {
+    padding: 18px 18px 16px;
+    height: auto;
+    overflow: visible;
+  }
+
+  .left-scroll-body {
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .atlas-tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px 4px 0;
+    margin-left: 0;
+  }
+
+  .chapter-tab {
+    width: 34px;
+    height: 32px;
+    border: 1px solid rgba(46, 33, 21, 0.25);
+    border-radius: 6px;
+  }
+
+  .chapter-tab.is-active {
+    width: 38px;
+  }
+
+  .chapter-tab-cert {
+    margin-top: 0;
+  }
+}
+
+/* ==========================================================================
+   Print Stylesheet (Clean Printable Teacher's Guide & Certificate)
+   ========================================================================== */
+
+@media print {
+  body,
+  .atlas-desk {
+    background: #fff !important;
+    padding: 0 !important;
+  }
+  .atlas-book-wrap,
+  .atlas-tabs,
+  .atlas-modal-actions {
+    display: none !important;
+  }
+  .atlas-modal-backdrop {
+    position: static !important;
+    background: none !important;
+    padding: 0 !important;
+  }
+  .atlas-modal {
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+  }
+}

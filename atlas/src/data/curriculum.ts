@@ -1,0 +1,148 @@
+import type { AtlasChapterMeta } from '../types/atlas';
+
+/**
+ * Full Atlas Table of Contents (the 10 core natural-history plates matching &
+ * surpassing the benchmark, plus Endless Forms' undergraduate acts to follow).
+ */
+export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
+  {
+    id: 'limbs',
+    number: 1,
+    tabLabel: '1',
+    section: 'EVIDENCE FROM ANATOMY',
+    title: 'Same bones, different lives',
+    subtitle: 'Homologous forelimbs, analogy & deep homology',
+    organism: 'Tetrapod forelimbs',
+    accent: '#b84a27',
+    available: true,
+    actTag: 'Act I · Ancestry & Evidence',
+    summary:
+      'Morph a 3D human arm into a bat wing, whale flipper, and horse foreleg; contrast homology vs. analogy and inspect Hox limb zones.',
+  },
+  {
+    id: 'lichen',
+    number: 2,
+    tabLabel: '2',
+    section: 'NATURAL SELECTION',
+    title: 'The Lichen Wood',
+    subtitle: 'Predation, camouflage & the breeder’s equation',
+    organism: 'Biston betularia (peppered moth)',
+    accent: '#4a6b53',
+    available: false,
+    actTag: 'Act II · Natural Selection (Up Next)',
+    summary:
+      'Hunt moths on pale lichen and soot-darkened birch; watch heritable camouflage shift in real time with R = h²S.',
+  },
+  {
+    id: 'embryos',
+    number: 3,
+    tabLabel: '3',
+    section: 'EVO-DEVO & EMBRYOLOGY',
+    title: 'Echoes in the embryo',
+    subtitle: 'Vertebrate development, phylotypic stage & Haeckel’s legacy',
+    organism: 'Vertebrate embryos',
+    accent: '#7a527a',
+    available: false,
+    actTag: 'Act I · Ancestry & Evidence',
+    summary:
+      'Compare real vertebrate embryos across developmental stages, examine the hourglass model, and separate honest homology from Haeckel’s exaggerations.',
+  },
+  {
+    id: 'cytochrome',
+    number: 4,
+    tabLabel: '4',
+    section: 'MOLECULAR EVIDENCE',
+    title: 'Letters of descent',
+    subtitle: 'Cytochrome c sequences, substitution rates & trees',
+    organism: 'Cytochrome c protein',
+    accent: '#2f5fd0',
+    available: false,
+    actTag: 'Act I · Ancestry & Evidence',
+    summary:
+      'Align real amino-acid sequences across vertebrates, fungi, and plants to measure molecular divergence and reconstruct ancestry.',
+  },
+  {
+    id: 'strata',
+    number: 5,
+    tabLabel: '5',
+    section: 'THE FOSSIL RECORD',
+    title: 'The Dig & Half-Lives',
+    subtitle: 'Stratigraphy, index fossils & zircon radiometric clocks',
+    organism: 'Fossil cliff strata',
+    accent: '#8f6232',
+    available: false,
+    actTag: 'Act I · Ancestry & Evidence',
+    summary:
+      'Excavate sedimentary rock beds and measure uranium–lead half-lives in volcanic ash layers to bracket evolutionary history.',
+  },
+  {
+    id: 'whales',
+    number: 6,
+    tabLabel: '6',
+    section: 'TRANSITIONAL FORMS',
+    title: 'Walking to sea',
+    subtitle: 'From Pakicetus to modern whales in 3D',
+    organism: 'Archaeoceti & Mysticeti',
+    accent: '#286477',
+    available: false,
+    actTag: 'Act I · Ancestry & Evidence',
+    summary:
+      'Scrub a 50-million-year 3D skeletal transition from terrestrial hoofed artiodactyls to fully aquatic cetaceans.',
+  },
+  {
+    id: 'finches',
+    number: 7,
+    tabLabel: '7',
+    section: 'ADAPTIVE RADIATION',
+    title: 'The Archipelago',
+    subtitle: 'Drought, beak depth & Galápagos finch selection',
+    organism: 'Geospiza fortis',
+    accent: '#b4742a',
+    available: false,
+    actTag: 'Act X · Species & Macroevolution',
+    summary:
+      'Track seed availability across El Niño and drought years on Daphne Major using the Grants’ empirical selection framework.',
+  },
+  {
+    id: 'clinic',
+    number: 8,
+    tabLabel: '8',
+    section: 'APPLIED EVOLUTION',
+    title: 'The Clinic',
+    subtitle: 'Antibiotic dosing, MIC/MPC & plasmid resistance',
+    organism: 'Pathogenic bacteria',
+    accent: '#9a3040',
+    available: false,
+    actTag: 'Act XI · Applied Evolution',
+    summary:
+      'Dose living bacterial populations and see how incomplete courses and horizontal gene transfer select for resistance.',
+  },
+  {
+    id: 'deeptime',
+    number: 9,
+    tabLabel: '9',
+    section: 'DEEP TIME',
+    title: '3.8 billion years',
+    subtitle: 'Life’s full ribbon & the five mass extinctions',
+    organism: 'Biosphere across eons',
+    accent: '#4d5d73',
+    available: false,
+    actTag: 'Act X · Deep Time',
+    summary:
+      'Scrub continuously across 3.8 billion years from LUCA and oxygenic photosynthesis to the Cambrian, K–Pg, and Anthropocene.',
+  },
+  {
+    id: 'equilibrium',
+    number: 10,
+    tabLabel: '10',
+    section: 'POPULATION GENETICS',
+    title: 'Equilibrium & Forces',
+    subtitle: 'Hardy–Weinberg, drift, conflict & the full Endless Forms collection',
+    organism: 'Populations & gene pools',
+    accent: '#3d6e5e',
+    available: false,
+    actTag: 'Acts III–IX · 23 v2 Chapters Joining Atlas',
+    summary:
+      'The gateway to Hardy–Weinberg, Drift Casino, Hawks & Doves, Bitter Wings, Alarm Call, Why Sex?, Switches, and more.',
+  },
+];

@@ -8,3 +8,5 @@ __pycache__/
 __MACOSX/
 games/endless-forms/source/Endless_Forms_v2.html
 games/*/game.js
+atlas/node_modules/
+atlas/dist/
