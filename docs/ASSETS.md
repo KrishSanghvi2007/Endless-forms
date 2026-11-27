@@ -97,6 +97,14 @@
 
 ---
 
+## Chapter 10: Switches & Deep Homology (`ch10_switch`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted 3D Threespine Sticklebacks (*Gasterosteus aculeatus*), Translucent *Daphnia* Water Fleas, Camera vs. Compound Eye Anatomy & *Volvox* Spheroids | `atlas/src/3d/organisms.ts` & `atlas/src/chapters/ch10_switch/SwitchScene3D.ts` | Original procedural Three.js meshes · MIT | Zero-box Evo-Devo plates: *Pitx1* modular enhancer bar & toggleable pelvic spines, 3′→5′ *Hox* colinearity & *Antp*/*Ubx* homeotic shifts, *Pax6* deep-homology bridge, inducible *Daphnia* helmets, and *Volvox* soma–germline spheroids. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |

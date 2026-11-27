@@ -575,6 +575,40 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'sex',
   },
 
+  // --- Evo-Devo, Plasticity & Major Transitions (Chapter 10) ---
+  cis_regulatory: {
+    id: 'cis_regulatory',
+    term: 'Cis-Regulatory Element (Enhancer)',
+    pronunciation: 'sis REG-yoo-lə-tor-ee',
+    shortDef:
+      'A non-coding DNA switch near a gene that controls where and when that gene is transcribed in specific tissues—allowing modular morphological evolution without pleiotropic side effects.',
+    relatedChapterId: 'switch',
+  },
+  phenotypic_plasticity: {
+    id: 'phenotypic_plasticity',
+    term: 'Phenotypic Plasticity',
+    pronunciation: 'fee-nə-TIP-ik plas-TIS-i-tee',
+    shortDef:
+      'The capacity of a single genotype to produce distinct phenotypes in response to environmental cues (e.g. Daphnia growing defensive helmets when smelling predator kairomones).',
+    relatedChapterId: 'switch',
+  },
+  reaction_norm: {
+    id: 'reaction_norm',
+    term: 'Reaction Norm (G×E Interaction)',
+    pronunciation: 'ree-AK-shən NORM',
+    shortDef:
+      'The curve plotting the phenotypes expressed by one genotype across a range of environments; crossing reaction norms indicate Genotype × Environment (G×E) interaction.',
+    relatedChapterId: 'switch',
+  },
+  major_transition: {
+    id: 'major_transition',
+    term: 'Major Evolutionary Transition',
+    pronunciation: 'MAY-jer tran-ZISH-ən',
+    shortDef:
+      'An evolutionary shift in which formerly independent replicators (e.g. solitary cells) unite into a higher-level individual with division of labour, typically stabilized by a single-cell bottleneck (r = 1).',
+    relatedChapterId: 'switch',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

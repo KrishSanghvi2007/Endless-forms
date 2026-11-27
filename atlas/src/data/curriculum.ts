@@ -145,7 +145,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Hox colinearity, cis-enhancers, Pax6, G×E reaction norms & transitions',
     organism: 'Drosophila, threespine sticklebacks & Daphnia',
     accent: '#6c4982',
-    available: false,
+    available: true,
     actTag: 'Part IV · Evo-Devo',
     summary:
       'Flip Pitx1 cis-regulatory enhancers without breaking vital proteins, inspect Hox colinearity and Pax6 deep homology, bend G×E reaction norms, and trace the major transition to multicellularity.',

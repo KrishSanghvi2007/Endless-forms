@@ -1027,4 +1027,170 @@ export function createTrematode3D(options: { colorHex?: string; scale?: number }
   return g;
 }
 
+// =============================================================================
+// 14. SCULPTED 3D THREESPINE STICKLEBACK (Gasterosteus aculeatus — Pitx1)
+// =============================================================================
+
+export function createStickleback3D(options: {
+  hasPelvicSpines: boolean;
+  jawIntact: boolean;
+  scale?: number;
+}): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: options.jawIntact ? 0x5c7c85 : 0x8e6b68,
+    roughness: 0.34,
+    metalness: 0.22,
+  });
+  const spineMat = new THREE.MeshStandardMaterial({ color: 0xe6dcc8, roughness: 0.35 });
+  const pelvicGlow = new THREE.MeshStandardMaterial({
+    color: 0xd96b2b,
+    emissive: 0x6b2808,
+    emissiveIntensity: 0.3,
+    roughness: 0.3,
+  });
+
+  // Streamlined silver-blue stickleback fuselage
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), bodyMat);
+  body.scale.set(0.55, 0.85, 2.55);
+  body.position.set(0, 0.22, 0);
+  body.castShadow = true;
+  g.add(body);
+
+  // Three signature dorsal spines
+  for (let i = 0; i < 3; i++) {
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.14, 6), spineMat);
+    sp.position.set(0, 0.37, 0.14 - i * 0.11);
+    sp.rotation.x = -0.35;
+    sp.castShadow = true;
+    g.add(sp);
+  }
+
+  // Caudal tail fin
+  const tShape = new THREE.Shape();
+  tShape.moveTo(0, 0);
+  tShape.lineTo(0.22, 0.13);
+  tShape.lineTo(0.16, 0);
+  tShape.lineTo(0.22, -0.13);
+  tShape.closePath();
+  const tGeo = new THREE.ExtrudeGeometry(tShape, { depth: 0.01, bevelEnabled: false });
+  tGeo.rotateY(Math.PI / 2);
+  const tail = new THREE.Mesh(tGeo, bodyMat);
+  tail.position.set(-0.005, 0.22, -0.32);
+  g.add(tail);
+
+  // Ventral pelvic girdle & defensive spines (controlled specifically by Pitx1 pelvic enhancer!)
+  if (options.hasPelvicSpines) {
+    const girdle = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.04, 0.14), pelvicGlow);
+    girdle.position.set(0, 0.1, 0.02);
+    g.add(girdle);
+    for (const s of [-1, 1]) {
+      const pSpine = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.18, 7), pelvicGlow);
+      pSpine.position.set(s * 0.055, 0.05, -0.02);
+      pSpine.rotation.x = Math.PI + 0.45;
+      pSpine.rotation.z = s * 0.35;
+      pSpine.castShadow = true;
+      g.add(pSpine);
+    }
+  }
+
+  // Lower jaw & eyes (damaged if Pitx1 coding protein is knocked out!)
+  const jaw = new THREE.Mesh(
+    new THREE.SphereGeometry(options.jawIntact ? 0.068 : 0.032, 10, 8),
+    options.jawIntact ? bodyMat : new THREE.MeshStandardMaterial({ color: 0xb83428, roughness: 0.5 })
+  );
+  jaw.position.set(0, 0.18, 0.34);
+  g.add(jaw);
+
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101418, roughness: 0.1 });
+  for (const s of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), eyeMat);
+    eye.position.set(s * 0.058, 0.25, 0.26);
+    g.add(eye);
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 15. SCULPTED 3D DAPHNIA WATER FLEA (Inducible Predator Helmet — Plasticity)
+// =============================================================================
+
+export function createDaphnia3D(options: { helmetSize: number; scale?: number }): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+  const h = Math.max(0, Math.min(1, options.helmetSize));
+
+  const shellMat = new THREE.MeshPhysicalMaterial({
+    color: 0xd8ebe8,
+    roughness: 0.15,
+    clearcoat: 0.7,
+    transparent: true,
+    opacity: 0.68,
+  });
+  const gutMat = new THREE.MeshStandardMaterial({ color: 0x5c8c58, roughness: 0.65 });
+
+  // Translucent oval carapace
+  const carapace = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), shellMat);
+  carapace.scale.set(0.62, 1.05, 1.32);
+  carapace.position.set(0, 0.22, -0.02);
+  carapace.castShadow = true;
+  g.add(carapace);
+
+  // Visible green algae gut inside translucent body!
+  const gut = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.18, 6, 8), gutMat);
+  gut.rotation.x = Math.PI / 2;
+  gut.position.set(0, 0.21, -0.02);
+  g.add(gut);
+
+  // Posterior tail spine
+  const tailSpine = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.24 + h * 0.14, 6), shellMat);
+  tailSpine.rotation.x = -Math.PI / 2 - 0.18;
+  tailSpine.position.set(0, 0.18, -0.28 - h * 0.06);
+  g.add(tailSpine);
+
+  // Head + Inducible Curved Defensive Helmet (grows dramatically with predator kairomones!)
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 10), shellMat);
+  head.position.set(0, 0.25, 0.2);
+  g.add(head);
+
+  if (h > 0.08) {
+    const helmet = new THREE.Mesh(
+      new THREE.ConeGeometry(0.085, 0.12 + h * 0.34, 10),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x8ad0cc,
+        roughness: 0.18,
+        transparent: true,
+        opacity: 0.78,
+      })
+    );
+    helmet.position.set(0, 0.33 + h * 0.14, 0.24 + h * 0.06);
+    helmet.rotation.x = 0.55;
+    helmet.castShadow = true;
+    g.add(helmet);
+  }
+
+  // Prominent black compound eye
+  const eye = new THREE.Mesh(
+    new THREE.SphereGeometry(0.032, 10, 8),
+    new THREE.MeshStandardMaterial({ color: 0x101014, roughness: 0.1 })
+  );
+  eye.position.set(0, 0.26, 0.27);
+  g.add(eye);
+
+  // Paired branched swimming antennae
+  for (const s of [-1, 1]) {
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.014, 0.28, 6), shellMat);
+    ant.position.set(s * 0.13, 0.28, 0.18);
+    ant.rotation.z = s * 0.9;
+    ant.rotation.x = 0.4;
+    g.add(ant);
+  }
+
+  return g;
+}
+
+
 
