@@ -1,4 +1,12 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import {
+  createMuseumWatercolourMaterial,
+  type WatercolourMaterialHandle,
+  type WatercolourWashPalette,
+} from '../../3d/watercolourMaterial';
+import whaleForelimbUrl from '../../assets/smithsonian_whale_forelimb.glb?url';
 import type {
   AnalogySpecimenId,
   BoneRegionId,
@@ -80,6 +88,48 @@ const HOX_PALETTES: Record<
     wash: '#ab2641',
     deep: '#6b1024',
     ivory: '#fcc5d0',
+  },
+};
+
+const SCAN_REGION_PALETTES: Record<BoneRegionId, WatercolourWashPalette> = {
+  stylopod: {
+    base: '#dca651',
+    wash: '#f3ddb0',
+    deep: '#9a621c',
+    ink: '#543819',
+  },
+  zeugopod: {
+    base: '#71aca2',
+    wash: '#badad3',
+    deep: '#386e66',
+    ink: '#2a4742',
+  },
+  autopod: {
+    base: '#d87b89',
+    wash: '#f1bec5',
+    deep: '#943c4b',
+    ink: '#5c2832',
+  },
+};
+
+const SCAN_HOX_PALETTES: Record<BoneRegionId, WatercolourWashPalette> = {
+  stylopod: {
+    base: '#e59a2d',
+    wash: '#fae1a8',
+    deep: '#8e4d08',
+    ink: '#522f0a',
+  },
+  zeugopod: {
+    base: '#34a89a',
+    wash: '#a7e8df',
+    deep: '#155c54',
+    ink: '#123d38',
+  },
+  autopod: {
+    base: '#db506c',
+    wash: '#f8b9c6',
+    deep: '#831b32',
+    ink: '#4d1421',
   },
 };
 
@@ -724,6 +774,7 @@ export class LimbScene3D {
   // Root groups
   private specimenPivot = new THREE.Group();
   private tetrapodGroup = new THREE.Group();
+  private whaleScanGroup = new THREE.Group();
   private birdGroup = new THREE.Group();
   private insectGroup = new THREE.Group();
   private tissueGroup = new THREE.Group();
@@ -731,6 +782,11 @@ export class LimbScene3D {
   // Materials
   private regionMaterials: Record<BoneRegionId, THREE.MeshStandardMaterial>;
   private hoxMaterials: Record<BoneRegionId, THREE.MeshStandardMaterial>;
+  private whaleScanMaterials: Record<BoneRegionId, WatercolourMaterialHandle>;
+  private whaleScanClickable: BoneMeshEntry[] = [];
+  private whaleScanLoaded = false;
+  private usingWhaleScan = false;
+  private isContinuousMorphing = false;
 
   // Tetrapod bone meshes
   private humerusMesh!: THREE.Mesh;
@@ -845,9 +901,15 @@ export class LimbScene3D {
 
     this.regionMaterials = this.createRegionMaterials(REGION_PALETTES);
     this.hoxMaterials = this.createRegionMaterials(HOX_PALETTES);
+    this.whaleScanMaterials = {
+      stylopod: createMuseumWatercolourMaterial(SCAN_REGION_PALETTES.stylopod),
+      zeugopod: createMuseumWatercolourMaterial(SCAN_REGION_PALETTES.zeugopod),
+      autopod: createMuseumWatercolourMaterial(SCAN_REGION_PALETTES.autopod),
+    };
 
     this.scene.add(this.specimenPivot);
     this.specimenPivot.add(this.tetrapodGroup);
+    this.specimenPivot.add(this.whaleScanGroup);
     this.specimenPivot.add(this.tissueGroup);
     this.specimenPivot.add(this.birdGroup);
     this.specimenPivot.add(this.insectGroup);
@@ -857,6 +919,7 @@ export class LimbScene3D {
     this.buildBirdWingSpecimen();
     this.buildInsectWingSpecimen();
 
+    this.whaleScanGroup.visible = false;
     this.birdGroup.visible = false;
     this.insectGroup.visible = false;
     this.tissueGroup.visible = false;
@@ -865,12 +928,63 @@ export class LimbScene3D {
     this.targetPose = this.poses.human;
     this.applyPose(this.currentPose);
     this.updateCamera();
+    void this.loadSmithsonianWhaleScan();
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(host);
 
     this.bindPointerEvents();
     this.animate();
+  }
+
+  /** Load the real Smithsonian 3D-scanned Long-finned Pilot Whale forelimb (USNM VZ 20980) */
+  private async loadSmithsonianWhaleScan(): Promise<void> {
+    try {
+      await MeshoptDecoder.ready;
+      const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      const gltf = await loader.loadAsync(whaleForelimbUrl);
+      if (this.disposed) return;
+
+      const root = gltf.scene;
+      // Frame horizontally with gentle museum-plate diagonal tilt (humerus left, digits right)
+      root.rotation.set(0.18, 0.08, 0.28);
+      root.position.set(0.05, 0.14, 0);
+
+      root.traverse((obj) => {
+        if (!(obj instanceof THREE.Mesh)) return;
+        const name = (obj.name || obj.parent?.name || '') as BoneRegionId;
+        const region: BoneRegionId =
+          name === 'stylopod' || name === 'zeugopod' || name === 'autopod'
+            ? name
+            : 'autopod';
+        obj.material = this.whaleScanMaterials[region].material;
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+        obj.userData.region = region;
+        this.whaleScanClickable.push({ mesh: obj, region });
+      });
+
+      this.whaleScanGroup.add(root);
+      this.whaleScanLoaded = true;
+      this.syncWhaleScanVisibility();
+      this.updateMaterials();
+    } catch (err) {
+      console.warn('Smithsonian whale scan fallback to procedural model:', err);
+    }
+  }
+
+  private syncWhaleScanVisibility(): void {
+    const useScan =
+      this.displayMode === 'tetrapod' &&
+      this.activeSpecies === 'whale' &&
+      !this.isContinuousMorphing &&
+      this.whaleScanLoaded;
+    this.usingWhaleScan = useScan;
+    this.whaleScanGroup.visible = useScan;
+    if (this.displayMode === 'tetrapod') {
+      this.tetrapodGroup.visible = !useScan;
+    }
   }
 
   /** Automatically frame the ~5.7-unit specimen nicely inside ANY plate aspect ratio */
@@ -1317,6 +1431,7 @@ export class LimbScene3D {
 
   private updateMaterials(): void {
     const mats = this.showHox ? this.hoxMaterials : this.regionMaterials;
+    const scanPalettes = this.showHox ? SCAN_HOX_PALETTES : SCAN_REGION_PALETTES;
 
     this.clickableMeshes.forEach(({ mesh, region }) => {
       mesh.material = mats[region];
@@ -1324,6 +1439,9 @@ export class LimbScene3D {
 
     (['stylopod', 'zeugopod', 'autopod'] as BoneRegionId[]).forEach((region) => {
       const mat = mats[region];
+      const scanHandle = this.whaleScanMaterials[region];
+      scanHandle.setPalette(scanPalettes[region]);
+
       const isSelected = this.selectedRegion === region;
       const isHovered = this.hoveredRegion === region;
       const somethingSelected = this.selectedRegion !== null;
@@ -1333,21 +1451,25 @@ export class LimbScene3D {
         mat.emissiveIntensity = 0.36;
         mat.opacity = 1;
         mat.transparent = false;
+        scanHandle.setEmphasis('selected');
       } else if (isHovered) {
         mat.emissive.setHex(0x3a240e);
         mat.emissiveIntensity = 0.22;
         mat.opacity = 1;
         mat.transparent = false;
+        scanHandle.setEmphasis('hovered');
       } else if (somethingSelected) {
         mat.emissive.setHex(0x000000);
         mat.emissiveIntensity = 0;
         mat.transparent = true;
         mat.opacity = 0.4;
+        scanHandle.setEmphasis('dimmed');
       } else {
         mat.emissive.setHex(0x000000);
         mat.emissiveIntensity = 0;
         mat.transparent = false;
         mat.opacity = 1;
+        scanHandle.setEmphasis('normal');
       }
       mat.needsUpdate = true;
     });
@@ -1356,16 +1478,18 @@ export class LimbScene3D {
   public setSpecies(species: TetrapodSpeciesId): void {
     this.displayMode = 'tetrapod';
     this.activeSpecies = species;
-    this.tetrapodGroup.visible = true;
+    this.isContinuousMorphing = false;
     this.birdGroup.visible = false;
     this.insectGroup.visible = false;
     this.targetPose = this.poses[species];
+    this.syncWhaleScanVisibility();
     this.updateTissueVisibility(species);
   }
 
   public setContinuousMorph(value: number): void {
     this.displayMode = 'tetrapod';
-    this.tetrapodGroup.visible = true;
+    this.isContinuousMorphing = true;
+    this.syncWhaleScanVisibility();
     this.birdGroup.visible = false;
     this.insectGroup.visible = false;
 
@@ -1386,7 +1510,10 @@ export class LimbScene3D {
       return;
     }
     this.displayMode = specimen;
+    this.isContinuousMorphing = false;
+    this.usingWhaleScan = false;
     this.tetrapodGroup.visible = false;
+    this.whaleScanGroup.visible = false;
     this.tissueGroup.visible = false;
     this.birdGroup.visible = specimen === 'bird';
     this.insectGroup.visible = specimen === 'insect';
@@ -1451,7 +1578,8 @@ export class LimbScene3D {
     const pickRegion = (): BoneRegionId | null => {
       if (this.displayMode !== 'tetrapod') return null;
       this.raycaster.setFromCamera(this.pointerNdc, this.camera);
-      const meshes = this.clickableMeshes
+      const source = this.usingWhaleScan ? this.whaleScanClickable : this.clickableMeshes;
+      const meshes = source
         .filter((e) => e.mesh.visible)
         .map((e) => e.mesh);
       const hits = this.raycaster.intersectObjects(meshes, false);

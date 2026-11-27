@@ -108,12 +108,12 @@ export const TETRAPOD_SPECIES: Record<TetrapodSpeciesId, SpeciesLimbData> = {
   whale: {
     id: 'whale',
     commonName: 'Whale',
-    latinName: 'Tursiops truncatus',
-    plateCaption: 'Tursiops truncatus — right flipper, dorsal view',
-    scaleLabel: '5 cm',
-    totalCm: 48,
-    cm: { stylopod: 10, zeugopod: 9, autopod: 29 },
-    pct: { stylopod: 21, zeugopod: 19, autopod: 60 },
+    latinName: 'Globicephala melas',
+    plateCaption: 'Globicephala melas — Smithsonian 3D scan (USNM 20980)',
+    scaleLabel: '10 cm',
+    totalCm: 90,
+    cm: { stylopod: 15, zeugopod: 13, autopod: 62 },
+    pct: { stylopod: 17, zeugopod: 14, autopod: 69 },
     regionNotes: {
       stylopod:
         'Short, stout humerus gives high leverage for steering rather than walking.',
