@@ -156,6 +156,14 @@
 
 ---
 
+## Chapter 17: The Price Equation & The Commons (`ch17_price`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted Meadow Haystacks (Cooperator vs. Cheater Colonies), 3D Price Decomposition Pillars, Fisher FTNS Variance/Fitness Ribbons & Regression-Slope Rodent Pairs | `atlas/src/chapters/ch17_price/PriceScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Revives Tangled Bank Ch. VI (*The Commons* Haystack Model) with exact live Price Equation between-group vs. within-group partitioning, Simpson's paradox, Fisher's FTNS partial-change identity, Hamilton's Rule derivation, and weak vs. strong altruism. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

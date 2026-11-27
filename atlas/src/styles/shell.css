@@ -448,23 +448,28 @@
 .atlas-tabs {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 16px 0 14px 0;
+  gap: 2px;
+  padding: 10px 0 10px 0;
   margin-left: -2px;
   z-index: 4;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: visible;
+  scrollbar-width: none;
 }
 
 .chapter-tab {
   position: relative;
+  flex-shrink: 0;
   width: 34px;
-  height: 33px;
+  height: 26px;
   border: 1px solid rgba(46, 33, 21, 0.25);
   border-left: none;
-  border-radius: 0 7px 7px 0;
+  border-radius: 0 6px 6px 0;
   background: #eae0ca;
   color: var(--ink-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   cursor: pointer;
   display: flex;

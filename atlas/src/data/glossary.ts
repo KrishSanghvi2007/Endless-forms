@@ -943,4 +943,20 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Interbreeding between dispersing modern Homo sapiens and coexisting sister hominin lineages such as Neanderthals (~2% ancestry outside Africa) and Denisovans (~3–5% in Melanesia/Oceania).',
     relatedChapterId: 'clinic',
   },
+  price_equation: {
+    id: 'price_equation',
+    term: 'Price Equation',
+    pronunciation: 'PRYS i-KWAY-zhən',
+    shortDef:
+      'Exact covariance identity (W̄·Δz̄ = Cov(w, z) + E(w·Δz)) partitioning evolutionary change into selection (covariance between fitness and trait) plus transmission bias — unifying multilevel selection, kin selection, and Fisher’s FTNS.',
+    relatedChapterId: 'price',
+  },
+  fishers_fundamental_theorem: {
+    id: 'fishers_fundamental_theorem',
+    term: 'Fisher’s Fundamental Theorem (FTNS)',
+    pronunciation: 'FISH-erz fun-də-MEN-təl',
+    shortDef:
+      'The partial rate of increase in mean fitness attributable to natural selection equals the additive genetic variance in fitness divided by mean fitness (Δw̄_NS = V_A(w)/w̄ ≥ 0), distinct from environmental deterioration (Price 1972).',
+    relatedChapterId: 'price',
+  },
 };

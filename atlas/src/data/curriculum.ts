@@ -234,4 +234,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Dose living bacterial populations across MIC/MPC mutant-selection windows with conjugative plasmid HGT, track clonal cancer evolution, and trace hominin dispersals, archaic admixture, and clinal human variation.',
   },
+  {
+    id: 'price',
+    number: 17,
+    tabLabel: '17',
+    section: 'EVOLUTIONARY THEORY & MULTILEVEL SELECTION',
+    title: 'The Price Equation & The Commons',
+    subtitle: 'Haystack group selection, Simpson’s paradox, Fisher’s FTNS & weak vs. strong altruism',
+    organism: 'Haystack cooperators, cheaters & meadow rodents',
+    accent: '#2f6d4f',
+    available: true,
+    actTag: 'Part VII · Quantitative & Theoretical Synthesis',
+    summary:
+      'Time dispersal floods across Maynard Smith’s Haystack Commons, watch Simpson’s paradox resolve live inside the Price Equation, explore Fisher’s Fundamental Theorem of Natural Selection, and separate weak from strong altruism.',
+  },
 ];
