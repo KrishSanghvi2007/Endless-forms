@@ -3,6 +3,7 @@
 // =============================================================================
 
 import * as THREE from 'three';
+import { createBotanicalLeaf3D } from '../../3d/organisms';
 import { createSeededRng } from '../../sim/adapter';
 import {
   type BatesianDecision,
@@ -762,19 +763,17 @@ export class BitterScene3D {
     floor.receiveShadow = true;
     g.add(floor);
 
-    // 4 sculpted broad waxy rainforest leaves!
-    const leafMat = new THREE.MeshStandardMaterial({ color: 0x3b7a46, roughness: 0.52 });
+    // 4 sculpted arched, veined botanical Passiflora host leaves!
     const leafCoords: [number, number][] = [
       [-1.35, -0.68],
       [1.35, -0.68],
       [-1.35, 0.68],
       [1.35, 0.68],
     ];
-    leafCoords.forEach(([x, z]) => {
-      const leaf = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.78, 0.04, 24), leafMat);
-      leaf.scale.set(1.22, 1, 0.82);
+    leafCoords.forEach(([x, z], idx) => {
+      const leaf = createBotanicalLeaf3D(1.02, idx === 2 ? '#367542' : '#3f824c');
       leaf.position.set(x, 0.19, z);
-      leaf.receiveShadow = true;
+      leaf.rotation.y = (idx % 2 === 0 ? 0.25 : -0.25);
       g.add(leaf);
     });
 

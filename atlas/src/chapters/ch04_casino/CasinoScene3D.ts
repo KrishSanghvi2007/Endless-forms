@@ -5,6 +5,7 @@
 // =============================================================================
 
 import * as THREE from 'three';
+import { createElephantSeal3D, createSculptedLizard3D } from '../../3d/organisms';
 import {
   JEWEL_ALLELES,
   type BottleneckResult,
@@ -472,22 +473,18 @@ export class CasinoScene3D {
       bar.position.y = 0.16 + h * 0.36;
     });
 
-    // Update Harem pawns (20 total: Nm cobalt males on left, Nf rose-amber females on right)
+    // Sculpted 3D Northern Elephant Seals (Nm large bulls with proboscis + Nf sleek cows!)
     while (this.p2HaremGroup.children.length > 0) {
       this.p2HaremGroup.remove(this.p2HaremGroup.children[0]);
     }
-    const maleMat = this.matA;
-    const femMat = new THREE.MeshPhysicalMaterial({ color: 0xc9524b, roughness: 0.28, clearcoat: 0.55 });
-    const pawnGeo = new THREE.CapsuleGeometry(0.068, 0.16, 6, 10);
-
     for (let i = 0; i < summary.censusN; i++) {
       const isMale = i < summary.nm;
       const col = i % 4;
       const row = Math.floor(i / 4);
-      const pawn = new THREE.Mesh(pawnGeo, isMale ? maleMat : femMat);
-      pawn.position.set(1.12 + col * 0.34, 0.34, -0.82 + row * 0.41);
-      pawn.castShadow = true;
-      this.p2HaremGroup.add(pawn);
+      const seal = createElephantSeal3D(isMale, 0.56);
+      seal.position.set(1.12 + col * 0.34, 0.175, -0.82 + row * 0.41);
+      seal.rotation.y = isMale ? 0.35 : -0.35 + (i % 3) * 0.25;
+      this.p2HaremGroup.add(seal);
     }
 
     this.p2TargetNeH = Math.max(0.12, (summary.neSexRatio / summary.censusN) * 1.8);
@@ -522,17 +519,19 @@ export class CasinoScene3D {
     mainland.receiveShadow = true;
     g.add(mainland);
 
-    const jewelGeo = new THREE.OctahedronGeometry(0.115, 0);
     JEWEL_ALLELES.forEach((al, idx) => {
       const ang = (idx / 12) * Math.PI * 2;
-      const rad = idx < 4 ? 0.36 : 0.78;
-      const jewel = new THREE.Mesh(
-        jewelGeo,
-        new THREE.MeshPhysicalMaterial({ color: al.hex, roughness: 0.18, clearcoat: 0.85 })
-      );
-      jewel.position.set(-1.42 + Math.cos(ang) * rad, 0.44, 0.05 + Math.sin(ang) * rad);
-      jewel.castShadow = true;
-      g.add(jewel);
+      const rad = idx < 4 ? 0.38 : 0.78;
+      const anole = createSculptedLizard3D({
+        throatHex: al.hex,
+        dorsalHex: al.hex,
+        spotHex: '#2f2922',
+        scale: 0.36,
+        tailCurveSign: idx % 2 === 0 ? 1 : -1,
+      });
+      anole.position.set(-1.42 + Math.cos(ang) * rad, 0.34, 0.05 + Math.sin(ang) * rad);
+      anole.rotation.y = ang + Math.PI / 2;
+      g.add(anole);
     });
 
     // Center-back: Dark Basalt Volcano Cone with glowing amber lava crater!
@@ -551,7 +550,7 @@ export class CasinoScene3D {
     this.p3LavaLight.position.set(0.15, 1.34, -0.78);
     g.add(this.p3LavaLight);
 
-    // Right: Post-Bottleneck Island where vanished jewel alleles become hollow ghost rings!
+    // Right: Post-Bottleneck Island where vanished anole morphs become hollow ghost rings!
     const postIsle = new THREE.Mesh(
       new THREE.CylinderGeometry(1.12, 1.24, 0.24, 28),
       new THREE.MeshStandardMaterial({ color: 0xc2b28f, roughness: 0.9 })
@@ -562,9 +561,9 @@ export class CasinoScene3D {
 
     g.add(this.p3IslandJewelGroup);
 
-    const pMain = createEngravedPlaque('Mainland (12 Alleles)', 'H₀ = 0.88 · K = 12', 1.65, '#2a6b54');
+    const pMain = createEngravedPlaque('Mainland (12 Anole Morphs)', 'H₀ = 0.88 · K = 12', 1.72, '#2a6b54');
     pMain.position.set(-1.42, 0.03, 2.02);
-    const pPost = createEngravedPlaque('Post-Bottleneck', 'rare jewels vanish first', 1.68, '#a63826');
+    const pPost = createEngravedPlaque('Post-Bottleneck Island', 'rare morphs vanish first', 1.72, '#a63826');
     pPost.position.set(1.42, 0.03, 2.02);
     g.add(pMain, pPost);
   }
@@ -574,26 +573,27 @@ export class CasinoScene3D {
     while (this.p3IslandJewelGroup.children.length > 0) {
       this.p3IslandJewelGroup.remove(this.p3IslandJewelGroup.children[0]);
     }
-    const jewelGeo = new THREE.OctahedronGeometry(0.115, 0);
     const ringGeo = new THREE.RingGeometry(0.08, 0.12, 18);
     const ghostMat = new THREE.MeshBasicMaterial({ color: 0x6e6254, side: THREE.DoubleSide, transparent: true, opacity: 0.45 });
 
     JEWEL_ALLELES.forEach((al, idx) => {
       const ang = (idx / 12) * Math.PI * 2;
-      const rad = idx < 4 ? 0.36 : 0.78;
+      const rad = idx < 4 ? 0.38 : 0.78;
       const x = 1.42 + Math.cos(ang) * rad;
       const z = 0.05 + Math.sin(ang) * rad;
 
       if (res.counts[idx] > 0) {
-        const s = Math.min(1.55, 0.85 + res.freqs[idx] * 2.2);
-        const jewel = new THREE.Mesh(
-          jewelGeo,
-          new THREE.MeshPhysicalMaterial({ color: al.hex, roughness: 0.18, clearcoat: 0.85 })
-        );
-        jewel.scale.setScalar(s);
-        jewel.position.set(x, 0.42 + s * 0.06, z);
-        jewel.castShadow = true;
-        this.p3IslandJewelGroup.add(jewel);
+        const s = Math.min(0.48, 0.32 + res.freqs[idx] * 0.6);
+        const anole = createSculptedLizard3D({
+          throatHex: al.hex,
+          dorsalHex: al.hex,
+          spotHex: '#2f2922',
+          scale: s,
+          tailCurveSign: idx % 2 === 0 ? 1 : -1,
+        });
+        anole.position.set(x, 0.34, z);
+        anole.rotation.y = ang + Math.PI / 2;
+        this.p3IslandJewelGroup.add(anole);
       } else {
         // Empty ghost socket showing a lost allele!
         const ring = new THREE.Mesh(ringGeo, ghostMat);

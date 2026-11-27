@@ -61,7 +61,15 @@
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |
 |---|---|---|---|
-| Sculpted 3D *Heliconius* Butterflies, Glassy-Winged Dragonflies & Rufous-Tailed Jacamar (*Galbula ruficauda*) | `atlas/src/chapters/ch05_bitter/BitterScene3D.ts` | Original procedural Three.js meshes & wing-pattern textures · MIT | Supports raycastable jacamar foraging (Chai 1986 taste-release), continuous 0–100% imperfect mimicry wing gradients, Müllerian Red-Band vs. Yellow-Spot advergence, and solitary vs. kin-clustered aposematic larvae. |
+| Sculpted 3D *Heliconius* Butterflies, Glassy-Winged Dragonflies & Rufous-Tailed Jacamar (*Galbula ruficauda*) | `atlas/src/chapters/ch05_bitter/BitterScene3D.ts` | Original procedural Three.js meshes & wing-pattern textures · MIT | Supports raycastable jacamar foraging (Chai 1986 taste-release), continuous 0–100% imperfect mimicry wing gradients, Müllerian Red-Band vs. Yellow-Spot advergence, arched veined *Passiflora* host leaves, and solitary vs. kin-clustered aposematic larvae. |
+
+---
+
+## Shared Sculpted 3D Organism Library & Chapter 6: Left Jaw, Right Jaw (`ch06_jaws`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Anatomically Lofted 3D Tanganyika Cichlids (*Perissodus microlepis*), Side-Blotched Lizards (*Uta stansburiana*), Island Anoles (*Anolis*), Elephant Seals & Veined *Passiflora* Leaves | `atlas/src/3d/organisms.ts` & `atlas/src/chapters/ch06_jaws/JawsScene3D.ts` | Original procedural Three.js `LatheGeometry` / tapered `TubeGeometry` / hand-tinted scale PBR textures · MIT | Zero-box museum specimen presentation casting soft drop shadows directly onto rag paper: visibly twisted left/right scale-scraping jaws, animated swishing caudal fins, Orange/Blue/Yellow lizard throat dewlaps, and trans-species MHC balancing trees. |
 
 ---
 

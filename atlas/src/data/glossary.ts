@@ -377,6 +377,46 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'bitter',
   },
 
+  // --- Balancing Selection & NFDS (Chapter 6: Left Jaw, Right Jaw) ---
+  nfds: {
+    id: 'nfds',
+    term: 'Negative Frequency-Dependent Selection (NFDS)',
+    pronunciation: 'NEG-ə-tiv FREE-kwən-see di-PEN-dənt',
+    shortDef:
+      'Selection in which a phenotype’s relative fitness increases as it becomes rarer and decreases as it becomes common—actively preserving polymorphism.',
+    deepNote:
+      'Classic examples include Perissodus scale-eating cichlids (Hori 1993), rare-allele MHC immunity, and Batesian mimicry.',
+    relatedChapterId: 'jaws',
+  },
+  balancing_selection: {
+    id: 'balancing_selection',
+    term: 'Balancing Selection',
+    pronunciation: 'BAL-ən-sing si-LEK-shən',
+    shortDef:
+      'Any selective mechanism—such as heterozygote advantage, negative frequency dependence, or fluctuating niches—that actively maintains multiple alleles in a population.',
+    deepNote:
+      'In DNA sequences, long-term balancing selection creates deep internal coalescent branches and an excess of intermediate-frequency alleles (Tajima’s D > 0).',
+    relatedChapterId: 'jaws',
+  },
+  rock_paper_scissors: {
+    id: 'rock_paper_scissors',
+    term: 'Intransitive Rock–Paper–Scissors Dynamics',
+    pronunciation: 'in-TRAN-si-tiv',
+    shortDef:
+      'A non-transitive 3-strategy evolutionary cycle (A beats B, B beats C, C beats A) in which no single strategy dominates, producing perpetual morph oscillations.',
+    deepNote:
+      'Documented in California side-blotched lizards (Uta stansburiana; Sinervo & Lively 1996) and colicin-producing E. coli bacteria.',
+    relatedChapterId: 'jaws',
+  },
+  trans_species_polymorphism: {
+    id: 'trans_species_polymorphism',
+    term: 'Trans-Species Polymorphism',
+    pronunciation: 'tranz-SPEE-sheez pol-ee-MOR-fiz-əm',
+    shortDef:
+      'Persistence of ancient ancestral alleles across speciation events so that an allele in one species (e.g. human MHC) is more closely related to an allele in another species (chimpanzee) than to other alleles in its own species.',
+    relatedChapterId: 'jaws',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',
