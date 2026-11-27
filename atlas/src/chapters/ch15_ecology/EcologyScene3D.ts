@@ -19,6 +19,10 @@ import {
   createSculptedSongbird3D,
   createSeaOtter3D,
 } from '../../3d/naturalistSpecimens';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import crabGlbUrl from '../../assets/smithsonian_crab.glb?url';
+import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
+import tortoiseGlbUrl from '../../assets/smithsonian_tortoise.glb?url';
 import type {
   BiogeographyResult,
   CascadeResult,
@@ -372,28 +376,44 @@ export class EcologyScene3D {
 
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
-    const finch = createSculptedSongbird3D({
-      dorsalPalette: { base: '#594e42', wash: '#3d332a', deep: '#1f1914', highlight: '#968776' },
-      beakDepth: 1.9,
-      wingBars: 0,
-      scale: 1.35,
-      seed: 160,
+    // Real Smithsonian Blue Crab (Callinectes sapidus)
+    const crab = createSmithsonianSpecimen(crabGlbUrl, {
+      size: 1.65,
+      palette: { base: '#5f8ea1', wash: '#b0d1de', deep: '#295061', ink: '#18303b' },
+      rotation: [-Math.PI / 2, 0.35, 0],
+      position: [-1.6, 0.02, 0.15],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
     });
-    finch.position.set(-1.55, 0.02, 0.15);
-    finch.rotation.y = 1.05;
-    g.add(finch);
+    g.add(crab);
 
-    const otter = createSeaOtter3D(1.02);
-    otter.position.set(0.15, 0.05, 0.15);
-    otter.rotation.y = 0.85;
-    g.add(otter);
+    // Real Smithsonian Spotted Trunkfish (Lactophrys bicaudalis)
+    const fish = createSmithsonianSpecimen(fishGlbUrl, {
+      size: 1.55,
+      palette: { base: '#789e8c', wash: '#c0dcd0', deep: '#355748', ink: '#1c3329' },
+      rotation: [0, Math.PI * 0.45, 0],
+      position: [0.1, 0.18, 0.1],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(fish);
 
-    const urchin = createPurpleSeaUrchin3D(0.95);
-    urchin.position.set(1.55, 0.02, 0.25);
-    g.add(urchin);
+    // Real Smithsonian Red-footed Tortoise (Geochelone carbonaria)
+    const tortoise = createSmithsonianSpecimen(tortoiseGlbUrl, {
+      size: 1.5,
+      palette: { base: '#8c7e58', wash: '#cdc09c', deep: '#4e4429', ink: '#2b2415' },
+      rotation: [-Math.PI / 2, -0.5, Math.PI],
+      position: [1.65, 0.02, 0.2],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(tortoise);
 
     const kelp = createGiantKelpFrond3D(0.85, 0.9);
-    kelp.position.set(1.45, 0.02, -0.65);
+    kelp.position.set(1.45, 0.02, -0.75);
     g.add(kelp);
   }
 

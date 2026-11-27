@@ -18,6 +18,10 @@ import {
   createTiktaalikFossil3D,
   createWhaleTransitionSkeleton3D,
 } from '../../3d/naturalistSpecimens';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import triceratopsGlbUrl from '../../assets/smithsonian_triceratops.glb?url';
+import mammothGlbUrl from '../../assets/smithsonian_mammoth.glb?url';
+import archaeopteryxGlbUrl from '../../assets/smithsonian_archaeopteryx.glb?url';
 import type { ExtinctionInfo, RadiometricResult } from './deeptimeMath';
 
 export type DeepTimePageId = 'spiral' | 'radio' | 'tiktaalik' | 'whales' | 'extinction' | 'check';
@@ -165,26 +169,74 @@ export class DeepTimeScene3D {
       g.add(mesh);
     });
 
-    // Ammonite fossil resting cleanly beside the lower Cretaceous stratum (extinct at boundary!)
-    const preAmmonite = createAmmoniteSpiral3D(0.95, 0.55);
-    preAmmonite.position.set(-1.55, 0.02, 0.92);
-    g.add(preAmmonite);
+    // Real Smithsonian Triceratops horridus skeleton beside the lower Mesozoic stratum (extinct at K-Pg!)
+    const preDino = createSmithsonianSpecimen(triceratopsGlbUrl, {
+      size: 2.25,
+      palette: {
+        base: '#c9a672',
+        wash: '#ead9b8',
+        deep: '#785a32',
+        ink: '#3d2c15',
+      },
+      rotation: [0, 0.45, -Math.PI / 2],
+      position: [-1.45, 0.0, 1.45],
+      groundOnY0: true,
+      grainScale: 1.8,
+      inkStrength: 0.9,
+    });
+    g.add(preDino);
 
-    // Post-extinction vertebrate survivor crown atop the upper Paleogene stratum!
-    const survivorWhale = createWhaleTransitionSkeleton3D(0.08, 0.48);
-    survivorWhale.position.set(0, 1.52, 0);
-    g.add(survivorWhale);
+    // Real Smithsonian Woolly Mammoth (Mammuthus primigenius) Cenozoic radiation atop the upper stratum!
+    const postMammal = createSmithsonianSpecimen(mammothGlbUrl, {
+      size: 2.05,
+      palette: {
+        base: '#d9c5a0',
+        wash: '#f4ead4',
+        deep: '#856e4b',
+        ink: '#40321d',
+      },
+      rotation: [-Math.PI / 2, 0.0, Math.PI / 2],
+      position: [0, 1.48, 0],
+      groundOnY0: true,
+      grainScale: 1.8,
+      inkStrength: 0.9,
+    });
+    g.add(postMammal);
   }
 
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
-    const amm = createAmmoniteSpiral3D(0.9, 0.72);
-    amm.position.set(-1.45, 0.04, 0.1);
-    g.add(amm);
+    // Real Smithsonian Archaeopteryx siemensii fossil slab (PAL509743) + Triceratops horridus
+    const archSlab = createSmithsonianSpecimen(archaeopteryxGlbUrl, {
+      size: 2.6,
+      palette: {
+        base: '#d4c39d',
+        wash: '#efe6cf',
+        deep: '#857350',
+        ink: '#453822',
+      },
+      rotation: [-0.35, 0.18, 0],
+      position: [-1.15, 1.15, -0.15],
+      grainScale: 1.6,
+      inkStrength: 0.92,
+    });
+    g.add(archSlab);
 
-    const whale = createWhaleTransitionSkeleton3D(0.66, 0.58);
-    whale.position.set(0.65, 0.14, 0.0);
-    g.add(whale);
+    const trike = createSmithsonianSpecimen(triceratopsGlbUrl, {
+      size: 2.45,
+      palette: {
+        base: '#c9a46c',
+        wash: '#ebd8b5',
+        deep: '#73532b',
+        ink: '#3a2812',
+      },
+      rotation: [0, -0.55, -Math.PI / 2],
+      position: [1.35, 0.0, 0.25],
+      groundOnY0: true,
+      grainScale: 1.8,
+      inkStrength: 0.9,
+    });
+    g.add(trike);
   }
 
   public setPage(page: DeepTimePageId): void {

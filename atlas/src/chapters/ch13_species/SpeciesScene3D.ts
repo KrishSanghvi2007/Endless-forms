@@ -19,6 +19,10 @@ import {
   createSculptedSongbird3D,
   createTragopogonBlossom3D,
 } from '../../3d/naturalistSpecimens';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import beetleGlbUrl from '../../assets/smithsonian_beetle.glb?url';
+import orchidGlbUrl from '../../assets/smithsonian_orchid.glb?url';
+import crabGlbUrl from '../../assets/smithsonian_crab.glb?url';
 import type {
   DmiResult,
   HostShiftResult,
@@ -355,29 +359,41 @@ export class SpeciesScene3D {
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
 
-    const bird = createSculptedSongbird3D({
-      dorsalPalette: {
-        base: '#7c995c',
-        wash: '#59753d',
-        deep: '#364a22',
-        highlight: '#b4c98e',
-      },
-      wingBars: 2,
-      scale: 1.22,
-      seed: 19,
+    // Real Smithsonian Longhorn Beetle (Psalidognathus superbus) — terrestrial divergence
+    const beetle = createSmithsonianSpecimen(beetleGlbUrl, {
+      size: 1.55,
+      palette: { base: '#5f8a70', wash: '#a9ccb7', deep: '#2b4a38', ink: '#182b20' },
+      rotation: [0, 0.45, 0],
+      position: [-1.55, 0.04, 0.15],
+      groundOnY0: true,
+      grainScale: 2.1,
+      inkStrength: 0.9,
     });
-    bird.position.set(-1.55, 0.02, 0.15);
-    bird.rotation.y = 1.05;
-    g.add(bird);
+    g.add(beetle);
 
-    const twig = createBotanicalFruitTwig3D({ fruit: 'apple', scale: 0.96 });
-    twig.position.set(0.05, 0.04, -0.1);
-    g.add(twig);
+    // Real Smithsonian Orchid Bloom (Lycaste virginalis) — botanical polyploid speciation
+    const orchid = createSmithsonianSpecimen(orchidGlbUrl, {
+      size: 1.65,
+      palette: { base: '#e6c25a', wash: '#faecc0', deep: '#96711d', ink: '#4f3a0c' },
+      rotation: [0.35, 0.15, 0],
+      position: [0.05, 0.08, -0.05],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.86,
+    });
+    g.add(orchid);
 
-    const flower = createTragopogonBlossom3D({ species: 'miscellus_4n', scale: 0.8 });
-    flower.position.set(1.55, 0.02, 0.1);
-    flower.rotation.set(0.48, 0, 0);
-    g.add(flower);
+    // Real Smithsonian Blue Crab (Callinectes sapidus) — marine allopatry
+    const crab = createSmithsonianSpecimen(crabGlbUrl, {
+      size: 1.55,
+      palette: { base: '#5f8ea1', wash: '#b0d1de', deep: '#295061', ink: '#18303b' },
+      rotation: [-Math.PI / 2, -0.45, 0],
+      position: [1.65, 0.02, 0.12],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(crab);
   }
 
   public setPage(page: SpeciesPageId): void {

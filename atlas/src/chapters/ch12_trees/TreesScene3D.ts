@@ -15,6 +15,10 @@ import {
   createRockPocketMouse3D,
   createSculptedLizard3D,
 } from '../../3d/organisms';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
+import tortoiseGlbUrl from '../../assets/smithsonian_tortoise.glb?url';
+import archaeopteryxGlbUrl from '../../assets/smithsonian_archaeopteryx.glb?url';
 import type {
   ClockResult,
   DnDsResult,
@@ -464,19 +468,38 @@ export class TreesScene3D {
 
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
-    const fish = createCichlidFish3D({ role: 'prey', jawTwist: 0, scale: 0.95 }).group;
-    fish.position.set(-1.6, 0.25, 0);
-    fish.rotation.y = Math.PI / 2;
+    // Real Smithsonian vertebrate phylogenetic progression: Fish -> Tortoise -> Archaeopteryx!
+    const fish = createSmithsonianSpecimen(fishGlbUrl, {
+      size: 1.45,
+      palette: { base: '#5f8f99', wash: '#b6d9e0', deep: '#295059', ink: '#172e33' },
+      rotation: [0, Math.PI * 0.45, 0],
+      position: [-1.7, 0.14, 0.05],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
     g.add(fish);
 
-    const liz = createSculptedLizard3D({ throatHex: '#e07a24', dorsalHex: '#7d8a68', scale: 1.25 });
-    liz.position.set(0, 0.12, 0.05);
-    g.add(liz);
+    const tortoise = createSmithsonianSpecimen(tortoiseGlbUrl, {
+      size: 1.5,
+      palette: { base: '#8c7e58', wash: '#cdc09c', deep: '#4e4429', ink: '#2b2415' },
+      rotation: [-Math.PI / 2, 0.25, Math.PI],
+      position: [0.0, 0.04, 0.1],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(tortoise);
 
-    const bird = this.createTinyBird3D(1.45);
-    bird.position.set(1.55, 0.1, 0.05);
-    bird.rotation.y = -0.35;
-    g.add(bird);
+    const arch = createSmithsonianSpecimen(archaeopteryxGlbUrl, {
+      size: 1.75,
+      palette: { base: '#d4c39d', wash: '#efe6cf', deep: '#857350', ink: '#453822' },
+      rotation: [-0.35, -0.25, 0],
+      position: [1.65, 0.9, 0.05],
+      grainScale: 1.6,
+      inkStrength: 0.92,
+    });
+    g.add(arch);
 
     const slip = createArchivalLabel(
       'Tree Thinking & Molecular Clocks',

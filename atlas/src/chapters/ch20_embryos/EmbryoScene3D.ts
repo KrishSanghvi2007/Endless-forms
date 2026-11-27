@@ -13,6 +13,8 @@ import {
   createOrganicLoftGeometry,
   setupNaturalistLighting,
 } from '../../3d/naturalistCraft';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import archaeopteryxGlbUrl from '../../assets/smithsonian_archaeopteryx.glb?url';
 import type {
   CanalizationResult,
   EmbryoProfile,
@@ -482,20 +484,21 @@ export class EmbryoScene3D {
     em.rotation.y = 0.72;
     g.add(em);
 
-    const glassMat = createNaturalistMaterial(
-      { base: '#6f9c99', wash: '#497875', deep: '#244745', highlight: '#b8dedb' },
-      'tissue',
-      { roughness: 0.72, transparent: true, opacity: 0.78, inkStrength: 0.52, seed: 2060 }
-    );
-    const pts: THREE.Vector2[] = [];
-    for (let i = 0; i <= 16; i++) {
-      const f = i / 16;
-      pts.push(new THREE.Vector2(0.24 + 0.45 * Math.pow(Math.abs(f - 0.5) * 2, 1.5), f * 1.45));
-    }
-    const hg = new THREE.Mesh(new THREE.LatheGeometry(pts, 24), glassMat);
-    hg.position.set(1.15, 0.02, 0.05);
-    hg.castShadow = true;
-    g.add(hg);
+    // Real Smithsonian Archaeopteryx siemensii fossil slab (PAL509743) — feather exaptation!
+    const archSlab = createSmithsonianSpecimen(archaeopteryxGlbUrl, {
+      size: 2.25,
+      palette: {
+        base: '#d4c39d',
+        wash: '#efe6cf',
+        deep: '#857350',
+        ink: '#453822',
+      },
+      rotation: [-0.32, -0.22, 0],
+      position: [1.05, 1.05, 0.05],
+      grainScale: 1.6,
+      inkStrength: 0.92,
+    });
+    g.add(archSlab);
   }
 
   public setPage(page: EmbryoPageId): void {

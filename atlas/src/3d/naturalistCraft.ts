@@ -315,15 +315,15 @@ export function createNaturalistMaterial(
   const mat = new THREE.MeshStandardMaterial({
     map,
     bumpMap,
-    bumpScale: options?.bumpScale ?? 0.022,
-    roughness: options?.roughness ?? 0.84,
-    metalness: 0.02,
+    bumpScale: options?.bumpScale ?? 0.016,
+    roughness: options?.roughness ?? 0.94,
+    metalness: 0.0,
     transparent: options?.transparent ?? false,
     opacity: options?.opacity ?? 1.0,
     side: options?.side ?? THREE.FrontSide,
   });
 
-  // Inject delicate sepia-ink Fresnel silhouette darkening (gives hand-drawn bookplate contours!)
+  // Inject cold-press rag-paper tooth + delicate sepia-ink Fresnel silhouette darkening
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uInkColor = { value: inkColor };
     shader.uniforms.uInkStrength = { value: inkStrength };
@@ -334,13 +334,17 @@ export function createNaturalistMaterial(
       `
       vec3 viewDirInk = normalize(vViewPosition);
       float ndvInk = clamp(abs(dot(normalize(normal), viewDirInk)), 0.0, 1.0);
-      float rimInk = pow(1.0 - ndvInk, 2.35) * uInkStrength;
+      float edgeWash = pow(1.0 - ndvInk, 2.2) * 0.28;
+      float rimInk = smoothstep(0.45, 0.88, 1.0 - ndvInk) * uInkStrength * 0.72;
+      float tooth = fract(sin(dot(floor(gl_FragCoord.xy * 0.65), vec2(12.9898, 78.233))) * 43758.5453);
+      gl_FragColor.rgb *= (0.965 + 0.055 * tooth);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * 0.80, edgeWash);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, uInkColor, rimInk);
       #include <dithering_fragment>
       `
     );
   };
-  mat.customProgramCacheKey = () => `naturalist_ink_${inkStrength.toFixed(2)}`;
+  mat.customProgramCacheKey = () => `naturalist_paper_ink_${inkStrength.toFixed(2)}`;
 
   NATURALIST_MAT_CACHE.set(key, mat);
   return mat;

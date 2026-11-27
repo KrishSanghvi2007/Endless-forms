@@ -14,6 +14,8 @@ import {
   setupNaturalistLighting,
   type NaturalistPattern,
 } from '../../3d/naturalistCraft';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import orchidGlbUrl from '../../assets/smithsonian_orchid.glb?url';
 import type {
   EndoStageId,
   MosaicResult,
@@ -404,39 +406,32 @@ export class OriginsScene3D {
     this.clearGroup(this.p5Group);
     this.addShadowFloor(this.p5Group, -2.05);
 
-    const petalMat = wcMat('#f2ead8', '#e2d6bc', '#bfae8c', '#fffcf5', 'botanical', 0.62);
     const spurMat = wcMat('#8aa86e', '#6e8c53', '#496333', '#bed9a5', 'botanical', 0.66);
     const nectarMat = wcMat('#e4b03e', '#c69222', '#875d0c', '#f8d88a', 'fruit', 0.42);
     const mothMat = wcMat('#876c52', '#6d543c', '#493522', '#b89d83', 'feather', 0.68);
     const probMat = wcMat('#3b2c20', '#2b1f16', '#19110b', '#695342', 'keratin', 0.56);
 
-    // 1. Madagascar Star Orchid (Angraecum sesquipedale) on the right
+    // 1. Real Smithsonian 3D-scanned Orchid Bloom (Lycaste virginalis) paired with Madagascar nectar spur
     const orchidGroup = new THREE.Group();
     orchidGroup.position.set(1.25, 0.55, 0);
 
-    // 6-pointed ivory star petals radiating around the central anther throat
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2 + 0.15;
-      const pCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, Math.sin(a) * 0.58, Math.cos(a) * 0.58),
-        new THREE.Vector3(0.08, Math.sin(a) * 1.15, Math.cos(a) * 1.15),
-      ]);
-      const petal = new THREE.Mesh(
-        createOrganicLoftGeometry(pCurve, (t) => 0.2 * Math.sin(t * Math.PI) + 0.02, {
-          tubularSegs: 16,
-          radialSegs: 10,
-          aspectAt: () => [0.28, 1.15],
-        }),
-        petalMat,
-      );
-      petal.castShadow = true;
-      orchidGroup.add(petal);
-    }
+    const orchidBloom = createSmithsonianSpecimen(orchidGlbUrl, {
+      size: 1.95,
+      palette: {
+        base: '#efe5ce',
+        wash: '#fcf8ee',
+        deep: '#a69370',
+        ink: '#4d3e28',
+      },
+      rotation: [0.18, -Math.PI * 0.45, 0.12],
+      grainScale: 2.0,
+      inkStrength: 0.85,
+    });
+    orchidGroup.add(orchidBloom);
 
     // Golden pollen mass (pollinium) at the flower throat
-    const pollen = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), nectarMat);
-    pollen.position.set(-0.08, 0, 0);
+    const pollen = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), nectarMat);
+    pollen.position.set(-0.12, 0.02, 0);
     orchidGroup.add(pollen);
 
     // Pendulous tubular nectar spur scaling directly with spurCm (10..35 cm -> 1.0..2.75 units)!
@@ -509,10 +504,20 @@ export class OriginsScene3D {
 
   private buildCapstoneSpecimen(): void {
     this.addShadowFloor(this.pageGroups.check, -1.75);
-    const mat = wcMat('#4f8699', '#396b7d', '#224957', '#94c4d4', 'tissue', 0.55);
-    const ring = new THREE.Mesh(new THREE.TorusKnotGeometry(0.72, 0.15, 72, 14), mat);
-    ring.castShadow = true;
-    this.pageGroups.check.add(ring);
+    const bloom = createSmithsonianSpecimen(orchidGlbUrl, {
+      size: 2.35,
+      palette: {
+        base: '#d9c8a2',
+        wash: '#faf4e6',
+        deep: '#8a7248',
+        ink: '#45351e',
+      },
+      rotation: [0.22, -0.35, 0],
+      position: [0, -0.1, 0],
+      grainScale: 1.8,
+      inkStrength: 0.88,
+    });
+    this.pageGroups.check.add(bloom);
   }
 
   public setPage(page: OriginsPageId): void {

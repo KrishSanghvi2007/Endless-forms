@@ -13,8 +13,11 @@ import {
   createOrganicLoftGeometry,
   setupNaturalistLighting,
 } from '../../3d/naturalistCraft';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import tortoiseGlbUrl from '../../assets/smithsonian_tortoise.glb?url';
+import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
 import { createGiantKelpFrond3D, createSculptedSongbird3D } from '../../3d/naturalistSpecimens';
-import { createCichlidFish3D, createOpossum3D } from '../../3d/organisms';
+import { createOpossum3D } from '../../3d/organisms';
 import type {
   LackClutchResult,
   LifeTableResult,
@@ -101,50 +104,19 @@ export class SenescenceScene3D {
   }
 
   private createTortoise3D(scale = 1.0): THREE.Group {
-    const g = new THREE.Group();
-    g.scale.setScalar(scale);
-    const shellMat = createNaturalistMaterial(
-      { base: '#6e6548', wash: '#4f472e', deep: '#292414', highlight: '#b0a684', ink: '#1c180c' },
-      'strata',
-      { roughness: 0.88, bumpScale: 0.03, inkStrength: 0.56, seed: 1901 }
-    );
-    const skinMat = createNaturalistMaterial(
-      { base: '#7d7766', wash: '#5c5748', deep: '#333026', highlight: '#b5afa0' },
-      'scale',
-      { roughness: 0.9, inkStrength: 0.5, seed: 1902 }
-    );
-    const domeGeo = new THREE.SphereGeometry(0.58, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.56);
-    domeGeo.scale(1.0, 0.78, 1.25);
-    const shell = new THREE.Mesh(domeGeo, shellMat);
-    shell.position.y = 0.22;
-    shell.castShadow = true;
-    shell.receiveShadow = true;
-    g.add(shell);
-
-    const neckCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0.30, 0.55),
-      new THREE.Vector3(0, 0.34, 0.85),
-      new THREE.Vector3(0, 0.42, 1.04),
-    ]);
-    const neck = new THREE.Mesh(
-      createOrganicLoftGeometry(neckCurve, (t) => 0.11 * (1 - t * 0.18), { tubularSegs: 16, radialSegs: 10 }),
-      skinMat
-    );
-    neck.castShadow = true;
-    g.add(neck);
-
-    for (const [lx, lz] of [
-      [-0.38, 0.36],
-      [0.38, 0.36],
-      [-0.38, -0.36],
-      [0.38, -0.36],
-    ] as [number, number][]) {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.32, 10), skinMat);
-      leg.position.set(lx, 0.16, lz);
-      leg.castShadow = true;
-      g.add(leg);
-    }
-    return g;
+    return createSmithsonianSpecimen(tortoiseGlbUrl, {
+      size: 1.55 * scale,
+      palette: {
+        base: '#8c7e58',
+        wash: '#cdc09c',
+        deep: '#4e4429',
+        ink: '#2b2415',
+      },
+      rotation: [-Math.PI / 2, 0, Math.PI],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
   }
 
   // ===========================================================================
@@ -374,10 +346,16 @@ export class SenescenceScene3D {
     const semScale = res.favoured === 'semelparous' ? 1.52 : 1.05;
     const iterScale = res.favoured === 'iteroparous' ? 1.28 : 0.88;
 
-    const salmon = createCichlidFish3D({ role: 'prey', scale: semScale });
-    salmon.group.position.set(-1.35, 0.55, 0);
-    salmon.group.rotation.y = 0.85;
-    g.add(salmon.group);
+    const salmon = createSmithsonianSpecimen(fishGlbUrl, {
+      size: 1.45 * semScale,
+      palette: { base: '#5f8f99', wash: '#b6d9e0', deep: '#295059', ink: '#172e33' },
+      rotation: [0, 0.85, 0],
+      position: [-1.35, 0.25, 0],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(salmon);
 
     const tortoise = this.createTortoise3D(iterScale);
     tortoise.position.set(1.15, 0.02, 0);

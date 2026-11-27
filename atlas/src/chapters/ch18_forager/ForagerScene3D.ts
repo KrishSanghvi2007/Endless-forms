@@ -13,6 +13,8 @@ import {
   createOrganicLoftGeometry,
   setupNaturalistLighting,
 } from '../../3d/naturalistCraft';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import orchidGlbUrl from '../../assets/smithsonian_orchid.glb?url';
 import { createSculptedSongbird3D } from '../../3d/naturalistSpecimens';
 import type {
   CentralPlaceResult,
@@ -107,16 +109,6 @@ export class ForagerScene3D {
       'botanical',
       { roughness: 0.86, inkStrength: 0.45, seed: 1801 }
     );
-    const fullPetalMat = createNaturalistMaterial(
-      { base: '#d95343', wash: '#ad3224', deep: '#69170d', highlight: '#f7a599', ink: '#4a0d06' },
-      'fruit',
-      { roughness: 0.78, inkStrength: 0.48, seed: 1802 }
-    );
-    const spentPetalMat = createNaturalistMaterial(
-      { base: '#baa590', wash: '#947e6a', deep: '#5c4b3c', highlight: '#e3d5c5' },
-      'strata',
-      { roughness: 0.9, inkStrength: 0.4, seed: 1803 }
-    );
     const nectarMat = createNaturalistMaterial(
       { base: '#f0bc3c', wash: '#c79218', deep: '#7d5908', highlight: '#fce59d' },
       'fruit',
@@ -141,19 +133,20 @@ export class ForagerScene3D {
     const head = new THREE.Group();
     head.position.copy(tip);
     head.rotation.z = -0.35 - droop * 1.4;
-    const mat = remainingFrac > 0.22 ? fullPetalMat : spentPetalMat;
+    const isFull = remainingFrac > 0.22;
     const scaleP = 0.65 + remainingFrac * 0.45;
-    for (let p = 0; p < 5; p++) {
-      const ang = (p / 5) * Math.PI * 2;
-      const pet = new THREE.Mesh(new THREE.SphereGeometry(0.11 * scaleP, 10, 8), mat);
-      pet.scale.set(1.2, 0.35, 0.72);
-      pet.position.set(Math.cos(ang) * 0.12 * scaleP, 0.02, Math.sin(ang) * 0.12 * scaleP);
-      pet.rotation.y = -ang;
-      pet.castShadow = true;
-      head.add(pet);
-    }
-    if (remainingFrac > 0.22) {
-      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.055 * remainingFrac + 0.02, 10, 8), nectarMat);
+    const bloom = createSmithsonianSpecimen(orchidGlbUrl, {
+      size: 0.42 * scaleP,
+      palette: isFull
+        ? { base: '#d95343', wash: '#f5a89d', deep: '#7a1f14', ink: '#4a120a' }
+        : { base: '#baa590', wash: '#e0d3c3', deep: '#6b5847', ink: '#3d3126' },
+      rotation: [0.35, seed * 1.1, 0],
+      grainScale: 3.2,
+      inkStrength: 0.78,
+    });
+    head.add(bloom);
+    if (isFull) {
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.05 * remainingFrac + 0.018, 10, 8), nectarMat);
       drop.position.y = 0.04;
       head.add(drop);
     }

@@ -15,6 +15,10 @@ import {
   createGuppy3D,
   createOpossum3D,
 } from '../../3d/organisms';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import beetleGlbUrl from '../../assets/smithsonian_beetle.glb?url';
+import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
+import tortoiseGlbUrl from '../../assets/smithsonian_tortoise.glb?url';
 import type {
   BatemanResult,
   FisherRatioResult,
@@ -435,23 +439,45 @@ export class RaffleScene3D {
 
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
-    const gup = createGuppy3D({ isMale: true, orangeScore: 0.9, tailLength: 1.5, scale: 1.7 });
-    gup.position.set(-1.65, 0.18, 0);
-    gup.rotation.y = Math.PI / 2 - 0.3;
-    g.add(gup);
+    // Real Smithsonian Spotted Trunkfish (Lactophrys bicaudalis)
+    const fish = createSmithsonianSpecimen(fishGlbUrl, {
+      size: 1.45,
+      palette: { base: '#d6994b', wash: '#f4d9a6', deep: '#825219', ink: '#42290a' },
+      rotation: [0, Math.PI * 0.42, 0],
+      position: [-1.7, 0.08, 0],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(fish);
 
-    const fly = createDungFly3D({ isMale: true, scale: 1.55 });
-    fly.position.set(0, 0.12, 0);
-    g.add(fly);
+    // Real Smithsonian Longhorn Beetle (Psalidognathus superbus) — sexually selected mandibles!
+    const beetle = createSmithsonianSpecimen(beetleGlbUrl, {
+      size: 1.65,
+      palette: { base: '#5f8a70', wash: '#a9ccb7', deep: '#2b4a38', ink: '#182b20' },
+      rotation: [0, 0.25, 0],
+      position: [0, 0.04, 0.05],
+      groundOnY0: true,
+      grainScale: 2.2,
+      inkStrength: 0.9,
+    });
+    g.add(beetle);
 
-    const op = createOpossum3D({ greyness: 0.5, scale: 1.25 });
-    op.position.set(1.65, 0.06, 0.1);
-    op.rotation.y = -0.5;
-    g.add(op);
+    // Real Smithsonian Red-footed Tortoise (Geochelone carbonaria) — slow island senescence!
+    const tortoise = createSmithsonianSpecimen(tortoiseGlbUrl, {
+      size: 1.5,
+      palette: { base: '#8c7e58', wash: '#cdc09c', deep: '#4e4429', ink: '#2b2415' },
+      rotation: [-Math.PI / 2, -0.45, Math.PI],
+      position: [1.7, 0.04, 0.1],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(tortoise);
 
     const slip = createArchivalLabel(
       'Sexual Selection & Life History',
-      'Mate Choice · Sperm Competition · Slow Island Senescence',
+      'Mate Choice · Armaments (Psalidognathus) · Slow Senescence',
       3.4,
       '#8a6b24'
     );

@@ -14,6 +14,10 @@ import {
   createDrosophila3D,
   createStickleback3D,
 } from '../../3d/organisms';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
+import crabGlbUrl from '../../assets/smithsonian_crab.glb?url';
+import beetleGlbUrl from '../../assets/smithsonian_beetle.glb?url';
 import type { Pitx1Result, PlasticityResult, TransitionResult } from './switchMath';
 
 export type SwitchPageId = 'pitx1' | 'hox' | 'deephom' | 'plasticity' | 'transitions' | 'check';
@@ -452,24 +456,43 @@ export class SwitchScene3D {
 
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
-    const fish = createStickleback3D({ hasPelvicSpines: false, jawIntact: true, scale: 1.9 });
-    fish.position.set(-1.55, 0.15, 0);
-    fish.rotation.y = Math.PI / 2 - 0.25;
+    // Real Smithsonian Deep Homology trio: Vertebrate Fish · Crustacean Crab · Insect Beetle
+    const fish = createSmithsonianSpecimen(fishGlbUrl, {
+      size: 1.45,
+      palette: { base: '#5f8f99', wash: '#b6d9e0', deep: '#295059', ink: '#172e33' },
+      rotation: [0, Math.PI * 0.42, 0],
+      position: [-1.6, 0.12, 0],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
     g.add(fish);
 
-    const daph = createDaphnia3D({ helmetSize: 0.9, scale: 1.65 });
-    daph.position.set(0.15, 0.12, 0.1);
-    daph.rotation.y = 0.25;
-    g.add(daph);
+    const crab = createSmithsonianSpecimen(crabGlbUrl, {
+      size: 1.5,
+      palette: { base: '#8c6e96', wash: '#d4c0db', deep: '#4a3254', ink: '#291a30' },
+      rotation: [-Math.PI / 2, 0.15, 0],
+      position: [0.05, 0.02, 0.1],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.88,
+    });
+    g.add(crab);
 
-    const fly = createDrosophila3D({ eyeHex: '#c82420', isMale: false, scale: 1.55 });
-    fly.position.set(1.65, 0.12, 0.05);
-    fly.rotation.y = -0.35;
-    g.add(fly);
+    const beetle = createSmithsonianSpecimen(beetleGlbUrl, {
+      size: 1.5,
+      palette: { base: '#b5634a', wash: '#ebb3a0', deep: '#6b2c1a', ink: '#3b150a' },
+      rotation: [0, -0.35, 0],
+      position: [1.65, 0.04, 0.05],
+      groundOnY0: true,
+      grainScale: 2.1,
+      inkStrength: 0.9,
+    });
+    g.add(beetle);
 
     const slip = createArchivalLabel(
       'Evo-Devo, Plasticity & Transitions',
-      'Pitx1 Enhancers · Hox & Pax6 · G×E Reaction Norms',
+      'Pitx1 Enhancers · Hox & Pax6 · Deep Homology Across Phyla',
       3.55,
       '#6c4982'
     );
