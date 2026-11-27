@@ -84,3 +84,12 @@ Each part is 1–2 sentences, at most about 35 words, so about 100 words in tota
 - **Drift Casino:** not just marbles in jars on a felt table. Show real populations: Buri's *Drosophila* bottles with flies whose eye colour is actually visible, a real founder event (anoles rafting to an islet), and real bottlenecked animals.
 - **Everywhere else:** wherever a chapter uses chips, tokens, beads, tickets or abstract dots as the main picture, replace them with the organisms, cells, gametes, genes or chromosomes they stand for. Abstract read-outs (bars, graphs, jars of allele copies) are allowed **beside** the biology, never instead of it.
 - **Theme versus biology:** a themed frame (casino, drum, workshop) may stay as light flavour only if the real biology is what the player watches and acts on.
+
+## Addendum, 27 November 2026: the benchmark (binding)
+
+**11. Surpass the Techartist "Evolution" atlas** (https://iamtechartist.com/evolution/; screenshots in `docs/benchmark/`). The designer's words: *their visuals, interactions and ability to explain are WAYYY better than ours, but we have more concepts. We still need to explain our concepts, but in a visual, intuitive and more interesting way that makes learning and understanding easy, enjoyable and pleasing. Also incorporate the lessons they have that we don't, built in our style. Any language or software is fine, including three.js. It needs to be amazing.*
+
+- **Technology.** It is no longer limited to plain JS and Canvas2D. Three.js/WebGL, real 3D models, illustrated assets and any framework are allowed. This overrides D5 decision 21 and the earlier platform plan where they conflict.
+- **The bar.** Each chapter must look and explain at least as well as the benchmark's lessons, while keeping our scientific depth.
+- **Their lessons are added to our scope.** The plan is in `docs/design/D7_atlas_plan.md`.
+- **Timing.** Work starts the week after 27 November 2026. That session reads D7 first.

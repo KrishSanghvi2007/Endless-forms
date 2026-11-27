@@ -388,6 +388,8 @@ Labels: R = review, D = design doc, G1–G8 = science sweeps (D1's template rule
 
 - **2026-10-23 (session 4)** Simplification (D6 decisions 9–10) finished for raffle (sperm in the spermathecae, not a drum), alarm, switch, clinic, scribe, royal (its 19 pending review findings applied), tap, swamp and dig, with self-reviews for tap, swamp and dig. Six new chapters built, each in its own world, with 3–4 levels, one verb and at most one prediction: Mendel's Garden (`mendel`, replaces the legacy chapter), Tree Thinking (`tree`), The Commons (`commons`), Why Sex? (`sex`), The River (`river`) and The Archipelago (`arch`). Integration check on a full build: `dup_globals` clean, `lint_text` 0 errors, no console errors on load, all 22 unit oracles pass, and the monkey (seed 1, 390×780) takes 23 of 23 v2 chapters to the end card. No integration fixes were needed. Shipped `Endless_Forms_v2.html`; wrote `docs/PLAYTEST_GUIDE.md` (D6 decision 4). Next: the designer and colleagues playtest; then the remaining legacy chapters per D2 §4 triage, each in its own world, simple and showing real biology. No new designer decisions this session.
 
+- **2026-11-27** The designer set the Techartist *Evolution* atlas as the benchmark to surpass (D6 decision 11): better visuals, interaction and explanation, while keeping our concepts and adding their missing lessons. Any technology is allowed, including three.js. Plan: `docs/design/D7_atlas_plan.md`. Work starts the following week.
+
 ## 14. Open questions for the designer
 
 The D5 §7 questions were answered on 14 Oct 2026; see D6. Still open:

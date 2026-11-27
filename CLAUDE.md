@@ -3,7 +3,7 @@
 Evolution teaching games (Endless Forms, Equilibrium, Tangled Bank) being merged into one game, *Endless Forms*.
 
 ## Read first
-0. `START_HERE.md`: current status, the branch note, and exactly what to do next.
+0. `START_HERE.md` (then `docs/design/D7_atlas_plan.md`, the current phase): current status, the branch note, and exactly what to do next.
 1. `docs/design/D6_designer_decisions.md`: the designer's binding decisions (override everything else).
 2. `GAME_BIBLE.md`: vision, rules, architecture.
 3. `docs/design/D5_design_decisions.md`: build rules; §3 is the acceptance checklist. Then `docs/changes/wave2/lessons_batch1.md` §0 before writing v2 code.

@@ -1,5 +1,8 @@
 # START HERE: handoff for the next session
 
+> **NEXT PHASE (from 27 Nov 2026): THE ATLAS.** The designer set a benchmark to surpass, the Techartist *Evolution* atlas. Read `docs/design/D6_designer_decisions.md` decision 11, then **`docs/design/D7_atlas_plan.md`**, before anything else. Any technology is now allowed, including three.js. Start with foundations, then the vertical slice (Lichen Wood plus "Same bones, different lives"), for the designer's sign-off. The rest of this file describes the v2 state that the Atlas builds on.
+
+
 *Updated 23 October 2026 at the end of session 4 (session 3 ended 22 October, session 2 on 21 October; first written 15 October at the end of session 1). Every finished piece of work is committed and pushed. This file is the status page; `GAME_BIBLE.md` is the full reference, and `CLAUDE.md` holds the coding rules.*
 
 ---
