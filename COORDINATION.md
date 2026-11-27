@@ -68,7 +68,32 @@ Built with **Three.js** inside our Atlas book shell (`atlas/src/chapters/ch01_hw
 
 ---
 
-## 5. Notes for Claude
-- Gemini is building **Equilibrium (Hardy–Weinberg)** (`atlas/src/chapters/ch01_hwe/`) now on `Gemini`.
-- Our completed 3D Comparative Anatomy chapter (`ch01_limbs`) remains cleanly preserved in `atlas/src/chapters/ch01_limbs/` as Plate 11 in the Atlas.
-- Feel free to review our HWE equations, citations, or wording in `COORDINATION.md` and leave any notes below on `shared-agents`.
+## 5. Next Planned Chapter: **Conflict & Kinship** *(Evolutionary Game Theory & Kin Selection)* (`ch02_social`)
+
+*Uploaded to `shared-agents` for Claude before Gemini builds it on `Gemini`. Designed for 1st–3rd year undergraduate biology (synthesizing Maynard Smith 1982 & Hamilton 1964 with rich 3D Three.js dioramas).*
+
+### The 6 Interactive 3D Pages
+
+| Page | Title & Concept | 3D Scene (Three.js) & Direct Manipulation | Key Equation / Undergrad Aha |
+|---|---|---|---|
+| **1** | **The Shoreline Contest** *(Hawks, Doves & Frequency Dependence)* | **3D Tidal Shoreline Diorama:** Wet sand, tidepool water sheen, driftwood, and sculpted 3D **hermit crabs** (blue raised-claw **Hawks** vs. amber lowered-claw **Doves**) contesting spiral gastropod shells (Value $V$, Injury Cost $C$). Play rounds or run a 60-crab shoreline population evolving under replicator dynamics. | Fitness depends on what *others* do! When $V < C$, neither pure Hawk nor pure Dove is stable; population settles at **$p^*_{\text{Hawk}} = V / C$**. |
+| **2** | **Invasion & Bourgeois** *(Why ESS $\neq$ Group Optimum + Ownership Asymmetry)* | **3D Interactive Payoff Matrix & Ownership Shore:** Live 3D payoff height-blocks + replicator fitness curves ($W_H(p)$ vs. $W_D(p)$ crossing at $V/C$). Toggle **Bourgeois** (*play Hawk if owner, Dove if intruder*): watch green-banded Bourgeois crabs invade and sweep the shoreline, slashing injury costs to zero! | **ESS $\neq$ maximum average payoff** (mean payoff at $V/C$ is lower than all-Dove, yet Doves cannot resist Hawk invasion). Arbitrary conventions like ownership resolve contests peacefully (Maynard Smith 1982). |
+| **3** | **War of Attrition** *(Continuous Escalation & Mixed Strategies)* | **3D Contest Arena:** Two rivals display continuously over a shell while energy cost accumulates. Compare fixed persistence strategies ($t = 2, 5, 10$) against an invading challenger — watch why any pure waiting time is invadable and why the ESS is an **exponential distribution** $p(t) = \frac{1}{V}e^{-t/V}$! | Continuous contests select for unpredictable mixed timing; mean display duration scales directly with resource value $V$. |
+| **4** | **Relatedness ($r$) in 3D Pedigrees** *(Tracing Identical-by-Descent Paths)* | **3D Alpine Meadow Family Tree:** Sculpted 3D family burrow pedigree with glowing ancestor–descendant path tubes. Tap any two individuals (parent–offspring, full sibs, half-sibs, first cousins, or switch to **Haplodiploid Hymenoptera sisters**!) to trace every genealogical path and see Wright’s path-counting formula sum live in 3D! | **$r = \sum (\frac{1}{2})^L$** (0.50 full sibs, 0.25 half-sibs, 0.125 cousins; **0.75** for haplodiploid full sisters!). Clarifies that $r$ is genetic correlation *above population average*. |
+| **5** | **Hamilton’s Rule ($rB > C$)** *(Belding’s Ground Squirrel Alarm Meadow)* | **3D Sierra Meadow Diorama:** Sunlit grassy meadow with sculpted 3D **ground squirrels**, family burrow clusters, and a **3D gliding hawk** circling overhead casting a moving shadow! Toggle **Caller vs. Silent allele** competition under **Kin-Clustered Burrows** ($r \approx 0.45$) vs. **Random Dispersal** ($r \approx 0.05$) and adjust $B$ (kin saved) and $C$ (caller mortality risk). | Altruism spreads **if and only if $rB > C$** (Hamilton 1964). Individuals don’t "choose for the good of the species"—alleles that help copies of themselves in relatives increase in frequency. |
+| **6** | **Check** *(ESS & Inclusive Fitness Puzzles)* | 3 tactile diagnostic puzzles: (1) Predicting how doubling injury cost $C$ halves $p^*_{\text{Hawk}} = V/C$, (2) Identifying why Bourgeois resists Hawk invasion, (3) Solving $rB > C$ across full sibs vs. half-sibs vs. cousins. | Unifies conflict and cooperation under one gene-level evolutionary logic. |
+
+### Science Guard-Rails
+- Never invoke group selection ("for the good of the species") to explain Doves or alarm calling; explicitly contrast ESS against group-optimal mean fitness.
+- Clarify that **haplodiploidy ($r = 0.75$)** alone does not guarantee eusociality (male-biased relatedness to brothers is $0.25$, so average $r$ to equal-sex sibs is $0.50$; monogamy and ecological benefits $B/C$ are crucial — Boomsma 2009; West et al. 2007).
+- Cite Maynard Smith & Price (1973), Maynard Smith (1982), Hamilton (1964), Sherman (1977, 1985), and West, Griffin & Gardner (2007).
+
+---
+
+## 6. Native Offline Single-File Deliverable
+- Every finalized chapter is built with `npm run build:single` (`vite-plugin-singlefile`) into `games/endless-forms/Endless_Forms_Atlas.html` (~892 KB raw / ~342 KB gzip), verified via `file://` in Chromium with 0 console/page errors so the designer can double-click and open it natively in any browser with zero quality tradeoff.
+
+## 7. Notes for Claude
+- **Plate 1 (*Equilibrium / Hardy–Weinberg*)** + **Atlas Shell** + `games/endless-forms/Endless_Forms_Atlas.html` are now finalized and merged right here on `shared-agents`!
+- **Chapter 2 (*Conflict & Kinship* — Evolutionary Game Theory & Kin Selection)** is planned in §5 above; Gemini will build it next on `Gemini` once the designer confirms or tweaks the plan.
+- Feel free to review Plate 1 or leave feedback on Chapter 2’s science guard-rails below on `shared-agents`.
