@@ -3,6 +3,8 @@
 // =============================================================================
 
 import * as THREE from 'three';
+import { createNaturalistMaterial } from '../../3d/naturalistCraft';
+import { createBotanicalLeaf3D } from '../../3d/organisms';
 import { createSeededRng } from '../../sim/adapter';
 import {
   fitnessSurfaceHeight,
@@ -516,74 +518,81 @@ export class LichenScene3D {
   private buildPage1Wood(): void {
     const g = this.pageGroups.wood;
 
-    // Main birch bark specimen board
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(5.15, 0.16, 3.15), this.walnutMat);
-    frame.position.set(-0.48, 0.08, 0);
-    frame.castShadow = true;
-    g.add(frame);
-
+    // Sculpted organic closed horizontal silver-birch bough (full 360-deg trunk, flattened softly on rag paper!)
     this.p1BarkMat = new THREE.MeshStandardMaterial({
       map: createBirchBarkTexture(0.04),
-      roughness: 0.88,
+      roughness: 0.9,
     });
-    const bark = new THREE.Mesh(new THREE.BoxGeometry(4.88, 0.175, 2.88), this.p1BarkMat);
-    bark.position.set(-0.48, 0.085, 0);
-    bark.receiveShadow = true;
-    g.add(bark);
+    const logGeo = new THREE.CylinderGeometry(1.42, 1.48, 5.05, 36, 12);
+    logGeo.rotateZ(Math.PI / 2);
+    const lPos = logGeo.attributes.position;
+    for (let i = 0; i < lPos.count; i++) {
+      const x = lPos.getX(i);
+      const y = lPos.getY(i);
+      const z = lPos.getZ(i);
+      const organicWobble = Math.sin(x * 1.9 + z * 2.4) * 0.022;
+      // Flatten underside cleanly at y=0.02 and dome upper bark smoothly up to ~0.46!
+      const scaledY = y > 0 ? y * 0.31 + 0.04 + organicWobble : 0.02;
+      lPos.setY(i, scaledY);
+    }
+    logGeo.computeVertexNormals();
+    const barkLog = new THREE.Mesh(logGeo, this.p1BarkMat);
+    barkLog.position.set(-0.48, 0.0, 0);
+    barkLog.castShadow = true;
+    barkLog.receiveShadow = true;
+    g.add(barkLog);
 
-    // Subtle 3D pale foliose lichen moss cushions along bark edges
-    const lichenMat = new THREE.MeshStandardMaterial({ color: 0xbacaa4, roughness: 0.92 });
+    // Tactile ruffled foliose lichen cushions nestled naturally along the birch bark
+    const lichenMat = createNaturalistMaterial(
+      { base: '#b5c79d', wash: '#8ea375', deep: '#586b42', highlight: '#e2edd3' },
+      'botanical',
+      { roughness: 0.92, inkStrength: 0.45, seed: 311 }
+    );
     const lichenCoords: [number, number, number][] = [
-      [-2.52, -1.1, 0.24],
-      [-1.18, 1.15, 0.22],
-      [0.45, -1.14, 0.26],
-      [1.55, 1.08, 0.21],
-      [-2.35, 0.85, 0.19],
+      [-2.42, -0.95, 0.25],
+      [-1.18, 1.05, 0.22],
+      [0.45, -1.02, 0.26],
+      [1.48, 0.96, 0.22],
+      [-2.25, 0.82, 0.20],
     ];
     lichenCoords.forEach(([x, z, r]) => {
-      const tuft = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), lichenMat);
-      tuft.scale.set(1.2, 0.22, 0.95);
-      tuft.position.set(x, 0.17, z);
+      const tuft = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), lichenMat);
+      tuft.scale.set(1.25, 0.22, 0.95);
+      const ySurf = 0.04 + Math.sqrt(Math.max(0.01, 1.44 * 1.44 - z * z)) * 0.31;
+      tuft.position.set(x, ySurf, z);
+      tuft.castShadow = true;
       g.add(tuft);
     });
 
-    // Right side: Miniature 3D Overproduction Egg Tray (120 eggs → culled to 18 adults!)
-    const trayFrame = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.14, 2.25), this.walnutMat);
-    trayFrame.position.set(2.85, 0.07, -0.05);
-    trayFrame.castShadow = true;
-    g.add(trayFrame);
+    // Right side: Arched Naturalist Botanical Birch Leaf cradling 120 pearlescent moth eggs!
+    const eggLeaf = createBotanicalLeaf3D(1.52, '#5a824e');
+    eggLeaf.position.set(2.82, 0.08, 0.02);
+    eggLeaf.rotation.y = 0.12;
+    g.add(eggLeaf);
 
-    const trayVelvet = new THREE.Mesh(
-      new THREE.BoxGeometry(1.02, 0.152, 2.08),
-      new THREE.MeshStandardMaterial({ color: 0x2c3c36, roughness: 0.92 })
-    );
-    trayVelvet.position.set(2.85, 0.075, -0.05);
-    g.add(trayVelvet);
-
-    // 120 miniature ivory eggs packed inside the tray via InstancedMesh
+    // 120 miniature pearlescent eggs clustered organically on the arched birch leaf!
     const eggGeo = new THREE.SphereGeometry(0.026, 8, 6);
-    const eggMat = new THREE.MeshStandardMaterial({ color: 0xf4ecd6, roughness: 0.35 });
+    const eggMat = createNaturalistMaterial(
+      { base: '#f5edd6', wash: '#ded2b1', deep: '#9e9170', highlight: '#fffdf7' },
+      'bone',
+      { roughness: 0.65, inkStrength: 0.32, seed: 312 }
+    );
     const eggInst = new THREE.InstancedMesh(eggGeo, eggMat, 120);
     const dummy = new THREE.Object3D();
-    let ei = 0;
-    for (let r = 0; r < 15; r++) {
-      for (let c = 0; c < 8; c++) {
-        dummy.position.set(2.46 + c * 0.112, 0.172, -0.96 + r * 0.13);
-        dummy.scale.set(1, 0.85, 1.2);
-        dummy.updateMatrix();
-        eggInst.setMatrixAt(ei++, dummy.matrix);
-      }
+    for (let i = 0; i < 120; i++) {
+      const ang = i * 2.39996;
+      const rad = Math.sqrt((i + 0.5) / 120) * 0.54;
+      const ex = 2.82 + Math.cos(ang) * rad * 0.82;
+      const ez = 0.02 + Math.sin(ang) * rad * 1.18;
+      dummy.position.set(ex, 0.165 - rad * 0.04, ez);
+      dummy.scale.set(1, 0.85, 1.18);
+      dummy.updateMatrix();
+      eggInst.setMatrixAt(i, dummy.matrix);
     }
     this.p1EggGroup.add(eggInst);
     g.add(this.p1EggGroup);
 
     g.add(this.p1MothGroup);
-
-    const pBark = createEngravedPlaque('Silver Birch Bark', 'click moths to forage', 1.48, '#3f5d47');
-    pBark.position.set(-0.48, 0.03, 1.9);
-    const pEggs = createEngravedPlaque('120 Eggs', 'culled to 18 adults', 1.24, '#7a5228');
-    pEggs.position.set(2.85, 0.03, 1.48);
-    g.add(pBark, pEggs);
     g.position.x = -0.35;
   }
 
@@ -603,7 +612,11 @@ export class LichenScene3D {
         cDarkMat: this.cDarkMat,
         cPaleMat: this.cPaleMat,
       });
-      mesh.position.set(m.x - 0.48, 0.178, m.z);
+      // Hug the curved silver-birch bough crown naturally!
+      const clampedZ = Math.max(-1.12, Math.min(1.12, m.z));
+      const yBark = 0.065 + Math.sqrt(Math.max(0.01, 1.44 * 1.44 - clampedZ * clampedZ)) * 0.31;
+      mesh.position.set(m.x - 0.48, yBark, clampedZ);
+      mesh.rotation.x = clampedZ * 0.18;
       mesh.rotation.y = m.rot;
       this.p1MothGroup.add(mesh);
       this.p1MothMeshes.set(m.id, mesh);

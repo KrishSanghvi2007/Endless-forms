@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import {
+  createNaturalistMaterial,
+  createOrganicLoftGeometry,
+} from '../../3d/naturalistCraft';
 import { createSeededRng } from '../../sim/adapter';
 import {
   PEDIGREE_RELATIONS,
@@ -320,49 +324,76 @@ function createSquirrel3D(
   const g = new THREE.Group();
   g.scale.setScalar(scale);
 
-  // Upright seated russet body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.115, 14, 12), mats.fur);
-  body.scale.set(0.85, 1.42, 0.88);
-  body.position.set(0, 0.16, 0);
+  const furMat = createNaturalistMaterial(
+    { base: '#a8845c', wash: '#82603d', deep: '#4d361f', highlight: '#dec29e', ink: '#332212' },
+    'fur',
+    { roughness: 0.88, bumpScale: 0.025, inkStrength: 0.52, seed: 210 }
+  );
+  const bellyMat = createNaturalistMaterial(
+    { base: '#e6d6b8', wash: '#c9b591', deep: '#8a7656', highlight: '#f7f0e1' },
+    'fur',
+    { roughness: 0.9, inkStrength: 0.38, seed: 211 }
+  );
+
+  // Continuous upright seated ground-squirrel silhouette (rump -> full torso -> neck -> alert head!)
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.03, -0.02),
+    new THREE.Vector3(0, 0.14, 0.0),
+    new THREE.Vector3(0, 0.25, 0.01),
+    new THREE.Vector3(0, 0.34, 0.03),
+    new THREE.Vector3(0, 0.37, 0.09),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => {
+        const torso = 0.118 * Math.sin(Math.min(1, t / 0.72) * Math.PI);
+        const head = 0.082 * Math.exp(-Math.pow((t - 0.82) / 0.18, 2));
+        return Math.max(0.024, torso, head);
+      },
+      { tubularSegs: 28, radialSegs: 16, aspectAt: () => [0.92, 0.94] }
+    ),
+    furMat
+  );
   body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
 
-  // Pale buff belly
-  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.082, 12, 10), mats.belly);
-  belly.scale.set(0.8, 1.25, 0.6);
-  belly.position.set(0, 0.15, 0.062);
+  // Soft pale buff ventral belly contour
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.078, 12, 10), bellyMat);
+  belly.scale.set(0.82, 1.22, 0.62);
+  belly.position.set(0, 0.15, 0.058);
   g.add(belly);
 
-  // Alert rounded head + ears + eyes
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.082, 12, 10), mats.fur);
-  head.scale.set(0.95, 0.92, 1.12);
-  head.position.set(0, 0.33, 0.02);
-  head.castShadow = true;
-  g.add(head);
-
-  const earGeo = new THREE.SphereGeometry(0.026, 8, 8);
-  const eyeGeo = new THREE.SphereGeometry(0.016, 8, 8);
+  const earGeo = new THREE.SphereGeometry(0.025, 8, 8);
+  const eyeGeo = new THREE.SphereGeometry(0.015, 8, 8);
   for (const s of [-1, 1]) {
-    const ear = new THREE.Mesh(earGeo, mats.fur);
-    ear.position.set(s * 0.056, 0.39, -0.01);
+    const ear = new THREE.Mesh(earGeo, furMat);
+    ear.position.set(s * 0.056, 0.39, -0.005);
     const eye = new THREE.Mesh(eyeGeo, mats.eye);
-    eye.position.set(s * 0.048, 0.345, 0.082);
+    eye.position.set(s * 0.048, 0.348, 0.082);
     g.add(ear, eye);
   }
 
-  // Fluffy arched squirrel tail
+  // Fluffy arched lofted squirrel tail
   const tailCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(0, 0.07, -0.07),
     new THREE.Vector3(0, 0.18, -0.17),
     new THREE.Vector3(0, 0.34, -0.15),
   ]);
-  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.036, 8, false), mats.fur);
+  const tail = new THREE.Mesh(
+    createOrganicLoftGeometry(tailCurve, (t) => 0.028 + 0.022 * Math.sin(t * Math.PI), {
+      tubularSegs: 16,
+      radialSegs: 10,
+    }),
+    furMat
+  );
   tail.castShadow = true;
   g.add(tail);
 
   // Clear D4 allele collar ring (Cobalt Blue = Caller, Warm Amber = Silent)
   const collar = new THREE.Mesh(
-    new THREE.TorusGeometry(0.076, 0.024, 10, 20),
+    new THREE.TorusGeometry(0.076, 0.022, 10, 20),
     isCaller ? mats.caller : mats.silent
   );
   collar.rotation.x = Math.PI / 2;
@@ -932,19 +963,7 @@ export class SocialScene3D {
   private buildPage4Pedigree(): void {
     const g = this.pageGroups.pedigree;
 
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.14, 3.4), this.walnutMat);
-    frame.position.set(0, 0.07, 0);
-    frame.castShadow = true;
-    g.add(frame);
-
-    const board = new THREE.Mesh(
-      new THREE.BoxGeometry(5.26, 0.155, 3.16),
-      new THREE.MeshStandardMaterial({ color: 0xf4ecda, roughness: 0.88 })
-    );
-    board.position.set(0, 0.075, 0);
-    board.receiveShadow = true;
-    g.add(board);
-
+    // Zero-box museum rag-paper pedigree — sculpted miniature squirrels on mossy stones!
     // 3-generation node coordinates
     const defs: { id: string; label: string; x: number; z: number; col: number }[] = [
       { id: 'GM', label: 'Grandmother', x: -0.75, z: -1.08, col: 0x8f6b47 },
@@ -958,7 +977,6 @@ export class SocialScene3D {
       { id: 'C1', label: 'Cousin', x: 1.52, z: 0.98, col: 0x7c5a8a },
     ];
 
-    // Base faint genealogy edges
     const baseEdges: [string, string][] = [
       ['GM', 'M1'],
       ['GF', 'M1'],
@@ -974,30 +992,51 @@ export class SocialScene3D {
 
     const posMap: Record<string, THREE.Vector3> = {};
     defs.forEach((d) => {
-      posMap[d.id] = new THREE.Vector3(d.x, 0.24, d.z);
+      posMap[d.id] = new THREE.Vector3(d.x, 0.16, d.z);
     });
 
-    const rodMat = new THREE.MeshStandardMaterial({ color: 0xbca98e, roughness: 0.7 });
+    const rodMat = createNaturalistMaterial(
+      { base: '#b09a7a', wash: '#8a7456', deep: '#54442f', highlight: '#decbb0' },
+      'strata',
+      { roughness: 0.88, inkStrength: 0.42, seed: 241 }
+    );
     baseEdges.forEach(([a, b]) => {
       const curve = new THREE.LineCurve3(posMap[a], posMap[b]);
       const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 6, 0.022, 6, false), rodMat);
       g.add(tube);
     });
 
-    // Brass-rimmed 3D pedigree medallions + engraved micro-labels
+    const padMat = createNaturalistMaterial(
+      { base: '#7f9968', wash: '#5b7545', deep: '#354726', highlight: '#bad1a3' },
+      'botanical',
+      { roughness: 0.9, inkStrength: 0.45, seed: 242 }
+    );
+    const sqMats = {
+      fur: padMat,
+      belly: padMat,
+      eye: this.eyeMat,
+      caller: this.hawkMat,
+      silent: this.doveMat,
+    };
+
+    // Sculpted miniature watercolour squirrels perched on soft mossy pads!
     defs.forEach((d) => {
       const p = posMap[d.id];
-      const cyl = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.22, 0.24, 0.16, 20),
-        new THREE.MeshStandardMaterial({ color: d.col, roughness: 0.35, metalness: 0.18 })
-      );
-      cyl.position.set(p.x, 0.23, p.z);
-      cyl.castShadow = true;
-      g.add(cyl);
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.27, 0.09, 20), padMat);
+      pad.position.set(p.x, 0.045, p.z);
+      pad.castShadow = true;
+      pad.receiveShadow = true;
+      g.add(pad);
 
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.032, 10, 24), this.brassMat);
+      const collarMat = new THREE.MeshStandardMaterial({ color: d.col, roughness: 0.55 });
+      const sq = createSquirrel3D(true, { ...sqMats, caller: collarMat }, 0.95);
+      sq.position.set(p.x, 0.09, p.z);
+      sq.rotation.y = p.x < 0 ? 0.35 : -0.35;
+      g.add(sq);
+
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.028, 10, 24), this.brassMat);
       ring.rotation.x = Math.PI / 2;
-      ring.position.set(p.x, 0.31, p.z);
+      ring.position.set(p.x, 0.095, p.z);
       g.add(ring);
 
       const lbl = createEngravedPlaque(d.label, undefined, 0.84, '#29211b');
@@ -1007,16 +1046,16 @@ export class SocialScene3D {
         F1: [-2.02, -0.58],
         M1: [-0.14, -0.02],
         A1: [2.08, -0.05],
-        S1: [p.x, p.z + 0.38],
-        S2: [p.x, p.z + 0.38],
-        H1: [p.x, p.z + 0.38],
-        C1: [p.x, p.z + 0.38],
+        S1: [p.x, p.z + 0.42],
+        S2: [p.x, p.z + 0.42],
+        H1: [p.x, p.z + 0.42],
+        C1: [p.x, p.z + 0.42],
       };
-      const [lx, lz] = labelPos[d.id] ?? [p.x, p.z + 0.38];
-      lbl.position.set(lx, 0.168, lz);
+      const [lx, lz] = labelPos[d.id] ?? [p.x, p.z + 0.42];
+      lbl.position.set(lx, 0.02, lz);
       g.add(lbl);
 
-      this.p4Nodes[d.id] = { pos: p, mesh: cyl, ring };
+      this.p4Nodes[d.id] = { pos: p, mesh: pad, ring };
       if (d.id === 'F1') this.p4FatherRing = ring;
     });
 

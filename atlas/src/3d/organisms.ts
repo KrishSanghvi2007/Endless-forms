@@ -1,92 +1,33 @@
 // =============================================================================
-// Endless Forms — Museum-Grade Procedural 3D Organism & Botanical Library
-// Hand-tinted natural-history textures + anatomically lofted Three.js forms.
-// Zero clunky primitives: real fish, lizards, seals, flies, leaves & branches!
+// Endless Forms — Museum-Grade Naturalist Watercolour 3D Organism Library
+// Upgraded to match Plates 11 & 13–16:
+// - Continuous organic lofted geometry (createOrganicLoftGeometry), NOT glued spheres/cones
+// - Hand-tinted 512x512 watercolour + stipple PBR textures (createNaturalistMaterial, cached!)
+// - Fresnel sepia-ink silhouette rim darkening & matte paper finish (zero plastic glare!)
+// - Zero floating 3D floor-plane HTML caption cards (clean specimen-only rag paper plates)
 // =============================================================================
 
 import * as THREE from 'three';
-import { createSeededRng } from '../sim/adapter';
+import {
+  createNaturalistMaterial,
+  createOrganicLoftGeometry,
+  type WatercolourPalette,
+} from './naturalistCraft';
 
-// =============================================================================
-// SHARED PROCEDURAL WATERCOLOUR & SCALE TEXTURES
-// =============================================================================
-
-const scaleTexCache = new Map<string, THREE.CanvasTexture>();
-
-/** Hand-tinted natural-history fish scale & barred body texture */
-function getFishScaleTexture(baseHex: string, barHex: string, barred: boolean): THREE.CanvasTexture {
-  const key = `${baseHex}_${barHex}_${barred}`;
-  const hit = scaleTexCache.get(key);
-  if (hit) return hit;
-
-  const c = document.createElement('canvas');
-  c.width = 256;
-  c.height = 128;
-  const ctx = c.getContext('2d')!;
-
-  const grad = ctx.createLinearGradient(0, 0, 0, 128);
-  grad.addColorStop(0, barHex);
-  grad.addColorStop(0.32, baseHex);
-  grad.addColorStop(0.75, baseHex);
-  grad.addColorStop(1, '#f4efe2'); // silvery pale belly
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 128);
-
-  // Subtle vertical Tanganyika flank bars
-  if (barred) {
-    ctx.fillStyle = 'rgba(34, 38, 42, 0.34)';
-    for (let i = 0; i < 7; i++) {
-      ctx.beginPath();
-      ctx.ellipse(42 + i * 28, 48, 7.5, 42, 0.1, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Fine imbricated iridescent fish scales
-  ctx.strokeStyle = 'rgba(255, 252, 240, 0.24)';
-  ctx.lineWidth = 1.1;
-  for (let row = 0; row < 10; row++) {
-    for (let col = 0; col < 22; col++) {
-      const x = col * 12 + (row % 2) * 6;
-      const y = row * 12 + 8;
-      ctx.beginPath();
-      ctx.arc(x, y, 6.2, -Math.PI * 0.4, Math.PI * 0.4);
-      ctx.stroke();
-    }
-  }
-
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  scaleTexCache.set(key, tex);
-  return tex;
-}
-
-function getLizardSkinTexture(dorsalHex: string, spotHex: string): THREE.CanvasTexture {
-  const key = `liz_${dorsalHex}_${spotHex}`;
-  const hit = scaleTexCache.get(key);
-  if (hit) return hit;
-
-  const c = document.createElement('canvas');
-  c.width = 256;
-  c.height = 128;
-  const ctx = c.getContext('2d')!;
-  const rng = createSeededRng(777);
-
-  ctx.fillStyle = dorsalHex;
-  ctx.fillRect(0, 0, 256, 128);
-
-  // Organic dorsal chevrons & pebble scales
-  for (let i = 0; i < 160; i++) {
-    ctx.fillStyle = i % 3 === 0 ? spotHex : 'rgba(255,248,232,0.22)';
-    ctx.beginPath();
-    ctx.arc(rng.range(0, 256), rng.range(0, 128), rng.range(2.2, 5.2), 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  scaleTexCache.set(key, tex);
-  return tex;
+/** Derives a cohesive 4-stop watercolour palette from any single hex colour. */
+function paletteFromHex(hex: string): WatercolourPalette {
+  const base = new THREE.Color(hex);
+  const wash = base.clone().multiplyScalar(0.76);
+  const deep = base.clone().multiplyScalar(0.45);
+  const highlight = base.clone().lerp(new THREE.Color('#faf4e6'), 0.48);
+  const ink = base.clone().multiplyScalar(0.32);
+  return {
+    base: `#${base.getHexString()}`,
+    wash: `#${wash.getHexString()}`,
+    deep: `#${deep.getHexString()}`,
+    highlight: `#${highlight.getHexString()}`,
+    ink: `#${ink.getHexString()}`,
+  };
 }
 
 // =============================================================================
@@ -102,7 +43,6 @@ export interface CichlidHandle {
 
 export function createCichlidFish3D(options: {
   role: 'predator' | 'prey';
-  /** Jaw twist in radians: negative = bends LEFT (attacks prey's right flank), positive = bends RIGHT */
   jawTwist?: number;
   scale?: number;
   guardSide?: 'left' | 'right' | null;
@@ -111,58 +51,55 @@ export function createCichlidFish3D(options: {
   g.scale.setScalar(options.scale ?? 1.0);
   const isPred = options.role === 'predator';
 
-  // Lofted fusiform fish torso via LatheGeometry (axis along +Y -> rotated to +Z forward)
-  const profile: THREE.Vector2[] = [
-    new THREE.Vector2(0.01, -0.58), // caudal peduncle
-    new THREE.Vector2(0.085, -0.45),
-    new THREE.Vector2(0.18, -0.22),
-    new THREE.Vector2(0.24, 0.04),
-    new THREE.Vector2(0.21, 0.28),
-    new THREE.Vector2(0.14, 0.44),
-    new THREE.Vector2(0.055, 0.54), // snout tip
-    new THREE.Vector2(0.005, 0.56),
-  ];
-  const bodyGeo = new THREE.LatheGeometry(profile, 22);
-  bodyGeo.rotateX(Math.PI / 2);
-  // Laterally compress fish body cleanly (cichlids are deep-bodied & sleek!)
-  bodyGeo.scale(0.54, isPred ? 0.92 : 1.12, 1.0);
+  const bodyCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, -0.56),
+    new THREE.Vector3(0, 0.01, -0.22),
+    new THREE.Vector3(0, 0.02, 0.14),
+    new THREE.Vector3(0, 0.0, 0.44),
+    new THREE.Vector3(0, -0.01, 0.56),
+  ]);
+  const bodyGeo = createOrganicLoftGeometry(
+    bodyCurve,
+    (t) => 0.24 * Math.sin(Math.pow(t, 0.78) * Math.PI) + 0.015,
+    {
+      tubularSegs: 30,
+      radialSegs: 20,
+      aspectAt: () => [0.54, isPred ? 0.94 : 1.12],
+      noiseAmp: 0.012,
+    }
+  );
 
-  const skinTex = isPred
-    ? getFishScaleTexture('#9c865e', '#4f4432', true)
-    : getFishScaleTexture('#88b8ba', '#3e6f78', false);
-
-  const bodyMat = new THREE.MeshPhysicalMaterial({
-    map: skinTex,
-    roughness: 0.34,
-    metalness: 0.16,
-    clearcoat: 0.55,
-    clearcoatRoughness: 0.28,
-  });
+  const bodyMat = createNaturalistMaterial(
+    isPred
+      ? { base: '#9e8860', wash: '#786342', deep: '#453620', highlight: '#dfd0ad', ink: '#302414' }
+      : { base: '#7baeb2', wash: '#52878c', deep: '#2b5157', highlight: '#c5e2e4', ink: '#1d393d' },
+    'scale',
+    { roughness: 0.74, bumpScale: 0.025, inkStrength: 0.55, seed: isPred ? 601 : 602 }
+  );
 
   const body = new THREE.Mesh(bodyGeo, bodyMat);
   body.castShadow = true;
   body.receiveShadow = true;
   g.add(body);
 
-  // Translucent watercolour fin material
-  const finMat = new THREE.MeshPhysicalMaterial({
-    color: isPred ? 0xc48b48 : 0xd97c5b,
-    roughness: 0.35,
-    transparent: true,
-    opacity: 0.78,
-    side: THREE.DoubleSide,
-  });
+  const finMat = createNaturalistMaterial(
+    isPred
+      ? { base: '#c48d4e', wash: '#9e682e', deep: '#5e3b14', highlight: '#ebca9b' }
+      : { base: '#d68262', wash: '#ad5a3d', deep: '#6b321e', highlight: '#f2beaa' },
+    'tissue',
+    { roughness: 0.78, transparent: true, opacity: 0.84, side: THREE.DoubleSide, inkStrength: 0.42, seed: 603 }
+  );
 
   // Swept dorsal fin crest along spine
   const dorsalShape = new THREE.Shape();
   dorsalShape.moveTo(-0.32, 0);
   dorsalShape.quadraticCurveTo(-0.08, 0.24, 0.24, 0.14);
-  dorsalShape.lineTo(0.30, 0);
+  dorsalShape.lineTo(0.3, 0);
   dorsalShape.closePath();
-  const dorsalGeo = new THREE.ExtrudeGeometry(dorsalShape, { depth: 0.014, bevelEnabled: false });
+  const dorsalGeo = new THREE.ExtrudeGeometry(dorsalShape, { depth: 0.012, bevelEnabled: false });
   dorsalGeo.rotateY(Math.PI / 2);
   const dorsal = new THREE.Mesh(dorsalGeo, finMat);
-  dorsal.position.set(-0.007, isPred ? 0.17 : 0.21, -0.02);
+  dorsal.position.set(-0.006, isPred ? 0.17 : 0.21, -0.02);
   dorsal.castShadow = true;
   g.add(dorsal);
 
@@ -172,13 +109,13 @@ export function createCichlidFish3D(options: {
   analShape.quadraticCurveTo(-0.18, -0.15, -0.02, -0.08);
   analShape.lineTo(0.02, 0);
   analShape.closePath();
-  const analGeo = new THREE.ExtrudeGeometry(analShape, { depth: 0.012, bevelEnabled: false });
+  const analGeo = new THREE.ExtrudeGeometry(analShape, { depth: 0.01, bevelEnabled: false });
   analGeo.rotateY(Math.PI / 2);
   const anal = new THREE.Mesh(analGeo, finMat);
-  anal.position.set(-0.006, isPred ? -0.14 : -0.18, 0);
+  anal.position.set(-0.005, isPred ? -0.14 : -0.18, 0);
   g.add(anal);
 
-  // Paired pectoral fins flaring softly from flanks
+  // Paired pectoral fins
   const pecShape = new THREE.Shape();
   pecShape.moveTo(0, 0);
   pecShape.quadraticCurveTo(0.18, 0.08, 0.26, -0.04);
@@ -211,14 +148,14 @@ export function createCichlidFish3D(options: {
   tailPivot.add(tailMesh);
   g.add(tailPivot);
 
-  // Glossy golden-ringed vertebrate eyes
-  const irisMat = new THREE.MeshStandardMaterial({ color: 0xe6be56, roughness: 0.25 });
-  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x161412, roughness: 0.12 });
+  // Warm naturalist golden-ringed vertebrate eyes
+  const irisMat = new THREE.MeshStandardMaterial({ color: 0xdec06b, roughness: 0.45 });
+  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.22 });
   for (const s of [-1, 1]) {
-    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.048, 12, 10), irisMat);
-    iris.position.set(s * 0.088, 0.065, 0.34);
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.030, 10, 8), pupilMat);
-    pupil.position.set(s * 0.112, 0.065, 0.355);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 10), irisMat);
+    iris.position.set(s * 0.086, 0.065, 0.34);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), pupilMat);
+    pupil.position.set(s * 0.11, 0.065, 0.355);
     g.add(iris, pupil);
   }
 
@@ -228,22 +165,36 @@ export function createCichlidFish3D(options: {
   const twist = options.jawTwist ?? 0;
   jawGroup.rotation.y = twist;
 
-  const jawMat = new THREE.MeshPhysicalMaterial({
-    color: isPred ? (twist < -0.04 ? 0x2b62c9 : twist > 0.04 ? 0xc9542b : 0x7d6c52) : 0x7ea6a8,
-    roughness: 0.32,
-    clearcoat: 0.5,
+  const jawHex = isPred ? (twist < -0.04 ? '#3c6ca8' : twist > 0.04 ? '#b85438' : '#7d6c52') : '#7ea6a8';
+  const jawMat = createNaturalistMaterial(paletteFromHex(jawHex), 'keratin', {
+    roughness: 0.72,
+    inkStrength: 0.52,
+    seed: 604,
   });
-  const lowerJaw = new THREE.Mesh(new THREE.SphereGeometry(0.088, 12, 10), jawMat);
-  lowerJaw.scale.set(0.82, 0.64, 1.55);
-  lowerJaw.position.set(0, -0.02, 0.09);
+  const jawCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, -0.02, -0.02),
+    new THREE.Vector3(0, -0.02, 0.11),
+    new THREE.Vector3(0, -0.01, 0.21),
+  ]);
+  const lowerJaw = new THREE.Mesh(
+    createOrganicLoftGeometry(jawCurve, (t) => 0.08 * (1 - t * 0.42), {
+      tubularSegs: 14,
+      radialSegs: 12,
+      aspectAt: () => [0.95, 0.68],
+    }),
+    jawMat
+  );
   lowerJaw.castShadow = true;
   jawGroup.add(lowerJaw);
 
-  // Subtle curved tooth lip arc so the bent scale-scraping jaw reads unmistakably in 3D!
   if (isPred && Math.abs(twist) > 0.04) {
     const lip = new THREE.Mesh(
-      new THREE.TorusGeometry(0.062, 0.015, 8, 14, Math.PI),
-      new THREE.MeshStandardMaterial({ color: 0xf7f1e1, roughness: 0.3 })
+      new THREE.TorusGeometry(0.058, 0.014, 8, 14, Math.PI),
+      createNaturalistMaterial(
+        { base: '#f2ead6', wash: '#d6c9ab', deep: '#948668', highlight: '#fffdf5' },
+        'bone',
+        { roughness: 0.72, inkStrength: 0.4, seed: 605 }
+      )
     );
     lip.rotation.x = Math.PI / 2;
     lip.position.set(0, 0.005, 0.14);
@@ -251,20 +202,15 @@ export function createCichlidFish3D(options: {
   }
   g.add(jawGroup);
 
-  // Optional translucent golden Flank Guard crescent shield on prey fish
   if (options.guardSide) {
     const s = options.guardSide === 'left' ? 1 : -1;
     const shield = new THREE.Mesh(
       new THREE.CylinderGeometry(0.28, 0.28, 0.42, 18, 1, true, -0.65, 1.3),
-      new THREE.MeshPhysicalMaterial({
-        color: 0xe6b432,
-        emissive: 0x7a5408,
-        emissiveIntensity: 0.35,
-        transparent: true,
-        opacity: 0.58,
-        side: THREE.DoubleSide,
-        roughness: 0.2,
-      })
+      createNaturalistMaterial(
+        { base: '#e0b248', wash: '#ba8922', deep: '#75530d', highlight: '#fae098' },
+        'tissue',
+        { roughness: 0.65, transparent: true, opacity: 0.56, side: THREE.DoubleSide, inkStrength: 0.3, seed: 606 }
+      )
     );
     shield.rotation.x = Math.PI / 2;
     shield.rotation.z = s === 1 ? Math.PI / 2 : -Math.PI / 2;
@@ -288,87 +234,82 @@ export function createSculptedLizard3D(options: {
 }): THREE.Group {
   const g = new THREE.Group();
   g.scale.setScalar(options.scale ?? 1.0);
+  const sw = options.tailCurveSign ?? 1;
 
-  const skinTex = getLizardSkinTexture(options.dorsalHex ?? '#b69c78', options.spotHex ?? '#6b533b');
-  const skinMat = new THREE.MeshStandardMaterial({ map: skinTex, roughness: 0.68 });
-  const throatMat = new THREE.MeshPhysicalMaterial({
-    color: options.throatHex,
-    emissive: new THREE.Color(options.throatHex).multiplyScalar(0.28),
-    roughness: 0.35,
-    clearcoat: 0.45,
-  });
+  const skinMat = createNaturalistMaterial(
+    paletteFromHex(options.dorsalHex ?? '#b39a76'),
+    'scale',
+    { roughness: 0.84, bumpScale: 0.028, inkStrength: 0.52, seed: 610 }
+  );
+  const throatMat = createNaturalistMaterial(
+    paletteFromHex(options.throatHex),
+    'tissue',
+    { roughness: 0.72, inkStrength: 0.48, seed: 611 }
+  );
 
-  // Organic tapered torso + head
-  const torso = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), skinMat);
-  torso.scale.set(0.92, 0.65, 2.25);
-  torso.position.set(0, 0.11, 0);
-  torso.castShadow = true;
-  g.add(torso);
+  // Continuous single-piece lofted reptilian body from snout -> neck -> torso -> sinuous S-tail!
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.145, 0.52),
+    new THREE.Vector3(0, 0.145, 0.34),
+    new THREE.Vector3(0, 0.125, 0.18),
+    new THREE.Vector3(0, 0.115, -0.02),
+    new THREE.Vector3(0, 0.10, -0.24),
+    new THREE.Vector3(sw * 0.09, 0.075, -0.52),
+    new THREE.Vector3(sw * -0.05, 0.06, -0.78),
+    new THREE.Vector3(sw * 0.07, 0.05, -1.04),
+  ]);
+  const bodyGeo = createOrganicLoftGeometry(
+    spine,
+    (t) => {
+      // Snout tapers sharply (t=0), head swells (t~0.11), slight neck (t~0.19), full torso (t~0.34), long tapered tail
+      if (t < 0.18) return 0.025 + 0.082 * Math.sin((t / 0.18) * Math.PI * 0.72);
+      if (t < 0.48) return 0.08 + 0.055 * Math.sin(((t - 0.18) / 0.3) * Math.PI);
+      return 0.075 * Math.pow(1 - (t - 0.48) / 0.52, 1.35) + 0.008;
+    },
+    {
+      tubularSegs: 42,
+      radialSegs: 16,
+      aspectAt: (t) => (t < 0.48 ? [1.08, 0.72] : [0.95, 0.92]),
+      noiseAmp: 0.015,
+    }
+  );
+  const body = new THREE.Mesh(bodyGeo, skinMat);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  g.add(body);
 
-  // Sculpted angular lizard head
-  const head = new THREE.Mesh(new THREE.ConeGeometry(0.105, 0.28, 10), skinMat);
-  head.rotation.x = Math.PI / 2;
-  head.scale.set(1.0, 1.0, 0.62);
-  head.position.set(0, 0.145, 0.40);
-  head.castShadow = true;
-  g.add(head);
-
-  // Vivid throat dewlap badge (Orange / Blue / Yellow — or 12 Anole morph hues!)
-  const dewlap = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 10), throatMat);
-  dewlap.scale.set(0.85, 0.85, 1.35);
-  dewlap.position.set(0, 0.095, 0.34);
+  // Sculpted throat dewlap badge (Orange / Blue / Yellow — or 12 Anole morph hues!)
+  const dewlap = new THREE.Mesh(new THREE.SphereGeometry(0.088, 14, 10), throatMat);
+  dewlap.scale.set(0.88, 0.85, 1.35);
+  dewlap.position.set(0, 0.095, 0.31);
   dewlap.castShadow = true;
   g.add(dewlap);
 
-  // Tiny glossy eyes
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x161412, roughness: 0.15 });
+  // Eyes
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x181410, roughness: 0.18 });
   for (const s of [-1, 1]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), eyeMat);
-    eye.position.set(s * 0.068, 0.175, 0.37);
+    eye.position.set(s * 0.068, 0.17, 0.36);
     g.add(eye);
   }
 
-  // Sinuous S-curved reptilian tail via tapered TubeGeometry
-  const sw = options.tailCurveSign ?? 1;
-  const tailCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.09, -0.26),
-    new THREE.Vector3(sw * 0.09, 0.075, -0.52),
-    new THREE.Vector3(sw * -0.05, 0.06, -0.78),
-    new THREE.Vector3(sw * 0.07, 0.05, -1.02),
-  ]);
-  const tailGeo = new THREE.TubeGeometry(tailCurve, 18, 0.048, 8, false);
-  // Taper tail radius smoothly toward the tip
-  const tPos = tailGeo.attributes.position;
-  for (let i = 0; i < tPos.count; i++) {
-    const z = tPos.getZ(i);
-    const frac = Math.max(0.15, Math.min(1, (z + 1.06) / 0.82));
-    const center = tailCurve.getPoint(Math.max(0, Math.min(1, (-0.26 - z) / 0.78)));
-    tPos.setX(i, center.x + (tPos.getX(i) - center.x) * frac);
-    tPos.setY(i, center.y + (tPos.getY(i) - center.y) * frac);
-  }
-  tailGeo.computeVertexNormals();
-  const tail = new THREE.Mesh(tailGeo, skinMat);
-  tail.castShadow = true;
-  g.add(tail);
-
-  // Four articulated sprawling lizard legs
-  const legGeo = new THREE.CylinderGeometry(0.024, 0.018, 0.22, 7);
-  const footGeo = new THREE.SphereGeometry(0.032, 8, 6);
-  footGeo.scale(1.2, 0.4, 1.5);
+  // Four curved jointed sprawling reptilian legs
   for (const s of [-1, 1]) {
-    for (const [zPos, rotY] of [
-      [0.16, 0.45],
-      [-0.17, -0.52],
+    for (const [zPos, dzFoot] of [
+      [0.16, 0.09],
+      [-0.17, -0.07],
     ] as [number, number][]) {
-      const leg = new THREE.Mesh(legGeo, skinMat);
-      leg.position.set(s * 0.16, 0.075, zPos);
-      leg.rotation.z = s * 1.08;
-      leg.rotation.y = s * rotY;
+      const legCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(s * 0.08, 0.10, zPos),
+        new THREE.Vector3(s * 0.18, 0.09, zPos + dzFoot * 0.35),
+        new THREE.Vector3(s * 0.24, 0.025, zPos + dzFoot),
+      ]);
+      const leg = new THREE.Mesh(
+        createOrganicLoftGeometry(legCurve, (t) => 0.028 * (1 - t * 0.35), { tubularSegs: 10, radialSegs: 7 }),
+        skinMat
+      );
       leg.castShadow = true;
-
-      const foot = new THREE.Mesh(footGeo, skinMat);
-      foot.position.set(s * 0.24, 0.025, zPos + (zPos > 0 ? 0.05 : -0.04));
-      g.add(leg, foot);
+      g.add(leg);
     }
   }
 
@@ -383,47 +324,79 @@ export function createElephantSeal3D(isBull: boolean, scale = 1.0): THREE.Group 
   const g = new THREE.Group();
   g.scale.setScalar(scale * (isBull ? 1.28 : 0.86));
 
-  const coatMat = new THREE.MeshStandardMaterial({
-    color: isBull ? 0x4d5a6b : 0x9c8b78,
-    roughness: 0.62,
-  });
-  const bellyMat = new THREE.MeshStandardMaterial({
-    color: isBull ? 0x6e7884 : 0xc4b5a2,
-    roughness: 0.7,
-  });
+  const coatMat = createNaturalistMaterial(
+    isBull
+      ? { base: '#596675', wash: '#3f4b59', deep: '#242d38', highlight: '#9caab8', ink: '#1a2129' }
+      : { base: '#9e8d7a', wash: '#7a6a58', deep: '#4a3e32', highlight: '#d4c6b6', ink: '#30271e' },
+    'fur',
+    { roughness: 0.85, inkStrength: 0.52, seed: isBull ? 621 : 622 }
+  );
 
-  // Streamlined pinniped body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), coatMat);
-  body.scale.set(0.95, 0.78, 1.95);
-  body.position.set(0, 0.11, 0);
+  // Continuous single-piece lofted pinniped silhouette (arched head -> thick chest -> tapered hind)
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.22, 0.28),
+    new THREE.Vector3(0, 0.19, 0.14),
+    new THREE.Vector3(0, 0.125, -0.04),
+    new THREE.Vector3(0, 0.085, -0.24),
+    new THREE.Vector3(0, 0.06, -0.34),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => 0.03 + 0.125 * Math.sin(Math.pow(t, 0.72) * Math.PI),
+      { tubularSegs: 28, radialSegs: 18, aspectAt: () => [0.95, 0.84] }
+    ),
+    coatMat
+  );
   body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
-
-  // Raised neck & head
-  const neck = new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 10), isBull ? coatMat : bellyMat);
-  neck.scale.set(0.95, 1.15, 1.0);
-  neck.position.set(0, 0.19, 0.21);
-  neck.castShadow = true;
-  g.add(neck);
 
   // Characteristic inflatable proboscis on bull elephant seals!
   if (isBull) {
-    const snout = new THREE.Mesh(new THREE.CapsuleGeometry(0.036, 0.08, 6, 8), coatMat);
-    snout.rotation.x = 0.75;
-    snout.position.set(0, 0.18, 0.31);
+    const snoutCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.22, 0.26),
+      new THREE.Vector3(0, 0.20, 0.35),
+      new THREE.Vector3(0, 0.14, 0.38),
+    ]);
+    const snout = new THREE.Mesh(
+      createOrganicLoftGeometry(snoutCurve, (t) => 0.042 * (1 - t * 0.28), { tubularSegs: 12, radialSegs: 10 }),
+      coatMat
+    );
+    snout.castShadow = true;
     g.add(snout);
   }
 
-  // Swept fore-flippers & paired hind-flippers
-  const flipGeo = new THREE.BoxGeometry(0.18, 0.025, 0.09);
+  // Sculpted organic swept fore-flippers & paired hind-flippers
   for (const s of [-1, 1]) {
-    const fore = new THREE.Mesh(flipGeo, coatMat);
-    fore.position.set(s * 0.14, 0.04, 0.10);
-    fore.rotation.y = s * -0.45;
-    const hind = new THREE.Mesh(flipGeo, coatMat);
-    hind.scale.set(0.75, 1, 1.2);
-    hind.position.set(s * 0.06, 0.04, -0.28);
-    hind.rotation.y = s * 0.35;
+    const foreCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(s * 0.10, 0.08, 0.10),
+      new THREE.Vector3(s * 0.19, 0.04, 0.05),
+      new THREE.Vector3(s * 0.24, 0.025, -0.03),
+    ]);
+    const fore = new THREE.Mesh(
+      createOrganicLoftGeometry(foreCurve, (t) => 0.045 * (1 - t * 0.35), {
+        tubularSegs: 10,
+        radialSegs: 8,
+        aspectAt: () => [1.3, 0.32],
+      }),
+      coatMat
+    );
+    fore.castShadow = true;
+
+    const hindCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(s * 0.04, 0.06, -0.28),
+      new THREE.Vector3(s * 0.09, 0.04, -0.38),
+      new THREE.Vector3(s * 0.12, 0.03, -0.45),
+    ]);
+    const hind = new THREE.Mesh(
+      createOrganicLoftGeometry(hindCurve, (t) => 0.04 * (1 - t * 0.3), {
+        tubularSegs: 10,
+        radialSegs: 8,
+        aspectAt: () => [1.2, 0.35],
+      }),
+      coatMat
+    );
     g.add(fore, hind);
   }
 
@@ -434,35 +407,16 @@ export function createElephantSeal3D(isBull: boolean, scale = 1.0): THREE.Group 
 // 4. SCULPTED 3D BOTANICAL LEAF (Arched Veined Passiflora Leaf)
 // =============================================================================
 
-export function createBotanicalLeaf3D(scale = 1.0, hex = '#3f7d4a'): THREE.Group {
+export function createBotanicalLeaf3D(scale = 1.0, hex = '#4a8052'): THREE.Group {
   const g = new THREE.Group();
   g.scale.setScalar(scale);
 
-  // Create delicate veined leaf texture
-  const c = document.createElement('canvas');
-  c.width = 128;
-  c.height = 128;
-  const ctx = c.getContext('2d')!;
-  ctx.fillStyle = hex;
-  ctx.fillRect(0, 0, 128, 128);
-  ctx.strokeStyle = 'rgba(182, 224, 152, 0.55)';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(64, 12);
-  ctx.lineTo(64, 118);
-  ctx.stroke();
-  ctx.lineWidth = 1.6;
-  for (let i = 0; i < 5; i++) {
-    const y = 28 + i * 18;
-    ctx.beginPath();
-    ctx.moveTo(64, y);
-    ctx.quadraticCurveTo(36, y - 8, 16, y - 16);
-    ctx.moveTo(64, y);
-    ctx.quadraticCurveTo(92, y - 8, 112, y - 16);
-    ctx.stroke();
-  }
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
+  const leafMat = createNaturalistMaterial(paletteFromHex(hex), 'botanical', {
+    roughness: 0.82,
+    bumpScale: 0.024,
+    inkStrength: 0.5,
+    seed: 630,
+  });
 
   const shape = new THREE.Shape();
   shape.moveTo(0, -0.68);
@@ -471,9 +425,14 @@ export function createBotanicalLeaf3D(scale = 1.0, hex = '#3f7d4a'): THREE.Group
   shape.bezierCurveTo(-0.06, 0.78, -0.24, 0.68, -0.42, 0.38);
   shape.bezierCurveTo(-0.62, -0.05, -0.48, -0.58, 0, -0.68);
 
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.005, bevelSegments: 1 });
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.016,
+    bevelEnabled: true,
+    bevelThickness: 0.005,
+    bevelSize: 0.005,
+    bevelSegments: 1,
+  });
   geo.rotateX(-Math.PI / 2);
-  // Subtle organic arch along the leaf blade
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
@@ -482,68 +441,40 @@ export function createBotanicalLeaf3D(scale = 1.0, hex = '#3f7d4a'): THREE.Group
   }
   geo.computeVertexNormals();
 
-  const leaf = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55 }));
+  const leaf = new THREE.Mesh(geo, leafMat);
   leaf.castShadow = true;
   leaf.receiveShadow = true;
   g.add(leaf);
 
-  // Petiole stem
+  const stemCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.02, 0.64),
+    new THREE.Vector3(0.02, 0.01, 0.82),
+    new THREE.Vector3(0.05, 0.0, 0.94),
+  ]);
   const stem = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.018, 0.024, 0.28, 7),
-    new THREE.MeshStandardMaterial({ color: 0x356138, roughness: 0.75 })
+    createOrganicLoftGeometry(stemCurve, () => 0.02, { tubularSegs: 10, radialSegs: 7 }),
+    leafMat
   );
-  stem.rotation.x = Math.PI / 2;
-  stem.position.set(0, 0.02, 0.78);
   g.add(stem);
 
   return g;
 }
 
 // =============================================================================
-// 5. REFINED ARCHIVAL PAPER CAPTION SLIP (Lightweight, No Clunky Box!)
+// 5. ARCHIVAL LABEL STUB (Clean Specimen-Only Rag Paper — Zero Clunky Floor Cards!)
+// Every plate already has crisp editorial top caption pills & bottom legends.
 // =============================================================================
 
 export function createArchivalLabel(
-  title: string,
-  subtitle?: string,
-  width = 1.5,
-  accentHex = '#29211b'
+  _title: string,
+  _subtitle?: string,
+  _width = 1.5,
+  _accentHex = '#29211b'
 ): THREE.Mesh {
-  const c = document.createElement('canvas');
-  c.width = 512;
-  c.height = subtitle ? 152 : 96;
-  const ctx = c.getContext('2d')!;
-
-  ctx.fillStyle = 'rgba(250, 245, 234, 0.94)';
-  ctx.fillRect(0, 0, c.width, c.height);
-  ctx.strokeStyle = 'rgba(140, 120, 92, 0.55)';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(6, 6, c.width - 12, c.height - 12);
-
-  ctx.fillStyle = accentHex;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = subtitle ? '700 40px Georgia, serif' : '700 44px Georgia, serif';
-  ctx.fillText(title, c.width / 2, subtitle ? 56 : c.height / 2, c.width - 48);
-
-  if (subtitle) {
-    ctx.fillStyle = '#685948';
-    ctx.font = '500 26px "IBM Plex Mono", monospace';
-    ctx.fillText(subtitle, c.width / 2, 112, c.width - 48);
-  }
-
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
-  const height = width * (c.height / c.width);
-  const mesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(width, height),
-    new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-  );
-  mesh.rotation.x = -Math.PI / 2;
-  return mesh;
+  const dummy = new THREE.Mesh();
+  dummy.visible = false;
+  return dummy;
 }
-
 
 // =============================================================================
 // 6. SCULPTED 3D DROSOPHILA MELANOGASTER (Red vs. White X-Linked Eye Morphs)
@@ -557,56 +488,65 @@ export function createDrosophila3D(options: {
   const g = new THREE.Group();
   g.scale.setScalar(options.scale ?? 1.0);
 
-  const thoraxMat = new THREE.MeshStandardMaterial({ color: 0xc9964a, roughness: 0.55 });
-  const stripeMat = new THREE.MeshStandardMaterial({ color: 0x382818, roughness: 0.6 });
-  const eyeMat = new THREE.MeshPhysicalMaterial({
-    color: options.eyeHex,
-    roughness: 0.18,
-    clearcoat: 0.85,
+  const thoraxMat = createNaturalistMaterial(
+    { base: '#cc9a4e', wash: '#a6742e', deep: '#634112', highlight: '#f2d39b', ink: '#422a0a' },
+    'keratin',
+    { roughness: 0.78, inkStrength: 0.52, seed: 641 }
+  );
+  const stripeMat = createNaturalistMaterial(
+    { base: '#403020', wash: '#2b1f14', deep: '#17100a', highlight: '#6e5740' },
+    'keratin',
+    { roughness: 0.82, inkStrength: 0.45, seed: 642 }
+  );
+  const eyeMat = createNaturalistMaterial(paletteFromHex(options.eyeHex), 'fruit', {
+    roughness: 0.45,
+    inkStrength: 0.48,
+    seed: 643,
   });
-  const wingMat = new THREE.MeshPhysicalMaterial({
-    color: 0xf4f8fc,
-    transparent: true,
-    opacity: 0.56,
-    roughness: 0.15,
-    side: THREE.DoubleSide,
-  });
+  const wingMat = createNaturalistMaterial(
+    { base: '#eef2f5', wash: '#d5dfe6', deep: '#97a7b3', highlight: '#ffffff' },
+    'tissue',
+    { roughness: 0.65, transparent: true, opacity: 0.56, side: THREE.DoubleSide, inkStrength: 0.35, seed: 644 }
+  );
 
-  // Arched honey-amber thorax
-  const thorax = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), thoraxMat);
-  thorax.scale.set(0.92, 0.88, 1.15);
-  thorax.position.set(0, 0.14, 0.05);
-  thorax.castShadow = true;
-  g.add(thorax);
-
-  // Segmented abdomen (males have dark rounded tip; females slightly larger & pointed)
-  const abd = new THREE.Mesh(
-    new THREE.SphereGeometry(0.115, 14, 12),
+  // Continuous lofted Dipteran body (head -> arched thorax -> tapered abdomen)
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.155, 0.25),
+    new THREE.Vector3(0, 0.155, 0.16),
+    new THREE.Vector3(0, 0.15, 0.05),
+    new THREE.Vector3(0, 0.135, -0.10),
+    new THREE.Vector3(0, 0.115, options.isMale ? -0.32 : -0.38),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => {
+        const head = 0.072 * Math.exp(-Math.pow((t - 0.1) / 0.12, 2));
+        const thor = 0.108 * Math.exp(-Math.pow((t - 0.34) / 0.18, 2));
+        const abd = 0.105 * Math.sin(Math.max(0, (t - 0.42) / 0.58) * Math.PI);
+        return Math.max(0.02, head, thor, abd);
+      },
+      { tubularSegs: 28, radialSegs: 16, aspectAt: () => [0.92, 0.86] }
+    ),
     thoraxMat
   );
-  abd.scale.set(0.88, 0.82, options.isMale ? 1.45 : 1.72);
-  abd.position.set(0, 0.125, -0.18);
-  abd.castShadow = true;
-  g.add(abd);
+  body.castShadow = true;
+  g.add(body);
 
-  // Dark abdominal tergite bands (male has broader dark posterior!)
-  const bandZs = options.isMale ? [-0.12, -0.20, -0.28] : [-0.10, -0.18, -0.26];
+  // Dark abdominal tergite bands
+  const bandZs = options.isMale ? [-0.12, -0.20, -0.27] : [-0.10, -0.18, -0.26];
   bandZs.forEach((bz, idx) => {
-    const r = idx === 2 && options.isMale ? 0.088 : 0.095;
-    const band = new THREE.Mesh(new THREE.TorusGeometry(r, 0.018, 6, 16), stripeMat);
-    band.position.set(0, 0.125, bz);
+    const r = idx === 2 && options.isMale ? 0.08 : 0.09;
+    const band = new THREE.Mesh(new THREE.TorusGeometry(r, 0.016, 6, 16), stripeMat);
+    band.position.set(0, 0.13, bz);
     g.add(band);
   });
 
-  // Head + prominent glossy compound eyes (Red w+ vs White w!)
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), thoraxMat);
-  head.position.set(0, 0.15, 0.21);
-  g.add(head);
-
+  // Prominent compound eyes (Red w+ vs White w!)
   for (const s of [-1, 1]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.054, 12, 10), eyeMat);
     eye.scale.set(0.82, 1.08, 1.0);
-    eye.position.set(s * 0.068, 0.16, 0.22);
+    eye.position.set(s * 0.068, 0.16, 0.21);
     eye.castShadow = true;
     g.add(eye);
   }
@@ -616,7 +556,7 @@ export function createDrosophila3D(options: {
   wShape.moveTo(0, 0);
   wShape.bezierCurveTo(0.12, 0.06, 0.34, 0.04, 0.42, -0.06);
   wShape.bezierCurveTo(0.36, -0.16, 0.16, -0.14, 0, -0.04);
-  const wGeo = new THREE.ExtrudeGeometry(wShape, { depth: 0.006, bevelEnabled: false });
+  const wGeo = new THREE.ExtrudeGeometry(wShape, { depth: 0.005, bevelEnabled: false });
   wGeo.rotateX(-Math.PI / 2);
   for (const s of [-1, 1]) {
     const wing = new THREE.Mesh(wGeo, wingMat);
@@ -627,8 +567,7 @@ export function createDrosophila3D(options: {
     g.add(wing);
   }
 
-  // Six delicate jointed legs
-  const legGeo = new THREE.CylinderGeometry(0.008, 0.006, 0.16, 5);
+  const legGeo = new THREE.CylinderGeometry(0.007, 0.005, 0.16, 5);
   for (const s of [-1, 1]) {
     for (const lz of [0.11, 0.02, -0.07]) {
       const leg = new THREE.Mesh(legGeo, stripeMat);
@@ -649,47 +588,66 @@ export function createRockPocketMouse3D(isDark: boolean, scale = 1.0): THREE.Gro
   const g = new THREE.Group();
   g.scale.setScalar(scale);
 
-  const furMat = new THREE.MeshStandardMaterial({
-    color: isDark ? 0x2d2b2e : 0xd4be96,
-    roughness: 0.88,
-  });
-  const earMat = new THREE.MeshStandardMaterial({
-    color: isDark ? 0x454044 : 0xe0c8a8,
-    roughness: 0.82,
-  });
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x121010, roughness: 0.12 });
+  const furMat = createNaturalistMaterial(
+    isDark
+      ? { base: '#3d393d', wash: '#282529', deep: '#141214', highlight: '#736c73', ink: '#0d0b0d' }
+      : { base: '#d4be96', wash: '#b0986f', deep: '#705d3f', highlight: '#f2e4c7', ink: '#4a3d27' },
+    'fur',
+    { roughness: 0.9, bumpScale: 0.026, inkStrength: 0.55, seed: isDark ? 651 : 652 }
+  );
+  const earMat = createNaturalistMaterial(
+    isDark
+      ? { base: '#575054', wash: '#3d373a', deep: '#242022', highlight: '#8a8086' }
+      : { base: '#e0c8a8', wash: '#bfa380', deep: '#80684b', highlight: '#f7ead7' },
+    'fur',
+    { roughness: 0.86, inkStrength: 0.42, seed: 653 }
+  );
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x141110, roughness: 0.18 });
 
-  // Rounded rodent body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.145, 14, 12), furMat);
-  body.scale.set(0.92, 0.82, 1.48);
-  body.position.set(0, 0.13, 0);
+  // Continuous single-piece lofted rodent silhouette (pointed muzzle -> head -> plump back -> rump)
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.145, 0.34),
+    new THREE.Vector3(0, 0.165, 0.21),
+    new THREE.Vector3(0, 0.155, 0.07),
+    new THREE.Vector3(0, 0.135, -0.08),
+    new THREE.Vector3(0, 0.095, -0.23),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => {
+        const head = 0.092 * Math.sin(Math.min(1, t / 0.42) * Math.PI * 0.82);
+        const torso = 0.142 * Math.sin(Math.max(0, (t - 0.15) / 0.85) * Math.PI);
+        return Math.max(0.022, head, torso);
+      },
+      { tubularSegs: 28, radialSegs: 18, aspectAt: () => [0.94, 0.88] }
+    ),
+    furMat
+  );
   body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
 
-  // Pointed head & muzzle
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 10), furMat);
-  head.scale.set(0.92, 0.85, 1.25);
-  head.position.set(0, 0.15, 0.22);
-  head.castShadow = true;
-  g.add(head);
-
-  // Rounded pocket-mouse ears & dark eyes
+  // Rounded pocket-mouse ears & dark bead eyes
   for (const s of [-1, 1]) {
-    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.044, 10, 8), earMat);
-    ear.scale.set(0.45, 1.1, 0.95);
-    ear.position.set(s * 0.075, 0.23, 0.17);
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.046, 10, 8), earMat);
+    ear.scale.set(0.42, 1.12, 0.95);
+    ear.position.set(s * 0.072, 0.235, 0.17);
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 8), eyeMat);
-    eye.position.set(s * 0.062, 0.17, 0.28);
+    eye.position.set(s * 0.06, 0.175, 0.26);
     g.add(ear, eye);
   }
 
-  // Long graceful desert mouse tail
+  // Long graceful tapering desert-mouse tail
   const tailCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.08, -0.18),
-    new THREE.Vector3(0.08, 0.06, -0.44),
-    new THREE.Vector3(-0.04, 0.04, -0.72),
+    new THREE.Vector3(0, 0.085, -0.20),
+    new THREE.Vector3(0.08, 0.06, -0.46),
+    new THREE.Vector3(-0.04, 0.04, -0.74),
   ]);
-  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 14, 0.018, 6, false), earMat);
+  const tail = new THREE.Mesh(
+    createOrganicLoftGeometry(tailCurve, (t) => 0.022 * (1 - t * 0.58), { tubularSegs: 18, radialSegs: 8 }),
+    earMat
+  );
   tail.castShadow = true;
   g.add(tail);
 
@@ -708,33 +666,40 @@ export function createBacteriumRod3D(options: {
   const g = new THREE.Group();
   g.scale.setScalar(options.scale ?? 1.0);
 
-  const cellMat = new THREE.MeshPhysicalMaterial({
-    color: options.resistant ? 0xc44234 : 0x458a76,
-    roughness: 0.26,
-    clearcoat: 0.65,
-    transparent: true,
-    opacity: 0.86,
-  });
+  const cellMat = createNaturalistMaterial(
+    options.resistant
+      ? { base: '#c44b3d', wash: '#992e22', deep: '#59160f', highlight: '#f09c92', ink: '#3d0e09' }
+      : { base: '#579480', wash: '#38705e', deep: '#1c4236', highlight: '#a3d4c3', ink: '#122e25' },
+    'tissue',
+    { roughness: 0.74, transparent: true, opacity: 0.88, inkStrength: 0.52, seed: options.resistant ? 661 : 662 }
+  );
 
-  const rod = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.34, 8, 14), cellMat);
-  rod.rotation.z = Math.PI / 2;
-  rod.position.y = 0.13;
+  const rodCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.26, 0.13, 0.015),
+    new THREE.Vector3(0, 0.14, -0.01),
+    new THREE.Vector3(0.26, 0.13, 0.015),
+  ]);
+  const rod = new THREE.Mesh(
+    createOrganicLoftGeometry(rodCurve, (t) => 0.108 * Math.pow(Math.sin(t * Math.PI), 0.35), {
+      tubularSegs: 20,
+      radialSegs: 14,
+    }),
+    cellMat
+  );
   rod.castShadow = true;
   g.add(rod);
 
-  // Subtle golden circular R-plasmid ring visible inside translucent bacterial cell!
   if (options.hasPlasmid) {
     const plasmid = new THREE.Mesh(
       new THREE.TorusGeometry(0.065, 0.016, 8, 18),
-      new THREE.MeshStandardMaterial({
-        color: 0xf2c230,
-        emissive: 0x8a6408,
-        emissiveIntensity: 0.45,
-        roughness: 0.2,
-      })
+      createNaturalistMaterial(
+        { base: '#e6b235', wash: '#bd8917', deep: '#755208', highlight: '#fce08b' },
+        'keratin',
+        { roughness: 0.55, inkStrength: 0.4, seed: 663 }
+      )
     );
     plasmid.rotation.x = Math.PI / 2;
-    plasmid.position.set(0.08, 0.135, 0);
+    plasmid.position.set(0.06, 0.14, 0);
     g.add(plasmid);
   }
 
@@ -747,8 +712,8 @@ export function createBacteriumRod3D(options: {
 
 export function createGuppy3D(options: {
   isMale: boolean;
-  orangeScore?: number; // 0..1 ornament intensity
-  tailLength?: number;  // 0.7..1.8
+  orangeScore?: number;
+  tailLength?: number;
   scale?: number;
 }): THREE.Group {
   const g = new THREE.Group();
@@ -756,59 +721,73 @@ export function createGuppy3D(options: {
   const orange = options.orangeScore ?? (options.isMale ? 0.85 : 0);
   const tailScale = options.tailLength ?? (options.isMale ? 1.25 : 0.85);
 
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color: options.isMale ? 0x6b92a8 : 0x9aa392,
-    roughness: 0.35,
-    metalness: 0.15,
-  });
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), bodyMat);
-  body.scale.set(0.55, 0.85, options.isMale ? 2.1 : 2.35);
-  body.position.set(0, 0.16, 0.05);
+  const bodyMat = createNaturalistMaterial(
+    options.isMale
+      ? { base: '#6f96ab', wash: '#4a7187', deep: '#274454', highlight: '#b8d6e6', ink: '#1a2f3b' }
+      : { base: '#9ca391', wash: '#78806e', deep: '#494f42', highlight: '#d4dbca', ink: '#31362c' },
+    'scale',
+    { roughness: 0.74, inkStrength: 0.52, seed: options.isMale ? 671 : 672 }
+  );
+
+  // Continuous fusiform guppy torso loft
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.16, -0.22),
+    new THREE.Vector3(0, 0.165, 0.04),
+    new THREE.Vector3(0, 0.16, 0.28),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => 0.11 * Math.sin(Math.pow(t, 0.78) * Math.PI) + 0.012,
+      { tubularSegs: 22, radialSegs: 16, aspectAt: () => [0.56, 0.86] }
+    ),
+    bodyMat
+  );
   body.castShadow = true;
   g.add(body);
 
-  // Vibrant carotenoid orange flank spots on ornamented males!
+  // Vibrant hand-tinted carotenoid orange flank spots on ornamented males!
   if (options.isMale && orange > 0.08) {
-    const spotMat = new THREE.MeshStandardMaterial({
-      color: 0xf05a1e,
-      emissive: 0x6b1c04,
-      emissiveIntensity: orange * 0.35,
-      roughness: 0.28,
-    });
+    const spotMat = createNaturalistMaterial(
+      { base: '#e8682c', wash: '#bd4511', deep: '#752504', highlight: '#fcb186' },
+      'scale',
+      { roughness: 0.68, inkStrength: 0.4, seed: 673 }
+    );
     const spotCount = Math.max(1, Math.round(orange * 4));
     for (let i = 0; i < spotCount; i++) {
       for (const s of [-1, 1]) {
-        const spot = new THREE.Mesh(new THREE.SphereGeometry(0.032 + orange * 0.014, 10, 8), spotMat);
-        spot.scale.set(0.32, 0.9, 1.25);
-        spot.position.set(s * 0.056, 0.16 + (i % 2 === 0 ? 0.02 : -0.02), 0.12 - i * 0.07);
+        const spot = new THREE.Mesh(new THREE.SphereGeometry(0.03 + orange * 0.013, 10, 8), spotMat);
+        spot.scale.set(0.32, 0.88, 1.25);
+        spot.position.set(s * 0.054, 0.16 + (i % 2 === 0 ? 0.02 : -0.02), 0.11 - i * 0.068);
         g.add(spot);
       }
     }
   }
 
-  // Fan-shaped caudal tail fin (longer & bright orange-rimmed in ornamented males)
+  // Fan-shaped watercolour caudal tail fin
   const tShape = new THREE.Shape();
   tShape.moveTo(0, 0);
   tShape.quadraticCurveTo(0.11 * tailScale, 0.13 * tailScale, 0.24 * tailScale, 0.12 * tailScale);
   tShape.quadraticCurveTo(0.19 * tailScale, 0, 0.24 * tailScale, -0.12 * tailScale);
   tShape.quadraticCurveTo(0.11 * tailScale, -0.13 * tailScale, 0, 0);
-  const tGeo = new THREE.ExtrudeGeometry(tShape, { depth: 0.012, bevelEnabled: false });
+  const tGeo = new THREE.ExtrudeGeometry(tShape, { depth: 0.01, bevelEnabled: false });
   tGeo.rotateY(Math.PI / 2);
-  const tailMat = new THREE.MeshStandardMaterial({
-    color: options.isMale && orange > 0.25 ? 0xf27c24 : 0xb8c0b4,
-    roughness: 0.42,
-    side: THREE.DoubleSide,
-  });
+  const tailMat = createNaturalistMaterial(
+    options.isMale && orange > 0.25
+      ? { base: '#eb8334', wash: '#bf5d17', deep: '#753306', highlight: '#fcc492' }
+      : { base: '#b8c0b4', wash: '#929c8e', deep: '#5c6359', highlight: '#e3e8e1' },
+    'tissue',
+    { roughness: 0.78, transparent: true, opacity: 0.86, side: THREE.DoubleSide, inkStrength: 0.42, seed: 674 }
+  );
   const tail = new THREE.Mesh(tGeo, tailMat);
-  tail.position.set(-0.006, 0.16, -0.16);
+  tail.position.set(-0.005, 0.16, -0.19);
   tail.castShadow = true;
   g.add(tail);
 
-  // Dark glassy eyes
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101216, roughness: 0.1 });
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.16 });
   for (const s of [-1, 1]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), eyeMat);
-    eye.position.set(s * 0.044, 0.185, 0.22);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.021, 8, 8), eyeMat);
+    eye.position.set(s * 0.042, 0.18, 0.21);
     g.add(eye);
   }
 
@@ -823,38 +802,50 @@ export function createDungFly3D(options: { isMale: boolean; scale?: number }): T
   const g = new THREE.Group();
   g.scale.setScalar((options.scale ?? 1.0) * (options.isMale ? 1.15 : 0.92));
 
-  const coatMat = new THREE.MeshStandardMaterial({
-    color: options.isMale ? 0xdca024 : 0x8f8860,
-    roughness: 0.72,
-  });
-  const eyeMat = new THREE.MeshPhysicalMaterial({ color: 0x9c281c, roughness: 0.2, clearcoat: 0.8 });
-  const wingMat = new THREE.MeshPhysicalMaterial({
-    color: 0xf7f2df,
-    transparent: true,
-    opacity: 0.52,
-    roughness: 0.18,
-    side: THREE.DoubleSide,
-  });
+  const coatMat = createNaturalistMaterial(
+    options.isMale
+      ? { base: '#d9a22e', wash: '#b07b15', deep: '#6b4706', highlight: '#f7d888', ink: '#472e03' }
+      : { base: '#8f8862', wash: '#6b6543', deep: '#3f3b24', highlight: '#c9c3a1', ink: '#292616' },
+    'fur',
+    { roughness: 0.86, inkStrength: 0.52, seed: options.isMale ? 681 : 682 }
+  );
+  const eyeMat = createNaturalistMaterial(
+    { base: '#9e3226', wash: '#751f16', deep: '#450e09', highlight: '#d97a70' },
+    'fruit',
+    { roughness: 0.45, inkStrength: 0.45, seed: 683 }
+  );
+  const wingMat = createNaturalistMaterial(
+    { base: '#f5efe0', wash: '#ded4bc', deep: '#a3977c', highlight: '#fffdf7' },
+    'tissue',
+    { roughness: 0.68, transparent: true, opacity: 0.56, side: THREE.DoubleSide, inkStrength: 0.35, seed: 684 }
+  );
 
-  const thorax = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), coatMat);
-  thorax.scale.set(0.9, 0.9, 1.25);
-  thorax.position.set(0, 0.16, 0.06);
-  thorax.castShadow = true;
-  g.add(thorax);
-
-  const abd = new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 10), coatMat);
-  abd.scale.set(0.84, 0.82, 1.75);
-  abd.position.set(0, 0.145, -0.2);
-  abd.castShadow = true;
-  g.add(abd);
-
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 10), coatMat);
-  head.position.set(0, 0.17, 0.23);
-  g.add(head);
+  // Continuous lofted Dipteran body
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.17, 0.26),
+    new THREE.Vector3(0, 0.165, 0.08),
+    new THREE.Vector3(0, 0.15, -0.14),
+    new THREE.Vector3(0, 0.13, -0.38),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => {
+        const head = 0.072 * Math.exp(-Math.pow((t - 0.1) / 0.12, 2));
+        const thor = 0.11 * Math.exp(-Math.pow((t - 0.34) / 0.18, 2));
+        const abd = 0.102 * Math.sin(Math.max(0, (t - 0.42) / 0.58) * Math.PI);
+        return Math.max(0.02, head, thor, abd);
+      },
+      { tubularSegs: 26, radialSegs: 14, aspectAt: () => [0.88, 0.86] }
+    ),
+    coatMat
+  );
+  body.castShadow = true;
+  g.add(body);
 
   for (const s of [-1, 1]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 10, 8), eyeMat);
-    eye.position.set(s * 0.062, 0.185, 0.245);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.046, 10, 8), eyeMat);
+    eye.position.set(s * 0.06, 0.185, 0.235);
     g.add(eye);
   }
 
@@ -862,7 +853,7 @@ export function createDungFly3D(options: { isMale: boolean; scale?: number }): T
   wShape.moveTo(0, 0);
   wShape.bezierCurveTo(0.12, 0.06, 0.36, 0.03, 0.45, -0.07);
   wShape.bezierCurveTo(0.38, -0.17, 0.16, -0.14, 0, -0.04);
-  const wGeo = new THREE.ExtrudeGeometry(wShape, { depth: 0.006, bevelEnabled: false });
+  const wGeo = new THREE.ExtrudeGeometry(wShape, { depth: 0.005, bevelEnabled: false });
   wGeo.rotateX(-Math.PI / 2);
   for (const s of [-1, 1]) {
     const wing = new THREE.Mesh(wGeo, wingMat);
@@ -885,46 +876,72 @@ export function createOpossum3D(options: { greyness?: number; scale?: number }):
   const grey = options.greyness ?? 0.3;
 
   const furCol = new THREE.Color(0x9a938a).lerp(new THREE.Color(0xc8c3bc), grey);
-  const furMat = new THREE.MeshStandardMaterial({ color: furCol, roughness: 0.9 });
-  const faceMat = new THREE.MeshStandardMaterial({ color: 0xe6ddd0, roughness: 0.85 });
-  const earMat = new THREE.MeshStandardMaterial({ color: 0x3b3334, roughness: 0.75 });
-  const pinkMat = new THREE.MeshStandardMaterial({ color: 0xd99a98, roughness: 0.6 });
+  const furMat = createNaturalistMaterial(paletteFromHex(`#${furCol.getHexString()}`), 'fur', {
+    roughness: 0.9,
+    bumpScale: 0.026,
+    inkStrength: 0.54,
+    seed: 691 + Math.round(grey * 10),
+  });
+  const earMat = createNaturalistMaterial(
+    { base: '#453c3d', wash: '#2e2728', deep: '#171314', highlight: '#786c6e' },
+    'fur',
+    { roughness: 0.85, inkStrength: 0.45, seed: 692 }
+  );
+  const pinkMat = createNaturalistMaterial(
+    { base: '#d99e9c', wash: '#b57674', deep: '#754442', highlight: '#f5cecd' },
+    'tissue',
+    { roughness: 0.78, inkStrength: 0.42, seed: 693 }
+  );
 
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 12), furMat);
-  body.scale.set(0.92, 0.85, 1.55);
-  body.position.set(0, 0.18, -0.02);
+  // Continuous single-piece lofted marsupial body (pointed snout -> neck -> arched furred back -> rump)
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.195, 0.46),
+    new THREE.Vector3(0, 0.21, 0.28),
+    new THREE.Vector3(0, 0.20, 0.08),
+    new THREE.Vector3(0, 0.17, -0.14),
+    new THREE.Vector3(0, 0.13, -0.28),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => {
+        if (t < 0.32) return 0.025 + 0.095 * (t / 0.32);
+        return 0.17 * Math.sin(Math.max(0.05, (t - 0.14) / 0.86) * Math.PI);
+      },
+      { tubularSegs: 32, radialSegs: 18, aspectAt: () => [0.92, 0.88] }
+    ),
+    furMat
+  );
   body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
 
-  const head = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.3, 12), faceMat);
-  head.rotation.x = Math.PI / 2;
-  head.position.set(0, 0.2, 0.32);
-  head.castShadow = true;
-  g.add(head);
-
   const nose = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), pinkMat);
-  nose.position.set(0, 0.2, 0.47);
+  nose.position.set(0, 0.195, 0.47);
   g.add(nose);
 
   for (const s of [-1, 1]) {
     const ear = new THREE.Mesh(new THREE.SphereGeometry(0.052, 10, 8), earMat);
     ear.scale.set(0.35, 1.05, 0.95);
-    ear.position.set(s * 0.085, 0.29, 0.22);
+    ear.position.set(s * 0.082, 0.29, 0.22);
     const eye = new THREE.Mesh(
       new THREE.SphereGeometry(0.02, 8, 8),
-      new THREE.MeshStandardMaterial({ color: 0x151212, roughness: 0.15 })
+      new THREE.MeshStandardMaterial({ color: 0x151212, roughness: 0.18 })
     );
-    eye.position.set(s * 0.055, 0.22, 0.33);
+    eye.position.set(s * 0.058, 0.22, 0.32);
     g.add(ear, eye);
   }
 
-  // Hairless pink prehensile marsupial tail
+  // Hairless pink tapering prehensile marsupial tail
   const tailCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.14, -0.26),
+    new THREE.Vector3(0, 0.135, -0.25),
     new THREE.Vector3(0.09, 0.09, -0.52),
     new THREE.Vector3(0.02, 0.07, -0.78),
   ]);
-  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 14, 0.024, 7, false), pinkMat);
+  const tail = new THREE.Mesh(
+    createOrganicLoftGeometry(tailCurve, (t) => 0.028 * (1 - t * 0.55), { tubularSegs: 16, radialSegs: 8 }),
+    pinkMat
+  );
   tail.castShadow = true;
   g.add(tail);
 
@@ -943,51 +960,70 @@ export function createMudSnail3D(options: {
   const g = new THREE.Group();
   g.scale.setScalar(options.scale ?? 1.0);
 
-  const shellMat = new THREE.MeshStandardMaterial({
-    color: options.shellHex ?? '#6b533b',
-    roughness: 0.42,
-    metalness: 0.08,
-  });
-  const footMat = new THREE.MeshStandardMaterial({
-    color: options.infected ? 0xc27a72 : 0xb8ad9c,
-    roughness: 0.78,
-  });
+  const shellMat = createNaturalistMaterial(
+    paletteFromHex(options.shellHex ?? '#755b42'),
+    'bone',
+    { roughness: 0.78, bumpScale: 0.024, inkStrength: 0.55, seed: 701 }
+  );
+  const footMat = createNaturalistMaterial(
+    options.infected
+      ? { base: '#c27e76', wash: '#99554d', deep: '#5c2c26', highlight: '#ebbbb5' }
+      : { base: '#bdb2a0', wash: '#968a77', deep: '#5e5546', highlight: '#e6dfd3' },
+    'tissue',
+    { roughness: 0.85, inkStrength: 0.45, seed: 702 }
+  );
 
-  // Soft muscular gastropod foot + paired tentacles
-  const foot = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.24, 6, 10), footMat);
-  foot.rotation.x = Math.PI / 2;
-  foot.scale.set(1.0, 1.0, 0.52);
-  foot.position.set(0, 0.04, 0.08);
+  // Soft muscular organic gastropod foot
+  const footCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.04, -0.10),
+    new THREE.Vector3(0, 0.045, 0.08),
+    new THREE.Vector3(0, 0.04, 0.24),
+  ]);
+  const foot = new THREE.Mesh(
+    createOrganicLoftGeometry(footCurve, (t) => 0.072 * Math.sin(Math.pow(t, 0.7) * Math.PI) + 0.012, {
+      tubularSegs: 16,
+      radialSegs: 12,
+      aspectAt: () => [1.05, 0.55],
+    }),
+    footMat
+  );
   foot.castShadow = true;
   g.add(foot);
 
   for (const s of [-1, 1]) {
-    const tent = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.13, 6), footMat);
-    tent.rotation.x = 1.05;
-    tent.rotation.z = s * -0.35;
-    tent.position.set(s * 0.04, 0.075, 0.24);
-    g.add(tent);
+    const tCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(s * 0.025, 0.055, 0.19),
+      new THREE.Vector3(s * 0.055, 0.095, 0.29),
+    ]);
+    g.add(
+      new THREE.Mesh(
+        createOrganicLoftGeometry(tCurve, (t) => 0.011 * (1 - t * 0.45), { tubularSegs: 8, radialSegs: 6 }),
+        footMat
+      )
+    );
   }
 
-  // Sculpted turreted spiral shell (4 stacked tapered whorls tilting gracefully backward)
-  const shellGroup = new THREE.Group();
-  shellGroup.position.set(0, 0.11, -0.02);
-  shellGroup.rotation.x = -0.62;
-  const whorls = [
-    { r: 0.125, y: 0.0 },
-    { r: 0.098, y: 0.11 },
-    { r: 0.072, y: 0.20 },
-    { r: 0.044, y: 0.28 },
-    { r: 0.022, y: 0.34 },
-  ];
-  whorls.forEach((w, idx) => {
-    const whorl = new THREE.Mesh(new THREE.SphereGeometry(w.r, 12, 10), shellMat);
-    whorl.scale.set(1.0, 0.78, 1.0);
-    whorl.position.set(idx % 2 === 0 ? 0.008 : -0.008, w.y, 0);
-    whorl.castShadow = true;
-    shellGroup.add(whorl);
-  });
-  g.add(shellGroup);
+  // Genuine continuous tapering helical turreted gastropod shell!
+  const helixPts: THREE.Vector3[] = [];
+  const turns = 3.2;
+  for (let i = 0; i <= 38; i++) {
+    const f = i / 38;
+    const ang = f * turns * Math.PI * 2;
+    const rad = 0.085 * (1 - f * 0.84);
+    helixPts.push(new THREE.Vector3(Math.cos(ang) * rad, f * 0.36, Math.sin(ang) * rad));
+  }
+  const shellMesh = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      new THREE.CatmullRomCurve3(helixPts),
+      (t) => 0.088 * (1 - t * 0.85) + 0.012,
+      { tubularSegs: 42, radialSegs: 12 }
+    ),
+    shellMat
+  );
+  shellMesh.position.set(0, 0.10, -0.02);
+  shellMesh.rotation.x = -0.62;
+  shellMesh.castShadow = true;
+  g.add(shellMesh);
 
   return g;
 }
@@ -1000,29 +1036,30 @@ export function createTrematode3D(options: { colorHex?: string; scale?: number }
   const g = new THREE.Group();
   g.scale.setScalar(options.scale ?? 1.0);
 
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: options.colorHex ?? '#c93c42',
-    roughness: 0.25,
-    clearcoat: 0.65,
-    transparent: true,
-    opacity: 0.88,
-  });
+  const mat = createNaturalistMaterial(
+    paletteFromHex(options.colorHex ?? '#c4454b'),
+    'tissue',
+    { roughness: 0.72, transparent: true, opacity: 0.9, inkStrength: 0.52, seed: 711 }
+  );
 
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), mat);
-  body.scale.set(0.82, 0.45, 1.48);
-  body.position.set(0, 0.08, 0.04);
-  body.castShadow = true;
-  g.add(body);
-
-  // Sinuous swimming tail
-  const tailCurve = new THREE.CatmullRomCurve3([
+  // Continuous leaf-shaped cercaria body -> sinuous swimming tail!
+  const spine = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.08, 0.19),
+    new THREE.Vector3(0, 0.085, 0.05),
     new THREE.Vector3(0, 0.08, -0.08),
     new THREE.Vector3(0.06, 0.08, -0.22),
     new THREE.Vector3(-0.05, 0.08, -0.36),
   ]);
-  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.02, 6, false), mat);
-  tail.castShadow = true;
-  g.add(tail);
+  const mesh = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      spine,
+      (t) => (t < 0.45 ? 0.082 * Math.sin((t / 0.45) * Math.PI) : 0.024 * (1 - (t - 0.45) / 0.55) + 0.006),
+      { tubularSegs: 28, radialSegs: 12, aspectAt: (t) => (t < 0.45 ? [1.05, 0.52] : [1, 1]) }
+    ),
+    mat
+  );
+  mesh.castShadow = true;
+  g.add(mesh);
 
   return g;
 }
@@ -1039,36 +1076,51 @@ export function createStickleback3D(options: {
   const g = new THREE.Group();
   g.scale.setScalar(options.scale ?? 1.0);
 
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color: options.jawIntact ? 0x5c7c85 : 0x8e6b68,
-    roughness: 0.34,
-    metalness: 0.22,
-  });
-  const spineMat = new THREE.MeshStandardMaterial({ color: 0xe6dcc8, roughness: 0.35 });
-  const pelvicGlow = new THREE.MeshStandardMaterial({
-    color: 0xd96b2b,
-    emissive: 0x6b2808,
-    emissiveIntensity: 0.3,
-    roughness: 0.3,
-  });
+  const bodyMat = createNaturalistMaterial(
+    options.jawIntact
+      ? { base: '#62838c', wash: '#3f5e66', deep: '#1f363d', highlight: '#adc8cf', ink: '#15272c' }
+      : { base: '#916e6b', wash: '#6b4946', deep: '#3d2422', highlight: '#cfaead', ink: '#291716' },
+    'scale',
+    { roughness: 0.74, inkStrength: 0.54, seed: options.jawIntact ? 721 : 722 }
+  );
+  const spineMat = createNaturalistMaterial(
+    { base: '#e8dec9', wash: '#c9bca0', deep: '#877a5f', highlight: '#faf6ec' },
+    'bone',
+    { roughness: 0.75, inkStrength: 0.48, seed: 723 }
+  );
+  const pelvicMat = createNaturalistMaterial(
+    { base: '#d97236', wash: '#b04e19', deep: '#6b2a08', highlight: '#f7b88d' },
+    'bone',
+    { roughness: 0.7, inkStrength: 0.5, seed: 724 }
+  );
 
-  // Streamlined silver-blue stickleback fuselage
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), bodyMat);
-  body.scale.set(0.55, 0.85, 2.55);
-  body.position.set(0, 0.22, 0);
+  // Continuous streamlined stickleback fuselage
+  const fuseCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.22, -0.34),
+    new THREE.Vector3(0, 0.22, 0.0),
+    new THREE.Vector3(0, 0.215, 0.34),
+  ]);
+  const body = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      fuseCurve,
+      (t) => 0.138 * Math.sin(Math.pow(t, 0.78) * Math.PI) + 0.012,
+      { tubularSegs: 26, radialSegs: 16, aspectAt: () => [0.56, 0.86] }
+    ),
+    bodyMat
+  );
   body.castShadow = true;
   g.add(body);
 
   // Three signature dorsal spines
   for (let i = 0; i < 3; i++) {
-    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.14, 6), spineMat);
-    sp.position.set(0, 0.37, 0.14 - i * 0.11);
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.015, 0.14, 7), spineMat);
+    sp.position.set(0, 0.36, 0.14 - i * 0.11);
     sp.rotation.x = -0.35;
     sp.castShadow = true;
     g.add(sp);
   }
 
-  // Caudal tail fin
+  // Forked caudal tail fin
   const tShape = new THREE.Shape();
   tShape.moveTo(0, 0);
   tShape.lineTo(0.22, 0.13);
@@ -1081,13 +1133,24 @@ export function createStickleback3D(options: {
   tail.position.set(-0.005, 0.22, -0.32);
   g.add(tail);
 
-  // Ventral pelvic girdle & defensive spines (controlled specifically by Pitx1 pelvic enhancer!)
+  // Ventral pelvic girdle & defensive spines (controlled by Pitx1 pelvic enhancer!)
   if (options.hasPelvicSpines) {
-    const girdle = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.04, 0.14), pelvicGlow);
-    girdle.position.set(0, 0.1, 0.02);
-    g.add(girdle);
+    const gCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.11, -0.05),
+      new THREE.Vector3(0, 0.105, 0.08),
+    ]);
+    g.add(
+      new THREE.Mesh(
+        createOrganicLoftGeometry(gCurve, () => 0.036, {
+          tubularSegs: 8,
+          radialSegs: 8,
+          aspectAt: () => [1.3, 0.55],
+        }),
+        pelvicMat
+      )
+    );
     for (const s of [-1, 1]) {
-      const pSpine = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.18, 7), pelvicGlow);
+      const pSpine = new THREE.Mesh(new THREE.ConeGeometry(0.017, 0.18, 7), pelvicMat);
       pSpine.position.set(s * 0.055, 0.05, -0.02);
       pSpine.rotation.x = Math.PI + 0.45;
       pSpine.rotation.z = s * 0.35;
@@ -1096,18 +1159,21 @@ export function createStickleback3D(options: {
     }
   }
 
-  // Lower jaw & eyes (damaged if Pitx1 coding protein is knocked out!)
+  // Lower jaw (damaged if Pitx1 coding protein is knocked out!)
   const jaw = new THREE.Mesh(
-    new THREE.SphereGeometry(options.jawIntact ? 0.068 : 0.032, 10, 8),
-    options.jawIntact ? bodyMat : new THREE.MeshStandardMaterial({ color: 0xb83428, roughness: 0.5 })
+    new THREE.SphereGeometry(options.jawIntact ? 0.056 : 0.028, 10, 8),
+    options.jawIntact
+      ? bodyMat
+      : createNaturalistMaterial(paletteFromHex('#b83428'), 'tissue', { roughness: 0.78, seed: 725 })
   );
-  jaw.position.set(0, 0.18, 0.34);
+  jaw.scale.set(0.76, 0.68, 1.15);
+  jaw.position.set(0, 0.198, 0.295);
   g.add(jaw);
 
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101418, roughness: 0.1 });
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101418, roughness: 0.15 });
   for (const s of [-1, 1]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), eyeMat);
-    eye.position.set(s * 0.058, 0.25, 0.26);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.026, 8, 8), eyeMat);
+    eye.position.set(s * 0.056, 0.25, 0.25);
     g.add(eye);
   }
 
@@ -1123,74 +1189,77 @@ export function createDaphnia3D(options: { helmetSize: number; scale?: number })
   g.scale.setScalar(options.scale ?? 1.0);
   const h = Math.max(0, Math.min(1, options.helmetSize));
 
-  const shellMat = new THREE.MeshPhysicalMaterial({
-    color: 0xd8ebe8,
-    roughness: 0.15,
-    clearcoat: 0.7,
-    transparent: true,
-    opacity: 0.68,
-  });
-  const gutMat = new THREE.MeshStandardMaterial({ color: 0x5c8c58, roughness: 0.65 });
+  const shellMat = createNaturalistMaterial(
+    { base: '#cfe6e3', wash: '#9ec4bf', deep: '#5e8a84', highlight: '#f2faf9', ink: '#3d635e' },
+    'tissue',
+    { roughness: 0.65, transparent: true, opacity: 0.72, inkStrength: 0.48, seed: 731 }
+  );
+  const gutMat = createNaturalistMaterial(
+    { base: '#62945e', wash: '#416e3d', deep: '#224220', highlight: '#a3cf9f' },
+    'botanical',
+    { roughness: 0.82, inkStrength: 0.4, seed: 732 }
+  );
 
-  // Translucent oval carapace
-  const carapace = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), shellMat);
-  carapace.scale.set(0.62, 1.05, 1.32);
-  carapace.position.set(0, 0.22, -0.02);
+  // Continuous translucent carapace -> curved head -> inducible curved helmet crest!
+  const bodyCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.14, -0.34 - h * 0.14), // Posterior tail spine tip
+    new THREE.Vector3(0, 0.21, -0.14),
+    new THREE.Vector3(0, 0.23, 0.04),
+    new THREE.Vector3(0, 0.26, 0.20),
+    new THREE.Vector3(0, 0.34 + h * 0.24, 0.24 + h * 0.10), // Curved helmet crest!
+  ]);
+  const carapace = new THREE.Mesh(
+    createOrganicLoftGeometry(
+      bodyCurve,
+      (t) => {
+        if (t < 0.2) return 0.008 + (t / 0.2) * 0.025; // slender tail spine
+        if (t < 0.72) return 0.155 * Math.sin(((t - 0.18) / 0.56) * Math.PI); // oval bivalve carapace
+        // Inducible helmet crest: tiny rounded brow at h=0, tall swept crest at h=1!
+        const hf = (t - 0.72) / 0.28;
+        return (0.092 * (1 - hf * (0.65 + h * 0.28))) * (0.65 + h * 0.45);
+      },
+      { tubularSegs: 34, radialSegs: 16, aspectAt: () => [0.62, 1.05] }
+    ),
+    shellMat
+  );
   carapace.castShadow = true;
   g.add(carapace);
 
-  // Visible green algae gut inside translucent body!
-  const gut = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.18, 6, 8), gutMat);
-  gut.rotation.x = Math.PI / 2;
-  gut.position.set(0, 0.21, -0.02);
-  g.add(gut);
-
-  // Posterior tail spine
-  const tailSpine = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.24 + h * 0.14, 6), shellMat);
-  tailSpine.rotation.x = -Math.PI / 2 - 0.18;
-  tailSpine.position.set(0, 0.18, -0.28 - h * 0.06);
-  g.add(tailSpine);
-
-  // Head + Inducible Curved Defensive Helmet (grows dramatically with predator kairomones!)
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 10), shellMat);
-  head.position.set(0, 0.25, 0.2);
-  g.add(head);
-
-  if (h > 0.08) {
-    const helmet = new THREE.Mesh(
-      new THREE.ConeGeometry(0.085, 0.12 + h * 0.34, 10),
-      new THREE.MeshPhysicalMaterial({
-        color: 0x8ad0cc,
-        roughness: 0.18,
-        transparent: true,
-        opacity: 0.78,
-      })
-    );
-    helmet.position.set(0, 0.33 + h * 0.14, 0.24 + h * 0.06);
-    helmet.rotation.x = 0.55;
-    helmet.castShadow = true;
-    g.add(helmet);
-  }
-
-  // Prominent black compound eye
-  const eye = new THREE.Mesh(
-    new THREE.SphereGeometry(0.032, 10, 8),
-    new THREE.MeshStandardMaterial({ color: 0x101014, roughness: 0.1 })
+  // Visible curved green algae gut inside translucent body!
+  const gutCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.20, -0.12),
+    new THREE.Vector3(0, 0.23, 0.02),
+    new THREE.Vector3(0, 0.23, 0.14),
+  ]);
+  g.add(
+    new THREE.Mesh(
+      createOrganicLoftGeometry(gutCurve, () => 0.038, { tubularSegs: 14, radialSegs: 8 }),
+      gutMat
+    )
   );
-  eye.position.set(0, 0.26, 0.27);
+
+  // Prominent compound eye
+  const eye = new THREE.Mesh(
+    new THREE.SphereGeometry(0.03, 10, 8),
+    new THREE.MeshStandardMaterial({ color: 0x101014, roughness: 0.15 })
+  );
+  eye.position.set(0, 0.26, 0.26);
   g.add(eye);
 
-  // Paired branched swimming antennae
+  // Paired curved branched swimming antennae
   for (const s of [-1, 1]) {
-    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.014, 0.28, 6), shellMat);
-    ant.position.set(s * 0.13, 0.28, 0.18);
-    ant.rotation.z = s * 0.9;
-    ant.rotation.x = 0.4;
-    g.add(ant);
+    const antCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(s * 0.05, 0.26, 0.18),
+      new THREE.Vector3(s * 0.15, 0.30, 0.22),
+      new THREE.Vector3(s * 0.24, 0.27, 0.12),
+    ]);
+    g.add(
+      new THREE.Mesh(
+        createOrganicLoftGeometry(antCurve, (t) => 0.013 * (1 - t * 0.45), { tubularSegs: 12, radialSegs: 6 }),
+        shellMat
+      )
+    );
   }
 
   return g;
 }
-
-
-

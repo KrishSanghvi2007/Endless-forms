@@ -8,6 +8,7 @@
 // =============================================================================
 
 import * as THREE from 'three';
+import { createSculptedSongbird3D } from '../../3d/naturalistSpecimens';
 import {
   createArchivalLabel,
   createCichlidFish3D,
@@ -141,29 +142,19 @@ export class TreesScene3D {
   }
 
   private createTinyBird3D(scale = 1.0): THREE.Group {
-    const g = new THREE.Group();
-    g.scale.setScalar(scale);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3b7699, roughness: 0.5 });
-    const beakMat = new THREE.MeshStandardMaterial({ color: 0xe0a22e, roughness: 0.4 });
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), bodyMat);
-    body.scale.set(0.85, 0.85, 1.45);
-    body.position.set(0, 0.16, 0);
-    body.castShadow = true;
-    g.add(body);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 10), bodyMat);
-    head.position.set(0, 0.25, 0.18);
-    g.add(head);
-    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.14, 8), beakMat);
-    beak.rotation.x = Math.PI / 2;
-    beak.position.set(0, 0.24, 0.31);
-    g.add(beak);
-    for (const s of [-1, 1]) {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.025, 0.16), bodyMat);
-      wing.position.set(s * 0.18, 0.2, -0.02);
-      wing.rotation.z = s * 0.28;
-      g.add(wing);
-    }
-    return g;
+    return createSculptedSongbird3D({
+      dorsalPalette: {
+        base: '#4a80a3',
+        wash: '#2d5c7a',
+        deep: '#16354a',
+        highlight: '#96c2de',
+        ink: '#0f2533',
+      },
+      wingBars: 0,
+      beakDepth: 0.78,
+      scale: scale * 0.56,
+      seed: 1201,
+    });
   }
 
   // ===========================================================================
