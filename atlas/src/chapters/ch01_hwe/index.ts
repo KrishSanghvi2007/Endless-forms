@@ -748,6 +748,10 @@ export const CH01_HWE: AtlasChapter = {
 
     function renderPage5Left(): void {
       scene3d.setForceMode(p5Mode);
+      legendEl.innerHTML =
+        p5Mode === 'warfarin'
+          ? `<span><i class="hwe-dot blue"></i>AA (susceptible)</span><span><i class="hwe-dot split"></i>Aa (resistant)</span><span><i class="hwe-dot amber"></i>aa (vit-K cost)</span>`
+          : `<span><i class="hwe-dot blue"></i>AA (A+A)</span><span><i class="hwe-dot split"></i>Aa (A+a)</span><span><i class="hwe-dot amber"></i>aa (a+a)</span>`;
 
       const forceTabsHtml = `
         <div class="hwe-force-tabs">
@@ -763,7 +767,7 @@ export const CH01_HWE: AtlasChapter = {
         const obs = inbredExpected(0.5, F);
         const exp = hwExpected(0.5);
         scene3d.updateInbreedingScene(0.5, F);
-        captionEl.textContent = '3D Family Burrows — sib mating cuts heterozygotes while p jars hold level';
+        captionEl.textContent = '3D Family Burrows — sib mating vs. steady p jars';
         tagEl.textContent = `F = ${F.toFixed(3)} · p = 0.50`;
 
         leftPanelEl.innerHTML = `
@@ -804,8 +808,8 @@ export const CH01_HWE: AtlasChapter = {
         const d2 = hwExpected(0.2);
 
         captionEl.textContent = p5WahlSplit
-          ? 'Split Beach — Dune (p = 0.80) & Marsh (p = 0.20) each fit HW!'
-          : 'Pooled Beach — combining two demes creates a huge heterozygote deficit';
+          ? 'Split Beach — Dune (0.80) & Marsh (0.20) each fit HW'
+          : 'Pooled Beach — two demes combined';
         tagEl.textContent = p5WahlSplit ? 'Split · Both fit' : 'Pooled · Deficit 18%';
 
         leftPanelEl.innerHTML = `
@@ -851,7 +855,7 @@ export const CH01_HWE: AtlasChapter = {
         const newborns = hwExpected(1 - p5WarfQ);
         scene3d.updateWarfarinScene(p5WarfAdults, p5WarfTrays);
 
-        captionEl.textContent = '3D Farmyard — warfarin kills AA, vitamin-K shortage hurts aa, Aa thrives';
+        captionEl.textContent = '3D Farmyard — warfarin resistance (VKORC1)';
         tagEl.textContent = `Season ${p5WarfSeason} · q = ${p5WarfQ.toFixed(2)}`;
 
         const trajPts = p5WarfHistory

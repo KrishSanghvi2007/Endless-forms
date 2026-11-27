@@ -1816,8 +1816,8 @@ export class HweScene3D {
       } else if (this.p5ForceMode === 'warfarin') {
         for (const r of this.p5RatEntries) {
           const cycle = (elapsed * r.speed + r.phase) % (Math.PI * 2);
-          const x = -1.75 + Math.sin(cycle) * 1.75 + 1.75 * 0.1;
-          const prevX = -1.75 + Math.sin(cycle - 0.05) * 1.75 + 1.75 * 0.1;
+          const x = -0.15 + Math.sin(cycle) * 1.85;
+          const prevX = -0.15 + Math.sin(cycle - 0.05) * 1.85;
           r.group.position.x = x;
           r.group.rotation.y = x >= prevX ? 0 : Math.PI;
           r.group.position.y = 0.14 + Math.abs(Math.sin(elapsed * 8 + r.phase)) * 0.02;
