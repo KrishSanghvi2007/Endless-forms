@@ -543,3 +543,200 @@ export function createArchivalLabel(
   mesh.rotation.x = -Math.PI / 2;
   return mesh;
 }
+
+
+// =============================================================================
+// 6. SCULPTED 3D DROSOPHILA MELANOGASTER (Red vs. White X-Linked Eye Morphs)
+// =============================================================================
+
+export function createDrosophila3D(options: {
+  eyeHex: string;
+  isMale: boolean;
+  scale?: number;
+}): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+
+  const thoraxMat = new THREE.MeshStandardMaterial({ color: 0xc9964a, roughness: 0.55 });
+  const stripeMat = new THREE.MeshStandardMaterial({ color: 0x382818, roughness: 0.6 });
+  const eyeMat = new THREE.MeshPhysicalMaterial({
+    color: options.eyeHex,
+    roughness: 0.18,
+    clearcoat: 0.85,
+  });
+  const wingMat = new THREE.MeshPhysicalMaterial({
+    color: 0xf4f8fc,
+    transparent: true,
+    opacity: 0.56,
+    roughness: 0.15,
+    side: THREE.DoubleSide,
+  });
+
+  // Arched honey-amber thorax
+  const thorax = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), thoraxMat);
+  thorax.scale.set(0.92, 0.88, 1.15);
+  thorax.position.set(0, 0.14, 0.05);
+  thorax.castShadow = true;
+  g.add(thorax);
+
+  // Segmented abdomen (males have dark rounded tip; females slightly larger & pointed)
+  const abd = new THREE.Mesh(
+    new THREE.SphereGeometry(0.115, 14, 12),
+    thoraxMat
+  );
+  abd.scale.set(0.88, 0.82, options.isMale ? 1.45 : 1.72);
+  abd.position.set(0, 0.125, -0.18);
+  abd.castShadow = true;
+  g.add(abd);
+
+  // Dark abdominal tergite bands (male has broader dark posterior!)
+  const bandZs = options.isMale ? [-0.12, -0.20, -0.28] : [-0.10, -0.18, -0.26];
+  bandZs.forEach((bz, idx) => {
+    const r = idx === 2 && options.isMale ? 0.088 : 0.095;
+    const band = new THREE.Mesh(new THREE.TorusGeometry(r, 0.018, 6, 16), stripeMat);
+    band.position.set(0, 0.125, bz);
+    g.add(band);
+  });
+
+  // Head + prominent glossy compound eyes (Red w+ vs White w!)
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), thoraxMat);
+  head.position.set(0, 0.15, 0.21);
+  g.add(head);
+
+  for (const s of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.054, 12, 10), eyeMat);
+    eye.scale.set(0.82, 1.08, 1.0);
+    eye.position.set(s * 0.068, 0.16, 0.22);
+    eye.castShadow = true;
+    g.add(eye);
+  }
+
+  // Translucent swept Dipteran wings
+  const wShape = new THREE.Shape();
+  wShape.moveTo(0, 0);
+  wShape.bezierCurveTo(0.12, 0.06, 0.34, 0.04, 0.42, -0.06);
+  wShape.bezierCurveTo(0.36, -0.16, 0.16, -0.14, 0, -0.04);
+  const wGeo = new THREE.ExtrudeGeometry(wShape, { depth: 0.006, bevelEnabled: false });
+  wGeo.rotateX(-Math.PI / 2);
+  for (const s of [-1, 1]) {
+    const wing = new THREE.Mesh(wGeo, wingMat);
+    wing.position.set(s * 0.05, 0.22, 0.06);
+    wing.rotation.y = s * -0.52;
+    wing.rotation.z = s * 0.12;
+    if (s === -1) wing.scale.x = -1;
+    g.add(wing);
+  }
+
+  // Six delicate jointed legs
+  const legGeo = new THREE.CylinderGeometry(0.008, 0.006, 0.16, 5);
+  for (const s of [-1, 1]) {
+    for (const lz of [0.11, 0.02, -0.07]) {
+      const leg = new THREE.Mesh(legGeo, stripeMat);
+      leg.position.set(s * 0.11, 0.06, lz);
+      leg.rotation.z = s * 0.55;
+      g.add(leg);
+    }
+  }
+
+  return g;
+}
+
+// =============================================================================
+// 7. SCULPTED 3D ROCK POCKET MOUSE (Chaetodipus intermedius — Light vs Melanic)
+// =============================================================================
+
+export function createRockPocketMouse3D(isDark: boolean, scale = 1.0): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(scale);
+
+  const furMat = new THREE.MeshStandardMaterial({
+    color: isDark ? 0x2d2b2e : 0xd4be96,
+    roughness: 0.88,
+  });
+  const earMat = new THREE.MeshStandardMaterial({
+    color: isDark ? 0x454044 : 0xe0c8a8,
+    roughness: 0.82,
+  });
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x121010, roughness: 0.12 });
+
+  // Rounded rodent body
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.145, 14, 12), furMat);
+  body.scale.set(0.92, 0.82, 1.48);
+  body.position.set(0, 0.13, 0);
+  body.castShadow = true;
+  g.add(body);
+
+  // Pointed head & muzzle
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 10), furMat);
+  head.scale.set(0.92, 0.85, 1.25);
+  head.position.set(0, 0.15, 0.22);
+  head.castShadow = true;
+  g.add(head);
+
+  // Rounded pocket-mouse ears & dark eyes
+  for (const s of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.044, 10, 8), earMat);
+    ear.scale.set(0.45, 1.1, 0.95);
+    ear.position.set(s * 0.075, 0.23, 0.17);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 8), eyeMat);
+    eye.position.set(s * 0.062, 0.17, 0.28);
+    g.add(ear, eye);
+  }
+
+  // Long graceful desert mouse tail
+  const tailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.08, -0.18),
+    new THREE.Vector3(0.08, 0.06, -0.44),
+    new THREE.Vector3(-0.04, 0.04, -0.72),
+  ]);
+  const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 14, 0.018, 6, false), earMat);
+  tail.castShadow = true;
+  g.add(tail);
+
+  return g;
+}
+
+// =============================================================================
+// 8. SCULPTED 3D BACTERIAL ROD & CONJUGATIVE PLASMID (E. coli / Resistance)
+// =============================================================================
+
+export function createBacteriumRod3D(options: {
+  resistant: boolean;
+  hasPlasmid?: boolean;
+  scale?: number;
+}): THREE.Group {
+  const g = new THREE.Group();
+  g.scale.setScalar(options.scale ?? 1.0);
+
+  const cellMat = new THREE.MeshPhysicalMaterial({
+    color: options.resistant ? 0xc44234 : 0x458a76,
+    roughness: 0.26,
+    clearcoat: 0.65,
+    transparent: true,
+    opacity: 0.86,
+  });
+
+  const rod = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.34, 8, 14), cellMat);
+  rod.rotation.z = Math.PI / 2;
+  rod.position.y = 0.13;
+  rod.castShadow = true;
+  g.add(rod);
+
+  // Subtle golden circular R-plasmid ring visible inside translucent bacterial cell!
+  if (options.hasPlasmid) {
+    const plasmid = new THREE.Mesh(
+      new THREE.TorusGeometry(0.065, 0.016, 8, 18),
+      new THREE.MeshStandardMaterial({
+        color: 0xf2c230,
+        emissive: 0x8a6408,
+        emissiveIntensity: 0.45,
+        roughness: 0.2,
+      })
+    );
+    plasmid.rotation.x = Math.PI / 2;
+    plasmid.position.set(0.08, 0.135, 0);
+    g.add(plasmid);
+  }
+
+  return g;
+}

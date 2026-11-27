@@ -417,6 +417,64 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'jaws',
   },
 
+  // --- Mutation, Linkage & Gene Flow (Chapter 7: The Genetic Engine) ---
+  luria_delbruck: {
+    id: 'luria_delbruck',
+    term: 'Luria–Delbrück Fluctuation Test',
+    pronunciation: 'LOOR-ee-ə del-BRIK',
+    shortDef:
+      'Classic 1943 experiment proving bacterial phage-resistance mutations arise spontaneously and randomly before exposure to selection, revealed by massive jackpot variance (Var / Mean ≫ 1) across parallel cultures.',
+    relatedChapterId: 'engine',
+  },
+  dfe: {
+    id: 'dfe',
+    term: 'Distribution of Fitness Effects (DFE)',
+    pronunciation: 'dis-tri-BYOO-shən',
+    shortDef:
+      'The probability distribution of selection coefficients (s) among newly arising mutations—overwhelmingly neutral or deleterious, with only a tiny tail of beneficial mutations.',
+    relatedChapterId: 'engine',
+  },
+  mutation_selection_balance: {
+    id: 'mutation_selection_balance',
+    term: 'Mutation–Selection Balance',
+    pronunciation: 'myoo-TAY-shən si-LEK-shən',
+    shortDef:
+      'Equilibrium frequency of a deleterious allele where recurrent mutation (μ) equals purifying selection (s): q* = √(μ/s) for completely recessive alleles versus q* = μ/s for dominant alleles.',
+    relatedChapterId: 'engine',
+  },
+  linkage_disequilibrium: {
+    id: 'linkage_disequilibrium',
+    term: 'Linkage Disequilibrium (LD)',
+    pronunciation: 'LING-kij dis-ee-kwə-LIB-ree-əm',
+    shortDef:
+      'Non-random statistical association of alleles at two or more loci (D = P_AB − p_A p_B), decaying geometrically each generation under recombination as D_t = D₀(1 − r)^t.',
+    relatedChapterId: 'engine',
+  },
+  selective_sweep: {
+    id: 'selective_sweep',
+    term: 'Selective Sweep (Genetic Hitchhiking)',
+    pronunciation: 'si-LEK-tiv SWEEP',
+    shortDef:
+      'Rapid fixation of a strongly beneficial mutation that drags physically linked neutral alleles along, creating a localized genomic valley of reduced diversity (π) and negative Tajima’s D.',
+    relatedChapterId: 'engine',
+  },
+  fst: {
+    id: 'fst',
+    term: 'Fixation Index (F_ST)',
+    pronunciation: 'EF ess TEE',
+    shortDef:
+      'Proportion of total genetic variance partitioned among subpopulations rather than within them; in Wright’s Island Model at equilibrium, F_ST = 1 / (4N_e m + 1).',
+    relatedChapterId: 'engine',
+  },
+  gene_flow: {
+    id: 'gene_flow',
+    term: 'Gene Flow (Migration)',
+    pronunciation: 'JEEN FLOH',
+    shortDef:
+      'Movement of alleles among populations via dispersing individuals or gametes—homogenizing neutral allele frequencies and capable of swamping local adaptation when migration exceeds selection (m > s).',
+    relatedChapterId: 'engine',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

@@ -103,7 +103,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Luria–Delbrück, DFE, q* = √(μ/s), LD sweeps & F_ST clines',
     organism: 'E. coli plates, chromosomes & stepped clines',
     accent: '#4d5d94',
-    available: false,
+    available: true,
     actTag: 'Part II · Microevolutionary Forces',
     summary:
       'Run the Luria–Delbrück fluctuation test, map the distribution of fitness effects, balance mutation against selection, watch selective sweeps drag linked DNA, and compute F_ST across gene-flow clines.',

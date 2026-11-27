@@ -73,6 +73,14 @@
 
 ---
 
+## Chapter 7: Mutation, Linkage & Gene Flow (`ch07_engine`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Sculpted 3D *E. coli* Bacterial Rods & Glass Petri Dishes, *Drosophila melanogaster* (Red `w+` vs White `w` Eyes), Paired Homologous Chromosomes Crossing Over & Pinacate Rock Pocket Mice (*Chaetodipus intermedius*) | `atlas/src/3d/organisms.ts` & `atlas/src/chapters/ch07_engine/EngineScene3D.ts` | Original procedural Three.js meshes · MIT | Zero-box museum plates: Luria–Delbrück jackpot variance dishes + 3D DFE, mutation–selection balance basin, hemizygous XY vs. XX *Drosophila*, 3D chiasma crossover + hitchhiking $\pi$ valley, and desert-sand vs. basalt-lava rock pocket mice. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |
