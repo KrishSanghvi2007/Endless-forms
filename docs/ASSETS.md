@@ -188,6 +188,14 @@
 
 ---
 
+## Chapter 21: Cytochrome c & Comparative Methods (`ch21_cytochrome`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Folded 3D Cytochrome *c* Polypeptide Ribbon + Crimson Heme Porphyrin & $\text{Fe}^{2+}$ Core + Dynamic Substitution Beads, Empirical 5-Taxon Distance Phylogram, Felsenstein (1985) Two-Clade Tree-on-Scatter Plate, 3D Pie-Chart Node Phylogeny & Aligned Primate *GULO*/ERV-K Chromosomes | `atlas/src/chapters/ch21_cytochrome/CytochromeScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Closes Techartist Molecular Homology gap using real UniProt Cytochrome *c* alignments, Felsenstein PIC pseudoreplication correction, ML saturation pies, and shared primate *GULO* pseudogene + orthologous ERV-K markers. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

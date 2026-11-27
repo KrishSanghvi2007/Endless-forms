@@ -1023,4 +1023,36 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Developmental buffering (e.g., via chaperone Hsp90) that channels diverse genotypes into a consistent wild-type phenotype despite minor mutations or noise, storing cryptic variation until stress releases it.',
     relatedChapterId: 'embryos',
   },
+  cytochrome_c: {
+    id: 'cytochrome_c',
+    term: 'Cytochrome c',
+    pronunciation: 'SY-toh-krohm SEE',
+    shortDef:
+      'A 104-residue mitochondrial electron-transport protein found across eukaryotes whose conserved CXXCH heme pocket and diverging surface sites cleanly trace molecular common descent (Margoliash 1963).',
+    relatedChapterId: 'cytochrome',
+  },
+  felsenstein_pic: {
+    id: 'felsenstein_pic',
+    term: 'Phylogenetic Independent Contrasts (PIC)',
+    pronunciation: 'FEL-zən-styn PEE-EYE-SEE',
+    shortDef:
+      'Felsenstein’s (1985) comparative method replacing non-independent species tips with standardized differences between sister lineages, preventing false-positive trait correlations from shared ancestry.',
+    relatedChapterId: 'cytochrome',
+  },
+  ancestral_state: {
+    id: 'ancestral_state',
+    term: 'Ancestral State Reconstruction',
+    pronunciation: 'an-SES-trəl STAYT',
+    shortDef:
+      'Inferring probable phenotypes or DNA states at internal nodes of a phylogeny via parsimony or maximum-likelihood Markov models — noting that fast transition rates saturate deep nodes toward uncertainty.',
+    relatedChapterId: 'cytochrome',
+  },
+  pseudogene: {
+    id: 'pseudogene',
+    term: 'Pseudogene & Orthologous ERV',
+    pronunciation: 'SOO-doh-jeen',
+    shortDef:
+      'A non-functional genomic remnant (such as the primate GULO Exon-10 Vitamin-C deletion) or shared endogenous retrovirus at identical chromosomal coordinates providing decisive evidence of common ancestry.',
+    relatedChapterId: 'cytochrome',
+  },
 };

@@ -290,4 +290,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Compare translucent 3D zebrafish, salamander, chick, and human embryos across the developmental hourglass, trigger axolotl metamorphosis via thyroid signalling, contrast proto-feathers with flight feathers, and perturb Waddington’s valleys.',
   },
+  {
+    id: 'cytochrome',
+    number: 21,
+    tabLabel: '21',
+    section: 'MOLECULAR HOMOLOGY & COMPARATIVE METHODS',
+    title: 'Cytochrome c & Comparative Methods',
+    subtitle: 'Folded heme protein alignment, Felsenstein PIC, ancestral state pies & GULO pseudogenes',
+    organism: 'Human, macaque, horse, tuna & yeast Cytochrome c + primate chromosomes',
+    accent: '#46748a',
+    available: true,
+    actTag: 'Part VIII · Comparative Phylogenetics',
+    summary:
+      'Inspect real eukaryotic Cytochrome c sequences on a 3D folded heme protein, build an empirical distance phylogram, defeat phylogenetic pseudoreplication with Felsenstein’s PIC, explore ancestral-state saturation, and compare shared GULO pseudogenes & ERVs.',
+  },
 ];
