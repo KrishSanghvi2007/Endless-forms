@@ -41,8 +41,8 @@ Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integratin
 9. **Why Sex? & Red Queen** *(Twofold Cost of Males, Muller's Ratchet, Host–Parasite Cycles, Mutualism & Virulence)* — **FINALIZED**
 10. **Switches & Deep Homology** *(*Hox* Colinearity, *Pitx1* Stickleback Enhancers, *Pax6*, G×E Reaction Norms & Major Transitions)* — **FINALIZED**
 11. **Same Bones, Different Lives** *(Homologous Tetrapod Forelimbs, Analogy & *Hox* Domains)* — **FINALIZED**
-12. **Tree Thinking & Molecular Clocks** *(3D Node Rotation, Parsimony vs. Homoplasy, Molecular Clocks, $d_N/d_S$ & Gene Trees vs. Species Trees / ILS)* — **PLANNED BELOW (NEXT ON `Gemini`)**
-13. **Splitting Branches** *(Ring Species, Dobzhansky–Muller Incompatibilities, Allopatric/Sympatric Speciation, Reinforcement & Polyploidy)*
+12. **Tree Thinking & Molecular Clocks** *(3D Node Rotation, Parsimony vs. Homoplasy, Molecular Clocks, $d_N/d_S$ & Gene Trees vs. Species Trees / ILS)* — **FINALIZED**
+13. **Splitting Branches** *(Ring Species, Dobzhansky–Muller Incompatibilities, Allopatric/Sympatric Speciation, Reinforcement & Polyploidy)* — **PLANNED BELOW (NEXT ON `Gemini`)**
 14. **Strata, Fossils & Mass Extinctions** *(Logarithmic Deep Time, Radiometric Dating, *Tiktaalik*, *Pakicetus*→Whales & Big Five / K–Pg)*
 15. **Ecology in Motion** *(Galápagos Character Displacement, Sea Otter Trophic Cascades, MacArthur–Wilson Island Biogeography & IFD)*
 16. **The Clinic & Human Origins** *(MIC/MPC Antibiotic Windows, Plasmid HGT, Clonal Cancer Evolution, Hominin Tree, Out of Africa & Clinal Human Variation)*
@@ -52,23 +52,22 @@ Covers **all 15 core undergraduate Evo-Eco-Devo strands (A–O)** — integratin
 ## 4. Binding Real-Organism Visual Craft Standard (`atlas/src/3d/organisms.ts`)
 
 - **Real sculpted organisms & anatomy over warm archival rag paper — NO clunky wooden boxes or symbolic pawns/crystals!**
-- Shared library (`atlas/src/3d/organisms.ts`) now spans 15 sculpted 3D organism & anatomical builders (including sticklebacks & translucent *Daphnia*).
 
 ---
 
-## 5. Next Planned Chapter: **Plate 12 — Tree Thinking & Molecular Clocks** (`ch12_trees`)
+## 5. Next Planned Chapter: **Plate 13 — Splitting Branches** (`ch13_species`)
 
-- **Page 1:** Interactive 3D Swivel-Node Phylogenetic Tree (click or trigger node rotations — conquering ladder thinking & tip-counting!).
-- **Page 2:** Maximum Parsimony vs. Homoplasy (Whale + Hippo vs. Shark aquatic convergence trap!).
-- **Page 3:** Neutral Molecular Clock ($K = \mu$, independent of $N_e$!) & Fossil Calibration.
-- **Page 4:** $d_N / d_S$ Codon Selection Scanner (Purifying $<1$, Neutral $=1$, Positive $>1$).
-- **Page 5:** Gene Trees vs. Species Trees (Incomplete Lineage Sorting inside a translucent 3D Human–Chimp–Gorilla species tube!).
+- **Page 1:** Ring Species (sculpted 3D Greenish Warblers encircling the Tibetan Plateau — Irwin et al. 2001).
+- **Page 2:** Dobzhansky–Muller Genetic Incompatibilities (3D 2-locus fitness bridge where `aaBB` & `AAbb` never cross a valley, yet `AaBb` hybrids fail!).
+- **Page 3:** Allopatric, Parapatric & Sympatric Speciation (*Rhagoletis* hawthorn/apple host shift).
+- **Page 4:** Reinforcement (mating-song divergence in sympatry vs. allopatry).
+- **Page 5:** Instant Allopolyploid Speciation (sculpted 3D *Tragopogon* flowers doubling chromosome sets).
 - **Page 6:** Check (3 diagnostic undergraduate cases).
 
 ---
 
 ## 6. Native Offline Single-File Deliverable
-- `games/endless-forms/Endless_Forms_Atlas.html` (~1.36 MB raw / ~479 KB gzip bundling **11 live 6-page 3D plates: Plates 1–11**), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
+- `games/endless-forms/Endless_Forms_Atlas.html` (~1.39 MB raw / ~487 KB gzip bundling **12 live 6-page 3D plates: Plates 1–12**), verified via `file://` in Chromium with **0 console errors, 0 page errors**.
 
 ## 7. Notes for Claude
-- **Plates 1–11** are ALL finalized on `shared-agents`; **Plate 12 (*Tree Thinking & Molecular Clocks*)** is up next on `Gemini`.
+- **Plates 1–12** are finalized on `shared-agents`; **Plate 13 (*Splitting Branches*)** is up next on `Gemini`.

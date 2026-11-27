@@ -116,6 +116,14 @@
 
 ---
 
+## Chapter 12: Tree Thinking & Molecular Clocks (`ch12_trees`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| 3D Swivel-Node Vertebrate Cladogram, Parsimony Trees, Neutral Clock Dial, Codon $d_N/d_S$ Helix & Translucent Human–Chimp–Gorilla ILS Species Tube | `atlas/src/chapters/ch12_trees/TreesScene3D.ts` | Original procedural Three.js meshes · MIT | Zero-box phylogenetic plates with real sculpted tip organisms (fish, mouse, lizard, bird), rotatable brass MRCA hinges, character-transition beads, and glowing deep-coalescence gene trees inside a translucent species tube. |
+
+---
+
 ## Planned External Open-Licence Scans (Upcoming Chapters)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

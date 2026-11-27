@@ -173,7 +173,7 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     subtitle: 'Node rotation, parsimony, dN/dS, molecular clocks & ILS',
     organism: 'Vertebrate clades & orthologous gene trees',
     accent: '#366858',
-    available: false,
+    available: true,
     actTag: 'Part V · Phylogenetics',
     summary:
       'Rotate 3D phylogenetic nodes to conquer ladder thinking, test parsimony vs. homoplasy, calibrate molecular clocks, compute dN/dS ratios, and see how incomplete lineage sorting splits gene trees from species trees.',

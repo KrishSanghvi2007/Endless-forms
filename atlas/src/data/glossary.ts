@@ -609,6 +609,56 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'switch',
   },
 
+  // --- Phylogenetics & Molecular Evolution (Chapter 12) ---
+  phylogeny: {
+    id: 'phylogeny',
+    term: 'Phylogenetic Tree (Cladogram)',
+    pronunciation: 'fy-loh-jə-NET-ik',
+    shortDef:
+      'A branching hypothesis of shared evolutionary ancestry; relatedness is defined strictly by Most Recent Common Ancestors (MRCAs), never by tip order.',
+    relatedChapterId: 'trees',
+  },
+  homoplasy: {
+    id: 'homoplasy',
+    term: 'Homoplasy',
+    pronunciation: 'hə-MOP-lə-see',
+    shortDef:
+      'Shared similarity not inherited from a common ancestor—arising via convergent evolution or evolutionary reversal (e.g. streamlined aquatic fins in sharks and whales).',
+    relatedChapterId: 'trees',
+  },
+  parsimony: {
+    id: 'parsimony',
+    term: 'Maximum Parsimony',
+    pronunciation: 'PAHR-si-moh-nee',
+    shortDef:
+      'A phylogenetic criterion preferring the tree topology that explains observed character states with the fewest total evolutionary changes.',
+    relatedChapterId: 'trees',
+  },
+  molecular_clock: {
+    id: 'molecular_clock',
+    term: 'Neutral Molecular Clock (K = μ)',
+    pronunciation: 'mə-LEK-yoo-lər KLOK',
+    shortDef:
+      'Kimura’s (1968) result that strictly neutral alleles substitute at rate K = (2N_e μ)(1/2N_e) = μ, independent of population size N_e, allowing DNA divergence to date splits once fossil-calibrated.',
+    relatedChapterId: 'trees',
+  },
+  dnds: {
+    id: 'dnds',
+    term: 'dN / dS Ratio (ω)',
+    pronunciation: 'dee-EN over dee-ES',
+    shortDef:
+      'Ratio of non-synonymous to synonymous substitution rates per site: ω < 1 indicates purifying selection, ω ≈ 1 neutral evolution, and ω > 1 positive diversifying selection.',
+    relatedChapterId: 'trees',
+  },
+  ils: {
+    id: 'ils',
+    term: 'Incomplete Lineage Sorting (ILS)',
+    pronunciation: 'in-kəm-PLEET LIN-ee-ij',
+    shortDef:
+      'Persistence of ancestral gene polymorphism across closely spaced speciation events (deep coalescence), generating gene trees that disagree with the species tree without hybridization.',
+    relatedChapterId: 'trees',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',
