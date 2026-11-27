@@ -103,6 +103,88 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'hwe',
   },
 
+  // --- Evolutionary Game Theory & Kin Selection (Chapter 2: Conflict & Kinship) ---
+  ess: {
+    id: 'ess',
+    term: 'Evolutionarily Stable Strategy (ESS)',
+    pronunciation: 'E-S-S',
+    shortDef:
+      'A strategy (or mix of strategies) such that, if adopted by almost everyone in a population, no rare mutant strategy can invade and achieve higher fitness.',
+    deepNote:
+      'Formalised by Maynard Smith & Price (1973). Crucially, an ESS need NOT maximise the group’s average payoff—at the Hawk–Dove mixed ESS p* = V/C, average payoff is lower than in an all-Dove population, yet pure Doves are always invaded by Hawks.',
+    relatedChapterId: 'social',
+  },
+  frequency_dependence: {
+    id: 'frequency_dependence',
+    term: 'Frequency-Dependent Selection',
+    pronunciation: 'FREE-kwən-see dee-PEN-dənt',
+    shortDef:
+      'Selection in which the fitness of a phenotype or behavioural strategy depends on how common it is in the population.',
+    deepNote:
+      'In the Hawk–Dove game when V < C, negative frequency dependence favours whichever strategy is rare, locking the population into a stable polymorphism at p* = V/C.',
+    relatedChapterId: 'social',
+  },
+  bourgeois: {
+    id: 'bourgeois',
+    term: 'Bourgeois Strategy',
+    pronunciation: 'BOOR-zhwah',
+    shortDef:
+      'A conditional contest strategy based on an uncorrelated asymmetry: “play Hawk if you already hold the resource (owner); play Dove if you are the intruder.”',
+    deepNote:
+      'Maynard Smith (1982) showed that when V < C, Bourgeois is an ESS that resists invasion by both Hawks and Doves, settling territory contests peacefully with zero fights—seen in speckled wood butterflies, hermit crabs, and territorial birds.',
+    relatedChapterId: 'social',
+  },
+  war_of_attrition: {
+    id: 'war_of_attrition',
+    term: 'War of Attrition',
+    pronunciation: 'wor ov ə-TRISH-ən',
+    shortDef:
+      'A continuous-time contest without physical injury where both rivals pay escalating time/energy costs until one retreats and the other wins value V.',
+    deepNote:
+      'No single fixed persistence time t is an ESS (a rival waiting t + ε always wins cheaply). The unique ESS is an exponential distribution of display times f(t) = (1/V)·e^(−t/V) with mean persistence equal to V.',
+    relatedChapterId: 'social',
+  },
+  relatedness: {
+    id: 'relatedness',
+    term: 'Coefficient of Relatedness (r)',
+    pronunciation: 'ree-LAY-tid-nis',
+    shortDef:
+      'A statistical measure of the genetic similarity between an actor and recipient relative to the population average—in non-inbred pedigrees, the probability that an allele is shared identical by descent.',
+    deepNote:
+      'Computed via Wright’s path formula r = Σ (1/2)^L over all connecting paths of length L: parent–offspring = 0.5, full siblings = 0.5, half-siblings = 0.25, first cousins = 0.125.',
+    relatedChapterId: 'social',
+  },
+  hamiltons_rule: {
+    id: 'hamiltons_rule',
+    term: 'Hamilton’s Rule (rB > C)',
+    pronunciation: 'HAM-il-tənz rool',
+    shortDef:
+      'An altruistic allele spreads by natural selection if and only if rB > C, where r is relatedness to recipients, B is the reproductive benefit to recipients, and C is the reproductive cost to the actor.',
+    deepNote:
+      'Formulated by W. D. Hamilton (1964). It explains apparent self-sacrifice (such as ground-squirrel alarm calls) at the gene level without invoking “for the good of the species”.',
+    relatedChapterId: 'social',
+  },
+  inclusive_fitness: {
+    id: 'inclusive_fitness',
+    term: 'Inclusive Fitness',
+    pronunciation: 'in-KLOO-siv FIT-nis',
+    shortDef:
+      'The sum of an individual’s direct fitness (its own offspring) plus its indirect fitness (extra offspring produced by relatives due to the actor’s help, weighted by relatedness r).',
+    deepNote:
+      'Natural selection acts as if organisms maximise inclusive fitness—uniting selfish competition (r = 0) and kin altruism (r > 0) inside one framework.',
+    relatedChapterId: 'social',
+  },
+  haplodiploidy: {
+    id: 'haplodiploidy',
+    term: 'Haplodiploidy (3/4 Relatedness Caveat)',
+    pronunciation: 'hap-loh-DIP-loy-dee',
+    shortDef:
+      'A sex-determination system (bees, wasps, ants) where unfertilised eggs become haploid males and fertilised eggs become diploid females, making full sisters share r = 0.75.',
+    deepNote:
+      'Caution: full sisters share 0.50 via their haploid father plus 0.25 via their mother (= 0.75), BUT a female’s relatedness to her brothers is only 0.25 (average 0.50 across an equal sex ratio). Modern research (Boomsma 2009; West et al. 2007) shows strict lifetime monogamy and ecological B/C ratios matter far more than haplodiploidy alone.',
+    relatedChapterId: 'social',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

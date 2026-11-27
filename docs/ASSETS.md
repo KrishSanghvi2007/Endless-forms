@@ -27,6 +27,17 @@
 
 ---
 
+## Chapter 2: Conflict & Kinship — Game Theory & Kin Selection (`ch02_social`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| 3D Tidal Shoreline, Spiral Gastropod Shells & Sculpted Hermit Crabs (Hawk/Dove/Bourgeois) | `atlas/src/chapters/ch02_social/SocialScene3D.ts` | Original procedural Three.js meshes · MIT | Posture + D4 colour dual coding: Hawks raise oversized cobalt pincers, Doves lower amber claws, Bourgeois owners carry emerald-teal brass pennants. |
+| 3D War of Attrition Ring & Exponential ESS Bar Sculpture | `atlas/src/chapters/ch02_social/SocialScene3D.ts` | Original procedural Three.js meshes · MIT | Visualises invadability of pure persistence strategies vs. Bishop & Cannings (1978) exponential ESS $p(t) = (1/V)e^{-t/V}$. |
+| 3D Family Pedigree Medallions & Glowing Identical-by-Descent Path Tubes | `atlas/src/chapters/ch02_social/SocialScene3D.ts` | Original procedural Three.js meshes · MIT | Traces Wright’s path-counting formula $r = \sum (1/2)^L$ across diploid and haplodiploid relatives. |
+| 3D Sierra Alpine Meadow, Belding’s Ground Squirrels & Circling Red-Tailed Hawk | `atlas/src/chapters/ch02_social/SocialScene3D.ts` | Original procedural Three.js meshes · MIT | Live circling raptor casting real moving shadows + acoustic alarm-call ripples illustrating Hamilton’s rule ($rB > C$). |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |
