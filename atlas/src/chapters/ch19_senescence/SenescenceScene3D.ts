@@ -16,6 +16,7 @@ import {
 import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
 import tortoiseGlbUrl from '../../assets/smithsonian_tortoise.glb?url';
 import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
+import deerSkullGlbUrl from '../../assets/smithsonian_deer_skull.glb?url';
 import { createGiantKelpFrond3D, createSculptedSongbird3D } from '../../3d/naturalistSpecimens';
 import { createOpossum3D } from '../../3d/organisms';
 import type {
@@ -365,10 +366,16 @@ export class SenescenceScene3D {
 
   private buildPage6Check(): void {
     const g = this.pageGroups.check;
-    const op = createOpossum3D({ greyness: 0.6, scale: 1.1 });
-    op.position.set(-1.35, 0.02, 0.15);
-    op.rotation.y = 0.65;
-    g.add(op);
+    const skull = createSmithsonianSpecimen(deerSkullGlbUrl, {
+      size: 1.55,
+      palette: { base: '#d9ccb0', wash: '#f5eedc', deep: '#877656', ink: '#423622' },
+      rotation: [0, 0.72, 0],
+      position: [-1.25, 0.04, 0.12],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.9,
+    });
+    g.add(skull);
     const tort = this.createTortoise3D(1.05);
     tort.position.set(1.05, 0.02, 0.1);
     tort.rotation.y = -0.55;

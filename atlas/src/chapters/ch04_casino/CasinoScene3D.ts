@@ -6,6 +6,8 @@
 
 import * as THREE from 'three';
 import { createElephantSeal3D, createSculptedLizard3D } from '../../3d/organisms';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import mammothGlbUrl from '../../assets/smithsonian_mammoth.glb?url';
 import {
   JEWEL_ALLELES,
   type BottleneckResult,
@@ -560,6 +562,17 @@ export class CasinoScene3D {
     g.add(postIsle);
 
     g.add(this.p3IslandJewelGroup);
+
+    const mammoth = createSmithsonianSpecimen(mammothGlbUrl, {
+      size: 1.18,
+      palette: { base: '#d4bf98', wash: '#f2e6ce', deep: '#7d6644', ink: '#3b2e1a' },
+      rotation: [-Math.PI / 2, 0.0, Math.PI / 2],
+      position: [-1.42, 0.34, -0.05],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.9,
+    });
+    g.add(mammoth);
 
     const pMain = createEngravedPlaque('Mainland (12 Anole Morphs)', 'H₀ = 0.88 · K = 12', 1.72, '#2a6b54');
     pMain.position.set(-1.42, 0.03, 2.02);

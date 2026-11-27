@@ -11,6 +11,8 @@ import {
   createSculptedLizard3D,
   type CichlidHandle,
 } from '../../3d/organisms';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import fishGlbUrl from '../../assets/smithsonian_fish.glb?url';
 import type { LizardRpsState, TanganyikaSeason } from './jawsMath';
 
 export type JawsPageId = 'ambush' | 'oscillation' | 'heritability' | 'lizards' | 'mhc' | 'check';
@@ -225,15 +227,17 @@ export class JawsScene3D {
       const isLeft = i < nLeft;
       const col = i % 5;
       const row = Math.floor(i / 5);
-      const fish = createCichlidFish3D({
-        role: 'predator',
-        jawTwist: isLeft ? -0.42 : 0.42,
-        scale: 1.05,
+      const fish = createSmithsonianSpecimen(fishGlbUrl, {
+        size: 0.78,
+        palette: isLeft
+          ? { base: '#4d8a9c', wash: '#a8d3e0', deep: '#1e4b59', ink: '#122c36' }
+          : { base: '#cf7457', wash: '#f2b9a5', deep: '#7a311b', ink: '#42190c' },
+        rotation: [0, Math.PI * 0.45 + (isLeft ? -0.18 : 0.18), 0],
+        position: [-1.95 + col * 0.98, 0.52 + (i % 2) * 0.22, -0.58 + row * 1.15],
+        grainScale: 2.4,
+        inkStrength: 0.88,
       });
-      fish.group.position.set(-1.95 + col * 0.98, 0.56 + (i % 2) * 0.24, -0.58 + row * 1.15);
-      fish.group.rotation.y = Math.PI / 2 + (isLeft ? -0.15 : 0.15);
-      this.p2SchoolGroup.add(fish.group);
-      this.swimmingFish.push(fish);
+      this.p2SchoolGroup.add(fish);
     }
   }
 

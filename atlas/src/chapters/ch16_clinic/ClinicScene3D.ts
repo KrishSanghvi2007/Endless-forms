@@ -18,6 +18,8 @@ import {
   createHomininCranium3D,
   createTumourClonalSphere3D,
 } from '../../3d/naturalistSpecimens';
+import { createSmithsonianSpecimen } from '../../3d/smithsonianLoader';
+import deerSkullGlbUrl from '../../assets/smithsonian_deer_skull.glb?url';
 import type {
   CancerResult,
   HgtResult,
@@ -384,9 +386,15 @@ export class ClinicScene3D {
     bac.position.set(-1.52, 0.0, 0.22);
     g.add(bac);
 
-    const skull = createHomininCranium3D(1.0, false, 0.78);
-    skull.position.set(0.08, 0.02, -0.08);
-    skull.rotation.y = 0.65;
+    const skull = createSmithsonianSpecimen(deerSkullGlbUrl, {
+      size: 1.55,
+      palette: { base: '#dcd0b4', wash: '#f6efe0', deep: '#8a7958', ink: '#423622' },
+      rotation: [0, 0.68, 0],
+      position: [0.08, 0.04, -0.05],
+      groundOnY0: true,
+      grainScale: 2.0,
+      inkStrength: 0.9,
+    });
     g.add(skull);
 
     const tumour = createTumourClonalSphere3D(0.5, 0.5, 0.65, 0.58);
