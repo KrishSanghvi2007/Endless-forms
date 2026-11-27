@@ -220,6 +220,14 @@
 
 ---
 
+## Chapter 25: Origin of Life, Endosymbiosis & Coevolution (`ch25_origins`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| Folded Catalytic Ribozyme RNA Hairpin inside Lipid Protocell Vesicle, Serial Endosymbiosis Host Cell with Engulfed Double-Membraned Mitochondrion & Chloroplast (Thylakoid Grana + Circular DNA), Nested Individuality Transition Rings, Sculpted *Taricha granulosa* Rough-Skinned Newt vs. *Thamnophis sirtalis* Garter Snake & Madagascar Star Orchid (*Angraecum sesquipedale*) with Live-Stretching Spur & *Xanthopan* Hawk Moth | `atlas/src/chapters/ch25_origins/OriginsScene3D.ts` | Original continuous-lofted watercolour Three.js meshes · MIT | Grand synthesis plate covering RNA World, Lynn Margulis's Serial Endosymbiosis, Maynard Smith & Szathmáry Major Transitions, Thompson's Geographic Mosaic of Coevolution, and Darwin's 1862 Star Orchid–Hawk Moth prediction. |
+
+---
+
 ## Planned External Open-Licence Scans (Future Additions)
 
 When external 3D scans or historical plates are added (e.g., *Whales Walking to Sea*, *Fossil Strata*, *Peppered Moth* natural-history plates), each item must be verified individually for **CC0 / Public Domain / CC-BY 4.0** (Smithsonian Open Access, MorphoSource, Biodiversity Heritage Library) and logged above before merge.

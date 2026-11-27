@@ -346,4 +346,18 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     summary:
       'Model Axelrod’s shadow of the future and Generous TFT with roosting vampire bats, explore indirect reputation halos, unlock eusociality via Boomsma’s monogamy window, enforce legume host sanctions against cheater Rhizobia, and compare vertical vs horizontal symbionts.',
   },
+  {
+    id: 'origins',
+    number: 25,
+    tabLabel: '25',
+    section: 'ORIGINS OF LIFE, SYMBIOSIS & COEVOLUTION',
+    title: 'Origin of Life, Endosymbiosis & Coevolution',
+    subtitle: 'RNA World ribozymes, Margulis endosymbiosis, major transitions, Taricha newt & Darwin’s orchid',
+    organism: 'RNA protocells, mitochondria, chloroplasts, Taricha newt, garter snake & Madagascar orchid',
+    accent: '#4f8699',
+    available: true,
+    actTag: 'Part VIII · Grand Synthesis',
+    summary:
+      'Build catalytic RNA ribozymes inside lipid protocells, trace Lynn Margulis’s serial endosymbiosis of mitochondria and chloroplasts, step through Major Evolutionary Transitions, compare Oregon vs Vancouver newt–snake mosaics, and test Darwin’s 1862 Star Orchid–Hawk Moth arms race.',
+  },
 ];

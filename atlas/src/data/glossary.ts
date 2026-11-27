@@ -1127,4 +1127,28 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Highest tier of sociality (overlapping generations, cooperative brood care, reproductive division of labour) unlocked when strict ancestral monogamy keeps sibling relatedness r = 0.50 alongside ecological fortress defense (Boomsma 2009).',
     relatedChapterId: 'cooperation',
   },
+  rna_world: {
+    id: 'rna_world',
+    term: 'RNA World Hypothesis (Ribozymes)',
+    pronunciation: 'AHR-en-AY WURLD',
+    shortDef:
+      'Origin-of-life stage in which catalytic RNA molecules (ribozymes) served simultaneously as genetic templates and chemical enzymes inside lipid protocells before DNA and proteins specialized.',
+    relatedChapterId: 'origins',
+  },
+  endosymbiosis: {
+    id: 'endosymbiosis',
+    term: 'Serial Endosymbiosis (Margulis 1967)',
+    pronunciation: 'en-doh-sim-by-OH-sis',
+    shortDef:
+      'Origin of eukaryotic organelles via engulfment of free-living bacteria: α-proteobacteria became mitochondria and cyanobacteria became chloroplasts — retaining double membranes, circular DNA & 70S ribosomes.',
+    relatedChapterId: 'origins',
+  },
+  coevolution: {
+    id: 'coevolution',
+    term: 'Coevolution & Geographic Mosaic',
+    pronunciation: 'koh-ev-ə-LOO-shən',
+    shortDef:
+      'Reciprocal evolutionary change between interacting species (such as TTX-defended Taricha newts vs resistant garter snakes, or Darwin’s Star Orchid vs Madagascar hawk moth), varying across spatial hotspots and coldspots.',
+    relatedChapterId: 'origins',
+  },
 };
