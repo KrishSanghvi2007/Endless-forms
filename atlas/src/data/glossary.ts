@@ -185,6 +185,88 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     relatedChapterId: 'social',
   },
 
+  // --- Natural Selection, Quantitative Genetics & Landscapes (Chapter 3: The Lichen Wood & Soot) ---
+  natural_selection: {
+    id: 'natural_selection',
+    term: 'Natural Selection',
+    pronunciation: 'NACH-ər-əl si-LEK-shən',
+    shortDef:
+      'Differential survival and reproduction of individuals due to heritable differences in phenotype—shifting population trait frequencies across generations.',
+    deepNote:
+      'Crucial distinction: selection acts on individuals (who survive or die), yet individuals do not evolve during their lives; populations evolve across generations.',
+    relatedChapterId: 'lichen',
+  },
+  heritability: {
+    id: 'heritability',
+    term: 'Narrow-Sense Heritability (h²)',
+    pronunciation: 'her-i-tə-BIL-i-tee',
+    shortDef:
+      'The fraction of phenotypic variance in a population caused by additive genetic differences (h² = V_A / V_P), equal to the slope of offspring on mid-parent trait value.',
+    deepNote:
+      'h² is a property of a specific population in a specific environment, not a fixed destiny of a trait. If h² = 0, even intense selection produces zero evolutionary response (R = 0).',
+    relatedChapterId: 'lichen',
+  },
+  breeders_equation: {
+    id: 'breeders_equation',
+    term: 'Breeder’s Equation (R = h²S)',
+    pronunciation: 'BREE-dərz i-KWAY-zhən',
+    shortDef:
+      'Predicts the single-generation evolutionary shift in a quantitative trait mean (Response R) as the product of narrow-sense heritability (h²) and the selection differential (S).',
+    deepNote:
+      'S = μ_survivors − μ_population measures selection within one generation; h² determines how much of S is faithfully transmitted to offspring.',
+    relatedChapterId: 'lichen',
+  },
+  industrial_melanism: {
+    id: 'industrial_melanism',
+    term: 'Industrial Melanism',
+    pronunciation: 'in-DUS-tree-əl MEL-ə-niz-əm',
+    shortDef:
+      'The rapid rise of dark-pigmented morphs in soot-darkened industrial habitats—famously documented in the British peppered moth (Biston betularia).',
+    deepNote:
+      'Genomic mapping (Van’t Hof et al. 2016) showed British carbonaria arose from a single transposable-element insertion into the cortex gene around 1819; Majerus’s 6-year study (Cook et al. 2012) confirmed strong selective bird predation.',
+    relatedChapterId: 'lichen',
+  },
+  dominance_asymmetry: {
+    id: 'dominance_asymmetry',
+    term: 'Dominance Asymmetry in Selection',
+    pronunciation: 'DOM-i-nəns ay-SIM-ə-tree',
+    shortDef:
+      'A favoured dominant allele spreads rapidly from rarity because heterozygotes express the trait immediately, whereas a rare recessive allele is sheltered inside heterozygotes (2pq ≫ q²).',
+    deepNote:
+      'This asymmetry explains why dominant carbonaria surged rapidly under 19th-century soot AND plunged quickly once the 1956 Clean Air Act cleaned birch bark, while pale recessive c alleles survived hidden in Cc heterozygotes.',
+    relatedChapterId: 'lichen',
+  },
+  stabilizing_selection: {
+    id: 'stabilizing_selection',
+    term: 'Stabilizing Selection',
+    pronunciation: 'STAY-bi-ly-zing si-LEK-shən',
+    shortDef:
+      'Selection favouring intermediate phenotypes over both extremes, holding the population mean steady while shrinking phenotypic variance (Δσ² < 0).',
+    deepNote:
+      'Classic empirical examples include avian clutch size (Lack’s clutch) and mammalian neonatal birth weight.',
+    relatedChapterId: 'lichen',
+  },
+  disruptive_selection: {
+    id: 'disruptive_selection',
+    term: 'Disruptive (Diversifying) Selection',
+    pronunciation: 'dis-RUP-tiv si-LEK-shən',
+    shortDef:
+      'Selection favouring both phenotypic extremes over intermediate forms, increasing variance (Δσ² > 0) and generating bimodal polymorphism.',
+    deepNote:
+      'Seen in African black-bellied seedcrackers (Pyrenestes ostrinus), where small-beaked and large-beaked birds specialize on soft vs. hard sedge seeds while intermediates forage less efficiently.',
+    relatedChapterId: 'lichen',
+  },
+  fitness_landscape: {
+    id: 'fitness_landscape',
+    term: 'Fitness Landscape (Adaptive Topography)',
+    pronunciation: 'FIT-nis LAND-skayp',
+    shortDef:
+      'Sewall Wright’s (1932) map plotting mean fitness W as elevation over trait or genotype space, showing peaks (optima) separated by maladaptive valleys.',
+    deepNote:
+      'Pure selection is myopic hill-climbing and can trap populations on local peaks. However, environmental change deforms the landscape over time, and high-dimensional genotype spaces often contain neutral ridges (“holey landscapes”, Gavrilets 2004).',
+    relatedChapterId: 'lichen',
+  },
+
   // --- Comparative Anatomy & Evo-Devo (Chapter 11: Same bones, different lives) ---
   homology: {
     id: 'homology',

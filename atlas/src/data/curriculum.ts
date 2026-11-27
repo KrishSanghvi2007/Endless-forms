@@ -40,13 +40,13 @@ export const ATLAS_DIRECTORY: AtlasChapterMeta[] = [
     tabLabel: '3',
     section: 'NATURAL SELECTION',
     title: 'The Lichen Wood & Soot',
-    subtitle: 'Predation, heritability (R = h²S) & industrial melanism',
+    subtitle: 'Predation, R = h²S, industrial melanism & 3D fitness landscapes',
     organism: 'Biston betularia (peppered moth)',
     accent: '#4a6b53',
-    available: false,
-    actTag: 'Act I · Selection (Queued)',
+    available: true,
+    actTag: 'Act I · Natural Selection',
     summary:
-      'Hunt peppered moths on lichen-covered and soot-darkened birch; see selection shift heritable camouflage and watch the dominant carbonaria allele sweep and retreat.',
+      'Forage peppered moths on 3D silver birch bark, test R = h²S counterfactuals, explore dominance asymmetry under soot, and watch myopic climbers on Sewall Wright’s 3D adaptive landscape.',
   },
   {
     id: 'casino',

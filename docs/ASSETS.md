@@ -38,6 +38,16 @@
 
 ---
 
+## Chapter 3: The Lichen Wood & Soot — Natural Selection (`ch03_lichen`)
+
+| Asset | File | Source / Licence | Scientific & Visual Notes |
+|---|---|---|---|
+| 3D Silver Birch Bark & Soot-Blackened Bark Textures + Sculpted Peppered Moths (*Biston betularia*) | `atlas/src/chapters/ch03_lichen/LichenScene3D.ts` | Original procedural Three.js meshes & HTML5 Canvas PBR textures · MIT | Delta resting-posture moths with quantized speckled wing textures, raycastable bark foraging, crimson-haloed Pinned Moth #7, 120-egg overproduction tray, and Gene-Pool Lens allele dots (*cortex* `C`/`c`). |
+| 3D Breeder’s Equation Bar Sculpture & Brass Tilting $h^2$ Regression Beam | `atlas/src/chapters/ch03_lichen/LichenScene3D.ts` | Original procedural Three.js meshes · MIT | Visualizes parent distribution, brass selection cutoff ($S$), offspring response ($R$), and parent–offspring slope ($h^2$). |
+| 3D Trait–Fitness Ribbon Arena & Sewall Wright Contoured Adaptive Landscape | `atlas/src/chapters/ch03_lichen/LichenScene3D.ts` | Original procedural 56×40 topographic Three.js surface · MIT | Real-time vertex-coloured elevation contours with live terrain deformation under Environmental Shift and gradient-climbing population beacons. |
+
+---
+
 ## Chapter 11: Same Bones, Different Lives (`ch01_limbs`)
 
 | Asset | File | Source / Licence | Scientific & Visual Notes |
